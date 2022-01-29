@@ -1,62 +1,62 @@
-﻿Lima,02H/01A,Alto Lindoso
-Lima,03G/01A,Touvedo
-Cávado,03J/03A,Alto Rabagão
-Cávado,04H/01A,Caniçada
-Cávado,03J/01A,Paradela
-Cávado,03I/01A,Salamonde
-Cávado,03J/04A,Venda Nova
-Cávado,03H/01A,Vilarinho das Furnas
-Ave,04I/01A,Guilhofrei
-Douro,06M/01A,Alijó
-Douro,04P/01A,Azibo
-Douro,07M/01A,Ranhados
-Douro,02Q/01A,Serra Serrada
-Douro,07H/01A,Torrão
-Douro,07K/02A,Varosa
-Douro,08L/01A,Vilar - Tabuaço
-Mondego,11H/01A,Aguieira
-Mondego,10M/01A,Caldeirão
-Mondego,10K/01A,Fagilde
-Mondego,12I/01A,Fronhas
-Mondego,11L/03A,Lagoa Comprida
-Mondego,11L/02A,Vale do Rossim
-Guadiana,19O/01A,Abrilongo
-Guadiana,24M/07A,Alqueva
-Guadiana,30L/02A,Beliche
-Guadiana,20O/01A,Caia
-Guadiana,26M/01A,Enxoé
-Guadiana,22M/01A,Lucefecit
-Guadiana,22K/01A,Monte Novo
-Guadiana,30L/01A,Odeleite
-Guadiana,22L/01A,Vigia
-Tejo,17M/01A,Apartadura
-Tejo,14I/01A,Cabril
-Tejo,16H/01A,Castelo de Bode
-Tejo,12L/02A,Cova do Viriato
-Tejo,21J/01A,Divor
-Tejo,14N/01A,Idanha
-Tejo,20E/01A,Magos
-Tejo,19J/01A,Maranhão
-Tejo,12O/01A,Meimoa
-Tejo,22I/01A,Minutos
-Tejo,19H/01A,Montargil
-Tejo,16K/01A,Pracana
-Tejo,17L/01A,Póvoa
-Tejo,14M/01A,Sta Águeda - Marateca
-Oeste,17B/01A,S. Domingos
-Sado,24J/01A,Alvito
-Sado,26F/01A,Campilhas
-Sado,26G/01AE,Fonte Serne
-Sado,27H/02AE,Monte Gato
-Sado,27H/03AE,Monte Migueis
-Sado,27H/01A,Monte da Rocha
-Sado,24I/01A,Odivelas
-Sado,23G/01A,Pego do Altar
-Sado,26I/01A,Roxo
-Sado,24H/01A,Vale do Gaio
-Mira,28G/02A,Corte Brique
-Mira,28G/01A,Santa Clara
-Ribeiras do Algarve,30E/01A,Bravura
-Arade,30G/02A,Arade
-Arade,30G/01A,Funcho
-Arade,30G/11AE,Odelouca
+﻿1551779250,Lima,02H/01A,Alto Lindoso
+1551779250,Lima,03G/01A,Touvedo
+107,Cávado,03J/03A,Alto Rabagão
+107,Cávado,04H/01A,Caniçada
+107,Cávado,03J/01A,Paradela
+107,Cávado,03I/01A,Salamonde
+107,Cávado,03J/04A,Venda Nova
+107,Cávado,03H/01A,Vilarinho das Furnas
+1551779242,Ave,04I/01A,Guilhofrei
+12,Douro,06M/01A,Alijó
+12,Douro,04P/01A,Azibo
+12,Douro,07M/01A,Ranhados
+12,Douro,02Q/01A,Serra Serrada
+12,Douro,07H/01A,Torrão
+12,Douro,07K/02A,Varosa
+12,Douro,08L/01A,Vilar - Tabuaço
+47,Mondego,11H/01A,Aguieira
+47,Mondego,10M/01A,Caldeirão
+47,Mondego,10K/01A,Fagilde
+47,Mondego,12I/01A,Fronhas
+47,Mondego,11L/03A,Lagoa Comprida
+47,Mondego,11L/02A,Vale do Rossim
+23,Guadiana,19O/01A,Abrilongo
+23,Guadiana,24M/07A,Alqueva
+23,Guadiana,30L/02A,Beliche
+23,Guadiana,20O/01A,Caia
+23,Guadiana,26M/01A,Enxoé
+23,Guadiana,22M/01A,Lucefecit
+23,Guadiana,22K/01A,Monte Novo
+23,Guadiana,30L/01A,Odeleite
+23,Guadiana,22L/01A,Vigia
+17,Tejo,17M/01A,Apartadura
+17,Tejo,14I/01A,Cabril
+17,Tejo,16H/01A,Castelo de Bode
+17,Tejo,12L/02A,Cova do Viriato
+17,Tejo,21J/01A,Divor
+17,Tejo,14N/01A,Idanha
+17,Tejo,20E/01A,Magos
+17,Tejo,19J/01A,Maranhão
+17,Tejo,12O/01A,Meimoa
+17,Tejo,22I/01A,Minutos
+17,Tejo,19H/01A,Montargil
+17,Tejo,16K/01A,Pracana
+17,Tejo,17L/01A,Póvoa
+17,Tejo,14M/01A,Sta Águeda - Marateca
+138,Oeste,17B/01A,S. Domingos
+38,Sado,24J/01A,Alvito
+38,Sado,26F/01A,Campilhas
+38,Sado,26G/01AE,Fonte Serne
+38,Sado,27H/02AE,Monte Gato
+38,Sado,27H/03AE,Monte Migueis
+38,Sado,27H/01A,Monte da Rocha
+38,Sado,24I/01A,Odivelas
+38,Sado,23G/01A,Pego do Altar
+38,Sado,26I/01A,Roxo
+38,Sado,24H/01A,Vale do Gaio
+68,Mira,28G/02A,Corte Brique
+68,Mira,28G/01A,Santa Clara
+992,Ribeiras do Algarve,30E/01A,Bravura
+8,Arade,30G/02A,Arade
+8,Arade,30G/01A,Funcho
+8,Arade,30G/11AE,Odelouca
