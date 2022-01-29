@@ -1,11 +1,11 @@
-# Script for populating the database. You can run it as:
-#
-#     mix run priv/repo/seeds.exs
-#
-# Inside the script, you can read and write to any of your
-# repositories directly:
-#
-#     Barragenspt.Repo.insert!(%Barragenspt.SomeSchema{})
-#
-# We recommend using the bang functions (`insert!`, `update!`
-# and so on) as they will fail if something goes wrong.
+"resources/dams.csv"
+|> File.stream!()
+|> NimbleCSV.RFC4180.parse_stream()
+|> Stream.map(fn [basin, code, name] ->
+  Barragenspt.Repo.insert!(%Barragenspt.Hydrometrics.Dam{
+    name: name,
+    code: code,
+    basin: basin
+  })
+end)
+|> Stream.run()
