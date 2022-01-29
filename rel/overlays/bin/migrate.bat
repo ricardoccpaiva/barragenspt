@@ -1,0 +1,1 @@
+call "%~dp0\barragenspt" eval Barragenspt.Release.migrate
