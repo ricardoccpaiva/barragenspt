@@ -32,3 +32,6 @@ barragenspt-*.tar
 npm-debug.log
 /assets/node_modules/
 
+resources/tmp
+
+.DS_STORE
