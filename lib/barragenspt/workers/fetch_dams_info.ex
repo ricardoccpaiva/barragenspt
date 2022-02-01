@@ -77,31 +77,58 @@ defmodule Barragenspt.Workers.FetchDamsInfo do
   end
 
   defp fetch_metadata(csv) do
+    top_level_categories = [
+      "Barragem,",
+      "Identificação,",
+      "Dados Técnicos,",
+      "Orgãos de Descarga,",
+      "Albufeira,",
+      "Bacia Hidrográfica,",
+      "Características do curso de água principal,",
+      "Escoamento anual associado à probabilidade de não excedência (dam3),",
+      "Precipitação anual associada à probabilidade de não excedência (mm),"
+    ]
+
     regex = ~r/^(?'value'[^:]+)(?'comma',)$/
     regex_for_kv = ~r/^(?'title'.+):,(?'value'.+)$/
+    regex_variant_for_kv = ~r/^(?'title'.+),(?'value'.+)$/
 
     csv
     |> String.split("\n")
+    |> Enum.drop(4)
     |> Enum.reduce(%{}, fn line, acc ->
       cond do
-        String.match?(line, regex) ->
+        String.match?(line, regex) && line in top_level_categories ->
           %{"value" => value} = Regex.named_captures(regex, line)
 
-          acc
-          |> Map.put(:current_key, value)
-          |> Map.put(value, %{})
+          set_acc_current_key(acc, value)
 
         String.match?(line, regex_for_kv) ->
           %{"title" => title, "value" => value} = Regex.named_captures(regex_for_kv, line)
 
-          current_values = acc[acc[:current_key]]
-          updated_values = Map.put(current_values, title, value)
-          Map.put(acc, acc[:current_key], updated_values)
+          add_values_to_acc(acc, title, value)
+
+        String.match?(line, regex_variant_for_kv) ->
+          %{"title" => title, "value" => value} = Regex.named_captures(regex_variant_for_kv, line)
+
+          add_values_to_acc(acc, title, value)
 
         true ->
           acc
       end
     end)
     |> Map.drop([:current_key])
+  end
+
+  defp add_values_to_acc(acc, title, value) do
+    current_values = acc[acc[:current_key]]
+    updated_values = Map.put(current_values, title, value)
+    Map.put(acc, acc[:current_key], updated_values)
+  end
+
+  defp set_acc_current_key(acc, value) do
+    acc
+    |> Map.put(:current_key, value)
+    |> Map.put(value, %{})
   end
 end
