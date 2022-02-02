@@ -50,7 +50,8 @@ defmodule Barragenspt.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:nimble_csv, "~> 1.1"},
       {:oban, "~> 2.10"},
-      {:httpoison, "~> 1.8"}
+      {:httpoison, "~> 1.8"},
+      {:floki, "~> 0.32.0"}
     ]
   end
 

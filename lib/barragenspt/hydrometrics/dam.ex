@@ -8,6 +8,7 @@ defmodule Barragenspt.Hydrometrics.Dam do
     field :code, :string
     field :metadata, :map
     field :name, :string
+    field :site_id, :string
 
     timestamps()
   end
@@ -15,7 +16,7 @@ defmodule Barragenspt.Hydrometrics.Dam do
   @doc false
   def changeset(dam, attrs) do
     dam
-    |> cast(attrs, [:code, :name, :basin, :basin_id, :metadata])
-    |> validate_required([:code, :name, :basin, :basin_id, :metadata])
+    |> cast(attrs, [:code, :name, :basin, :basin_id, :metadata, :site_id])
+    |> validate_required([:code, :name, :basin, :basin_id, :metadata, :site_id])
   end
 end
