@@ -17,7 +17,8 @@ defmodule BarragensptWeb.Router do
   scope "/", BarragensptWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    live "/home", HomepageLive
+    live "/home/:id", HomepageLive, :detail
   end
 
   # Other scopes may use custom stacks.

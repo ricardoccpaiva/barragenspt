@@ -29,6 +29,8 @@ defmodule BarragensptWeb do
 
   def view do
     quote do
+      import Phoenix.LiveView.Helpers
+
       use Phoenix.View,
         root: "lib/barragenspt_web/templates",
         namespace: BarragensptWeb

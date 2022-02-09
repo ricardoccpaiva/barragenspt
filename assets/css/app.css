@@ -1,5 +1,11 @@
 /* This file is for your main application CSS */
-@import "./phoenix.css";
+/*@import "./phoenix.css";*/
+@import "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css";
+
+.table td {
+  padding: 5px;
+  font-size: 14px;
+}
 
 /* Alerts and form errors used by phx.new */
 .alert {

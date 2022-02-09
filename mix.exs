@@ -51,7 +51,8 @@ defmodule Barragenspt.MixProject do
       {:nimble_csv, "~> 1.1"},
       {:oban, "~> 2.10"},
       {:httpoison, "~> 1.8"},
-      {:floki, "~> 0.32.0"}
+      {:floki, "~> 0.32.0"},
+      {:geocalc, "~> 0.8"}
     ]
   end
 

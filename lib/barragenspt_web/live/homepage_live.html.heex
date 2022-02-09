@@ -1,0 +1,115 @@
+<div class="columns">
+  <div class="column">
+    <div class="box" style="padding: 6px">
+      <div id='map' style='height: 800px;' phx-update="ignore"></div>  
+    </div>    
+  </div>
+  <div class="column">
+    <div class="card" style="height: 810px">    
+      <div class="card-content">
+        <div style="">
+          <table class="table">
+            <thead>
+              <tr>                
+                <th>Bacia</th>
+                <th>% Atual</th>      
+                <th>% Média</th>
+                <th>Data de atualização</th>
+                <th>Detalhe</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= for %{basin: basin, pct: pct, pct_2: pct_2, color: _color, capacity_color: capacity_color} <- @basins do %>    
+                <tr>
+                  
+                  <td style="padding-right: 30px"><%= basin %></td>
+                  <td><span class="tag is-light" style={"background-color:#{capacity_color}"}><%= pct %>%</span></td>
+                  <td><span class="tag is-info is-light"><%= pct_2 %>%</span></td>
+                  <td><span>28-1-2022</span></td>
+                  <td><i class="fa fa-external-link" aria-hidden="true"></i></td>
+                  <!--<td>
+                    <label class="checkbox">
+                      <input type="checkbox">
+                    </label>
+                  </td>-->
+                  <!--<td><progress style="width: 150px" class={"progress is-small #{capacity_color}"} value={"#{pct}"} max="100"></progress></td>-->
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        <div class="chart-container" style="max-height: 275px; margin-top: 30px;">
+          <canvas id="myChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const labels = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+  ];
+
+  const data = {
+    labels: labels,
+    datasets: [
+    {      
+      backgroundColor: 'rgb(255, 186, 3)',
+      borderColor: 'rgb(255, 186, 3)',
+      data: [20, 30, 45, 0, 10, 5, 2],
+    },
+    {      
+      backgroundColor: 'rgb(255, 99, 132)',
+      borderColor: 'rgb(255, 99, 132)',
+      data: [0, 10, 5, 2, 20, 30, 45],
+    }]
+  };
+
+  const config = {
+    type: 'line',
+    data: data,
+    options: {
+      maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      display: false
+    }
+  }
+}
+  };
+</script>
+<script>
+  const myChart = new Chart(
+    document.getElementById('myChart'),
+    config
+  );
+</script>
+<script>
+  mapboxgl.accessToken = '';
+  const map = new mapboxgl.Map({
+    container: 'map', // container ID
+    style: 'mapbox://styles/ricardoccpaiva/ckzcpwm4h001114mn112tg6fr', // style URL
+    center: [-8.10, 39.69], // starting position
+    zoom: 6, // starting zoom,
+  });
+
+  <%= for %{lat: lat, lon: lon, id: id, basin_color: basin_color, capacity_color: capacity_color} <- @coords do %>    
+    el = document.createElement('div');            
+    
+    innerHTML = "<a style=\"color: <%= basin_color %>\"";
+    innerHTML = innerHTML + " class=\"fa fa-map-marker fa-2x\" data-phx-link=\"patch\"";
+    innerHTML = innerHTML + " data-phx-link-state=\"push\" href=\"/home?id=<%= id %>\"></a>";
+
+    el.innerHTML = innerHTML;
+
+    new mapboxgl.Marker(el)
+      .setLngLat(["<%= lon %>", "<%= lat %>"])
+      .addTo(map);
+  <% end %>
+  map.addControl(new mapboxgl.NavigationControl());
+</script>
