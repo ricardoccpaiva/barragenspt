@@ -2,6 +2,14 @@
 /*@import "./phoenix.css";*/
 @import "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css";
 
+.navbar_bck{
+  background-color: #fcfcfc;
+}
+
+body{
+  background-color: #fcfcfc;
+}
+
 .table td {
   padding: 5px;
   font-size: 14px;
