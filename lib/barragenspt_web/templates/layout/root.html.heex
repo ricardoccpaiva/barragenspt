@@ -15,46 +15,72 @@
       <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body style="background-color: #fcfcfc">
+<body>
+<div class="container" style="margin-top: 10px;">
+  <div class="is-primary">
+    <nav class="navbar navbar_bck" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand navbar_bck">
+        <a class="navbar-item" href="https://bulma.io">
+          <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28">
+        </a>
+        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+      </div>
+      <div id="navbarBasicExample" class="navbar-menu">
+        <div class="navbar-start">
+          <a class="navbar-item" href="/">Home</a>
+        </div>
+      </div>
+    </nav>
+  </div>
+</div>
 <div class="container" style="margin-top: 10px">
   <div class="is-primary">
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-  <div class="navbar-brand">
-    <a class="navbar-item" href="https://bulma.io">
-      <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28">
-    </a>
-
-    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-    </a>
-  </div>
-
-  <div id="navbarBasicExample" class="navbar-menu">
-    <div class="navbar-start">
-      <a class="navbar-item">
-        Home
-      </a>
-
-      <a class="navbar-item">
-        Documentation
-      </a>
+    <div class="columns">
+      <div class="column">
+        <div class="box" style="padding: 6px">
+          <div id='map' style='height: 800px;' phx-update="ignore" phx-hook="PhoneNumber"></div>                  
+        </div>    
+      </div>
+      <div class="column">
+      <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")}/> 
+        <%= @inner_content %>
+      </div>
     </div>
   </div>
-</nav>
-  </div>
 </div>
-<div class="container" style="margin-top: 10px">
-  <div class="is-primary">
-    <%= @inner_content %>
-  </div>
-</div>
-
-      
-
-
- 
 </body>
+<script>
+  const loadDams = async () => {
+    const response = await fetch('/dam_coords');
+    const damsCoords = await response.json();
+    damsCoords.data.forEach(function(element){
+      el = document.createElement('div');                
+      innerHTML = "<a style='color:  " + element.basin_color + "'";
+      innerHTML = innerHTML + " class='fa fa-map-marker fa-2x' data-phx-link='patch'";
+      innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.id + "'</a>";
+      el.innerHTML = innerHTML;
 
+      new mapboxgl
+        .Marker(el)
+        .setLngLat([element.lon, element.lat])
+        .addTo(map);
+      });
+    }
+  
+  mapboxgl.accessToken = document.getElementById("mapbox_token").value;
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/ricardoccpaiva/ckzcpwm4h001114mn112tg6fr',
+    center: [-8, 39.69],
+    zoom: 6
+  });
+
+  loadDams();
+  
+  map.addControl(new mapboxgl.NavigationControl());
+</script>
 </html>
