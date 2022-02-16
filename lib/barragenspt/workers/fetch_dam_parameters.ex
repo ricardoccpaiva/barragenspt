@@ -73,7 +73,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
 
     site_id
     |> get_raw_csv(parameter_id)
-    |> write_to_file(site_id, job_id)
+    |> write_to_file()
     |> File.stream!()
     |> NimbleCSV.RFC4180.parse_stream()
     |> Stream.drop(4)
@@ -115,12 +115,13 @@ defmodule Barragenspt.Workers.FetchDamParameters do
     body
   end
 
-  defp write_to_file(body, site_id, job_id) do
-    filename = "resources/tmp/job_#{job_id}/#{site_id}.csv"
+  defp write_to_file(body) do
+    {:ok, path} = Briefly.create(directory: true)
 
-    :ok = File.write!(filename, body)
+    file_path = Path.join(path, "#{UUID.uuid4()}.csv")
+    :ok = File.write!(file_path, body)
 
-    filename
+    file_path
   end
 
   def to_params_string(kv_list) do

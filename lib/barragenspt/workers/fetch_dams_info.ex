@@ -4,9 +4,6 @@ defmodule Barragenspt.Workers.FetchDamsInfo do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"id" => id} = _args}) do
-    File.mkdir("resources/tmp")
-    File.mkdir("resources/tmp/job_#{id}")
-
     "resources/dams.csv"
     |> File.stream!()
     |> NimbleCSV.RFC4180.parse_stream()
@@ -14,7 +11,7 @@ defmodule Barragenspt.Workers.FetchDamsInfo do
       code
       |> get_http_session_cookie()
       |> fetch_xls_payload()
-      |> write_to_file(code, id)
+      |> write_to_file()
       |> convert_to_csv()
       |> fetch_metadata()
       |> insert_dam(name, code, basin_id, basin)
@@ -23,8 +20,6 @@ defmodule Barragenspt.Workers.FetchDamsInfo do
       :timer.sleep(250)
     end)
     |> Stream.run()
-
-    File.rm_rf!("resources/tmp/job_#{id}")
 
     :ok
   end
@@ -62,16 +57,17 @@ defmodule Barragenspt.Workers.FetchDamsInfo do
     body
   end
 
-  defp write_to_file(body, dam_code, job_id) do
-    filename = "resources/tmp/job_#{job_id}/#{String.replace(dam_code, "/", "_")}"
+  defp write_to_file(body) do
+    {:ok, path} = Briefly.create(directory: true)
 
-    :ok = File.write!("#{filename}.xls", body)
+    file_path = Path.join(path, "#{UUID.uuid4()}.xls")
+    :ok = File.write!(file_path, body)
 
-    filename
+    file_path
   end
 
   defp convert_to_csv(filename) do
-    {csv, 0} = System.cmd("in2csv", ["#{filename}.xls"])
+    {csv, 0} = System.cmd("in2csv", ["#{filename}"])
 
     csv
   end

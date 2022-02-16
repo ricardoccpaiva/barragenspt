@@ -52,7 +52,9 @@ defmodule Barragenspt.MixProject do
       {:oban, "~> 2.10"},
       {:httpoison, "~> 1.8"},
       {:floki, "~> 0.32.0"},
-      {:geocalc, "~> 0.8"}
+      {:geocalc, "~> 0.8"},
+      {:briefly, "~> 0.3"},
+      {:uuid, "~> 1.1"}
     ]
   end
 
