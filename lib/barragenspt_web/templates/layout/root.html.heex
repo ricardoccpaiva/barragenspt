@@ -12,7 +12,7 @@
       <script src='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js'></script>
       <link href='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css' rel='stylesheet' />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="https://gw.alipayobjects.com/os/lib/antv/g2/4.1.45/dist/g2.min.js"></script>
 </head>
 
 <body>
@@ -47,40 +47,10 @@
       </div>
       <div class="column">
       <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")}/> 
-        <%= @inner_content %>
+      <%= @inner_content %>        
       </div>
     </div>
   </div>
 </div>
 </body>
-<script>
-  const loadDams = async () => {
-    const response = await fetch('/dam_coords');
-    const damsCoords = await response.json();
-    damsCoords.data.forEach(function(element){
-      el = document.createElement('div');                
-      innerHTML = "<a style='color:  " + element.basin_color + "'";
-      innerHTML = innerHTML + " class='fa fa-map-marker fa-2x' data-phx-link='patch'";
-      innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.id + "'</a>";
-      el.innerHTML = innerHTML;
-
-      new mapboxgl
-        .Marker(el)
-        .setLngLat([element.lon, element.lat])
-        .addTo(map);
-      });
-    }
-  
-  mapboxgl.accessToken = document.getElementById("mapbox_token").value;
-  const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/ricardoccpaiva/ckzcpwm4h001114mn112tg6fr',
-    center: [-8, 39.69],
-    zoom: 6
-  });
-
-  loadDams();
-  
-  map.addControl(new mapboxgl.NavigationControl());
-</script>
 </html>

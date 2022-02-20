@@ -35,53 +35,6 @@
         </tbody>
       </table>
     </div>
-    <div class="chart-container" style="max-height: 250px; margin-top: 30px;">
-      <canvas id="myChart"></canvas>
-    </div>
+    <div id="c1" phx-update="ignore"></div>
   </div>
 </div>
-
-<script>
-  const labels = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-  ];
-
-  const data = {
-    labels: labels,
-    datasets: [
-    {      
-      backgroundColor: 'rgb(255, 186, 3)',
-      borderColor: 'rgb(255, 186, 3)',
-      data: [20, 30, 45, 0, 10, 5, 2],
-    },
-    {      
-      backgroundColor: 'rgb(255, 99, 132)',
-      borderColor: 'rgb(255, 99, 132)',
-      data: [0, 10, 5, 2, 20, 30, 45],
-    }]
-  };
-
-  const config = {
-    type: 'line',
-    data: data,
-    options: {
-      maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false
-    }
-  }
-}
-  };
-</script>
-<script>
-  const myChart = new Chart(
-    document.getElementById('myChart'),
-    config
-  );
-</script>
