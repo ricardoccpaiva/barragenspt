@@ -54,7 +54,8 @@ defmodule Barragenspt.MixProject do
       {:floki, "~> 0.32.0"},
       {:geocalc, "~> 0.8"},
       {:briefly, "~> 0.3"},
-      {:uuid, "~> 1.1"}
+      {:uuid, "~> 1.1"},
+      {:timex, "~> 3.0"}
     ]
   end
 
