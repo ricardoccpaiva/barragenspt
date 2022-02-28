@@ -65,9 +65,6 @@ defmodule Barragenspt.Workers.FetchDamParameters do
           } = _args
       }) do
     :timer.sleep(4000)
-    File.rm_rf("resources/tmp/job_#{job_id}")
-    File.mkdir("resources/tmp")
-    File.mkdir("resources/tmp/job_#{job_id}")
 
     site_id
     |> get_raw_csv(parameter_id, start_year, end_year)
@@ -93,8 +90,6 @@ defmodule Barragenspt.Workers.FetchDamParameters do
       |> save_rows()
     end)
     |> Stream.run()
-
-    File.rm_rf!("resources/tmp/job_#{job_id}")
 
     :ok
   end
