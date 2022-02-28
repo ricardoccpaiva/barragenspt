@@ -19,10 +19,10 @@
           </tr>
         </thead>
         <tbody>
-          <%= for %{id: id, basin: basin, pct: pct, pct_2: pct_2, color: _color, capacity_color: capacity_color} <- @basins do %>    
+          <%= for %{id: id, name: name, current_storage: current_storage, pct_2: pct_2, color: _color, capacity_color: capacity_color} <- @basins do %>    
             <tr>              
-              <td style="padding-right: 30px"><%= basin %></td>
-              <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}><%= pct %>%</span></td>
+              <td style="padding-right: 30px"><%= name %></td>
+              <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}><%= current_storage %>%</span></td>
               <td class="has-text-centered"><span class="tag is-info is-light"><%= pct_2 %>%</span></td>
               <td class="has-text-centered"><span>28-1-2022</span></td>
               <td class="has-text-centered">
