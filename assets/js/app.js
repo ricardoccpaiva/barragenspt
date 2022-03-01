@@ -119,7 +119,7 @@ window.addEventListener(`phx:update_chart`, (e) => {
 
 window.addEventListener('phx:zoom_map', (e) => {
     if (e.detail.bounding_box) {
-        map.fitBounds(e.detail.bounding_box);
+        map.fitBounds(e.detail.bounding_box, { maxZoom: 10 });
     }
     else if (e.detail.center) {
         map.flyTo({
