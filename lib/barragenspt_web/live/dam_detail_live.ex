@@ -19,15 +19,12 @@ defmodule BarragensptWeb.DamDetailLive do
     new_meta = Map.take(dam.metadata, allowed_keys)
     dam = Map.put(dam, :metadata, new_meta)
 
-    result =
+    socket =
       socket
       |> assign(dam: dam)
       |> push_event("update_chart", %{data: data, lines: lines})
+      |> push_event("enable_tabs", %{})
 
-    {:noreply, result}
-  end
-
-  def handle_params(_params, _url, socket) do
     {:noreply, socket}
   end
 end

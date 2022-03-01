@@ -43,6 +43,10 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
+window.addEventListener(`phx:enable_tabs`, (e) => {
+    enableTabs();
+})
+
 window.addEventListener(`phx:update_chart`, (e) => {
     document.getElementById("c1").innerHTML = "";
 
@@ -111,7 +115,6 @@ window.addEventListener(`phx:update_chart`, (e) => {
 
     chart.axis(e.detail.lines[0].k, true);
     chart.render();
-    enableTabs();
 })
 
 const enableTabs = () => {
