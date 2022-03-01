@@ -39,6 +39,11 @@ defmodule BarragensptWeb.HomepageLive do
         %{k: basin, v: Colors.lookup(id)}
       end)
 
-    {:noreply, push_event(socket, "update_chart", %{data: data_to_feed, lines: lines})}
+    socket =
+      socket
+      |> push_event("update_chart", %{data: data_to_feed, lines: lines})
+      |> push_event("zoom_map", %{})
+
+    {:noreply, socket}
   end
 end

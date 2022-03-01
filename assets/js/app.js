@@ -117,6 +117,28 @@ window.addEventListener(`phx:update_chart`, (e) => {
     chart.render();
 })
 
+window.addEventListener('phx:zoom_map', (e) => {
+    if (e.detail.bounding_box) {
+        map.fitBounds(e.detail.bounding_box);
+    }
+    else if (e.detail.center) {
+        map.flyTo({
+            center: e.detail.center,
+            essential: true,
+            zoom: 12,
+            speed: 2
+        });
+    }
+    else {
+        map.flyTo({
+            center: [-8, 39.69],
+            essential: true,
+            zoom: 6,
+            speed: 2
+        });
+    }
+})
+
 const enableTabs = () => {
     let tabs = document.querySelectorAll('.tabs li');
     let tabsContent = document.querySelectorAll('.tab-content');
