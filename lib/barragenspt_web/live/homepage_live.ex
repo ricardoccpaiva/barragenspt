@@ -13,7 +13,7 @@ defmodule BarragensptWeb.HomepageLive do
       query
       |> Barragenspt.Repo.all()
       |> Enum.map(fn %{current_storage: current_storage} = basin ->
-        rounded_storage = current_storage |> Decimal.round(2) |> Decimal.to_float()
+        rounded_storage = current_storage |> Decimal.round(1) |> Decimal.to_float()
 
         Map.replace(
           basin,

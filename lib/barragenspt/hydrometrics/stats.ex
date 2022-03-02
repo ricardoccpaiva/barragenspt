@@ -30,7 +30,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
     query
     |> Barragenspt.Repo.all()
     |> Enum.map(fn {value, date} ->
-      rounded_value = value |> Decimal.round(2) |> Decimal.to_float()
+      rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
       %{ts: ts, dt: dt} = parse_date(date)
 
       %{value: rounded_value, timestamp: ts, date: dt}
@@ -72,7 +72,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
     query
     |> Barragenspt.Repo.all()
     |> Enum.map(fn {basin_id, value, date} ->
-      rounded_value = value |> Decimal.round(2) |> Decimal.to_float()
+      rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
 
       %{ts: ts, dt: dt} = parse_date(date)
 
@@ -116,7 +116,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
     query
     |> Barragenspt.Repo.all()
     |> Enum.map(fn {value, date} ->
-      rounded_value = value |> Decimal.round(2) |> Decimal.to_float()
+      rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
       %{ts: ts, dt: dt} = parse_date(date)
 
       %{value: rounded_value, timestamp: ts, date: dt}
