@@ -136,7 +136,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
             dp.site_id == ^to_string(id),
         select: {
           fragment(
-            "cast(value / (SELECT (metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int from dam d where site_id = ?) * 100 as int)",
+            "value / (SELECT (metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int from dam d where site_id = ?) * 100",
             ^id
           )
         },

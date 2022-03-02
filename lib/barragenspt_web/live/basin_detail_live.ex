@@ -36,8 +36,12 @@ defmodule BarragensptWeb.BasinDetailLive do
   defp enrich_dams(dams) do
     dams
     |> Enum.map(fn dam ->
-      {pct} = Stats.current_level_for_dam(dam.site_id)
-      Map.put(dam, :pct, pct)
+      dam.site_id
+      |> Stats.current_level_for_dam()
+      |> then(fn {value} -> value end)
+      |> Decimal.round(1)
+      |> Decimal.to_float()
+      |> then(fn value -> Map.put(dam, :pct, value) end)
     end)
     |> Enum.map(fn dam ->
       {pct} = Stats.historical_level_for_dam(dam.site_id)
