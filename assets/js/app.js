@@ -181,7 +181,7 @@ const loadDams = async () => {
         el = document.createElement('div');
         innerHTML = "<a style='color:  " + element.basin_color + "'";
         innerHTML = innerHTML + " class='fa fa-map-marker fa-2x' data-phx-link='patch'";
-        innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.id + "'</a>";
+        innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.id + "?nz=1" + "'</a>";
         el.innerHTML = innerHTML;
 
         new mapboxgl
