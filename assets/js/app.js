@@ -58,57 +58,11 @@ window.addEventListener(`phx:update_chart`, (e) => {
     });
     chart.data(e.detail.data);
 
-    chart.scale({
-        "Arade": {
-            min: 0,
-            max: 100
-        },
-        "Ave": {
-            min: 0,
-            max: 100
-        },
-        "Cávado": {
-            min: 0,
-            max: 100
-        },
-        "Douro": {
-            min: 0,
-            max: 100
-        },
-        "Guadiana": {
-            min: 0,
-            max: 100
-        },
-        "Lima": {
-            min: 0,
-            max: 100
-        },
-        "Mira": {
-            min: 0,
-            max: 100
-        },
-        "Mondego": {
-            min: 0,
-            max: 100
-        },
-        "Oeste": {
-            min: 0,
-            max: 100
-        },
-        "Ribeiras do Algarve": {
-            min: 0,
-            max: 100
-        },
-        "Sado": {
-            min: 0,
-            max: 100
-        },
-        "Tejo": {
-            min: 0,
-            max: 100
-        }
-    });
     e.detail.lines.forEach(function (item) {
+        chart.scale(item.k, {
+            min: 0,
+            max: 100
+        });
         chart.axis(item.k, false);
         chart.line().position("date*" + item.k).color(item.v);
     });
