@@ -12,7 +12,7 @@ defmodule BarragensptWeb.DamView do
 
   def render("dam.json", %{dam: dam}) do
     %{
-      id: dam.id,
+      id: dam.basin_id,
       lat: dam.lat,
       lon: dam.lon,
       basin_color: dam.basin_color,
