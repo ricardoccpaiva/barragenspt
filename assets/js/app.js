@@ -49,26 +49,32 @@ window.addEventListener(`phx:enable_tabs`, (e) => {
 
 window.addEventListener(`phx:update_chart`, (e) => {
     document.getElementById("c1").innerHTML = "";
-
     const chart = new G2.Chart({
         container: 'c1',
         autoFit: true,
         height: 300,
         padding: [30, 20, 70, 30]
     });
+
     chart.data(e.detail.data);
 
-    e.detail.lines.forEach(function (item) {
-        chart.scale(item.k, {
-            min: 0,
-            max: 100
-        });
-        chart.axis(item.k, false);
-        chart.line().position("date*" + item.k).color(item.v);
+    chart.scale({ value: { min: 0, max: 100 } });
+
+    items = e.detail.lines.map(function (item) {
+        return item.v;
     });
 
-    chart.axis(e.detail.lines[0].k, true);
+    chart
+        .line()
+        .position('date*value')
+        .color('basin', items)
+        .shape('smooth');
+
     chart.render();
+
+    colors = chart.geometries[0].elements.map(function (item) {
+        return { color: item.model.color, id: item.model.data[0].basin_id }
+    });
 })
 
 window.addEventListener('phx:zoom_map', (e) => {

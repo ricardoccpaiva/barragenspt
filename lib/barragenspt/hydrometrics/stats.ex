@@ -43,22 +43,24 @@ defmodule Barragenspt.Hydrometrics.Stats do
   end
 
   def for_basins() do
-    all_basins = Basins.all()
-
     query =
       from(dp in Barragenspt.Hydrometrics.DataPoint,
+        join: b in Barragenspt.Hydrometrics.Basin,
+        on: dp.basin_id == b.id,
         where:
           dp.param_name == "volume_last_day_month" and
             dp.colected_at >= ^query_limit_all_basins(),
         group_by: [
           :basin_id,
+          b.name,
           fragment("extract(month from ?)", dp.colected_at),
           fragment("extract(year from ?)", dp.colected_at)
         ],
         select: {
           dp.basin_id,
+          b.name,
           fragment(
-            "(sum(value) / (SELECT sum((metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int) from dam d where basin_id = cast(? as int))) * 100",
+            "(sum(value) / (SELECT sum((metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int) from dam d where basin_id = ?)) * 100",
             dp.basin_id
           ),
           fragment(
@@ -71,21 +73,15 @@ defmodule Barragenspt.Hydrometrics.Stats do
 
     query
     |> Barragenspt.Repo.all()
-    |> Enum.map(fn {basin_id, value, date} ->
+    |> Enum.map(fn {basin_id, basin_name, value, date} ->
       rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
 
       %{ts: ts, dt: dt} = parse_date(date)
 
-      %{basin_id: basin_id, value: rounded_value, timestamp: ts, date: dt}
+      %{basin_id: basin_id, value: rounded_value, timestamp: ts, date: dt, basin: basin_name}
     end)
-    |> Enum.reduce([], fn %{basin_id: basin_id, value: value, timestamp: ts, date: dt}, acc ->
-      {bid, ""} = Integer.parse(basin_id)
-      %{basin: basin} = Enum.find(all_basins, fn b -> b[:id] == bid end)
-
-      build_map(basin, acc, dt, ts, value)
-    end)
-    |> Enum.sort(&(Map.get(&1, "ts") < Map.get(&2, "ts")))
-    |> Enum.map(fn m -> Map.drop(m, ["ts"]) end)
+    |> Enum.sort(&(&1.timestamp < &2.timestamp))
+    |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
   end
 
   def for_site(id) do
