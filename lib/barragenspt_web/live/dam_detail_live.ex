@@ -6,7 +6,7 @@ defmodule BarragensptWeb.DamDetailLive do
 
   def handle_params(%{"id" => id} = params, _url, socket) do
     dam = Barragenspt.Repo.one(from(p in Barragenspt.Hydrometrics.Dam, where: p.site_id == ^id))
-    data = Stats.for_site(id)
+    data = Stats.for_site(dam)
     lines = [%{k: id, v: "grey"}]
 
     allowed_keys = [
