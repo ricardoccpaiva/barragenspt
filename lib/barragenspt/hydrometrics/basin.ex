@@ -13,4 +13,10 @@ defmodule Barragenspt.Hydrometrics.Basin do
 
     Barragenspt.Repo.one(query)
   end
+
+  def all do
+    query = from(b in Barragenspt.Hydrometrics.Basin)
+
+    Barragenspt.Repo.all(query)
+  end
 end

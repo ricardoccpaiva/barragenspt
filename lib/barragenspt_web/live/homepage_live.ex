@@ -4,7 +4,7 @@ defmodule BarragensptWeb.HomepageLive do
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Hydrometrics.Stats
   alias Barragenspt.Hydrometrics.BasinStorage
-  alias Barragenspt.Hydrometrics.Basins
+  alias Barragenspt.Hydrometrics.Basin
 
   def mount(_params, _session, socket) do
     query = from(p in BasinStorage)
@@ -31,12 +31,12 @@ defmodule BarragensptWeb.HomepageLive do
   end
 
   def handle_params(_params, _url, socket) do
-    all_basins = Basins.all()
+    all_basins = Basin.all()
     data_to_feed = Stats.for_basins()
 
     lines =
-      Enum.map(all_basins, fn %{id: id, basin: basin} ->
-        %{k: basin, v: Colors.lookup(id)}
+      Enum.map(all_basins, fn %{id: id, name: basin_name} ->
+        %{k: basin_name, v: Colors.lookup(id)}
       end)
 
     socket =
