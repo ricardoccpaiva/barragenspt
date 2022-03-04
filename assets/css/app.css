@@ -2,6 +2,10 @@
 /*@import "./phoenix.css";*/
 @import "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css";
 
+.navbar-item img {
+  max-height: 42px;
+}
+
 #tabs-with-content .tabs:not(:last-child) {
   margin-bottom: 0;
 }

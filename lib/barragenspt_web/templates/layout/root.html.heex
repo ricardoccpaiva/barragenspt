@@ -16,28 +16,16 @@
 </head>
 
 <body>
-<div class="container" style="margin-top: 10px;">
+<div class="container">
   <div class="is-primary">
     <nav class="navbar navbar_bck" role="navigation" aria-label="main navigation">
-      <div class="navbar-brand navbar_bck">
-        <a class="navbar-item" href="https://bulma.io">
-          <img src="https://bulma.io/images/bulma-logo.png" width="112" height="28">
+    <a class="navbar-item" href="/">
+          <img src={Routes.static_path(BarragensptWeb.Endpoint, "/images/logo.png")} height="48px">
         </a>
-        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-        </a>
-      </div>
-      <div id="navbarBasicExample" class="navbar-menu">
-        <div class="navbar-start">
-          <a class="navbar-item" href="/">Home</a>
-        </div>
-      </div>
     </nav>
   </div>
 </div>
-<div class="container" style="margin-top: 10px">
+<div class="container">
   <div class="is-primary">
     <div class="columns">
       <div class="column">
@@ -51,6 +39,10 @@
       </div>
     </div>
   </div>
+</div>
+<div class="has-text-centered is-size-7">
+  <br/>
+  <a href="https://www.flaticon.com/free-icons/dam" title="dam icons">Icon created by Freepik - Flaticon</a>
 </div>
 </body>
 </html>
