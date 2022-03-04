@@ -1,20 +1,12 @@
 <div class="card" style="height: 810px">
-  <header class="card-header">
-    <p class="card-header-title">
-      Bacias
-    </p>
-    <button class="card-header-icon" aria-label="more options">      
-    </button>
-  </header>
   <div class="card-content">
     <div style="">
-      <table class="table">
+      <table class="table is-fullwidth">
         <thead>
           <tr>                
             <th>Bacia</th>
             <th>% Atual</th>      
-            <th>% Média</th>
-            <th>Data de atualização</th>
+            <th>% Média</th>            
             <th>Detalhe</th>
           </tr>
         </thead>
@@ -23,13 +15,12 @@
             <tr>              
               <td style="padding-right: 30px"><%= name %></td>
               <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}><%= current_storage %>%</span></td>
-              <td class="has-text-centered"><span class="tag is-info is-light"><%= pct_2 %>%</span></td>
-              <td class="has-text-centered"><span>28-1-2022</span></td>
+              <td class="has-text-centered"><span class="tag is-info is-light"><%= pct_2 %>%</span></td>              
               <td class="has-text-centered">
                 <%= live_patch to: Routes.basin_detail_path(@socket, :detail, id), replace: false do %>
                   <i class="fa fa-info" aria-hidden="true"></i>
                 <% end %>
-              </td>              
+              </td>
             </tr>
           <% end %>
         </tbody>
