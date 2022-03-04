@@ -1,5 +1,12 @@
 defmodule Barragenspt.Hydrometrics.Basins do
   import Ecto.Query
+  use Ecto.Schema
+
+  @primary_key false
+  schema "basins" do
+    field :id, :string
+    field :name, :string
+  end
 
   def all() do
     query =

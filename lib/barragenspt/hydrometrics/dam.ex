@@ -4,7 +4,7 @@ defmodule Barragenspt.Hydrometrics.Dam do
 
   schema "dam" do
     field :basin, :string
-    field :basin_id, :integer
+    field :basin_id, :string
     field :code, :string
     field :metadata, :map
     field :name, :string
