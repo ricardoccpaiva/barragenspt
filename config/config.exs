@@ -50,7 +50,7 @@ config :phoenix, :json_library, Jason
 config :barragenspt, Oban,
   repo: Barragenspt.Repo,
   plugins: [Oban.Plugins.Pruner],
-  queues: [dams_info: 10, dam_levels: 10]
+  queues: [dams_info: 5, dam_levels: 10]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
