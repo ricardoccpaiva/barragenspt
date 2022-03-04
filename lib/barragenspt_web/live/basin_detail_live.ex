@@ -2,19 +2,18 @@ defmodule BarragensptWeb.BasinDetailLive do
   use BarragensptWeb, :live_view
   import Ecto.Query
   alias Barragenspt.Mappers.Colors
-  alias Barragenspt.Hydrometrics.Basins
+  alias Barragenspt.Hydrometrics.Basin
   alias Barragenspt.Hydrometrics.Stats
   alias Barragenspt.Geo.Coordinates
 
   def handle_params(%{"id" => id}, _url, socket) do
-    {parsed_id, ""} = Integer.parse(id)
-    %{basin: basin_name} = basin = Basins.get(parsed_id)
+    %{name: basin_name} = basin = Basin.get(id)
 
     data = Stats.for_basin(basin)
 
     lines = [%{k: basin_name, v: Colors.lookup(id)}]
 
-    query = from p in Barragenspt.Hydrometrics.Dam, where: p.basin_id == ^String.to_integer(id)
+    query = from p in Barragenspt.Hydrometrics.Dam, where: p.basin_id == ^id
 
     dams = Barragenspt.Repo.all(query)
 
@@ -26,7 +25,7 @@ defmodule BarragensptWeb.BasinDetailLive do
 
     socket =
       socket
-      |> assign(dams: enrich_dams(dams), basin: basin.basin)
+      |> assign(dams: enrich_dams(dams), basin: basin.name)
       |> push_event("update_chart", %{data: data, lines: lines})
       |> push_event("zoom_map", %{bounding_box: bounding_box_for_basin})
 

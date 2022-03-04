@@ -1,13 +1,12 @@
 defmodule Barragenspt.Hydrometrics.Stats do
   import Ecto.Query
-  alias Barragenspt.Hydrometrics.Basins
 
-  def for_basin(%{id: id, basin: basin}) do
+  def for_basin(%{id: basin_id, name: basin_name}) do
     query =
       from(dp in Barragenspt.Hydrometrics.DataPoint,
         where:
           dp.param_name == "volume_last_day_month" and
-            dp.basin_id == ^to_string(id) and
+            dp.basin_id == ^basin_id and
             dp.colected_at >= ^query_limit(),
         group_by: [
           :basin_id,
@@ -17,7 +16,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
         select: {
           fragment(
             "sum(value) / (SELECT sum((metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int) from dam d where basin_id = ?) * 100",
-            ^id
+            ^basin_id
           ),
           fragment(
             "'01-' || extract(month from ?) || '-' || extract(year from ?) as dt",
@@ -31,15 +30,13 @@ defmodule Barragenspt.Hydrometrics.Stats do
     |> Barragenspt.Repo.all()
     |> Enum.map(fn {value, date} ->
       rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
+
       %{ts: ts, dt: dt} = parse_date(date)
 
-      %{value: rounded_value, timestamp: ts, date: dt}
+      %{basin_id: basin_id, value: rounded_value, timestamp: ts, date: dt, basin: basin_name}
     end)
-    |> Enum.reduce([], fn %{value: value, timestamp: ts, date: dt}, acc ->
-      build_map(basin, acc, dt, ts, value)
-    end)
-    |> Enum.sort(&(Map.get(&1, "ts") < Map.get(&2, "ts")))
-    |> Enum.map(fn m -> Map.drop(m, ["ts"]) end)
+    |> Enum.sort(&(&1.timestamp < &2.timestamp))
+    |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
   end
 
   def for_basins() do
