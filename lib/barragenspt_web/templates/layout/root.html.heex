@@ -29,9 +29,17 @@
   <div class="is-primary">
     <div class="columns">
       <div class="column">
-        <div class="box" style="padding: 6px">
-          <div id='map' style='height: 800px;' phx-update="ignore" phx-hook="PhoneNumber"></div>                  
-        </div>    
+        <div class="box" style="padding: 6px; margin-bottom: 10px;">
+          <div id='map' style='height: 760px;' phx-update="ignore" phx-hook="PhoneNumber"></div>                  
+        </div>
+        <div class="has-text-centered">  
+          <span class="tag is-light" style={"background-color:#ff675c"}>0 - 20</span>
+          <span class="tag is-light" style={"background-color:#ffc34a"}>21 - 40</span>
+          <span class="tag is-light" style={"background-color:#ffe99c"}>41 - 50</span>
+          <span class="tag is-light" style={"background-color:#c2faaa"}>51 - 60</span>
+          <span class="tag is-light" style={"background-color:#a6d8ff"}>61 - 80</span>
+          <span class="tag is-light" style={"background-color:#1c9dff"}>81 - 100</span>
+        </div>
       </div>
       <div class="column">
       <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")}/> 
