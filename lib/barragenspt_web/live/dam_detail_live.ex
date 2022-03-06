@@ -3,11 +3,24 @@ defmodule BarragensptWeb.DamDetailLive do
   import Ecto.Query
   alias Barragenspt.Hydrometrics.Stats
   alias Barragenspt.Geo.Coordinates
+  alias Barragenspt.Mappers.Colors
+
+  def handle_event("change_window", %{"value" => value}, socket) do
+    id = socket.assigns.dam.site_id
+    {int_value, ""} = Integer.parse(value)
+    dam = Barragenspt.Repo.one(from(p in Barragenspt.Hydrometrics.Dam, where: p.site_id == ^id))
+    data = Stats.for_site(dam, int_value)
+    lines = [%{k: "Observado", v: Colors.lookup(dam.basin_id)}] ++ [%{k: "Média", v: "grey"}]
+
+    socket = push_event(socket, "update_chart", %{data: data, lines: lines})
+
+    {:noreply, socket}
+  end
 
   def handle_params(%{"id" => id} = params, _url, socket) do
     dam = Barragenspt.Repo.one(from(p in Barragenspt.Hydrometrics.Dam, where: p.site_id == ^id))
     data = Stats.for_site(dam)
-    lines = [%{k: id, v: "grey"}]
+    lines = [%{k: "Observado", v: Colors.lookup(dam.basin_id)}] ++ [%{k: "Média", v: "grey"}]
 
     allowed_keys = [
       "Barragem",

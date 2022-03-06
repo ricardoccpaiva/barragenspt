@@ -5,6 +5,18 @@ defmodule BarragensptWeb.BasinDetailLive do
   alias Barragenspt.Hydrometrics.Stats
   alias Barragenspt.Geo.Coordinates
 
+  def handle_event("change_window", %{"value" => value}, socket) do
+    id = socket.assigns.basin_id
+    {int_value, ""} = Integer.parse(value)
+    data = Stats.for_basin(id, int_value)
+
+    lines = [%{k: "Observado", v: Colors.lookup(id)}] ++ [%{k: "Média", v: "grey"}]
+
+    socket = push_event(socket, "update_chart", %{data: data, lines: lines})
+
+    {:noreply, socket}
+  end
+
   def handle_params(%{"id" => id}, _url, socket) do
     data = Stats.for_basin(id)
 
@@ -22,6 +34,7 @@ defmodule BarragensptWeb.BasinDetailLive do
 
     socket =
       socket
+      |> assign(basin_id: id)
       |> assign(dams: enrich_dams(dams), basin: Enum.at(dams, 0).basin)
       |> push_event("update_chart", %{data: data, lines: lines})
       |> push_event("zoom_map", %{bounding_box: bounding_box_for_basin})

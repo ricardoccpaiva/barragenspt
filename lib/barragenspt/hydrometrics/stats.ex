@@ -1,7 +1,7 @@
 defmodule Barragenspt.Hydrometrics.Stats do
   import Ecto.Query
 
-  def for_basin(id) do
+  def for_basin(id, period \\ 2) do
     query =
       from(b in Barragenspt.Hydrometrics.BasinHistoricStorage,
         where: b.basin_id == ^id
@@ -14,7 +14,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
         where:
           dp.param_name == "volume_last_day_month" and
             dp.basin_id == ^id and
-            dp.colected_at >= ^query_limit(),
+            dp.colected_at >= ^query_limit(period),
         group_by: [
           :basin_id,
           fragment("extract(month from ?)", dp.colected_at),
@@ -64,25 +64,6 @@ defmodule Barragenspt.Hydrometrics.Stats do
     |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
   end
 
-  def average_for_basin(basin_id) do
-    query =
-      from(b in Barragenspt.Hydrometrics.BasinHistoricStorage,
-        where: b.basin_id == ^basin_id
-      )
-
-    query
-    |> Barragenspt.Repo.all()
-    |> Enum.map(fn %{month: month, value: value} ->
-      rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
-
-      %{ts: ts, dt: dt} = parse_date("01-#{month}-2022")
-
-      %{basin_id: "Média", value: rounded_value, timestamp: ts, date: dt, basin: "Média"}
-    end)
-    |> Enum.sort(&(&1.timestamp < &2.timestamp))
-    |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
-  end
-
   def for_basins() do
     query =
       from(dp in Barragenspt.Hydrometrics.DataPoint,
@@ -125,13 +106,20 @@ defmodule Barragenspt.Hydrometrics.Stats do
     |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
   end
 
-  def for_site(dam) do
+  def for_site(dam, period \\ 2) do
+    query =
+      from(b in Barragenspt.Hydrometrics.SiteHistoricStorage,
+        where: b.site_id == ^dam.site_id
+      )
+
+    historic_values = Barragenspt.Repo.all(query)
+
     query =
       from(dp in Barragenspt.Hydrometrics.DataPoint,
         where:
           dp.param_name == "volume_last_day_month" and
             dp.site_id == ^dam.site_id and
-            dp.colected_at >= ^query_limit(),
+            dp.colected_at >= ^query_limit(period),
         group_by: [
           :site_id,
           fragment("extract(month from ?)", dp.colected_at),
@@ -162,9 +150,27 @@ defmodule Barragenspt.Hydrometrics.Stats do
         value: rounded_value,
         timestamp: ts,
         date: dt,
-        basin: dam.name
+        basin: "Observado"
       }
     end)
+    |> Enum.map(fn m ->
+      hval =
+        Enum.find(historic_values, fn h ->
+          h.site_id == dam.site_id and h.month == Timex.from_unix(m.timestamp).month
+        end)
+
+      [
+        m,
+        %{
+          basin_id: "Média",
+          value: hval.value |> Decimal.round(1) |> Decimal.to_float(),
+          timestamp: m.timestamp,
+          date: m.date,
+          basin: "Média"
+        }
+      ]
+    end)
+    |> List.flatten()
     |> Enum.sort(&(&1.timestamp < &2.timestamp))
     |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
   end
@@ -215,10 +221,14 @@ defmodule Barragenspt.Hydrometrics.Stats do
     %{ts: ts, dt: dt}
   end
 
-  defp query_limit do
+  defp query_limit() do
+    query_limit(2)
+  end
+
+  defp query_limit(period) do
     Timex.now()
     |> Timex.end_of_month()
-    |> Timex.shift(months: -16)
+    |> Timex.shift(years: period * -1)
     |> Timex.beginning_of_month()
     |> Timex.to_naive_datetime()
   end

@@ -67,7 +67,7 @@ window.addEventListener(`phx:update_chart`, (e) => {
     chart
         .line()
         .position('date*value')
-        .color('basin', items)
+        .color('basin', items.reverse())
         .shape('smooth');
 
     chart.render();
