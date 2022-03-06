@@ -139,7 +139,7 @@ const loadDams = async () => {
     const damsCoords = await response.json();
     damsCoords.data.forEach(function (element) {
         el = document.createElement('div');
-        innerHTML = "<a style='color:  " + element.basin_color + "'";
+        innerHTML = "<a style='color: grey'";
         innerHTML = innerHTML + " class='fa fa-map-marker fa-2x' data-phx-link='patch'";
         innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.site_id + "?nz" + "'</a>";
         el.innerHTML = innerHTML;
@@ -148,6 +148,48 @@ const loadDams = async () => {
             .Marker(el)
             .setLngLat([element.lon, element.lat])
             .addTo(map);
+    });
+
+    // Add a data source containing GeoJSON data.
+    const basins = [
+        { name: 'douro', color: '#1c9dff' },
+        { name: 'lima', color: '#ff675c' },
+        { name: 'guadiana', color: '#a6d8ff' },
+        { name: 'cavado', color: '#ffc34a' },
+        { name: 'ave', color: '#ffe99c' },
+        { name: 'tejo', color: '#c2faaa' },
+        { name: 'mondego', color: '#a6d8ff' },
+        { name: 'oeste', color: '#c2faaa' },
+        { name: 'sado', color: '#ffe99c' },
+        { name: 'mira', color: '#ffc34a' },
+        { name: 'barlavento', color: '#ff675c' },
+        { name: 'arade', color: '#c2faaa' }
+    ];
+
+    basins.forEach(function (item) {
+        map.addSource(item.name, { type: 'geojson', data: '/geojson/' + item.name + '.geojson' });
+
+        map.addLayer({
+            'id': item.name,
+            'type': 'fill',
+            'source': item.name,
+            'layout': {},
+            'paint': {
+                'fill-color': item.color,
+                'fill-opacity': 0.7
+            }
+        });
+
+        map.addLayer({
+            'id': item.name + '_outline',
+            'type': 'line',
+            'source': item.name,
+            'layout': {},
+            'paint': {
+                'line-color': '#000',
+                'line-width': 0.5
+            }
+        });
     });
 }
 
