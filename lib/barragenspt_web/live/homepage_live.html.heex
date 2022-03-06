@@ -15,7 +15,7 @@
             <tr>              
               <td style="padding-right: 30px"><%= name %></td>
               <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}><%= current_storage %>%</span></td>
-              <td class="has-text-centered"><span class="tag is-info is-light"><%= pct_2 %>%</span></td>              
+              <td class="has-text-centered"><span class="tag is-light"><%= pct_2 %>%</span></td>              
               <td class="has-text-centered">
                 <%= live_patch to: Routes.basin_detail_path(@socket, :detail, id), replace: false do %>
                   <i class="fa fa-info" aria-hidden="true"></i>
