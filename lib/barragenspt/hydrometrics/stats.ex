@@ -1,12 +1,19 @@
 defmodule Barragenspt.Hydrometrics.Stats do
   import Ecto.Query
 
-  def for_basin(%{id: basin_id, name: basin_name}) do
+  def for_basin(id) do
+    query =
+      from(b in Barragenspt.Hydrometrics.BasinHistoricStorage,
+        where: b.basin_id == ^id
+      )
+
+    historic_values = Barragenspt.Repo.all(query)
+
     query =
       from(dp in Barragenspt.Hydrometrics.DataPoint,
         where:
           dp.param_name == "volume_last_day_month" and
-            dp.basin_id == ^basin_id and
+            dp.basin_id == ^id and
             dp.colected_at >= ^query_limit(),
         group_by: [
           :basin_id,
@@ -16,7 +23,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
         select: {
           fragment(
             "sum(value) / (SELECT sum((metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int) from dam d where basin_id = ?) * 100",
-            ^basin_id
+            ^id
           ),
           fragment(
             "'01-' || extract(month from ?) || '-' || extract(year from ?) as dt",
@@ -33,7 +40,44 @@ defmodule Barragenspt.Hydrometrics.Stats do
 
       %{ts: ts, dt: dt} = parse_date(date)
 
-      %{basin_id: basin_id, value: rounded_value, timestamp: ts, date: dt, basin: basin_name}
+      %{basin_id: id, value: rounded_value, timestamp: ts, date: dt, basin: "Observado"}
+    end)
+    |> Enum.map(fn m ->
+      hval =
+        Enum.find(historic_values, fn h ->
+          h.basin_id == id and h.month == Timex.from_unix(m.timestamp).month
+        end)
+
+      [
+        m,
+        %{
+          basin_id: "Média",
+          value: hval.value |> Decimal.round(1) |> Decimal.to_float(),
+          timestamp: m.timestamp,
+          date: m.date,
+          basin: "Média"
+        }
+      ]
+    end)
+    |> List.flatten()
+    |> Enum.sort(&(&1.timestamp < &2.timestamp))
+    |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
+  end
+
+  def average_for_basin(basin_id) do
+    query =
+      from(b in Barragenspt.Hydrometrics.BasinHistoricStorage,
+        where: b.basin_id == ^basin_id
+      )
+
+    query
+    |> Barragenspt.Repo.all()
+    |> Enum.map(fn %{month: month, value: value} ->
+      rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
+
+      %{ts: ts, dt: dt} = parse_date("01-#{month}-2022")
+
+      %{basin_id: "Média", value: rounded_value, timestamp: ts, date: dt, basin: "Média"}
     end)
     |> Enum.sort(&(&1.timestamp < &2.timestamp))
     |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
@@ -169,19 +213,6 @@ defmodule Barragenspt.Hydrometrics.Stats do
     dt = Timex.format!(parsed_date, "{YYYY}-{M}-{D}")
 
     %{ts: ts, dt: dt}
-  end
-
-  defp build_map(basin, acc, dt, ts, value) do
-    case Enum.find(acc, fn map -> map["date"] == dt end) do
-      nil ->
-        acc ++ [%{"ts" => ts, "#{basin}" => value, "date" => dt}]
-
-      map ->
-        new_map = Map.put(map, "#{basin}", value)
-
-        Enum.reject(acc, fn map -> map["date"] == dt end) ++
-          [new_map]
-    end
   end
 
   defp query_limit do
