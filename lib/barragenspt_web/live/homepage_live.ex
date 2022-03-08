@@ -7,6 +7,13 @@ defmodule BarragensptWeb.HomepageLive do
   alias Barragenspt.Hydrometrics.Basin
 
   def mount(_params, _session, socket) do
+    query =
+      from(b in Barragenspt.Hydrometrics.DailyAverageStorageByBasin,
+        where: b.period == ^"#{Timex.now().day}-#{Timex.now().month}"
+      )
+
+    historic_values = Barragenspt.Repo.all(query)
+
     query = from(p in BasinStorage)
 
     basins =
@@ -21,7 +28,13 @@ defmodule BarragensptWeb.HomepageLive do
           rounded_storage
         )
       end)
-      |> Enum.map(fn basin -> Map.put(basin, :pct_2, :rand.uniform(100)) end)
+      |> Enum.map(fn basin ->
+        value = Enum.find(historic_values, fn hv -> hv.basin_id == basin.id end).value
+
+        rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
+
+        Map.put(basin, :average_historic_value, rounded_value)
+      end)
       |> Enum.map(fn basin -> Map.put(basin, :color, Colors.lookup(basin.id)) end)
       |> Enum.map(fn basin ->
         Map.put(basin, :capacity_color, Colors.lookup_capacity(basin.current_storage))

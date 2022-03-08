@@ -21,7 +21,8 @@
           </tr>
         </thead>
         <tbody>
-          <%= for %{site_id: id, capacity_color: capacity_color, pct: pct, pct_2: pct_2, name: name} <- @dams do %>
+          <%= for %{site_id: id, capacity_color: capacity_color, pct: pct, average_historic_value:
+            average_historic_value, name: name} <- @dams do %>
             <tr>
               <td style="padding-right: 30px">
                 <%= name %>
@@ -30,7 +31,7 @@
                   <%= pct %>%
                 </span></td>
               <td class="has-text-centered"><span class="tag is-light">
-                  <%= pct_2 %>%
+                  <%= average_historic_value %>%
                 </span></td>
               <td class="has-text-centered">
                 <%= live_patch to: Routes.dam_detail_path(@socket, :detail, id), replace: false do %>

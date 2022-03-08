@@ -43,6 +43,15 @@ defmodule BarragensptWeb.BasinDetailLive do
   end
 
   defp enrich_dams(dams) do
+    site_ids = Enum.map(dams, & &1.site_id)
+
+    query =
+      from(b in Barragenspt.Hydrometrics.DailyAverageStorageBySite,
+        where: b.period == ^"#{Timex.now().day}-#{Timex.now().month}" and b.site_id in ^site_ids
+      )
+
+    historic_values = Barragenspt.Repo.all(query)
+
     dams
     |> Enum.map(fn dam ->
       dam.site_id
@@ -53,8 +62,15 @@ defmodule BarragensptWeb.BasinDetailLive do
       |> then(fn value -> Map.put(dam, :pct, value) end)
     end)
     |> Enum.map(fn dam ->
-      {pct} = Stats.historical_level_for_dam(dam.site_id)
-      Map.put(dam, :pct_2, pct)
+      case Enum.find(historic_values, fn hv -> hv.site_id == dam.site_id end) do
+        nil ->
+          Map.put(dam, :average_historic_value, "-")
+
+        hv ->
+          rounded_value = hv.value |> Decimal.round(1) |> Decimal.to_float()
+
+          Map.put(dam, :average_historic_value, rounded_value)
+      end
     end)
     |> Enum.map(fn dam ->
       Map.put(dam, :capacity_color, Colors.lookup_capacity(dam.pct))

@@ -194,24 +194,6 @@ defmodule Barragenspt.Hydrometrics.Stats do
     Barragenspt.Repo.one!(query)
   end
 
-  def historical_level_for_dam(id) do
-    query =
-      from(dp in Barragenspt.Hydrometrics.DataPoint,
-        where:
-          dp.param_name == "volume_last_day_month" and
-            fragment("extract(month from ?)", dp.colected_at) == ^Timex.now().month and
-            dp.site_id == ^to_string(id),
-        select: {
-          fragment(
-            "cast(avg(value) / (SELECT (metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int from dam d where site_id = ?) * 100 as int)",
-            ^id
-          )
-        }
-      )
-
-    Barragenspt.Repo.one!(query)
-  end
-
   defp parse_date(date) do
     {:ok, parsed_date} = Timex.parse(date, "{D}-{M}-{YYYY}")
 
