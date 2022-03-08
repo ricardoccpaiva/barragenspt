@@ -3,7 +3,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
 
   def for_basin(id, period \\ 2) do
     query =
-      from(b in Barragenspt.Hydrometrics.BasinHistoricStorage,
+      from(b in Barragenspt.Hydrometrics.MonthlyAverageStorageByBasin,
         where: b.basin_id == ^id
       )
 
@@ -45,7 +45,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
     |> Enum.map(fn m ->
       hval =
         Enum.find(historic_values, fn h ->
-          h.basin_id == id and h.month == Timex.from_unix(m.timestamp).month
+          h.basin_id == id and h.period == Timex.from_unix(m.timestamp).month
         end)
 
       [
@@ -108,7 +108,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
 
   def for_site(dam, period \\ 2) do
     query =
-      from(b in Barragenspt.Hydrometrics.SiteHistoricStorage,
+      from(b in Barragenspt.Hydrometrics.MonthlyAverageStorageBySite,
         where: b.site_id == ^dam.site_id
       )
 
@@ -156,7 +156,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
     |> Enum.map(fn m ->
       hval =
         Enum.find(historic_values, fn h ->
-          h.site_id == dam.site_id and h.month == Timex.from_unix(m.timestamp).month
+          h.site_id == dam.site_id and h.period == Timex.from_unix(m.timestamp).month
         end)
 
       [
