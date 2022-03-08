@@ -29,7 +29,7 @@ defmodule Barragenspt.Workers.FetchDamsInfo do
       name: name,
       code: code,
       basin: basin,
-      basin_id: String.to_integer(basin_id),
+      basin_id: basin_id,
       metadata: meta
     })
   end
