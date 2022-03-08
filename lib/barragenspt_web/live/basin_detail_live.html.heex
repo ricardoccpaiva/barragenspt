@@ -1,11 +1,11 @@
 <div class="card" style="height: 810px">
- <header class="card-header">
+  <header class="card-header">
     <p class="card-header-title">
       Bacia: <%= @basin %>
     </p>
     <button class="card-header-icon" aria-label="more options">
-      <span class="icon">      
-        <%= live_patch "", to: Routes.homepage_path(@socket, :index), class: "fa fa-undo" %>  
+      <span class="icon">
+        <%= live_patch "" , to: Routes.homepage_path(@socket, :index), class: "fa fa-undo" %>
       </span>
     </button>
   </header>
@@ -13,36 +13,42 @@
     <div>
       <table class="table is-fullwidth">
         <thead>
-          <tr>                
+          <tr>
             <th>Rio</th>
-            <th>% Atual</th>      
-            <th>% Média</th>            
+            <th>% Atual</th>
+            <th>% Média</th>
             <th>Detalhe</th>
           </tr>
         </thead>
         <tbody>
-          <%= for %{site_id: id, capacity_color: capacity_color, pct: pct, pct_2: pct_2, name: name} <- @dams do %>    
-            <tr>              
-              <td style="padding-right: 30px"><%= name %></td>
-              <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}><%= pct %>%</span></td>
-              <td class="has-text-centered"><span class="tag is-light"><%= pct_2 %>%</span></td>              
+          <%= for %{site_id: id, capacity_color: capacity_color, pct: pct, pct_2: pct_2, name: name} <- @dams do %>
+            <tr>
+              <td style="padding-right: 30px">
+                <%= name %>
+              </td>
+              <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}>
+                  <%= pct %>%
+                </span></td>
+              <td class="has-text-centered"><span class="tag is-light">
+                  <%= pct_2 %>%
+                </span></td>
               <td class="has-text-centered">
                 <%= live_patch to: Routes.dam_detail_path(@socket, :detail, id), replace: false do %>
                   <i class="fa fa-info" aria-hidden="true"></i>
-                <% end %>
+                  <% end %>
               </td>
             </tr>
-          <% end %>
+            <% end %>
         </tbody>
       </table>
-    </div>    
+    </div>
     <div style="text-align:right;">
       <div class="select is-small" style="margin-top:15px; margin-bottom: 10px;">
         <select phx-click="change_window">
           <option value="2">2 anos</option>
           <option value="5">5 anos</option>
           <option value="10">10 anos</option>
-          <option value="30">Todo o sempre</option>
+          <option value="50">Sem limite</option>
         </select>
       </div>
     </div>

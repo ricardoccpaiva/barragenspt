@@ -1,33 +1,39 @@
 <div class="card" style="height: 810px">
- <header class="card-header">
+  <header class="card-header">
     <p class="card-header-title">
       Rio: <%= @dam.name %>
     </p>
     <button class="card-header-icon" aria-label="more options">
-      <span class="icon">      
-        <%= live_patch "", to: Routes.basin_detail_path(@socket, :detail, @dam.basin_id), class: "fa fa-undo" %>  
+      <span class="icon">
+        <%= live_patch "" , to: Routes.basin_detail_path(@socket, :detail, @dam.basin_id), class: "fa fa-undo" %>
       </span>
     </button>
   </header>
-  <div class="card-content">    
+  <div class="card-content">
     <div id="tabs-with-content">
       <div class="tabs is-small">
         <ul>
           <%= for key <- Map.keys(@dam.metadata) do %>
-            <li class="is-active"><a><%= key %></a></li>
-          <% end %>
+            <li class="is-active"><a>
+                <%= key %>
+              </a></li>
+            <% end %>
         </ul>
       </div>
       <div>
         <%= for key <- Map.keys(@dam.metadata) do %>
           <section class="tab-content">
             <%= for {k, v} <- @dam.metadata[key] do %>
-              <span class="is-size-7 has-text-weight-bold"><%= k %>:</span>
-              <span class="is-size-7"><%= String.capitalize(v) %></span>
-              <br/>
-            <% end %>
-          </section>      
-        <% end %>        
+              <span class="is-size-7 has-text-weight-bold">
+                <%= k %>:
+              </span>
+              <span class="is-size-7">
+                <%= String.capitalize(v) %>
+              </span>
+              <br />
+              <% end %>
+          </section>
+          <% end %>
       </div>
     </div>
     <div style="text-align:right;">
@@ -36,7 +42,7 @@
           <option value="2">2 anos</option>
           <option value="5">5 anos</option>
           <option value="10">10 anos</option>
-          <option value="30">Todo o sempre</option>
+          <option value="50">Sem limite</option>
         </select>
       </div>
     </div>
