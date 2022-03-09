@@ -1,5 +1,7 @@
 defmodule Barragenspt.Hydrometrics.Stats do
   import Ecto.Query
+  alias Barragenspt.Hydrometrics.DailyAverageStorageByBasin
+  alias Barragenspt.Hydrometrics.BasinStorage
 
   def for_basin(id, period \\ 2) do
     query =
@@ -192,6 +194,23 @@ defmodule Barragenspt.Hydrometrics.Stats do
       )
 
     Barragenspt.Repo.one!(query)
+  end
+
+  def basins_summary() do
+    query =
+      from(d in DailyAverageStorageByBasin,
+        join: b in BasinStorage,
+        on: d.basin_id == b.id,
+        where: d.period == ^"#{Timex.now().day}-#{Timex.now().month}",
+        select: {
+          d.basin_id,
+          b.name,
+          fragment("round(?, 1)", b.current_storage),
+          fragment("round(?, 1)", d.value)
+        }
+      )
+
+    Barragenspt.Repo.all(query)
   end
 
   defp parse_date(date) do

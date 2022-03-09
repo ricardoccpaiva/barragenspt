@@ -1,46 +1,23 @@
 defmodule BarragensptWeb.HomepageLive do
   use BarragensptWeb, :live_view
-  import Ecto.Query
+
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Hydrometrics.Stats
-  alias Barragenspt.Hydrometrics.BasinStorage
   alias Barragenspt.Hydrometrics.Basin
 
   def mount(_params, _session, socket) do
-    query =
-      from(b in Barragenspt.Hydrometrics.DailyAverageStorageByBasin,
-        where: b.period == ^"#{Timex.now().day}-#{Timex.now().month}"
-      )
-
-    historic_values = Barragenspt.Repo.all(query)
-
-    query = from(p in BasinStorage)
-
-    basins =
-      query
-      |> Barragenspt.Repo.all()
-      |> Enum.map(fn %{current_storage: current_storage} = basin ->
-        rounded_storage = current_storage |> Decimal.round(1) |> Decimal.to_float()
-
-        Map.replace(
-          basin,
-          :current_storage,
-          rounded_storage
-        )
-      end)
-      |> Enum.map(fn basin ->
-        value = Enum.find(historic_values, fn hv -> hv.basin_id == basin.id end).value
-
-        rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
-
-        Map.put(basin, :average_historic_value, rounded_value)
-      end)
-      |> Enum.map(fn basin -> Map.put(basin, :color, Colors.lookup(basin.id)) end)
-      |> Enum.map(fn basin ->
-        Map.put(basin, :capacity_color, Colors.lookup_capacity(basin.current_storage))
+    basins_summary =
+      Enum.map(Stats.basins_summary(), fn {basin_id, name, current_storage, value} ->
+        %{
+          id: basin_id,
+          name: name,
+          current_storage: current_storage,
+          average_historic_value: value,
+          capacity_color: current_storage |> Decimal.to_float() |> Colors.lookup_capacity()
+        }
       end)
 
-    {:ok, assign(socket, basins: basins)}
+    {:ok, assign(socket, basins_summary: basins_summary)}
   end
 
   def handle_params(_params, _url, socket) do
