@@ -19,20 +19,19 @@ defmodule BarragensptWeb.BasinDetailLive do
   def handle_params(%{"id" => id}, _url, socket) do
     data = Stats.for_basin(id)
 
-    current_level_for_basin =
-      id
-      |> Stats.current_level_for_basin()
-      |> Decimal.to_float()
-
-    lines = [
-      %{k: "Observado", v: Colors.lookup_capacity(current_level_for_basin)},
-      %{k: "Média", v: "grey"}
-    ]
-
     bounding_box = Dams.bounding_box(id)
 
     stats_summary = Stats.basin_summary(id)
     %{basin_name: basin_name} = Enum.at(stats_summary, 0)
+
+    current_basin_storage =
+      Enum.reduce(stats_summary, 0, fn ss, acc -> Decimal.to_float(ss.current_storage) + acc end) /
+        Enum.count(stats_summary)
+
+    lines = [
+      %{k: "Observado", v: Colors.lookup_capacity(current_basin_storage)},
+      %{k: "Média", v: "grey"}
+    ]
 
     basin_summary =
       Enum.map(stats_summary, fn %{current_storage: current_storage} = m ->
