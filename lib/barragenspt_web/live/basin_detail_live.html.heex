@@ -21,17 +21,17 @@
           </tr>
         </thead>
         <tbody>
-          <%= for %{site_id: id, capacity_color: capacity_color, pct: pct, average_historic_value:
-            average_historic_value, name: name} <- @dams do %>
+          <%= for %{site_id: id, site_name: name, current_storage: current_storage, average_storage: average_storage,
+            capacity_color: capacity_color} <- @basin_summary do %>
             <tr>
               <td style="padding-right: 30px">
                 <%= name %>
               </td>
               <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}>
-                  <%= pct %>%
+                  <%= current_storage %>%
                 </span></td>
               <td class="has-text-centered"><span class="tag is-light">
-                  <%= average_historic_value %>%
+                  <%= average_storage %>%
                 </span></td>
               <td class="has-text-centered">
                 <%= live_patch to: Routes.dam_detail_path(@socket, :detail, id), replace: false do %>

@@ -1,7 +1,9 @@
 defmodule Barragenspt.Hydrometrics.Stats do
   import Ecto.Query
   alias Barragenspt.Hydrometrics.DailyAverageStorageByBasin
+  alias Barragenspt.Hydrometrics.DailyAverageStorageBySite
   alias Barragenspt.Hydrometrics.BasinStorage
+  alias Barragenspt.Hydrometrics.SiteCurrentStorage
 
   def for_basin(id, period \\ 2) do
     query =
@@ -196,6 +198,20 @@ defmodule Barragenspt.Hydrometrics.Stats do
     Barragenspt.Repo.one!(query)
   end
 
+  def current_level_for_basin(id) do
+    query =
+      from(b in BasinStorage,
+        where: b.id == ^id,
+        select: {
+          fragment("round(?, 1)", b.current_storage)
+        }
+      )
+
+    query
+    |> Barragenspt.Repo.one!()
+    |> then(fn {value} -> value end)
+  end
+
   def basins_summary() do
     query =
       from(d in DailyAverageStorageByBasin,
@@ -207,6 +223,24 @@ defmodule Barragenspt.Hydrometrics.Stats do
           b.name,
           fragment("round(?, 1)", b.current_storage),
           fragment("round(?, 1)", d.value)
+        }
+      )
+
+    Barragenspt.Repo.all(query)
+  end
+
+  def basin_summary(id) do
+    query =
+      from(d in DailyAverageStorageBySite,
+        join: b in SiteCurrentStorage,
+        on: d.site_id == b.site_id,
+        where: d.period == ^"#{Timex.now().day}-#{Timex.now().month}" and b.basin_id == ^id,
+        select: %{
+          site_id: d.site_id,
+          site_name: b.site_name,
+          basin_name: b.basin_name,
+          current_storage: fragment("round(?, 1)", b.current_storage),
+          average_storage: fragment("round(?, 1)", d.value)
         }
       )
 
