@@ -16,7 +16,8 @@ defmodule Barragenspt.Application do
       {Phoenix.PubSub, name: Barragenspt.PubSub},
       # Start the Endpoint (http/https)
       BarragensptWeb.Endpoint,
-      {Oban, oban_config()}
+      {Oban, oban_config()},
+      Barragenspt.Cache
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

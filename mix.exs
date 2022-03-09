@@ -55,7 +55,9 @@ defmodule Barragenspt.MixProject do
       {:geocalc, "~> 0.8"},
       {:briefly, "~> 0.3"},
       {:uuid, "~> 1.1"},
-      {:timex, "~> 3.0"}
+      {:timex, "~> 3.0"},
+      {:nebulex, "~> 2.2"},
+      {:decorator, "~> 1.4"}
     ]
   end
 

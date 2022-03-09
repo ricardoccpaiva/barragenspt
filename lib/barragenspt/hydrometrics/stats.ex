@@ -4,7 +4,12 @@ defmodule Barragenspt.Hydrometrics.Stats do
   alias Barragenspt.Hydrometrics.DailyAverageStorageBySite
   alias Barragenspt.Hydrometrics.BasinStorage
   alias Barragenspt.Hydrometrics.SiteCurrentStorage
+  use Nebulex.Caching
+  alias Barragenspt.Cache
 
+  @ttl :timer.hours(24)
+
+  @decorate cacheable(cache: Cache, key: "for_basin_#{id}-#{period}", ttl: @ttl)
   def for_basin(id, period \\ 2) do
     query =
       from(b in Barragenspt.Hydrometrics.MonthlyAverageStorageByBasin,
@@ -68,6 +73,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
     |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
   end
 
+  @decorate cacheable(cache: Cache, key: "for_basins", ttl: @ttl)
   def for_basins() do
     query =
       from(dp in Barragenspt.Hydrometrics.DataPoint,
@@ -110,6 +116,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
     |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
   end
 
+  @decorate cacheable(cache: Cache, key: "for_site_#{dam.site_id}-#{period}", ttl: @ttl)
   def for_site(dam, period \\ 2) do
     query =
       from(b in Barragenspt.Hydrometrics.MonthlyAverageStorageBySite,
@@ -179,39 +186,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
     |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
   end
 
-  def current_level_for_dam(id) do
-    query =
-      from(dp in Barragenspt.Hydrometrics.DataPoint,
-        where:
-          dp.param_name == "volume_last_day_month" and
-            dp.site_id == ^to_string(id),
-        select: {
-          fragment(
-            "value / (SELECT (metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int from dam d where site_id = ?) * 100",
-            ^id
-          )
-        },
-        order_by: [desc: :colected_at],
-        limit: 1
-      )
-
-    Barragenspt.Repo.one!(query)
-  end
-
-  def current_level_for_basin(id) do
-    query =
-      from(b in BasinStorage,
-        where: b.id == ^id,
-        select: {
-          fragment("round(?, 1)", b.current_storage)
-        }
-      )
-
-    query
-    |> Barragenspt.Repo.one!()
-    |> then(fn {value} -> value end)
-  end
-
+  @decorate cacheable(cache: Cache, key: "basins_summary", ttl: @ttl)
   def basins_summary() do
     query =
       from(d in DailyAverageStorageByBasin,
@@ -229,6 +204,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
     Barragenspt.Repo.all(query)
   end
 
+  @decorate cacheable(cache: Cache, key: "basin_summary_#{id}", ttl: @ttl)
   def basin_summary(id) do
     query =
       from(d in DailyAverageStorageBySite,
