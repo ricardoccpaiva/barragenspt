@@ -3,11 +3,10 @@ defmodule BarragensptWeb.HomepageLive do
 
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Hydrometrics.Basins
-  alias Barragenspt.Hydrometrics.Stats
 
   def mount(_params, _session, socket) do
     basins_summary =
-      Enum.map(Stats.basins_summary(), fn {basin_id, name, current_storage, value} ->
+      Enum.map(Basins.summary_stats(), fn {basin_id, name, current_storage, value} ->
         %{
           id: basin_id,
           name: name,

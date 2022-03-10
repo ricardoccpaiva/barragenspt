@@ -1,7 +1,6 @@
 defmodule BarragensptWeb.BasinDetailLive do
   use BarragensptWeb, :live_view
   alias Barragenspt.Mappers.Colors
-  alias Barragenspt.Hydrometrics.Stats
   alias Barragenspt.Hydrometrics.Dams
   alias Barragenspt.Hydrometrics.Basins
 
@@ -22,7 +21,7 @@ defmodule BarragensptWeb.BasinDetailLive do
 
     bounding_box = Dams.bounding_box(id)
 
-    stats_summary = Stats.basin_summary(id)
+    stats_summary = Basins.summary_stats(id)
     %{basin_name: basin_name} = Enum.at(stats_summary, 0)
 
     current_basin_storage =
