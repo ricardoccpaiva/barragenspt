@@ -39,7 +39,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
         ],
         select: {
           fragment(
-            "sum(value) / (SELECT sum((metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int) from dam d where basin_id = ?) * 100",
+            "round(sum(value) / (SELECT sum((metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int) from dam d where basin_id = ?) * 100, 1)",
             ^id
           ),
           fragment(
