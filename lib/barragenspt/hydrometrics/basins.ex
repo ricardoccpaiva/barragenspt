@@ -70,6 +70,9 @@ defmodule Barragenspt.Hydrometrics.Basins do
     |> Enum.to_list()
     |> List.flatten()
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
+    |> Enum.map(fn %{date: date} = m ->
+      Map.replace!(m, :date, Timex.format!(date, "{YYYY}-{M}-{D}"))
+    end)
   end
 
   @decorate cacheable(cache: Cache, key: "monthly_for_basins", ttl: @ttl)
@@ -121,6 +124,9 @@ defmodule Barragenspt.Hydrometrics.Basins do
       }
     end)
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
+    |> Enum.map(fn %{date: date} = m ->
+      Map.replace!(m, :date, Timex.format!(date, "{YYYY}-{M}-{D}"))
+    end)
   end
 
   @decorate cacheable(cache: Cache, key: "basins_summary", ttl: @ttl)

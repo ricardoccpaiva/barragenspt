@@ -83,6 +83,9 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.to_list()
     |> List.flatten()
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
+    |> Enum.map(fn %{date: date} = m ->
+      Map.replace!(m, :date, Timex.format!(date, "{YYYY}-{M}-{D}"))
+    end)
   end
 
   defp build_average_data(historic_values, field, id, date) do
