@@ -3,7 +3,6 @@ defmodule BarragensptWeb.HomepageLive do
 
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Hydrometrics.Basins
-  alias Barragenspt.Hydrometrics.Basin
   alias Barragenspt.Hydrometrics.Stats
 
   def mount(_params, _session, socket) do
@@ -22,7 +21,7 @@ defmodule BarragensptWeb.HomepageLive do
   end
 
   def handle_params(_params, _url, socket) do
-    all_basins = Basin.all()
+    all_basins = Basins.all()
     data_to_feed = Basins.monthly_stats_for_basins()
 
     lines =

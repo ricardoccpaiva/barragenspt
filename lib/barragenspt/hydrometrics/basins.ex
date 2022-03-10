@@ -119,6 +119,14 @@ defmodule Barragenspt.Hydrometrics.Basins do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
+  def get(id) do
+    Repo.one(from(b in Basin, where: b.id == ^id))
+  end
+
+  def all do
+    Repo.all(query)
+  end
+
   defp build_average_data(historic_values, field, id, date) do
     hval =
       Enum.find(historic_values, fn h ->
