@@ -1,29 +1,38 @@
 defmodule Barragenspt.Hydrometrics.Stats do
   import Ecto.Query
-  alias Barragenspt.Hydrometrics.DailyAverageStorageByBasin
-  alias Barragenspt.Hydrometrics.DailyAverageStorageBySite
-  alias Barragenspt.Hydrometrics.BasinStorage
-  alias Barragenspt.Hydrometrics.SiteCurrentStorage
+
+  alias Barragenspt.Hydrometrics.{
+    DailyAverageStorageByBasin,
+    DailyAverageStorageBySite,
+    MonthlyAverageStorageByBasin,
+    MonthlyAverageStorageBySite,
+    BasinStorage,
+    SiteCurrentStorage,
+    DataPoint,
+    Basin
+  }
+
   use Nebulex.Caching
   alias Barragenspt.Cache
+  alias Barragenspt.Repo
 
   @ttl :timer.hours(24)
 
-  @decorate cacheable(cache: Cache, key: "for_basin_#{id}-#{period}", ttl: @ttl)
-  def for_basin(id, period \\ 2) do
-    query =
-      from(b in Barragenspt.Hydrometrics.MonthlyAverageStorageByBasin,
-        where: b.basin_id == ^id
+  @decorate cacheable(cache: Cache, key: "monthly_for_basin_#{id}_#{period}", ttl: @ttl)
+  def monthly_for_basin(id, period \\ 2) do
+    historic_values =
+      Repo.all(
+        from(b in MonthlyAverageStorageByBasin,
+          where: b.basin_id == ^id
+        )
       )
 
-    historic_values = Barragenspt.Repo.all(query)
-
     query =
-      from(dp in Barragenspt.Hydrometrics.DataPoint,
+      from(dp in DataPoint,
         where:
           dp.param_name == "volume_last_day_month" and
             dp.basin_id == ^id and
-            dp.colected_at >= ^query_limit(period),
+            dp.colected_at >= ^query_limit(period) and dp.colected_at <= ^end_of_previous_month(),
         group_by: [
           :basin_id,
           fragment("extract(month from ?)", dp.colected_at),
@@ -35,53 +44,45 @@ defmodule Barragenspt.Hydrometrics.Stats do
             ^id
           ),
           fragment(
-            "'01-' || extract(month from ?) || '-' || extract(year from ?) as dt",
-            dp.colected_at,
+            "cast(extract(month from ?) as int) as month",
+            dp.colected_at
+          ),
+          fragment(
+            "cast(extract(year from ?) as int) as year",
             dp.colected_at
           )
         }
       )
 
     query
-    |> Barragenspt.Repo.all()
-    |> Enum.map(fn {value, date} ->
-      rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
+    |> Repo.all()
+    |> Stream.map(fn {value, month, year} ->
+      days = Timex.days_in_month(year, month)
 
-      %{ts: ts, dt: dt} = parse_date(date)
+      {:ok, parsed_date} = Timex.parse("#{days}-#{month}-#{year}", "{D}-{M}-{YYYY}")
 
-      %{basin_id: id, value: rounded_value, timestamp: ts, date: dt, basin: "Observado"}
+      %{basin_id: id, value: value, date: parsed_date, basin: "Observado"}
     end)
-    |> Enum.map(fn m ->
-      hval =
-        Enum.find(historic_values, fn h ->
-          h.basin_id == id and h.period == Timex.from_unix(m.timestamp).month
-        end)
+    |> Stream.map(fn m ->
+      hdata = build_historic_data_map(historic_values, :basin_id, id, m.date)
 
-      [
-        m,
-        %{
-          basin_id: "Média",
-          value: hval.value |> Decimal.round(1) |> Decimal.to_float(),
-          timestamp: m.timestamp,
-          date: m.date,
-          basin: "Média"
-        }
-      ]
+      [m, hdata]
     end)
+    |> Enum.to_list()
     |> List.flatten()
-    |> Enum.sort(&(&1.timestamp < &2.timestamp))
-    |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
+    |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
-  @decorate cacheable(cache: Cache, key: "for_basins", ttl: @ttl)
-  def for_basins() do
+  @decorate cacheable(cache: Cache, key: "monthly_for_basins", ttl: @ttl)
+  def monthly_for_basins() do
     query =
-      from(dp in Barragenspt.Hydrometrics.DataPoint,
-        join: b in Barragenspt.Hydrometrics.Basin,
+      from(dp in DataPoint,
+        join: b in Basin,
         on: dp.basin_id == b.id,
         where:
           dp.param_name == "volume_last_day_month" and
-            dp.colected_at >= ^query_limit_all_basins(),
+            dp.colected_at >= ^query_limit_all_basins() and
+            dp.colected_at <= ^end_of_previous_month(),
         group_by: [
           :basin_id,
           b.name,
@@ -96,37 +97,44 @@ defmodule Barragenspt.Hydrometrics.Stats do
             dp.basin_id
           ),
           fragment(
-            "'01-' || extract(month from ?) || '-' || extract(year from ?) as dt",
-            dp.colected_at,
+            "cast(extract(month from ?) as int) as month",
+            dp.colected_at
+          ),
+          fragment(
+            "cast(extract(year from ?) as int) as year",
             dp.colected_at
           )
         }
       )
 
     query
-    |> Barragenspt.Repo.all()
-    |> Enum.map(fn {basin_id, basin_name, value, date} ->
-      rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
+    |> Repo.all()
+    |> Enum.map(fn {basin_id, basin_name, value, month, year} ->
+      days = Timex.days_in_month(year, month)
 
-      %{ts: ts, dt: dt} = parse_date(date)
+      {:ok, parsed_date} = Timex.parse("#{days}-#{month}-#{year}", "{D}-{M}-{YYYY}")
 
-      %{basin_id: basin_id, value: rounded_value, timestamp: ts, date: dt, basin: basin_name}
+      %{
+        basin_id: basin_id,
+        value: value |> Decimal.round(1) |> Decimal.to_float(),
+        date: parsed_date,
+        basin: basin_name
+      }
     end)
-    |> Enum.sort(&(&1.timestamp < &2.timestamp))
-    |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
+    |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
   @decorate cacheable(cache: Cache, key: "for_site_#{dam.site_id}-#{period}", ttl: @ttl)
   def for_site(dam, period \\ 2) do
-    query =
-      from(b in Barragenspt.Hydrometrics.MonthlyAverageStorageBySite,
-        where: b.site_id == ^dam.site_id
+    historic_values =
+      Repo.all(
+        from(b in MonthlyAverageStorageBySite,
+          where: b.site_id == ^dam.site_id
+        )
       )
 
-    historic_values = Barragenspt.Repo.all(query)
-
     query =
-      from(dp in Barragenspt.Hydrometrics.DataPoint,
+      from(dp in DataPoint,
         where:
           dp.param_name == "volume_last_day_month" and
             dp.site_id == ^dam.site_id and
@@ -142,48 +150,38 @@ defmodule Barragenspt.Hydrometrics.Stats do
             ^dam.site_id
           ),
           fragment(
-            "'01-' || extract(month from ?) || '-' || extract(year from ?) as dt",
-            dp.colected_at,
+            "cast(extract(month from ?) as int) as month",
+            dp.colected_at
+          ),
+          fragment(
+            "cast(extract(year from ?) as int) as year",
             dp.colected_at
           )
         }
       )
 
     query
-    |> Barragenspt.Repo.all()
-    |> Enum.map(fn {value, date} ->
-      rounded_value = value |> Decimal.round(1) |> Decimal.to_float()
+    |> Repo.all()
+    |> Stream.map(fn {value, month, year} ->
+      days = Timex.days_in_month(year, month)
 
-      %{ts: ts, dt: dt} = parse_date(date)
+      {:ok, parsed_date} = Timex.parse("#{days}-#{month}-#{year}", "{D}-{M}-{YYYY}")
 
       %{
         basin_id: dam.site_id,
-        value: rounded_value,
-        timestamp: ts,
-        date: dt,
+        value: value |> Decimal.round(1) |> Decimal.to_float(),
+        date: parsed_date,
         basin: "Observado"
       }
     end)
-    |> Enum.map(fn m ->
-      hval =
-        Enum.find(historic_values, fn h ->
-          h.site_id == dam.site_id and h.period == Timex.from_unix(m.timestamp).month
-        end)
+    |> Stream.map(fn m ->
+      hdata = build_historic_data_map(historic_values, :site_id, dam.site_id, m.date)
 
-      [
-        m,
-        %{
-          basin_id: "Média",
-          value: hval.value |> Decimal.round(1) |> Decimal.to_float(),
-          timestamp: m.timestamp,
-          date: m.date,
-          basin: "Média"
-        }
-      ]
+      [m, hdata]
     end)
+    |> Enum.to_list()
     |> List.flatten()
-    |> Enum.sort(&(&1.timestamp < &2.timestamp))
-    |> Enum.map(fn m -> Map.drop(m, [:timestamp]) end)
+    |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
   @decorate cacheable(cache: Cache, key: "basins_summary", ttl: @ttl)
@@ -232,8 +230,26 @@ defmodule Barragenspt.Hydrometrics.Stats do
     %{ts: ts, dt: dt}
   end
 
-  defp query_limit() do
-    query_limit(2)
+  defp build_historic_data_map(historic_values, field, id, date) do
+    hval =
+      Enum.find(historic_values, fn h ->
+        h[field] == id and h.period == date.month
+      end)
+
+    %{
+      basin_id: "Média",
+      value: hval.value |> Decimal.round(1) |> Decimal.to_float(),
+      date: date,
+      basin: "Média"
+    }
+  end
+
+  defp end_of_previous_month() do
+    Timex.now()
+    |> Timex.beginning_of_month()
+    |> Timex.shift(months: -1)
+    |> Timex.end_of_month()
+    |> Timex.to_naive_datetime()
   end
 
   defp query_limit(period) do

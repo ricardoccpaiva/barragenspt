@@ -22,7 +22,7 @@ defmodule BarragensptWeb.HomepageLive do
 
   def handle_params(_params, _url, socket) do
     all_basins = Basin.all()
-    data_to_feed = Stats.for_basins()
+    data_to_feed = Stats.monthly_for_basins()
 
     lines =
       Enum.map(all_basins, fn %{id: id, name: basin_name} ->
