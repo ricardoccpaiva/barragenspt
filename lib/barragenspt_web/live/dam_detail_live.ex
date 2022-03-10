@@ -1,7 +1,7 @@
 defmodule BarragensptWeb.DamDetailLive do
   use BarragensptWeb, :live_view
   import Ecto.Query
-  alias Barragenspt.Hydrometrics.Stats
+  alias Barragenspt.Hydrometrics.Dams
   alias Barragenspt.Geo.Coordinates
   alias Barragenspt.Mappers.Colors
 
@@ -9,7 +9,7 @@ defmodule BarragensptWeb.DamDetailLive do
     id = socket.assigns.dam.site_id
     {int_value, ""} = Integer.parse(value)
     dam = Barragenspt.Repo.one(from(p in Barragenspt.Hydrometrics.Dam, where: p.site_id == ^id))
-    data = Stats.for_site(dam, int_value)
+    data = Dams.monthly_stats(dam, int_value)
     lines = [%{k: "Observado", v: Colors.lookup(dam.basin_id)}] ++ [%{k: "Média", v: "grey"}]
 
     socket = push_event(socket, "update_chart", %{data: data, lines: lines})
@@ -19,7 +19,7 @@ defmodule BarragensptWeb.DamDetailLive do
 
   def handle_params(%{"id" => id} = params, _url, socket) do
     dam = Barragenspt.Repo.one(from(p in Barragenspt.Hydrometrics.Dam, where: p.site_id == ^id))
-    data = Stats.for_site(dam)
+    data = Dams.monthly_stats(dam)
     lines = [%{k: "Observado", v: Colors.lookup(dam.basin_id)}] ++ [%{k: "Média", v: "grey"}]
 
     allowed_keys = [

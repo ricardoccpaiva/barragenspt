@@ -2,8 +2,9 @@ defmodule BarragensptWeb.HomepageLive do
   use BarragensptWeb, :live_view
 
   alias Barragenspt.Mappers.Colors
-  alias Barragenspt.Hydrometrics.Stats
+  alias Barragenspt.Hydrometrics.Basins
   alias Barragenspt.Hydrometrics.Basin
+  alias Barragenspt.Hydrometrics.Stats
 
   def mount(_params, _session, socket) do
     basins_summary =
@@ -22,7 +23,7 @@ defmodule BarragensptWeb.HomepageLive do
 
   def handle_params(_params, _url, socket) do
     all_basins = Basin.all()
-    data_to_feed = Stats.monthly_for_basins()
+    data_to_feed = Basins.monthly_stats_for_basins()
 
     lines =
       Enum.map(all_basins, fn %{id: id, name: basin_name} ->

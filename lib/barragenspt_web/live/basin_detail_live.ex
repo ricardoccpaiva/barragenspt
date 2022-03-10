@@ -2,12 +2,13 @@ defmodule BarragensptWeb.BasinDetailLive do
   use BarragensptWeb, :live_view
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Hydrometrics.Stats
-  alias BarragensPt.Hydrometrics.Dams
+  alias Barragenspt.Hydrometrics.Dams
+  alias Barragenspt.Hydrometrics.Basins
 
   def handle_event("change_window", %{"value" => value}, socket) do
     id = socket.assigns.basin_id
     {int_value, ""} = Integer.parse(value)
-    data = Stats.monthly_for_basin(id, int_value)
+    data = Basins.monthly_stats_for_basin(id, int_value)
 
     lines = [%{k: "Observado", v: Colors.lookup(id)}] ++ [%{k: "Média", v: "grey"}]
 
@@ -17,7 +18,7 @@ defmodule BarragensptWeb.BasinDetailLive do
   end
 
   def handle_params(%{"id" => id}, _url, socket) do
-    data = Stats.monthly_for_basin(id)
+    data = Basins.monthly_stats_for_basin(id)
 
     bounding_box = Dams.bounding_box(id)
 
