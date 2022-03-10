@@ -64,7 +64,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
       %{basin_id: id, value: value, date: parsed_date, basin: "Observado"}
     end)
     |> Stream.map(fn m ->
-      hdata = build_historic_data_map(historic_values, :basin_id, id, m.date)
+      hdata = build_average_data(historic_values, :basin_id, id, m.date)
 
       [m, hdata]
     end)
@@ -175,7 +175,7 @@ defmodule Barragenspt.Hydrometrics.Stats do
       }
     end)
     |> Stream.map(fn m ->
-      hdata = build_historic_data_map(historic_values, :site_id, dam.site_id, m.date)
+      hdata = build_average_data(historic_values, :site_id, dam.site_id, m.date)
 
       [m, hdata]
     end)
@@ -230,10 +230,10 @@ defmodule Barragenspt.Hydrometrics.Stats do
     %{ts: ts, dt: dt}
   end
 
-  defp build_historic_data_map(historic_values, field, id, date) do
+  defp build_average_data(historic_values, field, id, date) do
     hval =
       Enum.find(historic_values, fn h ->
-        h[field] == id and h.period == date.month
+        Map.get(h, field) == id and h.period == date.month
       end)
 
     %{
