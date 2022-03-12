@@ -163,7 +163,8 @@ loadDams();
 map.addControl(new mapboxgl.NavigationControl());
 
 map.on('load', function () {
-    // Add a data source containing GeoJSON data.
+    map.resize();
+
     const basins = [
         { name: 'douro', color: '#1c9dff' },
         { name: 'lima', color: '#ff675c' },

@@ -1,16 +1,14 @@
-<div class="card" style="height: 810px">
-  <header class="card-header">
-    <p class="card-header-title">
-      Bacia: <%= @basin %>
-    </p>
+<div class="card" style="height: 100%">
+  <div class="is-pulled-right">
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
         <i class="fa fa-undo" onclick="history.back()"></i>
       </span>
     </button>
-  </header>
+  </div>
   <div class="card-content">
-    <div>
+    <div class="is-divider" style="width: 95%;" data-content={"RESUMO DA BACIA HIDROGRÁFICA #{String.upcase(@basin)} "}></div>
+    <div style=" height: 270px">
       <table class="table is-fullwidth">
         <thead>
           <tr>
@@ -42,23 +40,23 @@
             <% end %>
         </tbody>
       </table>
-      <nav class="pagination is-small" role="navigation" aria-label="pagination">
-        <%= live_patch "Anterior" , to: Routes.basin_detail_path(@socket, :detail, @basin_id, page: @page_number - 1 ),
-          class: "pagination-previous" , disabled: @page_number <=1 %>
-
-          <%= live_patch "Seguinte" , to: Routes.basin_detail_path(@socket, :detail, @basin_id, page: @page_number + 1
-            ), class: "pagination-next" , disabled: @page_number>= @total_pages %>
-
-            <ul class="pagination-list">
-              <%= for idx <- Enum.to_list(1..@total_pages) do %>
-                <li>
-                  <%= live_patch idx , to: Routes.basin_detail_path(@socket, :detail, @basin_id, page: idx ),
-                    class: "pagination-link #{if @page_number == idx, do: ' is-current' }" %>
-                </li>
-                <% end %>
-            </ul>
-      </nav>
     </div>
+    <nav class="pagination is-small" role="navigation" aria-label="pagination">
+      <%= live_patch "Anterior" , to: Routes.basin_detail_path(@socket, :detail, @basin_id, page: @page_number - 1 ),
+        class: "pagination-previous" , disabled: @page_number <=1 %>
+
+        <%= live_patch "Seguinte" , to: Routes.basin_detail_path(@socket, :detail, @basin_id, page: @page_number + 1 ),
+          class: "pagination-next" , disabled: @page_number>= @total_pages %>
+
+          <ul class="pagination-list">
+            <%= for idx <- Enum.to_list(1..@total_pages) do %>
+              <li>
+                <%= live_patch idx , to: Routes.basin_detail_path(@socket, :detail, @basin_id, page: idx ),
+                  class: "pagination-link #{if @page_number == idx, do: ' is-current' }" %>
+              </li>
+              <% end %>
+          </ul>
+    </nav>
     <div style="text-align:right;">
       <div class="select is-small" style="margin-top:15px; margin-bottom: 10px;">
         <select phx-click="change_window">
