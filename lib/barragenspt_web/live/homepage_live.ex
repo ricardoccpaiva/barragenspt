@@ -4,9 +4,7 @@ defmodule BarragensptWeb.HomepageLive do
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Hydrometrics.Basins
 
-  def handle_params(%{"page" => page}, _, socket) do
-    {basins_summary, paging_info} = get_data(page)
-
+  def mount(_, _, socket) do
     all_basins = Basins.all()
     data_to_feed = Basins.monthly_stats_for_basins()
 
@@ -15,14 +13,23 @@ defmodule BarragensptWeb.HomepageLive do
         %{k: basin_name, v: Colors.lookup(id)}
       end)
 
-    assigns =
+    socket =
       socket
       |> push_event("update_chart", %{data: data_to_feed, lines: lines})
       |> push_event("zoom_map", %{})
+
+    {:ok, socket}
+  end
+
+  def handle_params(%{"page" => page}, _, socket) do
+    {basins_summary, paging_info} = get_data(page)
+
+    socket =
+      socket
       |> assign(basins_summary: basins_summary)
       |> assign(paging_info)
 
-    {:noreply, assigns}
+    {:noreply, socket}
   end
 
   def handle_params(_, session, socket) do
