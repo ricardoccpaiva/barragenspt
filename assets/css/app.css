@@ -2,6 +2,14 @@
 /*@import "./phoenix.css";*/
 @import "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css";
 
+.marker {
+  background-image: url('http://shorturl.at/gtART');
+  background-size: cover;
+  width: 18px;
+  height: 18px;  
+  cursor: pointer;
+}
+
 .navbar-item img {
   max-height: 42px;
 }
