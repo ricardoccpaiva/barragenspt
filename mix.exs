@@ -20,7 +20,7 @@ defmodule Barragenspt.MixProject do
   def application do
     [
       mod: {Barragenspt.Application, []},
-      extra_applications: [:logger, :runtime_tools, :httpoison]
+      extra_applications: [:logger, :runtime_tools, :httpoison, :scrivener]
     ]
   end
 
@@ -57,7 +57,8 @@ defmodule Barragenspt.MixProject do
       {:uuid, "~> 1.1"},
       {:timex, "~> 3.0"},
       {:nebulex, "~> 2.2"},
-      {:decorator, "~> 1.4"}
+      {:decorator, "~> 1.4"},
+      {:scrivener_ecto, "~> 2.7"}
     ]
   end
 

@@ -5,8 +5,48 @@ defmodule BarragensptWeb.HomepageLive do
   alias Barragenspt.Hydrometrics.Basins
 
   def mount(_params, _session, socket) do
+    {basins_summary, paging_info} = get_data()
+
+    all_basins = Basins.all()
+    data_to_feed = Basins.monthly_stats_for_basins()
+
+    lines =
+      Enum.map(all_basins, fn %{id: id, name: basin_name} ->
+        %{k: basin_name, v: Colors.lookup(id)}
+      end)
+
+    assigns =
+      socket
+      |> push_event("update_chart", %{data: data_to_feed, lines: lines})
+      |> push_event("zoom_map", %{})
+      |> assign(basins_summary: basins_summary)
+      |> assign(paging_info)
+
+    {:ok, assigns}
+  end
+
+  def handle_event("nav", %{"page" => page}, socket) do
+    {basins_summary, paging_info} = get_data(page)
+
+    assigns =
+      socket
+      |> assign(basins_summary: basins_summary)
+      |> assign(paging_info)
+
+    {:noreply, assigns}
+  end
+
+  defp get_data(page \\ 1) do
+    %{
+      entries: entries,
+      page_number: page_number,
+      page_size: page_size,
+      total_entries: total_entries,
+      total_pages: total_pages
+    } = Basins.summary_stats(%{page_size: 8, page: page})
+
     basins_summary =
-      Enum.map(Basins.summary_stats(), fn {basin_id, name, current_storage, value} ->
+      Enum.map(entries, fn {basin_id, name, current_storage, value} ->
         %{
           id: basin_id,
           name: name,
@@ -16,23 +56,12 @@ defmodule BarragensptWeb.HomepageLive do
         }
       end)
 
-    {:ok, assign(socket, basins_summary: basins_summary)}
-  end
-
-  def handle_params(_params, _url, socket) do
-    all_basins = Basins.all()
-    data_to_feed = Basins.monthly_stats_for_basins()
-
-    lines =
-      Enum.map(all_basins, fn %{id: id, name: basin_name} ->
-        %{k: basin_name, v: Colors.lookup(id)}
-      end)
-
-    socket =
-      socket
-      |> push_event("update_chart", %{data: data_to_feed, lines: lines})
-      |> push_event("zoom_map", %{})
-
-    {:noreply, socket}
+    {basins_summary,
+     %{
+       page_number: page_number,
+       page_size: page_size,
+       total_entries: total_entries,
+       total_pages: total_pages
+     }}
   end
 end
