@@ -36,7 +36,7 @@ defmodule BarragensptWeb.HomepageLive do
       page_size: page_size,
       total_entries: total_entries,
       total_pages: total_pages
-    } = Basins.summary_stats(%{page_size: 8, page: page})
+    } = Basins.summary_stats(%{page_size: 6, page: page})
 
     basins_summary =
       Enum.map(entries, fn {basin_id, name, current_storage, value} ->
