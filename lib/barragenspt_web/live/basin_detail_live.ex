@@ -16,23 +16,12 @@ defmodule BarragensptWeb.BasinDetailLive do
     {:noreply, socket}
   end
 
-  def handle_event("nav", %{"page" => page}, socket) do
-    {basin_summary, paging_info} = get_data(socket.assigns.basin_id, page)
-
-    assigns =
-      socket
-      |> assign(basin_summary: basin_summary)
-      |> assign(paging_info)
-
-    {:noreply, assigns}
-  end
-
-  def handle_params(%{"id" => id}, _url, socket) do
+  def handle_params(%{"id" => id, "page" => page}, _url, socket) do
     data = Basins.monthly_stats_for_basin(id)
 
     bounding_box = Dams.bounding_box(id)
 
-    {basin_summary, paging_info} = get_data(id)
+    {basin_summary, paging_info} = get_data(id, page)
 
     %{basin_name: basin_name} = Enum.at(basin_summary, 0)
 
@@ -58,7 +47,11 @@ defmodule BarragensptWeb.BasinDetailLive do
     {:noreply, socket}
   end
 
-  defp get_data(id, page \\ 1) do
+  def handle_params(%{"id" => id}, session, socket) do
+    handle_params(%{"id" => id, "page" => 1}, session, socket)
+  end
+
+  defp get_data(id, page) do
     %{
       entries: entries,
       page_number: page_number,

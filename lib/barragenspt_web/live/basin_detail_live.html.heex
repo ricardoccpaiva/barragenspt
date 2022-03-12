@@ -5,7 +5,7 @@
     </p>
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
-        <%= live_patch "" , to: Routes.homepage_path(@socket, :index), class: "fa fa-undo" %>
+        <i class="fa fa-undo" onclick="history.back()"></i>
       </span>
     </button>
   </header>
@@ -43,22 +43,20 @@
         </tbody>
       </table>
       <nav class="pagination is-small" role="navigation" aria-label="pagination">
-        <a class="pagination-previous" disabled={ if @page_number <=1, do: 'true' } href="#" phx-click="nav"
-          phx-value-page={ @page_number - 1 }>Anterior</a>
+        <%= live_patch "Anterior" , to: Routes.basin_detail_path(@socket, :detail, @basin_id, page: @page_number - 1 ),
+          class: "pagination-previous" , disabled: @page_number <=1 %>
 
-        <a class="pagination-next" disabled={ if @page_number>= @total_pages, do: 'true' }
-          href="#" phx-click="nav" phx-value-page={@page_number + 1}>Seguinte</a>
+          <%= live_patch "Seguinte" , to: Routes.basin_detail_path(@socket, :detail, @basin_id, page: @page_number + 1
+            ), class: "pagination-next" , disabled: @page_number>= @total_pages %>
 
-        <ul class="pagination-list">
-          <%= for idx <- Enum.to_list(1..@total_pages) do %>
-            <li>
-              <a class={"pagination-link #{if @page_number==idx, do: ' is-current' }"} phx-click="nav"
-                phx-value-page={idx}>
-                <%= idx %>
-              </a>
-            </li>
-            <% end %>
-        </ul>
+            <ul class="pagination-list">
+              <%= for idx <- Enum.to_list(1..@total_pages) do %>
+                <li>
+                  <%= live_patch idx , to: Routes.basin_detail_path(@socket, :detail, @basin_id, page: idx ),
+                    class: "pagination-link #{if @page_number == idx, do: ' is-current' }" %>
+                </li>
+                <% end %>
+            </ul>
       </nav>
     </div>
     <div style="text-align:right;">

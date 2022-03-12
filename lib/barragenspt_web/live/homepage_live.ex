@@ -4,8 +4,8 @@ defmodule BarragensptWeb.HomepageLive do
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Hydrometrics.Basins
 
-  def mount(_params, _session, socket) do
-    {basins_summary, paging_info} = get_data()
+  def handle_params(%{"page" => page}, _, socket) do
+    {basins_summary, paging_info} = get_data(page)
 
     all_basins = Basins.all()
     data_to_feed = Basins.monthly_stats_for_basins()
@@ -22,21 +22,14 @@ defmodule BarragensptWeb.HomepageLive do
       |> assign(basins_summary: basins_summary)
       |> assign(paging_info)
 
-    {:ok, assigns}
-  end
-
-  def handle_event("nav", %{"page" => page}, socket) do
-    {basins_summary, paging_info} = get_data(page)
-
-    assigns =
-      socket
-      |> assign(basins_summary: basins_summary)
-      |> assign(paging_info)
-
     {:noreply, assigns}
   end
 
-  defp get_data(page \\ 1) do
+  def handle_params(_, session, socket) do
+    handle_params(%{"page" => 1}, session, socket)
+  end
+
+  defp get_data(page) do
     %{
       entries: entries,
       page_number: page_number,

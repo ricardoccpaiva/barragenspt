@@ -33,22 +33,20 @@
         </tbody>
       </table>
       <nav class="pagination is-small" role="navigation" aria-label="pagination">
-        <a class="pagination-previous" disabled={ if @page_number <=1, do: 'true' } href="#" phx-click="nav"
-          phx-value-page={ @page_number - 1 }>Anterior</a>
+        <%= live_patch "Anterior" , to: Routes.homepage_path(@socket, :index, page: @page_number - 1 ),
+          class: "pagination-previous" , disabled: @page_number <=1 %>
 
-        <a class="pagination-next" disabled={ if @page_number>= @total_pages, do: 'true' }
-          href="#" phx-click="nav" phx-value-page={@page_number + 1}>Seguinte</a>
+          <%= live_patch "Seguinte" , to: Routes.homepage_path(@socket, :index, page: @page_number + 1 ),
+            class: "pagination-next" , disabled: @page_number>= @total_pages %>
 
-        <ul class="pagination-list">
-          <%= for idx <- Enum.to_list(1..@total_pages) do %>
-            <li>
-              <a class={"pagination-link #{if @page_number==idx, do: ' is-current' }"} phx-click="nav"
-                phx-value-page={idx}>
-                <%= idx %>
-              </a>
-            </li>
-            <% end %>
-        </ul>
+            <ul class="pagination-list">
+              <%= for idx <- Enum.to_list(1..@total_pages) do %>
+                <li>
+                  <%= live_patch idx , to: Routes.homepage_path(@socket, :index, page: idx ),
+                    class: "pagination-link #{if @page_number == idx, do: ' is-current' }" %>
+                </li>
+                <% end %>
+            </ul>
       </nav>
     </div>
     <div id="c1" phx-update="ignore"></div>
