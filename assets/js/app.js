@@ -139,11 +139,9 @@ const loadDams = async () => {
     const damsCoords = await response.json();
     damsCoords.data.forEach(function (element) {
         el = document.createElement('div');
-        innerHTML = "<a style='color: grey'";
-        innerHTML = innerHTML + " data-phx-link='patch'";
-        innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.site_id + "?nz" + "'</a>";
+        innerHTML = "<i data-phx-link='patch' class='fa-solid fa-location-dot fa-lg marker'";
+        innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.site_id + "?nz" + "'</i>";
         el.innerHTML = innerHTML;
-        el.className = 'marker';
 
         new mapboxgl
             .Marker(el)
