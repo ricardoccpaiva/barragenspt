@@ -27,16 +27,12 @@
 </head>
 
 <body>
-  <div class="container">
-    <div class="is-primary">
-      <nav class="navbar navbar_bck" role="navigation" aria-label="main navigation">
-        <a class="navbar-item" href="/">
-          <img src={Routes.static_path(BarragensptWeb.Endpoint, "/images/logo.png" )} height="46px">
-        </a>
-      </nav>
-    </div>
-  </div>
-  <div class="container">
+  <div class="container" style="max-width: 1050px;">
+    <nav class="navbar navbar_bck" role="navigation" aria-label="main navigation">
+      <a class="navbar-item" href="/">
+        <img src={Routes.static_path(BarragensptWeb.Endpoint, "/images/logo.png" )} height="46px">
+      </a>
+    </nav>
     <div class="is-primary">
       <div class="columns">
         <div class="column">
@@ -52,7 +48,7 @@
             <span class="tag is-light" style="background-color:#1c9dff">81 - 100</span>
           </div>
         </div>
-        <div class="column">
+        <div class="column is-three-fifths">
           <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
           <%= @inner_content %>
         </div>

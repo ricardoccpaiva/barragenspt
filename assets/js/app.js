@@ -51,8 +51,9 @@ window.addEventListener(`phx:update_chart`, (e) => {
     document.getElementById("c1").innerHTML = "";
     const chart = new G2.Chart({
         container: 'c1',
-        autoFit: true,
-        height: 300,
+        autoFit: false,
+        height: 325,
+        width: 560,
         padding: [30, 20, 70, 30]
     });
 
@@ -91,7 +92,7 @@ window.addEventListener('phx:zoom_map', (e) => {
     }
     else {
         map.flyTo({
-            center: [-8, 39.69],
+            center: [-8, 39.59],
             essential: true,
             zoom: 6,
             speed: 2
@@ -139,8 +140,8 @@ const loadDams = async () => {
     const damsCoords = await response.json();
     damsCoords.data.forEach(function (element) {
         el = document.createElement('div');
-        innerHTML = "<i data-phx-link='patch' class='fa-solid fa-location-dot fa-lg marker'";
-        innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.site_id + "?nz" + "'</i>";
+        innerHTML = "<a class='fa-solid fa-location-dot fa-lg marker' data-phx-link='patch' ";
+        innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.site_id + "?nz" + "'</a>";
         el.innerHTML = innerHTML;
 
         new mapboxgl
@@ -155,16 +156,14 @@ const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/ricardoccpaiva/ckzcpwm4h001114mn112tg6fr',
     center: [-8, 39.69],
-    zoom: 6
+    zoom: 4
 });
-
-loadDams();
 
 map.addControl(new mapboxgl.NavigationControl());
 
 map.on('load', function () {
     map.resize();
-
+    loadDams();
     const basins = [
         { name: 'douro', color: '#1c9dff' },
         { name: 'lima', color: '#ff675c' },

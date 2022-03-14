@@ -17,6 +17,7 @@ defmodule BarragensptWeb.HomepageLive do
       socket
       |> push_event("update_chart", %{data: data_to_feed, lines: lines})
       |> push_event("zoom_map", %{})
+      |> push_event("enable_tabs", %{})
 
     {:ok, socket}
   end
@@ -43,7 +44,7 @@ defmodule BarragensptWeb.HomepageLive do
       page_size: page_size,
       total_entries: total_entries,
       total_pages: total_pages
-    } = Basins.summary_stats(%{page_size: 6, page: page})
+    } = Basins.summary_stats(%{page_size: 60, page: page})
 
     basins_summary =
       Enum.map(entries, fn {basin_id, name, current_storage, value} ->

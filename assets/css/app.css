@@ -2,9 +2,8 @@
 /*@import "./phoenix.css";*/
 @import "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css";
 
-.is-divider {
-  margin-bottom: 20px;
-  margin-top: 20px;
+.bc {
+  margin-top: 15px;
 }
 
 .card-content{
@@ -13,6 +12,7 @@
 
 .marker {
   cursor: pointer;
+  color: gray;
 }
 
 .navbar-item img {

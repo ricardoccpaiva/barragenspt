@@ -1,58 +1,68 @@
-<div class="card" style="height: 100%">
+<div class="card" style="height: 700px; width: 100%;">
   <div class="card-content">
-    <div>
-      <div class="is-divider" data-content="RESUMO POR BACIA HIDROGRÁFICA"></div>
-      <div style="height: 270px">
-        <table class="table is-fullwidth">
-          <thead>
-            <tr>
-              <th>Bacia</th>
-              <th>% Atual</th>
-              <th>% Média</th>
-              <th>Detalhe</th>
-            </tr>
-          </thead>
-          <tbody>
-            <%= for %{id: id, name: name, current_storage: current_storage, average_historic_value:
-              average_historic_value, capacity_color: capacity_color} <- @basins_summary do %>
-              <tr>
-                <td style="padding-right: 30px">
-                  <%= name %>
-                </td>
-                <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}>
-                    <%= current_storage %>%
-                  </span></td>
-                <td class="has-text-centered"><span class="tag is-light">
-                    <%= average_historic_value %>%
-                  </span></td>
-                <td class="has-text-centered">
-                  <%= live_patch to: Routes.basin_detail_path(@socket, :detail, id), replace: false do %>
-                    <i class="fa fa-info" aria-hidden="true"></i>
-                    <% end %>
-                </td>
-              </tr>
-              <% end %>
-          </tbody>
-        </table>
+    <nav class="breadcrumb bc is-small" aria-label="breadcrumbs">
+      <ul>
+        <li>
+          <%= live_patch "Bacias Hidrográficas" , to: Routes.homepage_path(@socket, :index) %>
+        </li>
+      </ul>
+    </nav>
+    <div id="tabs-with-content">
+      <div class="tabs is-small">
+        <ul>
+          <li class="is-active">
+            <a>
+              <span class="icon is-small"><i class="fa-solid fa-table-list" aria-hidden="true"></i></span>
+              <span>Dados atuais</span>
+            </a>
+          </li>
+          <li>
+            <a>
+              <span class="icon is-small"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
+              <span>Dados históricos</span>
+            </a>
+          </li>
+        </ul>
       </div>
-      <nav class="pagination is-small" role="navigation" aria-label="pagination">
-        <%= live_patch "Anterior" , to: Routes.homepage_path(@socket, :index, page: @page_number - 1 ),
-          class: "pagination-previous" , disabled: @page_number <=1 %>
-
-          <%= live_patch "Seguinte" , to: Routes.homepage_path(@socket, :index, page: @page_number + 1 ),
-            class: "pagination-next" , disabled: @page_number>= @total_pages %>
-
-            <ul class="pagination-list">
-              <%= for idx <- Enum.to_list(1..@total_pages) do %>
-                <li>
-                  <%= live_patch idx , to: Routes.homepage_path(@socket, :index, page: idx ),
-                    class: "pagination-link #{if @page_number == idx, do: ' is-current' }" %>
-                </li>
+      <div>
+        <section class="tab-content">
+          <table class="table is-fullwidth">
+            <thead>
+              <tr>
+                <th>Bacia</th>
+                <th>% Atual</th>
+                <th>% Média</th>
+                <th>Detalhe</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= for %{id: id, name: name, current_storage: current_storage, average_historic_value:
+                average_historic_value, capacity_color: capacity_color} <- @basins_summary do %>
+                <tr>
+                  <td style="padding-right: 30px">
+                    <%= name %>
+                  </td>
+                  <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}>
+                      <%= current_storage %>%
+                    </span></td>
+                  <td class="has-text-centered"><span class="tag is-light">
+                      <%= average_historic_value %>%
+                    </span></td>
+                  <td class="has-text-centered">
+                    <%= live_patch to: Routes.basin_detail_path(@socket, :detail, id), replace: false do %>
+                      <i class="fa fa-info" aria-hidden="true"></i>
+                      <% end %>
+                  </td>
+                </tr>
                 <% end %>
-            </ul>
-      </nav>
+            </tbody>
+          </table>
+        </section>
+        <section class="tab-content">
+          <div id="c1" phx-update="ignore"></div>
+        </section>
+      </div>
     </div>
-    <div class="is-divider" style="margin-top:30px" data-content="EVOLUÇÃO MENSAL"></div>
-    <div id="c1" phx-update="ignore"></div>
+
   </div>
 </div>

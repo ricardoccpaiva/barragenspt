@@ -1,15 +1,26 @@
-<div class="card" style="height: 810px">
-  <header class="card-header">
-    <p class="card-header-title">
-      Rio: <%= @dam.name %>
-    </p>
+<div class="card" style="height: 700px">
+  <div class="is-pulled-right">
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
         <%= live_patch "" , to: Routes.basin_detail_path(@socket, :detail, @dam.basin_id), class: "fa fa-undo" %>
       </span>
     </button>
-  </header>
+  </div>
   <div class="card-content">
+    <nav class="breadcrumb bc is-small" aria-label="breadcrumbs">
+      <ul>
+        <li>
+          <%= live_patch "Bacias Hidrográficas" , to: Routes.homepage_path(@socket, :index) %>
+        </li>
+        <li>
+          <%= live_patch @dam.basin, to: Routes.basin_detail_path(@socket, :detail, @dam.basin_id) %>
+        </li>
+        <li><a href="#"> Albufeiras</a></li>
+        <li>
+          <%= live_patch @dam.name, to: Routes.dam_detail_path(@socket, :detail, @dam.site_id) %>
+        </li>
+      </ul>
+    </nav>
     <div id="tabs-with-content">
       <div class="tabs is-small">
         <ul>
