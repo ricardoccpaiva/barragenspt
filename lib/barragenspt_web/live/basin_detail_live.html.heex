@@ -2,7 +2,7 @@
   <div class="is-pulled-right">
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
-        <i class="fa fa-undo" onclick="history.back()"></i>
+        <%= live_patch "" , to: Routes.homepage_path(@socket, :index), class: "fa fa-undo" %>
       </span>
     </button>
   </div>
