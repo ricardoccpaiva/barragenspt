@@ -129,13 +129,8 @@ defmodule Barragenspt.Hydrometrics.Basins do
     end)
   end
 
-  @decorate cacheable(
-              cache: Cache,
-              key:
-                "basins_summary-paging-#{paging_params[:page] || 1} - #{paging_params[:page_size] || 10}",
-              ttl: @ttl
-            )
-  def summary_stats(paging_params) do
+  @decorate cacheable(cache: Cache, key: "basins.summary_stats", ttl: @ttl)
+  def summary_stats() do
     query =
       from(d in DailyAverageStorageByBasin,
         join: b in BasinStorage,
@@ -149,16 +144,11 @@ defmodule Barragenspt.Hydrometrics.Basins do
         }
       )
 
-    Repo.paginate(query, paging_params)
+    Repo.all(query)
   end
 
-  @decorate cacheable(
-              cache: Cache,
-              key:
-                "basin_summary-paging-#{id}-#{paging_params[:page] || 1} - #{paging_params[:page_size] || 10}",
-              ttl: @ttl
-            )
-  def summary_stats(id, paging_params) do
+  @decorate cacheable(cache: Cache, key: "basins.summary_stats_#{id}", ttl: @ttl)
+  def summary_stats(id) do
     query =
       from(d in DailyAverageStorageBySite,
         join: b in SiteCurrentStorage,
@@ -173,7 +163,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
         }
       )
 
-    Repo.paginate(query, paging_params)
+    Repo.all(query)
   end
 
   def get(id) do
