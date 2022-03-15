@@ -31,6 +31,8 @@ defmodule BarragensptWeb.Endpoint do
     plug Phoenix.Ecto.CheckRepoStatus, otp_app: :barragenspt
   end
 
+  plug(PlugCanonicalHost, canonical_host: "barragens.pt")
+
   plug PromEx.Plug, prom_ex_module: Barragenspt.PromEx
 
   plug Phoenix.LiveDashboard.RequestLogger,
