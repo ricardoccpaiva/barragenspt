@@ -59,6 +59,27 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  config :barragenspt, Barragenspt.PromEx,
+    disabled: false,
+    manual_metrics_start_delay: :no_delay,
+    drop_metrics_groups: [],
+    grafana: [
+      host: System.get_env("GRAFANA_HOST"),
+      auth_token: System.get_env("GRAFANA_AUTH_TOKEN")
+    ],
+    grafana_agent: [
+      disabled: false,
+      config_opts: [
+        metrics_server_scheme: System.get_env("GRAFANA_AGENT_METRICS_SERVER_SCHEME"),
+        metrics_server_host: System.get_env("GRAFANA_AGENT_METRICS_SERVER_HOST"),
+        metrics_server_port: System.get_env("GRAFANA_AGENT_METRICS_SERVER_PORT"),
+        prometheus_url: System.get_env("PROMETHEUS_URL"),
+        prometheus_username: System.get_env("PROMETHEUS_USERNAME"),
+        prometheus_password: System.get_env("PROMETHEUS_PASSWORD")
+      ]
+    ],
+    metrics_server: :disabled
+
   # ## Using releases
   #
   # If you are doing OTP releases, you need to instruct Phoenix

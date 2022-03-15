@@ -58,7 +58,8 @@ defmodule Barragenspt.MixProject do
       {:timex, "~> 3.0"},
       {:nebulex, "~> 2.2"},
       {:decorator, "~> 1.4"},
-      {:scrivener_ecto, "~> 2.7"}
+      {:scrivener_ecto, "~> 2.7"},
+      {:prom_ex, "~> 1.7.1"}
     ]
   end
 
