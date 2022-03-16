@@ -22,6 +22,8 @@ defmodule BarragensptWeb.DamDetailLive do
     data = Dams.monthly_stats(dam)
     lines = [%{k: "Observado", v: Colors.lookup(dam.basin_id)}] ++ [%{k: "Média", v: "grey"}]
 
+    %{current_storage: current_storage} = Dams.current_storage(dam.site_id)
+
     allowed_keys = [
       "Barragem",
       "Albufeira",
@@ -30,7 +32,14 @@ defmodule BarragensptWeb.DamDetailLive do
       "Bacia Hidrográfica"
     ]
 
-    new_meta = Map.take(dam.metadata, allowed_keys)
+    basin_data = Map.get(dam.metadata, "Bacia Hidrográfica")
+
+    new_meta =
+      dam.metadata
+      |> Map.take(allowed_keys)
+      |> Map.drop(["Bacia Hidrográfica"])
+      |> Map.put("Bacia", basin_data)
+
     dam = Map.put(dam, :metadata, new_meta)
 
     %{lat: lat, lon: lon} = Coordinates.from_dam(dam)
@@ -38,6 +47,7 @@ defmodule BarragensptWeb.DamDetailLive do
     socket =
       socket
       |> assign(dam: dam)
+      |> assign(current_capacity: current_storage)
       |> push_event("update_chart", %{data: data, lines: lines})
       |> push_event("enable_tabs", %{})
 

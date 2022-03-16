@@ -6,6 +6,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   alias Barragenspt.Hydrometrics.{
     MonthlyAverageStorageBySite,
+    SiteCurrentStorage,
     DataPoint,
     Dam
   }
@@ -86,6 +87,17 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.map(fn %{date: date} = m ->
       Map.replace!(m, :date, Timex.format!(date, "{YYYY}-{M}-{D}"))
     end)
+  end
+
+  def current_storage(site_id) do
+    Repo.one(
+      from(b in SiteCurrentStorage,
+        where: b.site_id == ^site_id,
+        select: %{
+          current_storage: fragment("round(?, 1)", b.current_storage)
+        }
+      )
+    )
   end
 
   defp build_average_data(historic_values, field, id, date) do

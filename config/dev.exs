@@ -3,7 +3,7 @@ import Config
 # Configure your database
 config :barragenspt, Barragenspt.Repo,
   username: "postgres",
-  password: "password",
+  password: "postgres",
   hostname: "localhost",
   database: "barragenspt_dev",
   show_sensitive_data_on_connection_error: true,
