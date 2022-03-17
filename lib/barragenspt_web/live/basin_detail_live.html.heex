@@ -72,11 +72,13 @@
         <section class="tab-content">
           <div style="text-align:right;">
             <div class="select is-small" style="margin-top:15px; margin-bottom: 10px;">
-              <select phx-click="change_window">
-                <option value="2">2 anos</option>
-                <option value="5">5 anos</option>
-                <option value="10">10 anos</option>
-                <option value="50">Sem limite</option>
+              <select phx-hook="ChartTimeWindow">
+                <option value="m2">1 mês</option>
+                <option value="m6">6 meses</option>
+                <option value="y2" selected>2 anos</option>
+                <option value="y5">5 anos</option>
+                <option value="y10">10 anos</option>
+                <option value="y50">Sem limite</option>
               </select>
             </div>
           </div>

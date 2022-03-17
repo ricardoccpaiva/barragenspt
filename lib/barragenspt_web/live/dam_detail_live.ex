@@ -7,9 +7,19 @@ defmodule BarragensptWeb.DamDetailLive do
 
   def handle_event("change_window", %{"value" => value}, socket) do
     id = socket.assigns.dam.site_id
-    {int_value, ""} = Integer.parse(value)
     dam = Barragenspt.Repo.one(from(p in Barragenspt.Hydrometrics.Dam, where: p.site_id == ^id))
-    data = Dams.monthly_stats(dam, int_value)
+
+    data =
+      case value do
+        "y" <> val ->
+          {int_value, ""} = Integer.parse(val)
+          Dams.monthly_stats(dam, int_value)
+
+        "m" <> val ->
+          {int_value, ""} = Integer.parse(val)
+          Dams.daily_stats(dam, int_value)
+      end
+
     lines = [%{k: "Observado", v: Colors.lookup(dam.basin_id)}] ++ [%{k: "Média", v: "grey"}]
 
     socket = push_event(socket, "update_chart", %{data: data, lines: lines})

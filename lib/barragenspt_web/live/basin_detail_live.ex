@@ -6,8 +6,17 @@ defmodule BarragensptWeb.BasinDetailLive do
 
   def handle_event("change_window", %{"value" => value}, socket) do
     id = socket.assigns.basin_id
-    {int_value, ""} = Integer.parse(value)
-    data = Basins.monthly_stats_for_basin(id, int_value)
+
+    data =
+      case value do
+        "y" <> val ->
+          {int_value, ""} = Integer.parse(val)
+          Basins.monthly_stats_for_basin(id, int_value)
+
+        "m" <> val ->
+          {int_value, ""} = Integer.parse(val)
+          Basins.daily_stats_for_basin(id, int_value)
+      end
 
     lines = [%{k: "Observado", v: Colors.lookup(id)}] ++ [%{k: "Média", v: "grey"}]
 
