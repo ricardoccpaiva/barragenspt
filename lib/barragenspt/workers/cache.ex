@@ -13,7 +13,7 @@ defmodule Barragenspt.Workers.StatsCacher do
       |> Enum.uniq_by(fn %{basin_id: basin_id} -> basin_id end)
       |> Enum.map(fn %{basin_id: basin_id} -> basin_id end)
 
-    daily_periods = [1, 2]
+    daily_periods = [1, 6]
     monthly_periods = [2, 5, 10, 50]
 
     cache_basin_stats(basin_ids, daily_periods, monthly_periods)
