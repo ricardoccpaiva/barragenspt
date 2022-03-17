@@ -15,10 +15,14 @@ defmodule Barragenspt.Hydrometrics.Dams do
   alias Barragenspt.Repo
   alias Barragenspt.Cache
 
-  @ttl :timer.hours(24)
+  @ttl :timer.hours(1)
+
+  def all do
+    Repo.all(from(b in Dam))
+  end
 
   def bounding_box(basin_id) do
-    query = from d in Dam, where: d.basin_id == ^basin_id
+    query = from(d in Dam, where: d.basin_id == ^basin_id)
 
     query
     |> Barragenspt.Repo.all()

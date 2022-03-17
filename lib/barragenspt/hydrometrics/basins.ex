@@ -15,7 +15,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
   alias Barragenspt.Cache
   alias Barragenspt.Repo
 
-  @ttl :timer.hours(24)
+  @ttl :timer.hours(1)
 
   @decorate cacheable(cache: Cache, key: "daily_for_basin_#{id}_#{period}", ttl: @ttl)
   def daily_stats_for_basin(id, period \\ 1) do
