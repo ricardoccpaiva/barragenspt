@@ -56,7 +56,7 @@ config :barragenspt, Oban,
        {"0 * * * *", Barragenspt.Workers.StatsCacher, max_attempts: 1}
      ]}
   ],
-  queues: [dams_info: 5, dam_levels: 10, stats_cacher: 1]
+  queues: [dams_info: 2, dam_levels: 10, stats_cacher: 1]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
