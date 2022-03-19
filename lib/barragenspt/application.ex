@@ -8,6 +8,7 @@ defmodule Barragenspt.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      Barragenspt.PromEx,
       # Start the Ecto repository
       Barragenspt.Repo,
       # Start the Telemetry supervisor
@@ -17,8 +18,7 @@ defmodule Barragenspt.Application do
       # Start the Endpoint (http/https)
       BarragensptWeb.Endpoint,
       {Oban, oban_config()},
-      Barragenspt.Cache,
-      Barragenspt.PromEx
+      Barragenspt.Cache
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
