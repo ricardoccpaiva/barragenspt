@@ -18,7 +18,11 @@ defmodule Barragenspt.Hydrometrics.Basins do
 
   @ttl :timer.hours(1)
 
-  @decorate cacheable(cache: Cache, key: "daily_for_basin_#{id}_#{period}", ttl: @ttl)
+  @decorate cacheable(
+              cache: Cache,
+              key: "basins.daily_stats_for_basin_#{id}_#{period}",
+              ttl: @ttl
+            )
   def daily_stats_for_basin(id, period \\ 1) do
     historic_values =
       Repo.all(
@@ -78,7 +82,11 @@ defmodule Barragenspt.Hydrometrics.Basins do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
-  @decorate cacheable(cache: Cache, key: "monthly_for_basin_#{id}_#{period}", ttl: @ttl)
+  @decorate cacheable(
+              cache: Cache,
+              key: "basins.monthly_stats_for_basin_#{id}_#{period}",
+              ttl: @ttl
+            )
   def monthly_stats_for_basin(id, period \\ 2) do
     historic_values =
       Repo.all(
@@ -137,7 +145,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
-  @decorate cacheable(cache: Cache, key: "monthly_for_basins", ttl: @ttl)
+  @decorate cacheable(cache: Cache, key: "basins.monthly_stats_for_basins", ttl: @ttl)
   def monthly_stats_for_basins() do
     query =
       from(dp in DataPoint,
