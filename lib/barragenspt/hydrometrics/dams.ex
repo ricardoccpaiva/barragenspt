@@ -17,6 +17,10 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   @ttl :timer.hours(1)
 
+  def get(id) do
+    Barragenspt.Repo.one!(from(d in Dam, where: d.site_id == ^id))
+  end
+
   def all do
     Repo.all(from(b in Dam))
   end
@@ -96,12 +100,12 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
-  @decorate cacheable(cache: Cache, key: "for_site_#{dam.site_id}-#{period}", ttl: @ttl)
-  def monthly_stats(dam, period \\ 2) do
+  @decorate cacheable(cache: Cache, key: "for_site_#{id}-#{period}", ttl: @ttl)
+  def monthly_stats(id, period \\ 2) do
     historic_values =
       Repo.all(
         from(b in MonthlyAverageStorageBySite,
-          where: b.site_id == ^dam.site_id
+          where: b.site_id == ^id
         )
       )
 
@@ -111,7 +115,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         on: d.site_id == dp.site_id,
         where:
           dp.param_name == "volume_last_day_month" and
-            dp.site_id == ^dam.site_id and
+            dp.site_id == ^id and
             dp.colected_at >= ^query_limit(period),
         group_by: [
           :site_id,
@@ -139,14 +143,14 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Repo.all()
     |> Stream.map(fn {value, date} ->
       %{
-        basin_id: dam.site_id,
+        basin_id: id,
         value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
         date: date,
         basin: "Observado"
       }
     end)
     |> Stream.map(fn m ->
-      hdata = build_average_data(historic_values, :site_id, dam.site_id, m.date, m.date.month)
+      hdata = build_average_data(historic_values, :site_id, id, m.date, m.date.month)
 
       [m, hdata]
     end)

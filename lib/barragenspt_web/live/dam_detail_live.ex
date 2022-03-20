@@ -28,12 +28,30 @@ defmodule BarragensptWeb.DamDetailLive do
   end
 
   def handle_params(%{"id" => id} = params, _url, socket) do
-    dam = Barragenspt.Repo.one(from(p in Barragenspt.Hydrometrics.Dam, where: p.site_id == ^id))
-    data = Dams.monthly_stats(dam)
+    dam = Dams.get(id)
+    data = Dams.monthly_stats(id)
     lines = [%{k: "Observado", v: Colors.lookup(dam.basin_id)}] ++ [%{k: "Média", v: "grey"}]
 
-    %{current_storage: current_storage} = Dams.current_storage(dam.site_id)
+    %{current_storage: current_storage} = Dams.current_storage(id)
 
+    dam = prepare_dam_metadata(dam)
+
+    socket =
+      socket
+      |> assign(dam: dam)
+      |> assign(current_capacity: current_storage)
+      |> push_event("update_chart", %{data: data, lines: lines})
+      |> push_event("enable_tabs", %{})
+
+    if(params["nz"]) do
+      {:noreply, socket}
+    else
+      %{lat: lat, lon: lon} = Coordinates.from_dam(dam)
+      {:noreply, push_event(socket, "zoom_map", %{center: [lon, lat]})}
+    end
+  end
+
+  defp prepare_dam_metadata(dam) do
     allowed_keys = [
       "Barragem",
       "Albufeira",
@@ -50,21 +68,6 @@ defmodule BarragensptWeb.DamDetailLive do
       |> Map.drop(["Bacia Hidrográfica"])
       |> Map.put("Bacia", basin_data)
 
-    dam = Map.put(dam, :metadata, new_meta)
-
-    %{lat: lat, lon: lon} = Coordinates.from_dam(dam)
-
-    socket =
-      socket
-      |> assign(dam: dam)
-      |> assign(current_capacity: current_storage)
-      |> push_event("update_chart", %{data: data, lines: lines})
-      |> push_event("enable_tabs", %{})
-
-    if(params["nz"]) do
-      {:noreply, socket}
-    else
-      {:noreply, push_event(socket, "zoom_map", %{center: [lon, lat]})}
-    end
+    Map.put(dam, :metadata, new_meta)
   end
 end
