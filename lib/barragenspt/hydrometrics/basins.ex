@@ -51,7 +51,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
               "Albufeira",
               "Capacidade total (dam3)"
             ),
-          fragment("DATE(?) as date", dp.colected_at)
+          fragment("DATE(?)", dp.colected_at)
         }
       )
 
