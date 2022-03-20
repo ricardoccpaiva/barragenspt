@@ -26,8 +26,9 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
     query
     |> Barragenspt.Repo.all()
-    |> Enum.map(fn dam -> Coordinates.from_dam(dam) end)
-    |> Enum.map(fn %{lat: lat, lon: lon} -> [lon, lat] end)
+    |> Stream.map(fn dam -> Coordinates.from_dam(dam) end)
+    |> Stream.map(fn %{lat: lat, lon: lon} -> [lon, lat] end)
+    |> Enum.to_list()
     |> Geocalc.bounding_box_for_points()
   end
 
@@ -46,45 +47,35 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
     query =
       from(dp in DataPoint,
+        join: d in Dam,
+        on: d.site_id == dp.site_id,
         where:
           dp.param_name == "volume_last_hour" and
             dp.site_id == ^dam.site_id and
             dp.colected_at >= ^query_limit(period, :month),
         group_by: [
           :site_id,
-          fragment("extract(day from ?)", dp.colected_at),
-          fragment("extract(month from ?)", dp.colected_at),
-          fragment("extract(year from ?)", dp.colected_at)
+          fragment("DATE(?)", dp.colected_at)
         ],
         select: {
-          fragment(
-            "sum(value) / (SELECT sum((metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int) from dam d where site_id = ?) * 100",
-            ^dam.site_id
-          ),
-          fragment(
-            "cast(extract(day from ?) as int) as day",
-            dp.colected_at
-          ),
-          fragment(
-            "cast(extract(month from ?) as int) as month",
-            dp.colected_at
-          ),
-          fragment(
-            "cast(extract(year from ?) as int) as year",
-            dp.colected_at
-          )
+          sum(dp.value) /
+            fragment(
+              "sum((? -> ? ->> ?)::int)",
+              d.metadata,
+              "Albufeira",
+              "Capacidade total (dam3)"
+            ),
+          fragment("DATE(?)", dp.colected_at)
         }
       )
 
     query
     |> Repo.all()
-    |> Stream.map(fn {value, day, month, year} ->
-      {:ok, parsed_date} = Timex.parse("#{day}-#{month}-#{year}", "{D}-{M}-{YYYY}")
-
+    |> Stream.map(fn {value, date} ->
       %{
         basin_id: dam.site_id,
-        value: value |> Decimal.round(1) |> Decimal.to_float(),
-        date: parsed_date,
+        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+        date: date,
         basin: "Observado"
       }
     end)
@@ -103,9 +94,6 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.to_list()
     |> List.flatten()
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
-    |> Enum.map(fn %{date: date} = m ->
-      Map.replace!(m, :date, Timex.format!(date, "{YYYY}-{M}-{D}"))
-    end)
   end
 
   @decorate cacheable(cache: Cache, key: "for_site_#{dam.site_id}-#{period}", ttl: @ttl)
@@ -119,26 +107,29 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
     query =
       from(dp in DataPoint,
+        join: d in Dam,
+        on: d.site_id == dp.site_id,
         where:
           dp.param_name == "volume_last_day_month" and
             dp.site_id == ^dam.site_id and
             dp.colected_at >= ^query_limit(period),
         group_by: [
           :site_id,
-          fragment("extract(month from ?)", dp.colected_at),
-          fragment("extract(year from ?)", dp.colected_at)
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          )
         ],
         select: {
+          sum(dp.value) /
+            fragment(
+              "sum((? -> ? ->> ?)::int)",
+              d.metadata,
+              "Albufeira",
+              "Capacidade total (dam3)"
+            ),
           fragment(
-            "sum(value) / (SELECT sum((metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int) from dam d where site_id = ?) * 100",
-            ^dam.site_id
-          ),
-          fragment(
-            "cast(extract(month from ?) as int) as month",
-            dp.colected_at
-          ),
-          fragment(
-            "cast(extract(year from ?) as int) as year",
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
             dp.colected_at
           )
         }
@@ -146,15 +137,11 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
     query
     |> Repo.all()
-    |> Stream.map(fn {value, month, year} ->
-      days = Timex.days_in_month(year, month)
-
-      {:ok, parsed_date} = Timex.parse("#{days}-#{month}-#{year}", "{D}-{M}-{YYYY}")
-
+    |> Stream.map(fn {value, date} ->
       %{
         basin_id: dam.site_id,
-        value: value |> Decimal.round(1) |> Decimal.to_float(),
-        date: parsed_date,
+        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+        date: date,
         basin: "Observado"
       }
     end)
@@ -166,9 +153,6 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.to_list()
     |> List.flatten()
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
-    |> Enum.map(fn %{date: date} = m ->
-      Map.replace!(m, :date, Timex.format!(date, "{YYYY}-{M}-{D}"))
-    end)
   end
 
   def current_storage(site_id) do
