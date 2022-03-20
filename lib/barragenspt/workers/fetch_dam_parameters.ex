@@ -3,8 +3,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
   import Ecto.Query
   require Logger
   alias Barragenspt.Hydrometrics.DataPoint
-
-  @timeout 25000
+  alias Barragenspt.Services.Snirh
 
   def spawn_workers do
     # 354895424 - Cota da Albufeira na última hora
@@ -54,7 +53,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
   def perform(%Oban.Job{
         args:
           %{
-            "id" => job_id,
+            "id" => _job_id,
             "dam_code" => dam_code,
             "site_id" => site_id,
             "basin_id" => basin_id,
@@ -64,27 +63,16 @@ defmodule Barragenspt.Workers.FetchDamParameters do
             "end_year" => end_year
           } = _args
       }) do
-    :timer.sleep(4000)
+    :timer.sleep(1000)
 
     site_id
-    |> get_raw_csv(parameter_id, start_year, end_year)
-    |> write_to_file()
-    |> File.stream!()
-    |> NimbleCSV.RFC4180.parse_stream()
+    |> Snirh.get_raw_csv_data(parameter_id, "01/01/#{start_year}", "31/12/#{end_year}")
+    |> NimbleCSV.RFC4180.parse_string()
     |> Stream.drop(4)
     |> Stream.chunk_every(250)
     |> Stream.map(fn row ->
       row
-      |> Enum.map(fn row_item ->
-        handle_row(
-          dam_code,
-          site_id,
-          basin_id,
-          parameter_name,
-          parameter_id,
-          row_item
-        )
-      end)
+      |> build_rows(dam_code, site_id, basin_id, parameter_name, parameter_id)
       |> List.flatten()
       |> Enum.reject(fn row -> row == :noop end)
       |> save_rows()
@@ -94,32 +82,17 @@ defmodule Barragenspt.Workers.FetchDamParameters do
     :ok
   end
 
-  defp get_raw_csv(site_id, parameter_id, start_year, end_year) do
-    base_url = "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php"
-
-    query_params =
-      "?sites=#{site_id}&pars=#{parameter_id}&tmin=01/01/#{start_year}&tmax=31/12/#{end_year}&formato=csv"
-
-    options = [recv_timeout: @timeout, timeout: @timeout]
-    %HTTPoison.Response{body: body} = HTTPoison.get!(base_url <> query_params, [], options)
-
-    body
-  end
-
-  defp write_to_file(body) do
-    {:ok, path} = Briefly.create(directory: true)
-
-    file_path = Path.join(path, "#{UUID.uuid4()}.csv")
-    :ok = File.write!(file_path, body)
-
-    file_path
-  end
-
-  def to_params_string(kv_list) do
-    kv_list
-    |> Stream.map(fn {k, v} -> {k |> String.downcase() |> String.replace(" ", "_"), v} end)
-    |> Stream.map(fn {k, v} -> "#{k}=#{v}" end)
-    |> Enum.join(" ")
+  defp build_rows(row, dam_code, site_id, basin_id, parameter_name, parameter_id) do
+    Enum.map(row, fn row_item ->
+      handle_row(
+        dam_code,
+        site_id,
+        basin_id,
+        parameter_name,
+        parameter_id,
+        row_item
+      )
+    end)
   end
 
   defp handle_row(
@@ -135,41 +108,19 @@ defmodule Barragenspt.Workers.FetchDamParameters do
            _nothing
          ]
        ) do
-    regex =
-      ~r/^(?'day'[0-9]{1,2})\/(?'month'[0-9]{1,2})\/(?'year'[0-9]{4}) (?'hour'[0-9]{2}):(?'minutes'[0-9]{2})$/
+    {float_val, _} = Float.parse(value)
+    current_date = NaiveDateTime.truncate(NaiveDateTime.utc_now(), :second)
 
     %{
-      "day" => day,
-      "hour" => hour,
-      "minutes" => minutes,
-      "month" => month,
-      "year" => year
-    } = Regex.named_captures(regex, date)
-
-    dt =
-      "#{year}-#{month}-#{day}T#{hour}:#{minutes}:00Z"
-      |> DateTime.from_iso8601()
-      |> then(fn {:ok, dt, 0} -> dt end)
-
-    sanitized_param_name =
-      parameter_name
-      |> String.downcase()
-      |> String.replace(" ", "_")
-
-    date = NaiveDateTime.truncate(NaiveDateTime.utc_now(), :second)
-
-    {float_val, _else} = Float.parse(value)
-
-    %{
-      param_name: sanitized_param_name,
+      param_name: sanitize_param_name(parameter_name),
       param_id: to_string(parameter_id),
       dam_code: dam_code,
       basin_id: to_string(basin_id),
       site_id: site_id,
       value: float_val,
-      inserted_at: date,
-      updated_at: date,
-      colected_at: NaiveDateTime.truncate(dt, :second)
+      inserted_at: current_date,
+      updated_at: current_date,
+      colected_at: parse_and_truncate_date(date)
     }
   end
 
@@ -177,5 +128,17 @@ defmodule Barragenspt.Workers.FetchDamParameters do
 
   defp save_rows(rows) do
     Barragenspt.Repo.insert_all(DataPoint, rows)
+  end
+
+  defp sanitize_param_name(name) do
+    name
+    |> String.downcase()
+    |> String.replace(" ", "_")
+  end
+
+  defp parse_and_truncate_date(date) do
+    Timex.parse(date, "{0D}/{0M}/{YYYY} {h24}:{m}")
+    |> then(fn {:ok, date} -> date end)
+    |> NaiveDateTime.truncate(:second)
   end
 end

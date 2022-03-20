@@ -58,6 +58,9 @@ config :barragenspt, Oban,
   ],
   queues: [dams_info: 2, dam_levels: 10, stats_cacher: 1]
 
+config :barragenspt, :snirh,
+  csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
