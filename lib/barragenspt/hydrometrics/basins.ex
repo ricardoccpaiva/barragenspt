@@ -227,6 +227,10 @@ defmodule Barragenspt.Hydrometrics.Basins do
     Repo.all(query)
   end
 
+  def get_storage(id) do
+    Repo.one!(from(b in BasinStorage, where: b.id == ^id))
+  end
+
   def get(id) do
     Repo.one(from(b in Basin, where: b.id == ^id))
   end

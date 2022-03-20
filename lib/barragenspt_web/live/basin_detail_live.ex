@@ -1,8 +1,7 @@
 defmodule BarragensptWeb.BasinDetailLive do
   use BarragensptWeb, :live_view
   alias Barragenspt.Mappers.Colors
-  alias Barragenspt.Hydrometrics.Dams
-  alias Barragenspt.Hydrometrics.Basins
+  alias Barragenspt.Hydrometrics.{Dams, Basins}
 
   def handle_event("change_window", %{"value" => value}, socket) do
     id = socket.assigns.basin_id
@@ -26,22 +25,14 @@ defmodule BarragensptWeb.BasinDetailLive do
   end
 
   def handle_params(%{"id" => id}, _url, socket) do
-    data = Basins.monthly_stats_for_basin(id)
-
+    stats = Basins.monthly_stats_for_basin(id)
     bounding_box = Dams.bounding_box(id)
+    basin_summary = get_basin_summary(id)
 
-    basin_summary = get_data(id)
+    %{name: basin_name, current_storage: current_storage} = Basins.get_storage(id)
 
-    %{basin_name: basin_name} = Enum.at(basin_summary, 0)
-
-    current_basin_storage =
-      Enum.reduce(basin_summary, 0, fn ss, acc ->
-        Decimal.to_float(ss.current_storage) + acc
-      end) /
-        Enum.count(basin_summary)
-
-    lines = [
-      %{k: "Observado", v: Colors.lookup_capacity(current_basin_storage)},
+    chart_lines = [
+      %{k: "Observado", v: Colors.lookup_capacity(current_storage)},
       %{k: "Média", v: "grey"}
     ]
 
@@ -49,15 +40,17 @@ defmodule BarragensptWeb.BasinDetailLive do
       socket
       |> assign(basin_id: id)
       |> assign(basin_summary: basin_summary, basin: basin_name)
-      |> push_event("update_chart", %{data: data, lines: lines})
+      |> push_event("update_chart", %{data: stats, lines: chart_lines})
       |> push_event("zoom_map", %{bounding_box: bounding_box})
       |> push_event("enable_tabs", %{})
 
     {:noreply, socket}
   end
 
-  defp get_data(id) do
-    Enum.map(Basins.summary_stats(id), fn %{current_storage: current_storage} = m ->
+  defp get_basin_summary(id) do
+    id
+    |> Basins.summary_stats()
+    |> Enum.map(fn %{current_storage: current_storage} = m ->
       Map.put(
         m,
         :capacity_color,
