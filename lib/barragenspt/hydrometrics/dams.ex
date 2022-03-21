@@ -38,14 +38,14 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   @decorate cacheable(
               cache: Cache,
-              key: "daily_stats_for_site_#{dam.site_id}-#{period}",
+              key: "daily_stats_for_site_#{id}-#{period}",
               ttl: @ttl
             )
-  def daily_stats(dam, period \\ 2) do
+  def daily_stats(id, period \\ 2) do
     historic_values =
       Repo.all(
         from(b in DailyAverageStorageBySite,
-          where: b.site_id == ^dam.site_id
+          where: b.site_id == ^id
         )
       )
 
@@ -55,7 +55,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         on: d.site_id == dp.site_id,
         where:
           dp.param_name == "volume_last_hour" and
-            dp.site_id == ^dam.site_id and
+            dp.site_id == ^id and
             dp.colected_at >= ^query_limit(period, :month),
         group_by: [
           :site_id,
@@ -77,7 +77,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Repo.all()
     |> Stream.map(fn {value, date} ->
       %{
-        basin_id: dam.site_id,
+        basin_id: id,
         value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
         date: date,
         basin: "Observado"
@@ -88,7 +88,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         build_average_data(
           historic_values,
           :site_id,
-          dam.site_id,
+          id,
           m.date,
           "#{m.date.day}-#{m.date.month}"
         )
