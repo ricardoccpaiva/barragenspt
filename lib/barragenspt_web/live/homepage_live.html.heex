@@ -38,7 +38,7 @@
             <tbody>
               <%= for %{id: id, name: name, current_storage: current_storage, average_historic_value:
                 average_historic_value, capacity_color: capacity_color} <- @basins_summary do %>
-                <tr>
+                <tr id={"row_basin_#{id}"} class="row">
                   <td style="padding-right: 30px">
                     <%= name %>
                   </td>

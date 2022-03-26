@@ -163,28 +163,49 @@ const loadDams = async () => {
 const loadBasins = async () => {
     const response = await fetch('/basins');
     const basins = await response.json();
+    let hoveredBasinId = null;
+
     basins.data.forEach(function (item) {
-        map.addSource(item.name, { type: 'geojson', data: '/geojson/' + item.name + '.geojson' });
+        console.log(item);
+        map.addSource(item.id, { type: 'geojson', data: '/geojson/' + item.name + '.geojson' });
 
         map.addLayer({
-            'id': item.name,
+            'id': item.id + '_fill',
             'type': 'fill',
-            'source': item.name,
+            'source': item.id,
             'layout': {},
             'paint': {
                 'fill-color': item.capacity_color,
-                'fill-opacity': 0.7
+                'fill-opacity': [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false],
+                    1,
+                    0.5
+                ]
             }
         });
 
         map.addLayer({
-            'id': item.name + '_outline',
+            'id': item.id + '_outline',
             'type': 'line',
-            'source': item.name,
+            'source': item.id,
             'layout': {},
             'paint': {
                 'line-color': '#000',
                 'line-width': 0.5
+            }
+        });
+
+        map.on('mousemove', item.id + '_fill', (e) => {
+            if (hoveredBasinId != e.features[0].source) {
+                let rows = document.querySelectorAll('.row');
+                rows.forEach(function (row) {
+                    row.classList.remove('is-highlighted');
+                });
+
+                hoveredBasinId = e.features[0].source;
+                let row = document.getElementById("row_basin_" + hoveredBasinId);
+                row.classList.add('is-highlighted');
             }
         });
     });
