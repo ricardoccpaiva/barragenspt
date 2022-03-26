@@ -109,6 +109,8 @@ window.addEventListener('phx:zoom_map', (e) => {
     }
 })
 
+let highlightedRowId = null;
+
 const enableTabs = () => {
     let tabs = document.querySelectorAll('.tabs li');
     let tabsContent = document.querySelectorAll('.tab-content');
@@ -153,20 +155,28 @@ const loadDams = async () => {
         innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.site_id + "?nz" + "'</a>";
         el.innerHTML = innerHTML;
 
-        new mapboxgl
+        let marker = new mapboxgl
             .Marker(el)
-            .setLngLat([element.lon, element.lat])
-            .addTo(map);
+            .setLngLat([element.lon, element.lat]);
+
+
+        marker
+            .getElement()
+            .addEventListener('mouseenter', () => {
+                if (window.location.pathname != "/") {
+                    highlightRow(element.site_id)
+                }
+            });
+
+        marker.addTo(map);
     });
 }
 
 const loadBasins = async () => {
     const response = await fetch('/basins');
     const basins = await response.json();
-    let hoveredBasinId = null;
 
     basins.data.forEach(function (item) {
-        console.log(item);
         map.addSource(item.id, { type: 'geojson', data: '/geojson/' + item.name + '.geojson' });
 
         map.addLayer({
@@ -176,12 +186,7 @@ const loadBasins = async () => {
             'layout': {},
             'paint': {
                 'fill-color': item.capacity_color,
-                'fill-opacity': [
-                    'case',
-                    ['boolean', ['feature-state', 'hover'], false],
-                    1,
-                    0.5
-                ]
+                'fill-opacity': 0.7
             }
         });
 
@@ -197,19 +202,25 @@ const loadBasins = async () => {
         });
 
         map.on('mousemove', item.id + '_fill', (e) => {
-            if (hoveredBasinId != e.features[0].source) {
-                let rows = document.querySelectorAll('.row');
-                rows.forEach(function (row) {
-                    row.classList.remove('is-highlighted');
-                });
-
-                hoveredBasinId = e.features[0].source;
-                let row = document.getElementById("row_basin_" + hoveredBasinId);
-                row.classList.add('is-highlighted');
+            if (window.location.pathname == "/") {
+                highlightRow(e.features[0].source)
             }
         });
     });
 
+}
+
+const highlightRow = (rowId) => {
+    if (highlightedRowId != rowId) {
+        let rows = document.querySelectorAll('.row');
+        rows.forEach(function (row) {
+            row.classList.remove('is-highlighted');
+        });
+
+        highlightedRowId = rowId;
+        let row = document.getElementById("row_" + highlightedRowId);
+        row.classList.add('is-highlighted');
+    }
 }
 
 mapboxgl.accessToken = document.getElementById("mapbox_token").value;
