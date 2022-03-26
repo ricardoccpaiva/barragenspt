@@ -1,4 +1,18 @@
 defmodule Barragenspt.Geo.Coordinates do
+  alias Barragenspt.Hydrometrics.Dams
+
+  def from_dam(id) when is_binary(id) do
+    dam = Dams.get(id)
+
+    %{
+      id: dam.site_id,
+      basin_id: dam.basin_id,
+      site_id: dam.site_id,
+      lat: parse(dam.metadata["Identificação"]["Latitude (m)"], "N"),
+      lon: parse(dam.metadata["Identificação"]["Longitude (m)"], "W")
+    }
+  end
+
   def from_dam(dam) do
     %{
       id: dam.site_id,

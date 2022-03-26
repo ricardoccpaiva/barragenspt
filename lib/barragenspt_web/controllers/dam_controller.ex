@@ -1,20 +1,11 @@
 defmodule BarragensptWeb.DamController do
   use BarragensptWeb, :controller
-  import Ecto.Query
-  alias Barragenspt.Mappers.Colors
   alias Barragenspt.Geo.Coordinates
+  alias Barragenspt.Hydrometrics.Dams
 
   def index(conn, _params) do
-    coords =
-      from(Barragenspt.Hydrometrics.Dam)
-      |> Barragenspt.Repo.all()
-      |> Enum.map(fn dam -> Coordinates.from_dam(dam) end)
-      |> Enum.map(fn dam -> Map.put(dam, :basin_color, Colors.lookup(dam.basin_id)) end)
-      |> Enum.map(fn dam -> Map.put(dam, :pct, :rand.uniform(100)) end)
-      |> Enum.map(fn dam ->
-        Map.put(dam, :capacity_color, Colors.lookup_capacity(dam.pct))
-      end)
+    dams = Enum.map(Dams.current_storage(), fn d -> Coordinates.from_dam(d.site_id) end)
 
-    render(conn, "index.json", dams: coords)
+    render(conn, "index.json", dams: dams)
   end
 end

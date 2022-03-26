@@ -145,7 +145,7 @@ const enableTabs = () => {
 }
 
 const loadDams = async () => {
-    const response = await fetch('/dam_coords');
+    const response = await fetch('/dams');
     const damsCoords = await response.json();
     damsCoords.data.forEach(function (element) {
         el = document.createElement('div');
@@ -160,35 +160,10 @@ const loadDams = async () => {
     });
 }
 
-mapboxgl.accessToken = document.getElementById("mapbox_token").value;
-const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/ricardoccpaiva/ckzcpwm4h001114mn112tg6fr',
-    center: [-8, 39.69],
-    zoom: 4
-});
-
-map.addControl(new mapboxgl.NavigationControl());
-
-map.on('load', function () {
-    map.resize();
-    loadDams();
-    const basins = [
-        { name: 'douro', color: '#1c9dff' },
-        { name: 'lima', color: '#ff675c' },
-        { name: 'guadiana', color: '#a6d8ff' },
-        { name: 'cavado', color: '#ffc34a' },
-        { name: 'ave', color: '#ffe99c' },
-        { name: 'tejo', color: '#c2faaa' },
-        { name: 'mondego', color: '#a6d8ff' },
-        { name: 'oeste', color: '#c2faaa' },
-        { name: 'sado', color: '#ffe99c' },
-        { name: 'mira', color: '#ffc34a' },
-        { name: 'barlavento', color: '#ff675c' },
-        { name: 'arade', color: '#c2faaa' }
-    ];
-
-    basins.forEach(function (item) {
+const loadBasins = async () => {
+    const response = await fetch('/basins');
+    const basins = await response.json();
+    basins.data.forEach(function (item) {
         map.addSource(item.name, { type: 'geojson', data: '/geojson/' + item.name + '.geojson' });
 
         map.addLayer({
@@ -197,7 +172,7 @@ map.on('load', function () {
             'source': item.name,
             'layout': {},
             'paint': {
-                'fill-color': item.color,
+                'fill-color': item.capacity_color,
                 'fill-opacity': 0.7
             }
         });
@@ -213,4 +188,36 @@ map.on('load', function () {
             }
         });
     });
+
+}
+
+mapboxgl.accessToken = document.getElementById("mapbox_token").value;
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/ricardoccpaiva/ckzcpwm4h001114mn112tg6fr',
+    center: [-8, 39.69],
+    zoom: 4
+});
+
+map.addControl(new mapboxgl.NavigationControl());
+
+map.on('load', function () {
+    map.resize();
+    loadDams();
+    loadBasins();
+
+    const basins = [
+        { name: 'douro', color: '#1c9dff' },
+        { name: 'lima', color: '#ff675c' },
+        { name: 'guadiana', color: '#a6d8ff' },
+        { name: 'cavado', color: '#ffc34a' },
+        { name: 'ave', color: '#ffe99c' },
+        { name: 'tejo', color: '#c2faaa' },
+        { name: 'mondego', color: '#a6d8ff' },
+        { name: 'oeste', color: '#c2faaa' },
+        { name: 'sado', color: '#ffe99c' },
+        { name: 'mira', color: '#ffc34a' },
+        { name: 'barlavento', color: '#ff675c' },
+        { name: 'arade', color: '#c2faaa' }
+    ];
 });

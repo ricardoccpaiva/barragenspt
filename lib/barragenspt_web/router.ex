@@ -2,25 +2,26 @@ defmodule BarragensptWeb.Router do
   use BarragensptWeb, :router
 
   pipeline :browser do
-    plug :accepts, ["html"]
-    plug :fetch_session
-    plug :fetch_live_flash
-    plug :put_root_layout, {BarragensptWeb.LayoutView, :root}
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
+    plug(:accepts, ["html"])
+    plug(:fetch_session)
+    plug(:fetch_live_flash)
+    plug(:put_root_layout, {BarragensptWeb.LayoutView, :root})
+    plug(:protect_from_forgery)
+    plug(:put_secure_browser_headers)
   end
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug(:accepts, ["json"])
   end
 
   scope "/", BarragensptWeb do
-    pipe_through :browser
+    pipe_through(:browser)
 
-    get "/dam_coords", DamController, :index
-    live "/", HomepageLive, :index
-    live "/dam/:id", DamDetailLive, :detail
-    live "/basin/:id", BasinDetailLive, :detail
+    get("/dams", DamController, :index)
+    get("/basins", BasinController, :index)
+    live("/", HomepageLive, :index)
+    live("/dam/:id", DamDetailLive, :detail)
+    live("/basin/:id", BasinDetailLive, :detail)
   end
 
   # Other scopes may use custom stacks.
@@ -39,9 +40,9 @@ defmodule BarragensptWeb.Router do
     import Phoenix.LiveDashboard.Router
 
     scope "/" do
-      pipe_through :browser
+      pipe_through(:browser)
 
-      live_dashboard "/dashboard", metrics: BarragensptWeb.Telemetry
+      live_dashboard("/dashboard", metrics: BarragensptWeb.Telemetry)
     end
   end
 
@@ -51,9 +52,9 @@ defmodule BarragensptWeb.Router do
   # node running the Phoenix server.
   if Mix.env() == :dev do
     scope "/dev" do
-      pipe_through :browser
+      pipe_through(:browser)
 
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
+      forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
   end
 end

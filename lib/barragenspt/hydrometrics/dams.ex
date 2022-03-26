@@ -170,6 +170,20 @@ defmodule Barragenspt.Hydrometrics.Dams do
     )
   end
 
+  def current_storage() do
+    Repo.all(
+      from(b in SiteCurrentStorage,
+        select: %{
+          basin_id: b.basin_id,
+          basin_name: b.basin_name,
+          site_id: b.site_id,
+          site_name: b.site_name,
+          current_storage: fragment("round(?, 1)", b.current_storage)
+        }
+      )
+    )
+  end
+
   defp build_average_data(historic_values, field, id, date, period) do
     hval =
       Enum.find(historic_values, fn h ->

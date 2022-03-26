@@ -15,10 +15,7 @@ defmodule BarragensptWeb.DamView do
       id: dam.basin_id,
       site_id: dam.site_id,
       lat: dam.lat,
-      lon: dam.lon,
-      basin_color: dam.basin_color,
-      pct: dam.pct,
-      capacity_color: dam.capacity_color
+      lon: dam.lon
     }
   end
 end
