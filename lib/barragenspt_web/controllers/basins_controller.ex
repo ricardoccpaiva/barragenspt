@@ -8,7 +8,7 @@ defmodule BarragensptWeb.BasinController do
       Enum.map(Basins.summary_stats(), fn {basin_id, name, current_storage, value} ->
         %{
           id: basin_id,
-          name: name,
+          name: String.downcase(name),
           current_storage: current_storage,
           average_historic_value: value,
           capacity_color: current_storage |> Decimal.to_float() |> Colors.lookup_capacity()
