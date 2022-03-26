@@ -205,19 +205,4 @@ map.on('load', function () {
     map.resize();
     loadDams();
     loadBasins();
-
-    const basins = [
-        { name: 'douro', color: '#1c9dff' },
-        { name: 'lima', color: '#ff675c' },
-        { name: 'guadiana', color: '#a6d8ff' },
-        { name: 'cavado', color: '#ffc34a' },
-        { name: 'ave', color: '#ffe99c' },
-        { name: 'tejo', color: '#c2faaa' },
-        { name: 'mondego', color: '#a6d8ff' },
-        { name: 'oeste', color: '#c2faaa' },
-        { name: 'sado', color: '#ffe99c' },
-        { name: 'mira', color: '#ffc34a' },
-        { name: 'barlavento', color: '#ff675c' },
-        { name: 'arade', color: '#c2faaa' }
-    ];
 });
