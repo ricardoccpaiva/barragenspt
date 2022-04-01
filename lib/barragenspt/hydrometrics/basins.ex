@@ -65,6 +65,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
         basin: "Observado"
       }
     end)
+    |> Stream.reject(fn %{value: value} -> value > 100 end)
     |> Stream.map(fn m ->
       hdata =
         build_average_data(
@@ -135,6 +136,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
         basin: "Observado"
       }
     end)
+    |> Stream.reject(fn %{value: value} -> value > 100 end)
     |> Stream.map(fn m ->
       hdata = build_average_data(historic_values, :basin_id, id, m.date, m.date.month)
 
@@ -179,7 +181,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
 
     query
     |> Repo.all()
-    |> Enum.map(fn {basin_id, basin_name, value, date} ->
+    |> Stream.map(fn {basin_id, basin_name, value, date} ->
       %{
         basin_id: basin_id,
         value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
@@ -187,6 +189,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
         basin: basin_name
       }
     end)
+    |> Stream.reject(fn %{value: value} -> value > 100 end)
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
@@ -196,7 +199,9 @@ defmodule Barragenspt.Hydrometrics.Basins do
       from(d in DailyAverageStorageByBasin,
         join: b in BasinStorage,
         on: d.basin_id == b.id,
-        where: d.period == ^"#{Timex.now().day}-#{Timex.now().month}",
+        where:
+          d.period == ^"#{Timex.now().day}-#{Timex.now().month}" and b.current_storage <= 100 and
+            d.value <= 100,
         select: {
           d.basin_id,
           b.name,
@@ -214,7 +219,10 @@ defmodule Barragenspt.Hydrometrics.Basins do
       from(d in DailyAverageStorageBySite,
         join: b in SiteCurrentStorage,
         on: d.site_id == b.site_id,
-        where: d.period == ^"#{Timex.now().day}-#{Timex.now().month}" and b.basin_id == ^id,
+        where:
+          d.period == ^"#{Timex.now().day}-#{Timex.now().month}" and b.basin_id == ^id and
+            b.current_storage <= 100 and
+            d.value <= 100,
         select: %{
           site_id: d.site_id,
           site_name: b.site_name,
