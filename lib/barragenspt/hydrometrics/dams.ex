@@ -83,6 +83,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         basin: "Observado"
       }
     end)
+    |> Stream.reject(fn %{value: value} -> value > 100 end)
     |> Stream.map(fn m ->
       hdata =
         build_average_data(
@@ -149,6 +150,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         basin: "Observado"
       }
     end)
+    |> Stream.reject(fn %{value: value} -> value > 100 end)
     |> Stream.map(fn m ->
       hdata = build_average_data(historic_values, :site_id, id, m.date, m.date.month)
 
@@ -162,7 +164,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   def current_storage(site_id) do
     Repo.one(
       from(b in SiteCurrentStorage,
-        where: b.site_id == ^site_id,
+        where: b.site_id == ^site_id and b.current_storage <= 100,
         select: %{
           current_storage: fragment("round(?, 1)", b.current_storage)
         }
@@ -170,9 +172,11 @@ defmodule Barragenspt.Hydrometrics.Dams do
     )
   end
 
+  @decorate cacheable(cache: Cache, key: "dams_current_storage", ttl: @ttl)
   def current_storage() do
     Repo.all(
       from(b in SiteCurrentStorage,
+        where: b.current_storage <= 100,
         select: %{
           basin_id: b.basin_id,
           basin_name: b.basin_name,

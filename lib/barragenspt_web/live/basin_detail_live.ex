@@ -6,6 +6,8 @@ defmodule BarragensptWeb.BasinDetailLive do
   def handle_event("change_window", %{"value" => value}, socket) do
     id = socket.assigns.basin_id
 
+    %{current_storage: current_storage} = Basins.get_storage(id)
+
     data =
       case value do
         "y" <> val ->
@@ -17,7 +19,9 @@ defmodule BarragensptWeb.BasinDetailLive do
           Basins.daily_stats_for_basin(id, int_value)
       end
 
-    lines = [%{k: "Observado", v: Colors.lookup(id)}] ++ [%{k: "Média", v: "grey"}]
+    lines =
+      [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
+        [%{k: "Média", v: "grey"}]
 
     socket = push_event(socket, "update_chart", %{data: data, lines: lines})
 
