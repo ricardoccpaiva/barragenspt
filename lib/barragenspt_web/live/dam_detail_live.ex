@@ -1,13 +1,13 @@
 defmodule BarragensptWeb.DamDetailLive do
   use BarragensptWeb, :live_view
-  import Ecto.Query
   alias Barragenspt.Hydrometrics.Dams
   alias Barragenspt.Geo.Coordinates
   alias Barragenspt.Mappers.Colors
 
   def handle_event("change_window", %{"value" => value}, socket) do
     id = socket.assigns.dam.site_id
-    basin_id = socket.assigns.dam.basin_id
+
+    %{current_storage: current_storage} = Dams.current_storage(id)
 
     data =
       case value do
@@ -20,7 +20,9 @@ defmodule BarragensptWeb.DamDetailLive do
           Dams.daily_stats(id, int_value)
       end
 
-    lines = [%{k: "Observado", v: Colors.lookup(basin_id)}] ++ [%{k: "Média", v: "grey"}]
+    lines =
+      [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
+        [%{k: "Média", v: "grey"}]
 
     socket = push_event(socket, "update_chart", %{data: data, lines: lines})
 
@@ -30,9 +32,11 @@ defmodule BarragensptWeb.DamDetailLive do
   def handle_params(%{"id" => id} = params, _url, socket) do
     dam = Dams.get(id)
     data = Dams.monthly_stats(id)
-    lines = [%{k: "Observado", v: Colors.lookup(dam.basin_id)}] ++ [%{k: "Média", v: "grey"}]
-
     %{current_storage: current_storage} = Dams.current_storage(id)
+
+    lines =
+      [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
+        [%{k: "Média", v: "grey"}]
 
     dam = prepare_dam_metadata(dam)
 

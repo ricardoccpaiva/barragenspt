@@ -1,4 +1,8 @@
 defmodule Barragenspt.Mappers.Colors do
+  def lookup_capacity(%Decimal{} = pct) do
+    pct |> Decimal.to_float() |> lookup_capacity()
+  end
+
   def lookup_capacity(pct) do
     cond do
       0 < pct and pct <= 20 -> "#ff675c"
