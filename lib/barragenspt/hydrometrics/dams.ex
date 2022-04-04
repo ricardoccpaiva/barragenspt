@@ -172,7 +172,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
     )
   end
 
-  @spec current_storage :: any
+  @decorate cacheable(cache: Cache, key: "dams_current_storage", ttl: @ttl)
   def current_storage() do
     Repo.all(
       from(b in SiteCurrentStorage,
