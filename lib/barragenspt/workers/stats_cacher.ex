@@ -28,6 +28,8 @@ defmodule Barragenspt.Workers.StatsCacher do
     Enum.each(daily_periods, fn period ->
       Enum.each(dams, fn dam ->
         Dams.daily_stats(dam.site_id, period)
+        Dams.get(dam.site_id)
+        Dams.current_storage(dam.site_id)
       end)
     end)
 

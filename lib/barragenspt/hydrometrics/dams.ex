@@ -17,6 +17,11 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   @ttl :timer.hours(1)
 
+  @decorate cacheable(
+              cache: Cache,
+              key: "dam_#{id}",
+              ttl: @ttl
+            )
   def get(id) do
     Barragenspt.Repo.one!(from(d in Dam, where: d.site_id == ^id))
   end
@@ -161,6 +166,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
+  @decorate cacheable(cache: Cache, key: "dam_current_storage_#{site_id}", ttl: @ttl)
   def current_storage(site_id) do
     Repo.one(
       from(b in SiteCurrentStorage,
