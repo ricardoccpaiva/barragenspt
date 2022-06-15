@@ -11,8 +11,6 @@ defmodule Barragenspt.Workers.FetchDamParameters do
     # 354895398 - Volume armazenado na última hora (dam3)
     # 1629599798 - Volume armazenado
     data_params = [
-      {354_895_424, "quota_last_hour"},
-      {1_629_599_726, "quota"},
       {1_629_599_798, "volume"},
       {354_895_398, "volume_last_hour"},
       {304_545_050, "volume_last_day_month"}
@@ -27,9 +25,12 @@ defmodule Barragenspt.Workers.FetchDamParameters do
       {2011, 2022}
     ]
 
-    from(Barragenspt.Hydrometrics.Dam)
+    Barragenspt.Hydrometrics.Dam
+    |> from()
     |> Barragenspt.Repo.all()
     |> Enum.map(fn dam ->
+      {max_value, ""} = Integer.parse(dam.metadata["Albufeira"]["Capacidade total (dam3)"])
+
       Enum.map(data_params, fn {param_id, param_name} ->
         Enum.map(years, fn {start_year, end_year} ->
           Barragenspt.Workers.FetchDamParameters.new(%{
@@ -40,7 +41,8 @@ defmodule Barragenspt.Workers.FetchDamParameters do
             "parameter_id" => param_id,
             "parameter_name" => param_name,
             "start_year" => start_year,
-            "end_year" => end_year
+            "end_year" => end_year,
+            "max_value" => max_value
           })
         end)
       end)
@@ -60,7 +62,8 @@ defmodule Barragenspt.Workers.FetchDamParameters do
             "parameter_id" => parameter_id,
             "parameter_name" => parameter_name,
             "start_year" => start_year,
-            "end_year" => end_year
+            "end_year" => end_year,
+            "max_value" => max_value
           } = _args
       }) do
     :timer.sleep(1000)
@@ -75,6 +78,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
       |> build_rows(dam_code, site_id, basin_id, parameter_name, parameter_id)
       |> List.flatten()
       |> Enum.reject(fn row -> row == :noop end)
+      |> Enum.reject(fn %{value: value} -> value > max_value * 1.10 end)
       |> save_rows()
     end)
     |> Stream.run()
