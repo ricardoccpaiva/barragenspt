@@ -61,8 +61,8 @@ window.addEventListener(`phx:update_chart`, (e) => {
     const chart = new G2.Chart({
         container: 'c1',
         autoFit: false,
-        height: 325,
-        width: 560,
+        height: 220,
+        width: 325,
         padding: [30, 20, 70, 30]
     });
 
@@ -89,9 +89,11 @@ window.addEventListener(`phx:update_chart`, (e) => {
 
 window.addEventListener('phx:zoom_map', (e) => {
     if (e.detail.bounding_box) {
+        openSidePanel();
         map.fitBounds(e.detail.bounding_box, { maxZoom: 8 });
     }
     else if (e.detail.center) {
+        openSidePanel();
         map.flyTo({
             center: e.detail.center,
             essential: true,
@@ -100,12 +102,10 @@ window.addEventListener('phx:zoom_map', (e) => {
         });
     }
     else {
-        map.flyTo({
-            center: [-8, 39.59],
-            essential: true,
-            zoom: 6,
-            speed: 2
-        });
+        map.fitBounds([
+            [-9.708570, 36.682035],
+            [-6.072327, 42.615949]
+        ]);
     }
 })
 
@@ -201,6 +201,14 @@ const loadBasins = async () => {
             }
         });
 
+        map.on('click', item.id + '_fill', (e) => {
+            let basin_id = e.features[0].source;
+            var a = document.getElementById('basin_detail_btn');
+            a.href = "/basin/" + basin_id;
+
+            document.getElementById('basin_detail_btn').click();
+        });
+
         map.on('mousemove', item.id + '_fill', (e) => {
             if (window.location.pathname == "/") {
                 highlightRow(e.features[0].source)
@@ -228,7 +236,7 @@ const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/ricardoccpaiva/ckzcpwm4h001114mn112tg6fr',
     center: [-8, 39.69],
-    zoom: 4
+    zoom: 5
 });
 
 map.addControl(new mapboxgl.NavigationControl());
@@ -238,3 +246,9 @@ map.on('load', function () {
     loadDams();
     loadBasins();
 });
+
+const openSidePanel = () => {
+    if (document.getElementById("mySidenav").style.width != "365px") {
+        document.getElementById("mySidenav").style.width = "365px";
+    }
+}

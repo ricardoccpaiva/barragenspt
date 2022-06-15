@@ -1,4 +1,4 @@
-<div class="card" style="height: 700px; width: 100%;">
+<div id="mySidenav" class="sidenav">
   <div class="is-pulled-right">
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
@@ -60,7 +60,7 @@
                       <%= average_storage %>%
                     </span></td>
                   <td class="has-text-centered">
-                    <%= live_patch to: Routes.dam_detail_path(@socket, :detail, id), replace: false do %>
+                    <%= live_patch to: Routes.dam_detail_path(@socket, :detail, id), replace: true do %>
                       <i class="fa fa-info" aria-hidden="true"></i>
                       <% end %>
                   </td>

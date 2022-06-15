@@ -33,7 +33,7 @@ defmodule BarragensptWeb.Endpoint do
   end
 
   if System.get_env("MIX_ENV") != "DEV" do
-    plug(PlugCanonicalHost, canonical_host: "barragens.pt")
+    # plug(PlugCanonicalHost, canonical_host: "barragens.pt")
   end
 
   plug(PromEx.Plug, prom_ex_module: Barragenspt.PromEx)

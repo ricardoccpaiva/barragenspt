@@ -2,11 +2,89 @@
 /*@import "./phoenix.css";*/
 @import "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css";
 
+.credits {
+  bottom: 30px;
+  font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+  padding: 10px;
+  position: absolute;
+  z-index: 1;
+}
+
+.legend {
+  background-color: #fff;
+  border-radius: 3px;
+  bottom: 30px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+  padding: 10px;
+  position: absolute;
+  right: 10px;
+  z-index: 1;
+}
+
+
+.legend div span {
+  border-radius: 50%;
+  display: inline-block;
+  height: 10px;
+  margin-right: 5px;
+  width: 10px;
+}
+
+.logo-text {
+  padding-left: 10px;
+  margin-left: 50px;
+  font-size: 34px;
+  color: #8196a8;
+  font-family: orangeJuice;
+}
+
+.sidenav {
+  max-height: 600px;
+  width: 0;
+  position: fixed;
+  z-index: 99999;
+  bottom: 0;
+  right: 0;
+  background-color: #fff;
+  overflow-x: hidden;
+  margin: 10px;
+  border-radius: 6px;
+  box-shadow: #a94442;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {
+    padding-top: 15px;
+  }
+
+  .sidenav a {
+    font-size: 18px;
+  }
+}
+
+.card-content {
+  padding-left: 10px;
+}
+
+table th {
+  font-size: 12px;
+}
+
+table tr td {
+  font-size: 12px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
 .is-highlighted {
   background-color: #F7F7F7;
 }
 
-body:after {
+bodys:after {
   content: "beta";
   position: fixed;
   width: 80px;
@@ -64,11 +142,6 @@ body:after {
 
 body {
   background-color: #fcfcfc;
-}
-
-.table td {
-  padding: 5px;
-  font-size: 14px;
 }
 
 /* Alerts and form errors used by phx.new */

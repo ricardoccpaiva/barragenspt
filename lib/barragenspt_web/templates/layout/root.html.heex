@@ -14,7 +14,8 @@
       <script src='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js'></script>
       <link href='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css' rel='stylesheet' />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+      <script type="text/javascript"
+        src="https://cdn.jsdelivr.net/npm/bulma-quickview@2.0.0/dist/js/bulma-quickview.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/antv-g2/4.1.49/g2.min.js"></script>
       <!-- Global site tag (gtag.js) - Google Analytics -->
       <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ECR8CXBPZ"></script>
@@ -22,45 +23,83 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-        gtag('config', 'G-5ECR8CXBPZ');
+        gtag('config', 'G-5ECR8CXBPZ');        
       </script>
 </head>
 
 <body>
-  <div class="container" style="max-width: 1050px;">
-    <nav class="navbar navbar_bck" role="navigation" aria-label="main navigation">
-      <a class="navbar-item" href="/">
-        <img src={Routes.static_path(BarragensptWeb.Endpoint, "/images/logo.png" )} height="46px">
-      </a>
-    </nav>
-    <div class="is-primary">
-      <div class="columns">
-        <div class="column">
-          <div class="box" style="padding: 6px; margin-bottom: 10px; height: 95%;">
-            <div id='map' style="height: 100%;" phx-update="ignore"></div>
+  <style>
+    @font-face {
+      font-family: orangeJuice;
+      src: url('../fonts/FredokaOne-Regular.ttf');
+    }
+
+    .map-overlay {
+      position: absolute;
+      width: 200px;
+      height: 42px;
+      top: 10px;
+      margin-left: 20px;
+      background-image: url("../images/dam_3.png");
+      background-repeat: no-repeat;
+      background-size: 48px;
+    }
+  </style>
+  <%= @inner_content %>
+    <div style="height: 100%;">
+      <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
+      <div id='map' style="height: 100%;" phx-update="ignore"></div>
+
+      <div class="map-overlay top">
+        <a href="/"><span class="logo-text">BARRAGENS.PT</span></a>
+        <a data-phx-link='patch' data-phx-link-state='push' href="/basin/23" id="basin_detail_btn"
+          style="display:none"></a>
+        <a id="quick_panel_button" style="display:none" data-show="quickview" data-target="quickviewDefault"></a>
+      </div>
+
+      <div class="credits" style="display: none;">
+        <br />
+        <a href="https://snirh.apambiente.pt/">Dados obtidos através do portal SNIRH</a>
+        • <a href="https://github.com/ricardoccpaiva/barragenspt">Código fonte @ <i class='fa-brands fa-github'></i></a>
+        • <a href="https://www.flaticon.com/free-icons/dam" title="dam icons">Logo by Freepik</a>
+      </div>
+
+      <div class="legend">
+        <p><b>Armazenamento</b></p>
+        <div><span style="background-color: #ff675c"></span>0 - 20</div>
+        <div><span style="background-color: #ffc34a"></span>21 - 40</div>
+        <div><span style="background-color: #ffe99c"></span>41 - 50</div>
+        <div><span style="background-color: #c2faaa"></span>51 - 60</div>
+        <div><span style="background-color: #a6d8ff"></span>61 - 80</div>
+        <div><span style="background-color: #1c9dff"></span>81 - 100</div>
+      </div>
+
+    </div>
+
+    <div class="container" style="max-width: 1050px; display:none;">
+      <nav class="navbar navbar_bck" role="navigation" aria-label="main navigation">
+
+      </nav>
+      <div class="is-primary">
+        <div class="columns">
+          <div class="column">
+            <div class="box" style="padding: 6px; margin-bottom: 10px; height: 95%;">
+
+            </div>
+            <div class="has-text-centered">
+              <span class="tag is-light" style="background-color:#ff675c">0 - 20</span>
+              <span class="tag is-light" style="background-color:#ffc34a">21 - 40</span>
+              <span class="tag is-light" style="background-color:#ffe99c">41 - 50</span>
+              <span class="tag is-light" style="background-color:#c2faaa">51 - 60</span>
+              <span class="tag is-light" style="background-color:#a6d8ff">61 - 80</span>
+              <span class="tag is-light" style="background-color:#1c9dff">81 - 100</span>
+            </div>
           </div>
-          <div class="has-text-centered">
-            <span class="tag is-light" style="background-color:#ff675c">0 - 20</span>
-            <span class="tag is-light" style="background-color:#ffc34a">21 - 40</span>
-            <span class="tag is-light" style="background-color:#ffe99c">41 - 50</span>
-            <span class="tag is-light" style="background-color:#c2faaa">51 - 60</span>
-            <span class="tag is-light" style="background-color:#a6d8ff">61 - 80</span>
-            <span class="tag is-light" style="background-color:#1c9dff">81 - 100</span>
+          <div class="column is-three-fifths">
           </div>
-        </div>
-        <div class="column is-three-fifths">
-          <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
-          <%= @inner_content %>
         </div>
       </div>
     </div>
-  </div>
-  <div class="has-text-centered is-size-7">
-    <br />
-    <a href="https://snirh.apambiente.pt/">Dados obtidos através do portal SNIRH</a> 
-    • <a href="https://github.com/ricardoccpaiva/barragenspt">Código fonte @ <i class='fa-brands fa-github'></i></a>
-    • <a href="https://www.flaticon.com/free-icons/dam" title="dam icons">Logo by Freepik</a>
-  </div>
 </body>
 
 </html>
