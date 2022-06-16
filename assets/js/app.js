@@ -85,15 +85,15 @@ window.addEventListener(`phx:update_chart`, (e) => {
     colors = chart.geometries[0].elements.map(function (item) {
         return { color: item.model.color, id: item.model.data[0].basin_id }
     });
+
+    openSidePanel();
 })
 
 window.addEventListener('phx:zoom_map', (e) => {
     if (e.detail.bounding_box) {
-        openSidePanel();
         map.fitBounds(e.detail.bounding_box, { maxZoom: 8 });
     }
     else if (e.detail.center) {
-        openSidePanel();
         map.flyTo({
             center: e.detail.center,
             essential: true,
@@ -151,7 +151,7 @@ const loadDams = async () => {
     const damsCoords = await response.json();
     damsCoords.data.forEach(function (element) {
         el = document.createElement('div');
-        innerHTML = "<a class='fa-solid fa-location-dot fa-lg marker' data-phx-link='patch' ";
+        innerHTML = "<a id='marker_" + element.site_id + "' class='fa-solid fa-location-dot fa-lg marker' data-phx-link='patch' ";
         innerHTML = innerHTML + " data-phx-link-state='push' href='/dam/" + element.site_id + "?nz" + "'</a>";
         el.innerHTML = innerHTML;
 
@@ -167,6 +167,7 @@ const loadDams = async () => {
                     highlightRow(element.site_id)
                 }
             });
+
 
         marker.addTo(map);
     });
@@ -202,16 +203,18 @@ const loadBasins = async () => {
         });
 
         map.on('click', item.id + '_fill', (e) => {
-            let basin_id = e.features[0].source;
-            var a = document.getElementById('basin_detail_btn');
-            a.href = "/basin/" + basin_id;
+            if (!e.originalEvent.target.id.includes('marker')) {
+                let basin_id = e.features[0].source;
+                var a = document.getElementById('basin_detail_btn');
+                a.href = "/basin/" + basin_id;
 
-            document.getElementById('basin_detail_btn').click();
+                document.getElementById('basin_detail_btn').click();
+            }
         });
 
         map.on('mousemove', item.id + '_fill', (e) => {
             if (window.location.pathname == "/") {
-                highlightRow(e.features[0].source)
+                //highlightRow(e.features[0].source)
             }
         });
     });
@@ -248,7 +251,7 @@ map.on('load', function () {
 });
 
 const openSidePanel = () => {
-    if (document.getElementById("mySidenav").style.width != "365px") {
+    if (document.getElementById("mySidenav").style.width != "365px" && window.location.pathname != '/') {
         document.getElementById("mySidenav").style.width = "365px";
     }
 }
