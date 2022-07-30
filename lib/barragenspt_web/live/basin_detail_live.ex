@@ -45,7 +45,7 @@ defmodule BarragensptWeb.BasinDetailLive do
       |> assign(basin_id: id)
       |> assign(basin_summary: basin_summary, basin: basin_name)
       |> push_event("update_chart", %{data: stats, lines: chart_lines})
-      |> push_event("zoom_map", %{bounding_box: bounding_box})
+      |> push_event("zoom_map", %{basin_id: id, bounding_box: bounding_box})
       |> push_event("enable_tabs", %{})
 
     {:noreply, socket}

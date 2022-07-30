@@ -90,8 +90,19 @@ window.addEventListener(`phx:update_chart`, (e) => {
 })
 
 window.addEventListener('phx:zoom_map', (e) => {
+    var allLayers = map.getStyle().layers;
+
     if (e.detail.bounding_box) {
         map.fitBounds(e.detail.bounding_box, { maxZoom: 8 });
+
+        allLayers.forEach(function (item) {
+            if (item.id == e.detail.basin_id + '_fill' || item.id == e.detail.basin_id + '_outline') {
+                map.setLayoutProperty(item.id, 'visibility', 'visible');
+            }
+            else if (item.id.includes('_fill') || item.id.includes('_outline')) {
+                map.setLayoutProperty(item.id, 'visibility', 'none');
+            }
+        })
     }
     else if (e.detail.center) {
         map.flyTo({
@@ -106,6 +117,10 @@ window.addEventListener('phx:zoom_map', (e) => {
             [-9.708570, 36.682035],
             [-6.072327, 42.615949]
         ]);
+
+        allLayers.forEach(function (item) {
+            map.setLayoutProperty(item.id, 'visibility', 'visible');
+        })
     }
 })
 
