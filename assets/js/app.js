@@ -96,11 +96,11 @@ window.addEventListener('phx:zoom_map', (e) => {
         map.fitBounds(e.detail.bounding_box, { maxZoom: 8 });
 
         allLayers.forEach(function (item) {
-            if (item.id == e.detail.basin_id + '_fill' || item.id == e.detail.basin_id + '_outline') {
-                map.setLayoutProperty(item.id, 'visibility', 'visible');
+            if (item.id == e.detail.basin_id + '_fill') {
+                map.setPaintProperty(item.id, 'fill-opacity', 0.8);
             }
-            else if (item.id.includes('_fill') || item.id.includes('_outline')) {
-                map.setLayoutProperty(item.id, 'visibility', 'none');
+            else if (item.id.includes('_fill')) {
+                map.setPaintProperty(item.id, 'fill-opacity', 0.1);
             }
         })
     }
@@ -119,7 +119,9 @@ window.addEventListener('phx:zoom_map', (e) => {
         ]);
 
         allLayers.forEach(function (item) {
-            map.setLayoutProperty(item.id, 'visibility', 'visible');
+            if (item.id.includes('_fill')) {
+                map.setPaintProperty(item.id, 'fill-opacity', 0.7);
+            }
         })
     }
 })
