@@ -2,6 +2,10 @@
 /*@import "./phoenix.css";*/
 @import "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css";
 
+.content h6 {
+  margin-bottom: 0.25em;
+}
+
 .credits {
   bottom: 30px;
   font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
@@ -68,11 +72,11 @@
 }
 
 table th {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 table tr td {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 html,
@@ -130,6 +134,10 @@ bodys:after {
 
 #tabs-with-content .tab-content.is-active {
   display: block;
+}
+
+span {
+  font-size: 14px;
 }
 
 .tabs {
