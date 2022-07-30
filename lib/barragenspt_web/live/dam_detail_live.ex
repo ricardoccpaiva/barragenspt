@@ -45,7 +45,6 @@ defmodule BarragensptWeb.DamDetailLive do
       |> assign(dam: dam)
       |> assign(current_capacity: current_storage)
       |> push_event("update_chart", %{data: data, lines: lines})
-      |> push_event("enable_tabs", %{})
 
     if(params["nz"]) do
       {:noreply, socket}
