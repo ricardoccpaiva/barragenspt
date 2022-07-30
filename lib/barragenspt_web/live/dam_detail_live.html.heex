@@ -51,10 +51,10 @@
           <%= for {k, v} <- @dam.metadata[key] do %>
 
             <span class="is-size-7 has-text-weight-bold">
-              <%= k %>:
+              <%= k |> String.trim("\"") %>:
             </span>
             <span class="is-size-7">
-              <%= String.capitalize(v) %>
+              <%= v |> String.trim(",") |> String.trim("\"") |> String.capitalize() %>
             </span>
             <br />
             <% end %>
