@@ -7,18 +7,11 @@
     </button>
   </div>
   <div class="card-content">
-    <nav class="breadcrumb bc is-small" aria-label="breadcrumbs">
-      <ul>
-        <li>
-          <%= live_patch "Bacias Hidrográficas" , to: Routes.homepage_path(@socket, :index) %>
-        </li>
-        <li>
-          <%= live_patch @basin, to: Routes.basin_detail_path(@socket, :detail, @basin_id) %>
-        </li>
-        <li><a href="#"> Albufeiras</a></li>
-      </ul>
-    </nav>
-    <div id="tabs-with-content">
+    <h6 class="is-6">
+      <b>Bacia: </b>
+      <%= @basin %>
+    </h6>
+    <div id="tabs-with-content" style="margin-top: 10px">
       <div class="tabs is-small">
         <ul>
           <li class="is-active">
@@ -43,7 +36,6 @@
                 <th>Rio</th>
                 <th>% Atual</th>
                 <th>% Média</th>
-                <th>Detalhe</th>
               </tr>
             </thead>
             <tbody>
@@ -51,7 +43,9 @@
                 average_storage, capacity_color: capacity_color} <- @basin_summary do %>
                 <tr id={"row_#{id}"} class="row">
                   <td style="padding-right: 30px">
-                    <%= name %>
+                    <%= live_patch to: Routes.dam_detail_path(@socket, :detail, id), replace: true do %>
+                      <%= name %>
+                        <% end %>
                   </td>
                   <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}>
                       <%= current_storage %>%
@@ -59,11 +53,6 @@
                   <td class="has-text-centered"><span class="tag is-light">
                       <%= average_storage %>%
                     </span></td>
-                  <td class="has-text-centered">
-                    <%= live_patch to: Routes.dam_detail_path(@socket, :detail, id), replace: true do %>
-                      <i class="fa fa-info" aria-hidden="true"></i>
-                      <% end %>
-                  </td>
                 </tr>
                 <% end %>
             </tbody>

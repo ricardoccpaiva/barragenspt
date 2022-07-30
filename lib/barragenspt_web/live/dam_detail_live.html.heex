@@ -7,75 +7,60 @@
     </button>
   </div>
   <div class="card-content">
-    <nav class="breadcrumb bc is-small" aria-label="breadcrumbs">
-      <ul>
-        <li>
-          <%= live_patch "Bacias Hidrográficas" , to: Routes.homepage_path(@socket, :index) %>
-        </li>
-        <li>
-          <%= live_patch @dam.basin, to: Routes.basin_detail_path(@socket, :detail, @dam.basin_id) %>
-        </li>
-        <li><a href="#"> Albufeiras</a></li>
-        <li>
-          <%= live_patch @dam.name, to: Routes.dam_detail_path(@socket, :detail, @dam.site_id) %>
-        </li>
-      </ul>
-    </nav>
-    <div id="tabs-with-content">
-      <div class="tabs is-small">
-        <ul>
-          <li class="is-active">
-            <a>Resumo</a>
-          </li>
-          <%= for key <- Map.keys(@dam.metadata) do %>
-            <li><a>
-                <%= key %>
-              </a></li>
-            <% end %>
-        </ul>
-      </div>
-      <div>
-        <section class="tab-content">
-          <div class="field">
-            <span class="is-size-7 has-text-weight-bold">Armazenamento atual: <%= @current_capacity %>%</span>
-            <div class="control" style="margin-top: 5px;">
-              <progress class="progress is-link is-small" value={@current_capacity} max="100"></progress>
-            </div>
-          </div>
-          <div class="field" style="margin-top: 30px;">
-            <span class="is-size-7 has-text-weight-bold">Evolução temporal</span>
-            <div class="control">
-              <div style="text-align:right;">
-                <div class="select is-small" style="margin-top:15px; margin-bottom: 10px;">
-                  <select phx-hook="ChartTimeWindow">
-                    <option value="m2">1 mês</option>
-                    <option value="m6">6 meses</option>
-                    <option value="y2" selected>2 anos</option>
-                    <option value="y5">5 anos</option>
-                    <option value="y10">10 anos</option>
-                    <option value="y50">Sem limite</option>
-                  </select>
-                </div>
-              </div>
-              <div id="c1" phx-update="ignore"></div>
-            </div>
-          </div>
+    <h6 class="is-6">
+      <b>Bacia: </b>
+      <%= @dam.basin %>
+    </h6>
+    <h6 class="is-6">
+      <b>Albufeira: </b>
+      <%= @dam.name %>
+    </h6>
 
-        </section>
-        <%= for key <- Map.keys(@dam.metadata) do %>
-          <section class="tab-content">
-            <%= for {k, v} <- @dam.metadata[key] do %>
-              <span class="is-size-7 has-text-weight-bold">
-                <%= k %>:
-              </span>
-              <span class="is-size-7">
-                <%= String.capitalize(v) %>
-              </span>
-              <br />
-              <% end %>
-          </section>
-          <% end %>
+    <div class="field" style="margin-top: 10px;">
+      <span class="is-size-7 has-text-weight-bold">Armazenamento atual: <%= @current_capacity %>%</span>
+      <div class="control" style="margin-top: 5px;">
+        <progress class="progress is-link is-small" value={@current_capacity} max="100"></progress>
       </div>
     </div>
+    <div class="field">
+      <span class="is-size-7 has-text-weight-bold">Evolução temporal</span>
+      <div class="control">
+        <div style="text-align:right;">
+          <div class="select is-small" style="margin-top:15px; margin-bottom: 10px;">
+            <select phx-hook="ChartTimeWindow">
+              <option value="m2">1 mês</option>
+              <option value="m6">6 meses</option>
+              <option value="y2" selected>2 anos</option>
+              <option value="y5">5 anos</option>
+              <option value="y10">10 anos</option>
+              <option value="y50">Sem limite</option>
+            </select>
+          </div>
+        </div>
+        <div id="c1" phx-update="ignore"></div>
+      </div>
+    </div>
+
+
+    <div class="content">
+      <%= for key <- Map.keys(@dam.metadata) do %>
+        <h6 class="is-6">
+          <%= key %>
+        </h6>
+        <div style="margin-left: 10px; margin-bottom: 10px;">
+          <%= for {k, v} <- @dam.metadata[key] do %>
+
+            <span class="is-size-7 has-text-weight-bold">
+              <%= k %>:
+            </span>
+            <span class="is-size-7">
+              <%= String.capitalize(v) %>
+            </span>
+            <br />
+            <% end %>
+        </div>
+        <% end %>
+    </div>
+
   </div>
 </div>
