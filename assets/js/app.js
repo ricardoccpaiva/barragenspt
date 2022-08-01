@@ -200,10 +200,12 @@ const loadBasins = async () => {
     const basins = await response.json();
 
     basins.data.forEach(function (item) {
+        var fill_layer_id = item.id + '_fill'
+
         map.addSource(item.id, { type: 'geojson', data: '/geojson/' + item.name + '.geojson' });
 
         map.addLayer({
-            'id': item.id + '_fill',
+            'id': fill_layer_id,
             'type': 'fill',
             'source': item.id,
             'layout': {},
@@ -224,7 +226,7 @@ const loadBasins = async () => {
             }
         });
 
-        map.on('click', item.id + '_fill', (e) => {
+        map.on('click', fill_layer_id, (e) => {
             if (!e.originalEvent.target.id.includes('marker')) {
                 let basin_id = e.features[0].source;
                 var a = document.getElementById('basin_detail_btn');
@@ -234,10 +236,8 @@ const loadBasins = async () => {
             }
         });
 
-        map.on('mousemove', item.id + '_fill', (e) => {
-            if (window.location.pathname == "/") {
-                //highlightRow(e.features[0].source)
-            }
+        map.on("mouseenter", fill_layer_id, () => {
+            map.getCanvas().style.cursor = "pointer";
         });
     });
 
