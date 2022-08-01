@@ -44,7 +44,7 @@
 }
 
 .sidenav {
-  max-height: 400px;
+  height: max(60%, 400px);
   width: 0;
   position: fixed;
   z-index: 99999;
