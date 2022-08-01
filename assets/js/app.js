@@ -111,6 +111,11 @@ window.addEventListener('phx:zoom_map', (e) => {
             zoom: 12,
             speed: 2
         });
+        allLayers.forEach(function (item) {
+            if (item.id.includes('_fill')) {
+                map.setPaintProperty(item.id, 'fill-opacity', 0);
+            }
+        })
     }
     else {
         map.fitBounds([
