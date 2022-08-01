@@ -14,6 +14,13 @@
   z-index: 1;
 }
 
+.credits {
+  bottom: 0px;
+  position: absolute;
+  left: 50%;
+  z-index: 1;
+}
+
 .legend {
   background-color: #fff;
   border-radius: 3px;
