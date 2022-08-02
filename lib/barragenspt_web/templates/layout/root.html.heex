@@ -65,11 +65,34 @@
         <a id="quick_panel_button" style="display:none" data-show="quickview" data-target="quickviewDefault"></a>
       </div>
 
-      <div class="credits" style="display: none;">
-        <br />
-        <a href="https://snirh.apambiente.pt/">Dados obtidos através do portal SNIRH</a>
-        • <a href="https://github.com/ricardoccpaiva/barragenspt">Código fonte @ <i class='fa-brands fa-github'></i></a>
-        • <a href="https://www.flaticon.com/free-icons/dam" title="dam icons">Logo by Freepik</a>
+      <div id="credits-modal" class="modal">  
+      <div class="modal-background"></div>
+        <div class="modal-content">
+          <div class="box">
+            <article class="media">
+              <div class="media-left">
+                <figure class="image is-64x64">
+                  <img src="images/dam.png" alt="Image">
+                </figure>
+              </div>
+              <div class="media-content">
+                <div class="content">
+                  <p>Dados obtidos através do portal do <a href="https://snirh.apambiente.pt/">SNIRH</a></p>
+                  <p>Código fonte <a href="https://github.com/ricardoccpaiva/barragenspt"><i class='fa-brands fa-github'></i></a></p>
+                  <p>Desenhado e implementado por <a href="https://twitter.com/ricardoccpaiva">@ricardoccpaiva</a></p>
+                  <p>Logo by <a href="https://www.flaticon.com/free-icons/dam" title="dam icons">Freepik</a></p>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+        <button class="modal-close is-large" aria-label="close"></button>
+      </div>
+
+      <div class="credits">      
+        <button class="js-modal-trigger credits-btn" data-target="credits-modal">
+          Acerca <i class="fa-solid fa-lg fa-circle-info"></i>
+        </button>              
       </div>
 
       <div class="legend">
@@ -80,10 +103,6 @@
         <div><span style="background-color: #c2faaa"></span>51 - 60</div>
         <div><span style="background-color: #a6d8ff"></span>61 - 80</div>
         <div><span style="background-color: #1c9dff"></span>81 - 100</div>
-      </div>
-      <div class="credits">
-        <span class="tag is-warning">BETA</span>
-        <a href="https://github.com/ricardoccpaiva/barragenspt"><i class="fab fa-github"></i></a>
       </div>
     </div>
 </body>
