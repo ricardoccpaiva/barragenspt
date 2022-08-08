@@ -66,8 +66,6 @@ defmodule Barragenspt.Workers.FetchDamParameters do
             "max_value" => max_value
           } = _args
       }) do
-    :timer.sleep(1000)
-
     site_id
     |> Snirh.get_raw_csv_data(parameter_id, "01/01/#{start_year}", "31/12/#{end_year}")
     |> NimbleCSV.RFC4180.parse_string()
