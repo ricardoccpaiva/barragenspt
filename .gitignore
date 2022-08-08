@@ -35,3 +35,4 @@ npm-debug.log
 resources/tmp
 
 .DS_STORE
+.vscode/
