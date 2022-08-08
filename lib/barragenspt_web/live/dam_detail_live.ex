@@ -4,34 +4,32 @@ defmodule BarragensptWeb.DamDetailLive do
   alias Barragenspt.Geo.Coordinates
   alias Barragenspt.Mappers.Colors
 
-  def handle_event("change_window", %{"value" => value}, socket) do
+  def handle_event("change_window", %{"value" => value} = args, socket) do
     id = socket.assigns.dam.site_id
 
     %{current_storage: current_storage} = Dams.current_storage(id)
 
-    data =
-      case value do
-        "y" <> val ->
-          {int_value, ""} = Integer.parse(val)
-          Dams.monthly_stats(id, int_value)
-
-        "m" <> val ->
-          {int_value, ""} = Integer.parse(val)
-          Dams.daily_stats(id, int_value)
-      end
+    data = get_data_for_period(id, value)
 
     lines =
       [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
         [%{k: "Média", v: "grey"}]
 
-    socket = push_event(socket, "update_chart", %{data: data, lines: lines})
+    socket =
+      socket
+      |> assign(chart_window_value: value)
+      |> push_event("update_chart", %{data: data, lines: lines})
 
     {:noreply, socket}
   end
 
   def handle_params(%{"id" => id} = params, _url, socket) do
+    chart_window_value = Map.get(socket.assigns, :chart_window_value, "y2")
+
     dam = Dams.get(id)
-    data = Dams.monthly_stats(id)
+
+    data = get_data_for_period(id, chart_window_value)
+
     %{current_storage: current_storage} = Dams.current_storage(id)
 
     lines =
@@ -51,6 +49,18 @@ defmodule BarragensptWeb.DamDetailLive do
     else
       %{lat: lat, lon: lon} = Coordinates.from_dam(dam)
       {:noreply, push_event(socket, "zoom_map", %{center: [lon, lat]})}
+    end
+  end
+
+  defp get_data_for_period(id, value) do
+    case value do
+      "y" <> val ->
+        {int_value, ""} = Integer.parse(val)
+        Dams.monthly_stats(id, int_value)
+
+      "m" <> val ->
+        {int_value, ""} = Integer.parse(val)
+        Dams.daily_stats(id, int_value)
     end
   end
 
