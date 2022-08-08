@@ -53,10 +53,10 @@ config :barragenspt, Oban,
     Oban.Plugins.Pruner,
     {Oban.Plugins.Cron,
      crontab: [
-       {"0 * * * *", Barragenspt.Workers.StatsCacher, max_attempts: 1}
+       {"0 5 * * *", Barragenspt.Workers.StatsCacher, max_attempts: 1}
      ]}
   ],
-  queues: [dams_info: 2, dam_levels: 10, stats_cacher: 1]
+  queues: [dams_info: 10, dam_levels: 10, stats_cacher: 1]
 
 config :barragenspt, :snirh,
   csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php"
