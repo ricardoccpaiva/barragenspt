@@ -69,7 +69,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         select: {
           sum(dp.value) /
             fragment(
-              "sum((? -> ? ->> ?)::int)",
+              "sum((? -> ? ->> ?)::decimal)",
               d.metadata,
               "Albufeira",
               "Capacidade total (dam3)"
@@ -133,7 +133,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         select: {
           sum(dp.value) /
             fragment(
-              "sum((? -> ? ->> ?)::int)",
+              "sum((? -> ? ->> ?)::decimal)",
               d.metadata,
               "Albufeira",
               "Capacidade total (dam3)"

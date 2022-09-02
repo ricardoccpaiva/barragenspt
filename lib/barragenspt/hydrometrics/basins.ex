@@ -46,7 +46,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
         select: {
           sum(dp.value) /
             fragment(
-              "sum((? -> ? ->> ?)::int)",
+              "sum((? -> ? ->> ?)::decimal)",
               d.metadata,
               "Albufeira",
               "Capacidade total (dam3)"
@@ -114,7 +114,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
         select: {
           sum(dp.value) /
             fragment(
-              "sum((? -> ? ->> ?)::int)",
+              "sum((? -> ? ->> ?)::decimal)",
               d.metadata,
               "Albufeira",
               "Capacidade total (dam3)"
@@ -169,7 +169,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
           b.id,
           b.name,
           fragment(
-            "sum(value) / (SELECT sum((metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::int) from dam d where basin_id = ?)",
+            "sum(value) / (SELECT sum((metadata  -> 'Albufeira' ->> 'Capacidade total (dam3)')::decimal) from dam d where basin_id = ?)",
             b.id
           ),
           fragment(

@@ -1,0 +1,104 @@
+defmodule Barragenspt.Workers.FetchDams do
+  use Oban.Worker, queue: :dams_info
+  import Ecto.Query
+  alias Barragenspt.Services.Snirh, as: Snirh
+
+  @impl Oban.Worker
+  def perform(_args) do
+    from(_x in Barragenspt.Hydrometrics.Dam) |> Barragenspt.Repo.delete_all()
+
+    Snirh.dam_data()
+    |> Floki.parse_document!()
+    |> Floki.find("#dbasepesquisador_tbllistaresultados")
+    |> hd()
+    |> then(fn {"table", _first, rows} -> rows end)
+    |> tl()
+    |> Stream.map(fn row -> parse_row(row) end)
+    |> Enum.reject(fn row -> row == :noop end)
+    |> Stream.each(fn {basin_id, basin_name, dam_code, name, site_id} ->
+      if active_dam?(basin_id, site_id) do
+        insert_dam(basin_id, basin_name, dam_code, name, site_id)
+      end
+    end)
+    |> Stream.run()
+
+    :ok
+  end
+
+  defp active_dam?(basin_id, site_id) do
+    payload = Snirh.dam_info(basin_id, site_id)
+
+    tbl = payload |> Floki.parse_document!() |> Floki.find("#tbl_info")
+
+    if tbl != nil do
+      [{"table", _css, items}] = tbl
+
+      item = items |> List.delete_at(length(items) - 1) |> List.last()
+
+      if item != nil do
+        {"tr", [],
+         [
+           {"td", [{"class", "tbl_tit"}, {"style", "text-align:left"}], ["ESTADO"]},
+           {"td", [{"class", "tbl_val"}, {"style", "text-align:left"}], [state]}
+         ]} = item
+
+        state == "ATIVA"
+      else
+        false
+      end
+    else
+      false
+    end
+  end
+
+  defp parse_row({"tr", [], [_item1, item2, item3, item4 | _rest]}) do
+    {"td", [],
+     [
+       {"a",
+        [
+          {"title", "Dados"},
+          {"href", url},
+          {"target", "_self"}
+        ], [dam_code]}
+     ]} = item2
+
+    %{"FILTRA_BACIA" => basin_id, "FILTRA_SITE" => site_id} =
+      url
+      |> URI.parse()
+      |> then(fn %URI{query: query} -> query end)
+      |> URI.decode_query()
+
+    {"td", [], [name]} = item3
+    {"td", [], [basin_name]} = item4
+
+    {basin_id, basin_name, dam_code, name, site_id}
+  end
+
+  defp parse_row(_does_not_matter) do
+    :noop
+  end
+
+  defp insert_dam(basin_id, basin_name, dam_code, name, site_id) do
+    formatted_name =
+      name
+      |> String.trim_trailing("(R.E.)")
+      |> String.trim_trailing()
+      |> String.downcase()
+      |> Recase.to_title()
+
+    formatted_basin_name =
+      basin_name
+      |> String.downcase()
+      |> Recase.to_title()
+
+    dam = %Barragenspt.Hydrometrics.Dam{
+      basin_id: basin_id,
+      basin: formatted_basin_name,
+      code: dam_code,
+      name: formatted_name,
+      site_id: site_id
+    }
+
+    Barragenspt.Repo.insert!(dam)
+  end
+end

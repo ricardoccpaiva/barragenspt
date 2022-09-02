@@ -25,29 +25,33 @@ defmodule Barragenspt.Workers.FetchDamParameters do
       {2011, 2022}
     ]
 
-    Barragenspt.Hydrometrics.Dam
-    |> from()
+    from(d in Barragenspt.Hydrometrics.Dam, where: not is_nil(d.metadata))
     |> Barragenspt.Repo.all()
     |> Enum.map(fn dam ->
-      {max_value, ""} = Integer.parse(dam.metadata["Albufeira"]["Capacidade total (dam3)"])
+      try do
+        {max_value, ""} = Integer.parse(dam.metadata["Albufeira"]["Capacidade total (dam3)"])
 
-      Enum.map(data_params, fn {param_id, param_name} ->
-        Enum.map(years, fn {start_year, end_year} ->
-          Barragenspt.Workers.FetchDamParameters.new(%{
-            "id" => :rand.uniform(999_999_999),
-            "dam_code" => dam.code,
-            "basin_id" => dam.basin_id,
-            "site_id" => dam.site_id,
-            "parameter_id" => param_id,
-            "parameter_name" => param_name,
-            "start_year" => start_year,
-            "end_year" => end_year,
-            "max_value" => max_value
-          })
+        Enum.map(data_params, fn {param_id, param_name} ->
+          Enum.map(years, fn {start_year, end_year} ->
+            Barragenspt.Workers.FetchDamParameters.new(%{
+              "id" => :rand.uniform(999_999_999),
+              "dam_code" => dam.code,
+              "basin_id" => dam.basin_id,
+              "site_id" => dam.site_id,
+              "parameter_id" => param_id,
+              "parameter_name" => param_name,
+              "start_year" => start_year,
+              "end_year" => end_year,
+              "max_value" => max_value
+            })
+          end)
         end)
-      end)
+      rescue
+        _ -> []
+      end
     end)
     |> List.flatten()
+    |> Enum.reject(fn row -> row == [] end)
     |> Oban.insert_all()
   end
 

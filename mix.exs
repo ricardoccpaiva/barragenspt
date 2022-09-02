@@ -60,7 +60,10 @@ defmodule Barragenspt.MixProject do
       {:decorator, "~> 1.4"},
       {:scrivener_ecto, "~> 2.7"},
       {:prom_ex, "~> 1.7.1"},
-      {:plug_canonical_host, "~> 2.0"}
+      {:plug_canonical_host, "~> 2.0"},
+      {:tesla, "~> 1.4"},
+      {:codepagex, "~> 0.1.6"},
+      {:recase, "~> 0.5"}
     ]
   end
 
