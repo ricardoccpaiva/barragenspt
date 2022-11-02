@@ -10,6 +10,7 @@ defmodule Barragenspt.Hydrometrics.Dam do
     field :name, :string
     field :site_id, :string
     field :albuf_id, :string
+    field :river, :string
     timestamps()
   end
 
