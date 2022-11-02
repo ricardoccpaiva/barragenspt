@@ -1,67 +1,35 @@
-<div id="mySidenav" class="sidenav">
-  <div class="card-content">
-    <nav class="breadcrumb bc is-small" aria-label="breadcrumbs">
-      <ul>
-        <li>
-          <%= live_patch "Bacias Hidrográficas" , to: Routes.homepage_path(@socket, :index) %>
-        </li>
-      </ul>
-    </nav>
-    <div id="tabs-with-content">
-      <div class="tabs is-small">
-        <ul>
-          <li class="is-active">
-            <a>
-              <span class="icon is-small"><i class="fa-solid fa-table-list" aria-hidden="true"></i></span>
-              <span>Dados atuais</span>
-            </a>
-          </li>
-          <li>
-            <a>
-              <span class="icon is-small"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
-              <span>Dados históricos</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-      <div>
-        <section class="tab-content">
-          <table class="table is-fullwidth">
-            <thead>
-              <tr>
-                <th>Bacia</th>
-                <th>% Atual</th>
-                <th>% Média</th>
-                <th>Detalhe</th>
-              </tr>
-            </thead>
-            <tbody>
-              <%= for %{id: id, name: name, current_storage: current_storage, average_historic_value:
-                average_historic_value, capacity_color: capacity_color} <- @basins_summary do %>
-                <tr id={"row_#{id}"} class="row">
-                  <td style="padding-right: 30px">
-                    <%= name %>
-                  </td>
-                  <td class="has-text-centered"><span class="tag is-light" style={"background-color:#{capacity_color}"}>
-                      <%= current_storage %>%
-                    </span></td>
-                  <td class="has-text-centered"><span class="tag is-light">
-                      <%= average_historic_value %>%
-                    </span></td>
-                  <td class="has-text-centered">
-                    <%= live_patch to: Routes.basin_detail_path(@socket, :detail, id), replace: false do %>
-                      <i class="fa fa-info" aria-hidden="true"></i>
-                      <% end %>
-                  </td>
-                </tr>
-                <% end %>
-            </tbody>
-          </table>
-        </section>
-        <section class="tab-content">
-          <div id="c1" phx-update="ignore"></div>
-        </section>
-      </div>
-    </div>
-  </div>
+<div id="coisas" class="select is-small cenas coisas">
+  <p>
+    <select id="river_select" phx-hook="RiverChanged">
+      <%= for %{river_display_name: river_display_name, river_name: river_name, basin_id: basin_id} <- @rivers do %>
+        <option value={"#{river_name}_#{basin_id}"}>
+          <%= river_display_name %>
+        </option>
+        <% end %>
+    </select>
+  </p>
 </div>
+
+<style>
+  .select {
+    display: inline;
+  }
+
+  select {
+    display: inline;
+  }
+
+  .cenas {
+    margin: 25px;
+    width: 100%;
+    height: 200px;
+    position: absolute;
+    z-index: 99999;
+    min-width: 100%;
+  }
+
+  p {
+    /* Center horizontally*/
+    text-align: center;
+  }
+</style>

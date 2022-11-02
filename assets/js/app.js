@@ -35,6 +35,15 @@ Hooks.ChartTimeWindow = {
     }
 }
 
+Hooks.RiverChanged = {
+    mounted() {
+        this.el.addEventListener("input", e => {
+            var codes = this.el.value.split('_');
+            this.pushEvent("select_river", { basin_id: codes[1], river_name: codes[0] });
+        })
+    }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, { hooks: Hooks, params: { _csrf_token: csrfToken } })
 
@@ -129,6 +138,41 @@ window.addEventListener('phx:zoom_map', (e) => {
             }
         })
     }
+})
+
+window.addEventListener('phx:focus_river', (e) => {
+    var allLayers = map.getStyle().layers;
+    var basin_id = e.detail.basin_id;
+    var river_name = e.detail.river_name;
+
+    allLayers.forEach(function (item) {
+        if (item.id.includes('rio_') && item.id.includes('_outline')) {
+            map.removeLayer(item.id);
+        }
+        else if (item.id.includes('rio_')) {
+            map.removeSource(item.id);
+        }
+
+        if (item.id.includes('_fill')) {
+            map.setPaintProperty(item.id, 'fill-opacity', 0.0);
+        }
+
+        if (item.id.includes(basin_id + '_fill')) {
+            map.setPaintProperty(item.id, 'fill-opacity', 0.4);
+        }
+    })
+
+    map.addSource('rio_' + river_name, { type: 'geojson', data: '/geojson/rivers/' + river_name + '.geojson' });
+    map.addLayer({
+        'id': 'rio_' + river_name + '_outline',
+        'type': 'line',
+        'source': 'rio_' + river_name,
+        'layout': {},
+        'paint': {
+            'line-color': '#000',
+            'line-width': 2
+        }
+    });
 })
 
 let highlightedRowId = null;
