@@ -3,8 +3,14 @@ defmodule BarragensptWeb.DamController do
   alias Barragenspt.Geo.Coordinates
   alias Barragenspt.Hydrometrics.Dams
 
-  def index(conn, _params) do
-    dams = Enum.map(Dams.current_storage(), fn d -> Coordinates.from_dam(d.site_id) end)
+  def index(conn, params) do
+    dams =
+      params
+      |> Map.get("usage_types", "")
+      |> String.split(",")
+      |> Enum.reject(fn usage -> usage == "" end)
+      |> Dams.current_storage()
+      |> Enum.map(fn d -> Coordinates.from_dam(d.site_id) end)
 
     render(conn, "index.json", dams: dams)
   end
