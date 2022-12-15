@@ -10,6 +10,12 @@ defmodule Barragenspt.Workers.StatsCacher do
 
     dams = Dams.all()
 
+    usage_types_combinations =
+      Dams.all_usage_types()
+      |> Enum.map(fn du -> du.usage_name end)
+      |> Enum.uniq()
+      |> get_usage_types_combinations()
+
     basin_ids =
       dams
       |> Enum.uniq_by(fn %{basin_id: basin_id} -> basin_id end)
@@ -18,12 +24,13 @@ defmodule Barragenspt.Workers.StatsCacher do
     daily_periods = [1, 6]
     monthly_periods = [2, 5, 10, 50]
 
-    cache_basin_stats(basin_ids, daily_periods, monthly_periods)
-    cache_dams_stats(dams, daily_periods, monthly_periods)
+    cache_dams_stats(dams, daily_periods, monthly_periods, usage_types_combinations)
+    cache_basin_stats(basin_ids, daily_periods, monthly_periods, usage_types_combinations)
+    :ok
   end
 
-  defp cache_dams_stats(dams, daily_periods, monthly_periods) do
-    Dams.current_storage()
+  defp cache_dams_stats(dams, daily_periods, monthly_periods, usage_types) do
+    Enum.each(usage_types, fn ut -> Dams.current_storage(ut) end)
 
     Enum.each(daily_periods, fn period ->
       Enum.each(dams, fn dam ->
@@ -40,24 +47,38 @@ defmodule Barragenspt.Workers.StatsCacher do
     end)
   end
 
-  defp cache_basin_stats(basin_ids, daily_periods, monthly_periods) do
+  defp cache_basin_stats(basin_ids, daily_periods, monthly_periods, usage_types) do
     Basins.monthly_stats_for_basins()
-    Basins.summary_stats()
+    Enum.each(usage_types, fn ut -> Basins.summary_stats(ut) end)
 
     Enum.each(basin_ids, fn basin_id ->
-      Basins.summary_stats(basin_id)
+      Enum.each(usage_types, fn ut -> Basins.summary_stats(basin_id, ut) end)
     end)
 
     Enum.each(daily_periods, fn period ->
       Enum.each(basin_ids, fn basin_id ->
-        Basins.daily_stats_for_basin(basin_id, period)
+        Enum.each(usage_types, fn ut -> Basins.daily_stats_for_basin(basin_id, ut, period) end)
       end)
     end)
 
     Enum.each(monthly_periods, fn period ->
       Enum.each(basin_ids, fn basin_id ->
-        Basins.monthly_stats_for_basin(basin_id, period)
+        Enum.each(usage_types, fn ut -> Basins.monthly_stats_for_basin(basin_id, ut, period) end)
       end)
     end)
+  end
+
+  defp get_usage_types_combinations(usage_types) do
+    ut_length = Enum.count(usage_types)
+
+    Enum.reduce(1..ut_length, [], fn x, acc -> Enum.concat(acc, combinations(usage_types, x)) end)
+  end
+
+  defp combinations(_list, 0), do: [[]]
+  defp combinations([], _num), do: []
+
+  defp combinations([head | tail], num) do
+    Enum.map(combinations(tail, num - 1), &[head | &1]) ++
+      combinations(tail, num)
   end
 end
