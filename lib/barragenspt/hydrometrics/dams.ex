@@ -9,7 +9,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
     DailyAverageStorageBySite,
     SiteCurrentStorage,
     DataPoint,
-    Dam
+    Dam,
+    DamUsage
   }
 
   alias Barragenspt.Repo
@@ -28,6 +29,18 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   def all do
     Repo.all(from(b in Dam))
+  end
+
+  def all_usage_types do
+    Repo.all(from(b in DamUsage))
+  end
+
+  def usage_types do
+    from(b in DamUsage,
+      select: {b.usage_name}
+    )
+    |> distinct(true)
+    |> Repo.all()
   end
 
   def bounding_box(basin_id) do
@@ -67,13 +80,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
           fragment("DATE(?)", dp.colected_at)
         ],
         select: {
-          sum(dp.value) /
-            fragment(
-              "sum((? -> ? ->> ?)::decimal)",
-              d.metadata,
-              "Albufeira",
-              "Capacidade total (dam3)"
-            ),
+          sum(dp.value) / sum(d.total_capacity),
           fragment("DATE(?)", dp.colected_at)
         }
       )
@@ -167,7 +174,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   end
 
   @decorate cacheable(cache: Cache, key: "dam_current_storage_#{site_id}", ttl: @ttl)
-  def current_storage(site_id) do
+  def current_storage(site_id) when is_binary(site_id) do
     Repo.one(
       from(b in SiteCurrentStorage,
         where: b.site_id == ^site_id and b.current_storage <= 100,
@@ -178,11 +185,129 @@ defmodule Barragenspt.Hydrometrics.Dams do
     )
   end
 
-  @decorate cacheable(cache: Cache, key: "dams_current_storage", ttl: @ttl)
-  def current_storage() do
+  @decorate cacheable(
+              cache: Cache,
+              key: "dams_current_storage_#{Enum.join(usage_types, "-")}",
+              ttl: @ttl
+            )
+  def current_storage(usage_types) when is_list(usage_types) do
+    current_storage_filtered(usage_types)
+  end
+
+  def daily_average_storage_by_site_query(basin_id, usage_types) do
+    filter = dynamic([dp], dp.param_name == "volume_last_hour")
+
+    filter =
+      if usage_types != [] do
+        dynamic([_dp, _d, du], ^filter and du.usage_name in ^usage_types)
+      else
+        filter
+      end
+
+    filter =
+      if basin_id != nil do
+        dynamic([_dp, d, _du], ^filter and d.basin_id == ^basin_id)
+      else
+        filter
+      end
+
+    subquery =
+      from(dp in DataPoint,
+        join: d in Dam,
+        join: du in DamUsage,
+        on: dp.site_id == d.site_id and d.site_id == du.site_id,
+        where: ^filter,
+        order_by: dp.colected_at,
+        select: %{
+          dam_code: dp.dam_code,
+          basin_id: dp.basin_id,
+          site_id: dp.site_id,
+          average: dp.value / d.total_capacity,
+          period:
+            fragment(
+              "EXTRACT(day FROM ?) || '-' || EXTRACT(month FROM ?)",
+              dp.colected_at,
+              dp.colected_at
+            )
+        }
+      )
+
+    from q in subquery(subquery),
+      group_by: [
+        q.period,
+        q.site_id
+      ],
+      order_by: [q.period, q.site_id],
+      select: %{
+        period: q.period,
+        site_id: q.site_id,
+        value: avg(q.average) * 100
+      }
+  end
+
+  def sites_current_storage_query(usage_types) do
+    filter = dynamic([dp, _du], dp.param_name == "volume_last_hour")
+
+    filter =
+      if usage_types != [] do
+        dynamic([_dp, du], ^filter and du.usage_name in ^usage_types)
+      else
+        filter
+      end
+
+    subquery =
+      from(dp in DataPoint,
+        join: du in DamUsage,
+        on: dp.site_id == du.site_id,
+        where: ^filter,
+        select: %{
+          site_id: dp.site_id,
+          basin_id: dp.basin_id,
+          value: dp.value,
+          rn:
+            fragment(
+              "row_number() OVER (PARTITION BY ? ORDER BY ? DESC)",
+              dp.site_id,
+              dp.colected_at
+            )
+        }
+      )
+
+    from(dp in subquery(subquery),
+      join: d in Dam,
+      on: dp.site_id == d.site_id,
+      where: dp.rn == 1,
+      select: %{
+        site_id: dp.site_id,
+        basin_id: dp.basin_id,
+        value: dp.value
+      }
+    )
+  end
+
+  defp current_storage_filtered([]) do
     Repo.all(
       from(b in SiteCurrentStorage,
         where: b.current_storage <= 100,
+        select: %{
+          basin_id: b.basin_id,
+          basin_name: b.basin_name,
+          site_id: b.site_id,
+          site_name: b.site_name,
+          current_storage: fragment("round(?, 1)", b.current_storage)
+        }
+      )
+    )
+  end
+
+  defp current_storage_filtered(usage_types) do
+    Repo.all(
+      from(b in SiteCurrentStorage,
+        join: du in DamUsage,
+        on: b.site_id == du.site_id,
+        where:
+          b.current_storage <= 100 and
+            du.usage_name in ^usage_types,
         select: %{
           basin_id: b.basin_id,
           basin_name: b.basin_name,
