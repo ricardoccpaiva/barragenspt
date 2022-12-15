@@ -44,6 +44,17 @@ Hooks.RiverChanged = {
     }
 }
 
+Hooks.UsageTypeChanged = {
+    mounted() {
+        this.el.addEventListener("change", e => {
+            var usage_type = e.target.name;
+            var checked = e.target.checked;
+
+            this.pushEvent("update_selected_usage_types", { usage_type: usage_type, checked: checked });
+        })
+    }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, { hooks: Hooks, params: { _csrf_token: csrfToken } })
 
@@ -66,36 +77,39 @@ window.addEventListener(`phx:enable_tabs`, (e) => {
 })
 
 window.addEventListener(`phx:update_chart`, (e) => {
-    document.getElementById("c1").innerHTML = "";
-    const chart = new G2.Chart({
-        container: 'c1',
-        autoFit: false,
-        height: 220,
-        width: 325,
-        padding: [30, 20, 70, 30]
-    });
+    if (document.getElementById("c1") != undefined) {
+        document.getElementById("c1").innerHTML = "";
 
-    chart.data(e.detail.data);
+        const chart = new G2.Chart({
+            container: 'c1',
+            autoFit: false,
+            height: 220,
+            width: 325,
+            padding: [30, 20, 70, 30]
+        });
 
-    chart.scale({ value: { min: 0, max: 100 } });
+        chart.data(e.detail.data);
 
-    items = e.detail.lines.map(function (item) {
-        return item.v;
-    });
+        chart.scale({ value: { min: 0, max: 100 } });
 
-    chart
-        .line()
-        .position('date*value')
-        .color('basin', items.reverse())
-        .shape('smooth');
+        items = e.detail.lines.map(function (item) {
+            return item.v;
+        });
 
-    chart.render();
+        chart
+            .line()
+            .position('date*value')
+            .color('basin', items.reverse())
+            .shape('smooth');
 
-    colors = chart.geometries[0].elements.map(function (item) {
-        return { color: item.model.color, id: item.model.data[0].basin_id }
-    });
+        chart.render();
 
-    openSidePanel();
+        colors = chart.geometries[0].elements.map(function (item) {
+            return { color: item.model.color, id: item.model.data[0].basin_id }
+        });
+
+        openSidePanel();
+    }
 })
 
 window.addEventListener('phx:zoom_map', (e) => {
@@ -173,6 +187,37 @@ window.addEventListener('phx:focus_river', (e) => {
             'line-width': 2
         }
     });
+})
+
+window.addEventListener('phx:update_basins_summary', (e) => {
+    var allLayers = map.getStyle().layers;
+
+    allLayers.forEach(function (item) {
+        if (item.id.includes('_fill')) {
+            var summary_for_basin = e.detail.basins_summary.find(e => e.id + '_fill' == item.id);
+            if (summary_for_basin != undefined) {
+                map.setPaintProperty(item.id, 'fill-color', summary_for_basin.capacity_color);
+                map.setPaintProperty(item.id, 'fill-opacity', 0.7);
+            }
+            else {
+                map.setPaintProperty(item.id, 'fill-opacity', 0);
+            }
+        }
+    })
+})
+
+window.addEventListener('phx:update_dams_visibility', (e) => {
+    var siteIds = e.detail.visible_site_ids;
+    const allMarkers = Array.from(document.getElementsByClassName("fa-lg marker"));
+
+    allMarkers.forEach(function (item) {
+        if (!siteIds.includes(item.id)) {
+            document.getElementById(item.id).style.display = "none";
+        }
+        else {
+            document.getElementById(item.id).style.display = "inline";
+        }
+    })
 })
 
 let highlightedRowId = null;
