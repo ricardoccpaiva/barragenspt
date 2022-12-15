@@ -61,6 +61,7 @@ defmodule Barragenspt.Workers.BackFillExtraDamInfo do
       "Indefinido"
     )
     |> extract_title()
+    |> String.trim()
   end
 
   defp extract_title(usage_name) do
