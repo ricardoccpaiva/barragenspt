@@ -8,6 +8,18 @@
         <% end %>
     </select>
   </p>
+
+  <div class="usage_types" style="max-width: 200px">
+    <%= for {usage_type} <- @usage_types do %>
+      <p>
+        <label class="checkbox">
+          <input type="checkbox" name={usage_type} value={usage_type} phx-hook="UsageTypeChanged">
+          <%= usage_type %>
+        </label>
+      </p>
+      <% end %>
+  </div>
+
 </div>
 
 <style>
