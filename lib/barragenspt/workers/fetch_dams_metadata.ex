@@ -163,7 +163,7 @@ defmodule Barragenspt.Workers.FetchDamsMetadata do
 
     regex = ~r/^(?'value'[^:]+)(?'comma',)$/
     regex_for_kv = ~r/^(?'title'.+):,(?'value'.+)$/
-    regex_variant_for_kv = ~r/^(?'title'.+),(?'value'.+)$/
+    regex_variant_for_kv = ~r/^(?'title'.*?),(?'value'.+)$/
 
     csv
     |> String.split("\n")
