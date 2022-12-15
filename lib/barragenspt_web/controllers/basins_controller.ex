@@ -5,7 +5,7 @@ defmodule BarragensptWeb.BasinController do
 
   def index(conn, _params) do
     basins =
-      Enum.map(Basins.summary_stats(), fn {basin_id, name, current_storage, value} ->
+      Enum.map(Basins.summary_stats([]), fn {basin_id, name, current_storage, value} ->
         %{
           id: basin_id,
           name: String.downcase(name),
