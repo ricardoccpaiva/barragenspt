@@ -88,6 +88,8 @@ RUN chown nobody /app
 COPY --from=builder --chown=nobody:root /app/_build/prod/rel/barragenspt ./
 RUN mkdir "bin/resources"
 COPY --from=builder --chown=nobody:root /app/resources/dams.csv ./bin/resources
+COPY --from=builder --chown=nobody:root /app/resources/albufs.csv ./bin/resources
+COPY --from=builder --chown=nobody:root /app/resources/rivers_mapping.csv ./bin/resources
 
 USER nobody
 
