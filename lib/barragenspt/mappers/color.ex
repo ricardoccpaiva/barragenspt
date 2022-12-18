@@ -36,7 +36,7 @@ defmodule Barragenspt.Mappers.Colors do
       {8, "#cbf3f0"}
     ]
 
-    {_k, color} = Enum.find(mappings, fn {k, _v} -> k == basin_id end)
+    {_k, color} = Enum.find(mappings, {:ok, "#FFFFFF"}, fn {k, _v} -> k == basin_id end)
 
     color
   end
