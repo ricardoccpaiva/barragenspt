@@ -10,7 +10,8 @@ import Config
 # which you should run after static files are built and
 # before starting your production server.
 config :barragenspt, BarragensptWeb.Endpoint,
-  cache_static_manifest: "priv/static/cache_manifest.json"
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  check_origin: ["https://beta.barragens.pt", "https://www.beta.barragens.pt"]
 
 # Do not print debug messages in production
 config :logger, level: :info
