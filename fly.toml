@@ -1,6 +1,6 @@
 # fly.toml file generated for barragenspt on 2022-01-29T00:06:35Z
 
-app = "barragenspt"
+app = "barragenspt-beta"
 
 kill_signal = "SIGTERM"
 kill_timeout = 5
