@@ -25,12 +25,16 @@ defmodule BarragensptWeb.DamDetailLive do
 
   def handle_params(%{"id" => id} = params, _url, socket) do
     chart_window_value = Map.get(socket.assigns, :chart_window_value, "y2")
-
     dam = Dams.get(id)
-
     data = get_data_for_period(id, chart_window_value)
 
     %{current_storage: current_storage} = Dams.current_storage(id)
+
+    last_data_point =
+      id
+      |> Dams.last_data_point()
+      |> then(fn %{last_data_point: last_data_point} -> last_data_point end)
+      |> Timex.format!("{D}/{M}/{YYYY}")
 
     lines =
       [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
@@ -40,8 +44,7 @@ defmodule BarragensptWeb.DamDetailLive do
 
     socket =
       socket
-      |> assign(dam: dam)
-      |> assign(current_capacity: current_storage)
+      |> assign(dam: dam, last_data_point: last_data_point, current_capacity: current_storage)
       |> push_event("update_chart", %{data: data, lines: lines})
 
     if(params["nz"]) do
@@ -61,6 +64,10 @@ defmodule BarragensptWeb.DamDetailLive do
       "m" <> val ->
         {int_value, ""} = Integer.parse(val)
         Dams.daily_stats(id, int_value)
+
+      "s" <> val ->
+        {int_value, ""} = Integer.parse(val)
+        Dams.hourly_stats(id, int_value)
     end
   end
 

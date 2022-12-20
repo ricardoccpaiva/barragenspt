@@ -66,6 +66,11 @@ window.addEventListener(`phx:update_chart`, (e) => {
         padding: [30, 20, 70, 30]
     });
 
+    chart.tooltip({
+        showCrosshairs: true,
+        shared: true,
+    });
+
     chart.data(e.detail.data);
 
     chart.scale({ value: { min: 0, max: 100 } });
@@ -81,10 +86,6 @@ window.addEventListener(`phx:update_chart`, (e) => {
         .shape('smooth');
 
     chart.render();
-
-    colors = chart.geometries[0].elements.map(function (item) {
-        return { color: item.model.color, id: item.model.data[0].basin_id }
-    });
 
     openSidePanel();
 })
