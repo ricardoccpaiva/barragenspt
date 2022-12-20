@@ -10,7 +10,7 @@ processes = []
   release_command = "/app/bin/migrate"
 
 [env]
-  PHX_HOST = "barragenspt.fly.dev"
+  PHX_HOST = "beta.barragens.pt"
   PORT = "8080"
 
 [experimental]
