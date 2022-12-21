@@ -40,8 +40,8 @@ defmodule Barragenspt.Workers.FetchDamParameters do
               "site_id" => dam.site_id,
               "parameter_id" => param_id,
               "parameter_name" => param_name,
-              "start_year" => start_year,
-              "end_year" => end_year,
+              "start_date" => "01/01/#{start_year}",
+              "end_date" => "31/12/#{end_year}",
               "max_value" => max_value
             })
           end)
@@ -65,13 +65,13 @@ defmodule Barragenspt.Workers.FetchDamParameters do
             "basin_id" => basin_id,
             "parameter_id" => parameter_id,
             "parameter_name" => parameter_name,
-            "start_year" => start_year,
-            "end_year" => end_year,
+            "start_date" => start_date,
+            "end_date" => end_date,
             "max_value" => max_value
           } = _args
       }) do
     site_id
-    |> Snirh.get_raw_csv_data(parameter_id, "01/01/#{start_year}", "31/12/#{end_year}")
+    |> Snirh.get_raw_csv_data(parameter_id, start_date, end_date)
     |> NimbleCSV.RFC4180.parse_string()
     |> Stream.drop(4)
     |> Stream.chunk_every(250)
@@ -133,7 +133,10 @@ defmodule Barragenspt.Workers.FetchDamParameters do
   defp handle_row(_, _, _, _, _, _), do: :noop
 
   defp save_rows(rows) do
-    Barragenspt.Repo.insert_all(DataPoint, rows)
+    Barragenspt.Repo.insert_all(DataPoint, rows,
+      on_conflict: :replace_all,
+      conflict_target: [:site_id, :param_id, :colected_at]
+    )
   end
 
   defp sanitize_param_name(name) do
