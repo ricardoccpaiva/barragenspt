@@ -35,7 +35,16 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-        gtag('config', 'G-5ECR8CXBPZ');        
+        gtag('config', 'G-5ECR8CXBPZ');
+      </script>
+      <script type="text/javascript">
+        function showLastUpdatedAtInfo(){
+          document.getElementById("last_updated_at_info").style.display = 'block';
+        }
+
+        function hideLastUpdatedAtInfo(){
+          document.getElementById("last_updated_at_info").style.display = 'none';
+        }
       </script>
 </head>
 
@@ -69,7 +78,7 @@
         <a id="quick_panel_button" style="display:none" data-show="quickview" data-target="quickviewDefault"></a>
       </div>
 
-      <div id="credits-modal" class="modal">  
+      <div id="credits-modal" class="modal">
       <div class="modal-background"></div>
         <div class="modal-content">
           <div class="box">
@@ -93,10 +102,10 @@
         <button class="modal-close is-large" aria-label="close"></button>
       </div>
 
-      <div class="credits">      
+      <div class="credits">
         <button class="js-modal-trigger credits-btn" data-target="credits-modal">
           Acerca <i class="fa-solid fa-lg fa-circle-info"></i>
-        </button>              
+        </button>
       </div>
 
       <div class="legend">
