@@ -43,6 +43,31 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Repo.all()
   end
 
+  def search(name, usage_types) do
+    like = "%#{name}%"
+
+    filter = dynamic([d, _du], ilike(d.name, ^like))
+
+    filter =
+      if usage_types != [] do
+        dynamic([_d, du], ^filter and du.usage_name in ^usage_types)
+      else
+        filter
+      end
+
+    query =
+      from(d in Dam,
+        join: du in DamUsage,
+        on: d.site_id == du.site_id,
+        where: ^filter,
+        select: %{id: d.site_id, name: d.name}
+      )
+
+    query
+    |> distinct(true)
+    |> Repo.all()
+  end
+
   def bounding_box(basin_id) do
     query = from(d in Dam, where: d.basin_id == ^basin_id)
 

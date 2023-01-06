@@ -1,12 +1,18 @@
-<div id="mySidenav" class="sidenav">
-  <div class="is-pulled-right">
+defmodule DamDetailComponent do
+  use Phoenix.LiveComponent
+  alias BarragensptWeb.Router.Helpers, as: Routes
+
+  def render(assigns) do
+    ~H"""
+    <div id="mySidenavDam" class={@class}>
+    <div class="is-pulled-right">
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
-        <%= live_patch "" , to: Routes.basin_detail_path(@socket, :detail, @dam.basin_id), class: "fa fa-xmark" %>
+        <%= live_patch "" , to: Routes.homepage_path(@socket, :index, %{"basin_id" => @dam.basin_id}), class: "fa fa-xmark" %>
       </span>
     </button>
-  </div>
-  <div class="card-content">
+    </div>
+    <div class="card-content">
     <h6 class="is-6">
       <b>Bacia: </b>
       <%= @dam.basin %>
@@ -27,7 +33,7 @@
       <div class="control">
         <div style="text-align:right;">
           <div class="select is-small" style="margin-top:15px; margin-bottom: 10px;">
-            <select phx-hook="ChartTimeWindow">
+            <select id="ctw_d" phx-hook="ChartTimeWindow">
               <option value="m2">1 mês</option>
               <option value="m6">6 meses</option>
               <option value="y2" selected>2 anos</option>
@@ -37,7 +43,7 @@
             </select>
           </div>
         </div>
-        <div id="c1" phx-update="ignore"></div>
+        <div id="dam_chart_evo" phx-update="ignore"></div>
       </div>
     </div>
 
@@ -62,5 +68,8 @@
         <% end %>
     </div>
 
-  </div>
-</div>
+    </div>
+    </div>
+    """
+  end
+end

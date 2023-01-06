@@ -19,9 +19,10 @@ defmodule BarragensptWeb.Router do
 
     get("/dams", DamController, :index)
     get("/basins", BasinController, :index)
-    live("/", HomepageLive, :index)
-    live("/dam/:id", DamDetailLive, :detail)
-    live("/basin/:id", BasinDetailLive, :detail)
+
+    live_session :default do
+      live("/", HomepageLive, :index)
+    end
   end
 
   # Other scopes may use custom stacks.

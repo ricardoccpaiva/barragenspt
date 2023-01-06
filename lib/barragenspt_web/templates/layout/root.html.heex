@@ -34,7 +34,7 @@
       <script async src="https://www.googletagmanager.com/gtag/js?id=G-GTDX3W4X7D"></script>
       <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
 
         gtag('config', 'G-GTDX3W4X7D');
@@ -48,69 +48,12 @@
       src: url('../fonts/FredokaOne-Regular.ttf');
     }
 
-    .map-overlay {
-      position: absolute;
-      width: 200px;
-      height: 42px;
-      top: 10px;
-      margin-left: 20px;
+    .map-overlay-logo {
       background-image: url("../images/dam.png");
-      background-repeat: no-repeat;
-      background-size: 48px;
     }
   </style>
+
   <%= @inner_content %>
-    <div style="height: 100%;">
-      <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
-      <div id='map' style="height: 100%;" phx-update="ignore"></div>
-
-      <div class="map-overlay top">
-        <a href="/"><span class="logo-text">BARRAGENS.PT</span></a>
-        <a data-phx-link='patch' data-phx-link-state='push' href="/basin/23" id="basin_detail_btn"
-          style="display:none"></a>
-        <a id="quick_panel_button" style="display:none" data-show="quickview" data-target="quickviewDefault"></a>
-      </div>
-
-      <div id="credits-modal" class="modal">
-      <div class="modal-background"></div>
-        <div class="modal-content">
-          <div class="box">
-            <article class="media">
-              <div class="media-left">
-                <figure class="image is-64x64">
-                  <img src="images/dam.png" alt="Image">
-                </figure>
-              </div>
-              <div class="media-content">
-                <div class="content">
-                  <p>Dados obtidos através do portal do <a href="https://snirh.apambiente.pt/">SNIRH</a></p>
-                  <p>Código fonte <a href="https://github.com/ricardoccpaiva/barragenspt"><i class='fa-brands fa-github'></i></a></p>
-                  <p>Desenhado e implementado por <a href="https://twitter.com/ricardoccpaiva">@ricardoccpaiva</a></p>
-                  <p>Logo by <a href="https://www.flaticon.com/free-icons/dam" title="dam icons">Freepik</a></p>
-                </div>
-              </div>
-            </article>
-          </div>
-        </div>
-        <button class="modal-close is-large" aria-label="close"></button>
-      </div>
-
-      <div class="credits">
-        <button class="js-modal-trigger credits-btn" data-target="credits-modal">
-          Acerca <i class="fa-solid fa-lg fa-circle-info"></i>
-        </button>
-      </div>
-
-      <div class="legend">
-        <p><b>% Armazenamento</b></p>
-        <div><span style="background-color: #ff675c"></span>0 - 20</div>
-        <div><span style="background-color: #ffc34a"></span>21 - 40</div>
-        <div><span style="background-color: #ffe99c"></span>41 - 50</div>
-        <div><span style="background-color: #c2faaa"></span>51 - 60</div>
-        <div><span style="background-color: #a6d8ff"></span>61 - 80</div>
-        <div><span style="background-color: #1c9dff"></span>81 - 100</div>
-      </div>
-    </div>
 </body>
 
 </html>

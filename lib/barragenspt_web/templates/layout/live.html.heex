@@ -1,11 +1,198 @@
-<main class="container">
-  <p class="alert alert-info" role="alert"
-    phx-click="lv:clear-flash"
-    phx-value-key="info"><%= live_flash(@flash, :info) %></p>
+<div class="grid-container">
+  <div id="menu-icon" class="menu-icon">
+    <i class="fa-solid fa-bars header__menu"></i>
+  </div>
 
-  <p class="alert alert-danger" role="alert"
-    phx-click="lv:clear-flash"
-    phx-value-key="error"><%= live_flash(@flash, :error) %></p>
+  <aside id="sidebar" class={if assigns[:dam_names] !=nil, do: "sidebar active" , else: "sidebar" }>
+    <div id="sidebar__close-icon" class="sidebar__close-icon">
+      <i class="fas fa-times sidebar__brand-close"></i>
+    </div>
+    <div style="margin-left: 20px; margin-top: 30px;">
+      <div class="field">
+        <label class="label">Barragens</label>
+        <div class="control">
 
-  <%= @inner_content %>
-</main>
+          <div class="dropdown is-active">
+            <div class="dropdown-trigger">
+              <div class="field">
+                <div class="control is-expanded has-icons-right">
+                  <input id="search_input" class="input is-small search-input" type="search" placeholder="Pesquisar..."
+                    phx-hook="SearchDam" />
+                  <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
+                </div>
+              </div>
+            </div>
+            <%= if assigns[:dam_names] !=nil && Enum.count(assigns[:dam_names])> 0 do %>
+              <div class="dropdown-menu" id="dropdown-menu" role="menu" style="display:inline">
+                <div class="dropdown-content" style="max-height: 200px; width: 240px; overflow-y: scroll;">
+                  <%= for %{id: id, name: name} <- @dam_names do%>
+                    <a data-phx-link='patch' data-phx-link-state='push' href={"?dam_id=#{id}"}
+                      class="dropdown-item is-small">
+                      <%= name %>
+                    </a>
+                    <% end %>
+                </div>
+              </div>
+              <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-left: 20px; margin-top: 30px;">
+      <div class="field">
+        <label class="label">Rios</label>
+        <div class="control">
+          <div class="select is-small">
+            <p>
+              <select id="river_select" phx-hook="RiverChanged">
+                <option value=""></option>
+                <%= for %{river_display_name: river_display_name, river_name: river_name, basin_id: basin_id} <- @rivers
+                  do%>
+                  <option value={"#{river_name}_#{basin_id}"}>
+                    <%= river_display_name %>
+                  </option>
+                  <% end %>
+              </select>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-left: 20px; margin-top: 30px;">
+      <div class="field">
+        <div id="usage_types_info" class="notification is-warning is-light"
+          style="line-height: 1em; max-width: 240px; display: none;">
+          <button class="delete" onclick="hidesageTypesInfo()"></button>
+          <span class="is-size-7">
+            O filtro seguinte faz com que sejam consideradas apenas as barragens com os tipos seleccionados.
+            Consequentemente a composição das bacias tem em conta apenas essas mesmas barragens, o que faz com
+            que
+            as
+            cores da % de armazenamento sejam ajustadas.
+          </span>
+        </div>
+        <label class="label" style="display: inline">Tipos de utilização</label>
+        <i id="usage_types_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"
+          onclick="showUsageTypesInfo()"></i>
+        <div class="control">
+
+
+          <div class="usage_types" style="max-width: 200px" phx-update="ignore">
+            <%= for {usage_type} <- @usage_types do %>
+              <p>
+                <label class="checkbox">
+                  <input id="usage_type" type="checkbox" name={usage_type} value={usage_type}
+                    phx-hook="UsageTypeChanged">
+                  <%= usage_type %>
+                </label>
+              </p>
+              <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main id="main" class="main">
+    <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
+    <div id='map' style="height: 100%;" phx-update="ignore">
+      <div class="map-overlay map-overlay-logo">
+        <a href="/"><span class="logo-text">BARRAGENS.PT</span></a>
+      </div>
+    </div>
+    <a data-phx-link='patch' data-phx-link-state='push' href="" id="basin_detail_btn" style="display:none"></a>
+    <%= if Map.has_key?(assigns, :basin) do %>
+      <.live_component module={BasinDetailComponent} id="basin_detail" basin={@basin} basin_summary={@basin_summary}
+        class={@basin_detail_class} />
+      <% end %>
+        <%= if Map.has_key?(assigns, :dam) do %>
+          <.live_component module={DamDetailComponent} id="dam_detail" dam={@dam} current_capacity={@current_capacity}
+            class={@dam_detail_class} />
+          <% end %>
+            <%= @inner_content %>
+              <div id="credits-modal" class="modal">
+                <div class="modal-background"></div>
+                <div class="modal-content">
+                  <div class="box">
+                    <article class="media">
+                      <div class="media-left">
+                        <figure class="image is-64x64">
+                          <img src="images/dam.png" alt="Image">
+                        </figure>
+                      </div>
+                      <div class="media-content">
+                        <div class="content">
+                          <p>Dados obtidos através do portal do <a href="https://snirh.apambiente.pt/">SNIRH</a></p>
+                          <p>Código fonte <a href="https://github.com/ricardoccpaiva/barragenspt"><i
+                                class='fa-brands fa-github'></i></a></p>
+                          <p>Desenhado e implementado por <a
+                              href="https://twitter.com/ricardoccpaiva">@ricardoccpaiva</a>
+                          </p>
+                          <p>Logo by <a href="https://www.flaticon.com/free-icons/dam" title="dam icons">Freepik</a>
+                          </p>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+                <button class="modal-close is-large" aria-label="close"></button>
+              </div>
+
+              <div class="legend">
+                <p><b>% Armazenamento</b></p>
+                <div><span style="background-color: #ff675c"></span>0 - 20</div>
+                <div><span style="background-color: #ffc34a"></span>21 - 40</div>
+                <div><span style="background-color: #ffe99c"></span>41 - 50</div>
+                <div><span style="background-color: #c2faaa"></span>51 - 60</div>
+                <div><span style="background-color: #a6d8ff"></span>61 - 80</div>
+                <div><span style="background-color: #1c9dff"></span>81 - 100</div>
+              </div>
+
+              <div class="credits">
+                <button class="js-modal-trigger credits-btn" data-target="credits-modal">
+                  Acerca <i class="fa-solid fa-lg fa-circle-info"></i>
+                </button>
+              </div>
+  </main>
+</div>
+
+<script>
+  document.getElementById('main').addEventListener("click", e => {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar.classList.contains('active')) {
+      sidebar.classList.remove('active');
+    }
+  });
+
+  const menuIconEl = document.getElementById('menu-icon');
+  const sidenavEl = document.getElementById('sidebar');
+  const sidenavCloseEl = document.getElementById('sidebar__close-icon');
+
+  // Add and remove provided class names
+  function toggleClassName(el, className) {
+    if (el.classList.contains(className)) {
+      el.classList.remove(className);
+    } else {
+      el.classList.add(className);
+    }
+  }
+
+  // Open the side nav on click
+  menuIconEl.addEventListener("click", e => {
+    toggleClassName(sidenavEl, 'active');
+  });
+
+  // Close the side nav on click
+  sidenavCloseEl.addEventListener("click", e => {
+    toggleClassName(sidenavEl, 'active');
+  });
+
+  function showUsageTypesInfo() {
+    document.getElementById("usage_types_info").style.display = 'block';
+  }
+
+  function hidesageTypesInfo() {
+    document.getElementById("usage_types_info").style.display = 'none';
+  }
+
+</script>

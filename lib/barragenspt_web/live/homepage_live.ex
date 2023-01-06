@@ -1,12 +1,11 @@
 defmodule BarragensptWeb.HomepageLive do
   use BarragensptWeb, :live_view
   alias Barragenspt.Mappers.Colors
+  alias Barragenspt.Geo.Coordinates
   alias Barragenspt.Hydrometrics.{Dams, Basins}
 
-  def mount(_, session, socket) do
+  def mount(_, _session, socket) do
     basins_summary = get_data()
-    all_basins = Basins.all()
-    data_to_feed = Basins.monthly_stats_for_basins()
 
     rivers =
       Dams.all()
@@ -21,21 +20,115 @@ defmodule BarragensptWeb.HomepageLive do
       |> Enum.uniq()
       |> Enum.sort_by(&Map.fetch(&1, :river_name))
 
-    lines =
-      Enum.map(all_basins, fn %{id: id, name: basin_name} ->
-        %{k: basin_name, v: Colors.lookup(id)}
-      end)
-
     usage_types = Dams.usage_types()
 
     socket =
       socket
       |> assign(basins_summary: basins_summary, rivers: rivers, usage_types: usage_types)
-      |> push_event("update_chart", %{data: data_to_feed, lines: lines})
       |> push_event("zoom_map", %{})
       |> push_event("enable_tabs", %{})
 
     {:ok, socket}
+  end
+
+  def handle_params(%{"basin_id" => id}, _url, socket) do
+    rivers =
+      Dams.all()
+      |> Enum.filter(fn d -> d.river != nil end)
+      |> Enum.map(fn d ->
+        %{
+          basin_id: d.basin_id,
+          river_display_name: d.metadata |> Map.get("Barragem") |> Map.get("Curso de água"),
+          river_name: d.river
+        }
+      end)
+      |> Enum.uniq()
+      |> Enum.sort_by(&Map.fetch(&1, :river_name))
+
+    usage_types = Map.get(socket.assigns, :selected_usage_types, [])
+
+    stats = Basins.monthly_stats_for_basin(id, usage_types)
+    bounding_box = Dams.bounding_box(id)
+    basin_summary = get_basin_summary(id, usage_types)
+
+    %{name: basin_name, current_storage: current_storage} = Basins.get_storage(id)
+
+    chart_lines = [
+      %{k: "Observado", v: Colors.lookup_capacity(current_storage)},
+      %{k: "Média", v: "grey"}
+    ]
+
+    socket =
+      socket
+      |> assign(basin_id: id)
+      |> assign(
+        basin_summary: basin_summary,
+        basin: basin_name,
+        rivers: rivers,
+        usage_types: Dams.usage_types()
+      )
+      |> assign(basin_detail_class: "sidenav detail_class_visible")
+      |> assign(dam_detail_class: "sidenav detail_class_invisible")
+      |> push_event("update_chart", %{kind: :basin, data: stats, lines: chart_lines})
+      |> push_event("zoom_map", %{basin_id: id, bounding_box: bounding_box})
+      |> push_event("enable_tabs", %{})
+
+    {:noreply, socket}
+  end
+
+  def handle_params(%{"dam_id" => id} = params, _url, socket) do
+    chart_window_value = Map.get(socket.assigns, :chart_window_value, "y2")
+
+    dam = Dams.get(id)
+
+    data = get_data_for_period(id, chart_window_value)
+
+    %{current_storage: current_storage} = Dams.current_storage(id)
+
+    lines =
+      [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
+        [%{k: "Média", v: "grey"}]
+
+    dam = prepare_dam_metadata(dam)
+
+    socket =
+      socket
+      |> assign(dam: dam)
+      |> assign(current_capacity: current_storage)
+      |> assign(basin_detail_class: "sidenav detail_class_invisible")
+      |> assign(dam_detail_class: "sidenav detail_class_visible")
+      |> push_event("update_chart", %{kind: :dam, data: data, lines: lines})
+
+    if(params["nz"]) do
+      {:noreply, socket}
+    else
+      %{lat: lat, lon: lon} = Coordinates.from_dam(dam)
+      {:noreply, push_event(socket, "zoom_map", %{center: [lon, lat]})}
+    end
+  end
+
+  def handle_params(_params, _url, socket) do
+    socket = %{socket | assigns: Map.delete(socket.assigns, :basin)}
+
+    socket =
+      socket
+      |> push_event("zoom_map", %{})
+      |> assign(basin_detail_class: "sidenav detail_class_invisible")
+      |> assign(dam_detail_class: "sidenav detail_class_invisible")
+
+    {:noreply, socket}
+  end
+
+  defp get_basin_summary(id, usage_types) do
+    id
+    |> Basins.summary_stats(usage_types)
+    |> Enum.map(fn %{current_storage: current_storage} = m ->
+      Map.put(
+        m,
+        :capacity_color,
+        current_storage |> Decimal.round(1) |> Decimal.to_float() |> Colors.lookup_capacity()
+      )
+    end)
   end
 
   defp get_data(usage_types \\ []) do
@@ -48,6 +141,38 @@ defmodule BarragensptWeb.HomepageLive do
         capacity_color: current_storage |> Decimal.to_float() |> Colors.lookup_capacity()
       }
     end)
+  end
+
+  defp get_data_for_period(id, value) do
+    case value do
+      "y" <> val ->
+        {int_value, ""} = Integer.parse(val)
+        Dams.monthly_stats(id, int_value)
+
+      "m" <> val ->
+        {int_value, ""} = Integer.parse(val)
+        Dams.daily_stats(id, int_value)
+    end
+  end
+
+  defp prepare_dam_metadata(dam) do
+    allowed_keys = [
+      "Barragem",
+      "Albufeira",
+      "Identificação",
+      "Dados Técnicos",
+      "Bacia Hidrográfica"
+    ]
+
+    basin_data = Map.get(dam.metadata, "Bacia Hidrográfica")
+
+    new_meta =
+      dam.metadata
+      |> Map.take(allowed_keys)
+      |> Map.drop(["Bacia Hidrográfica"])
+      |> Map.put("Bacia", basin_data)
+
+    Map.put(dam, :metadata, new_meta)
   end
 
   def handle_event("select_river", %{"basin_id" => basin_id, "river_name" => river_name}, socket) do
@@ -75,9 +200,14 @@ defmodule BarragensptWeb.HomepageLive do
         Enum.reject(usage_types, fn ut -> ut == usage_type end)
       end
 
-    usage_types |> IO.inspect(label: "UTs ---------->")
-
     basins_summary = get_data(usage_types)
+
+    basin_summary =
+      if socket.assigns[:basin_id] do
+        get_basin_summary(socket.assigns[:basin_id], usage_types)
+      else
+        []
+      end
 
     visible_site_ids =
       usage_types
@@ -86,9 +216,23 @@ defmodule BarragensptWeb.HomepageLive do
 
     socket =
       socket
-      |> assign(:selected_usage_types, usage_types)
+      |> assign(selected_usage_types: usage_types, basin_summary: basin_summary)
       |> push_event("update_basins_summary", %{basins_summary: basins_summary})
       |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
+
+    {:noreply, socket}
+  end
+
+  def handle_event("search_dam", %{"search_term" => search_term}, socket) do
+    usage_types = Map.get(socket.assigns, :selected_usage_types, [])
+
+    dam_names =
+      case search_term do
+        "" -> []
+        _ -> Barragenspt.Hydrometrics.Dams.search(search_term, usage_types)
+      end
+
+    socket = assign(socket, dam_names: dam_names)
 
     {:noreply, socket}
   end
