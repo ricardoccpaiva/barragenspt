@@ -239,4 +239,48 @@ defmodule BarragensptWeb.HomepageLive do
 
     {:noreply, socket}
   end
+
+  def handle_event("basin_change_window", %{"value" => value}, socket) do
+    id = socket.assigns.basin_id
+
+    %{current_storage: current_storage} = Basins.get_storage(id)
+
+    data =
+      case value do
+        "y" <> val ->
+          {int_value, ""} = Integer.parse(val)
+          Basins.monthly_stats_for_basin(id, int_value)
+
+        "m" <> val ->
+          {int_value, ""} = Integer.parse(val)
+          Basins.daily_stats_for_basin(id, int_value)
+      end
+
+    lines =
+      [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
+        [%{k: "Média", v: "grey"}]
+
+    socket = push_event(socket, "update_chart", %{data: data, lines: lines})
+
+    {:noreply, socket}
+  end
+
+  def handle_event("dam_change_window", %{"value" => value}, socket) do
+    id = socket.assigns.dam.site_id
+
+    %{current_storage: current_storage} = Dams.current_storage(id)
+
+    data = get_data_for_period(id, value)
+
+    lines =
+      [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
+        [%{k: "Média", v: "grey"}]
+
+    socket =
+      socket
+      |> assign(chart_window_value: value)
+      |> push_event("update_chart", %{data: data, lines: lines})
+
+    {:noreply, socket}
+  end
 end

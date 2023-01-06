@@ -43,7 +43,7 @@ defmodule DamDetailComponent do
       <div class="control">
         <div style="text-align:right;">
           <div class="select is-small" style="margin-top:15px; margin-bottom: 10px;">
-            <select id="ctw_d" phx-hook="ChartTimeWindow">
+            <select id="ctw_d" phx-hook="DamChartTimeWindow">
               <option value="m2">1 mês</option>
               <option value="m6">6 meses</option>
               <option value="y2" selected>2 anos</option>

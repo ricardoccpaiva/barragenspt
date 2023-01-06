@@ -27,10 +27,18 @@ import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 let Hooks = {}
-Hooks.ChartTimeWindow = {
+Hooks.BasinChartTimeWindow = {
     mounted() {
         this.el.addEventListener("input", e => {
-            this.pushEvent("change_window", { value: this.el.value });
+            this.pushEvent("basin_change_window", { value: this.el.value });
+        })
+    }
+}
+
+Hooks.DamChartTimeWindow = {
+    mounted() {
+        this.el.addEventListener("input", e => {
+            this.pushEvent("dam_change_window", { value: this.el.value });
         })
     }
 }
