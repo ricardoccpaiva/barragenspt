@@ -43,6 +43,15 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Repo.all()
   end
 
+  def usage_types(site_id) do
+    from(b in DamUsage,
+      where: b.site_id == ^site_id,
+      select: b.usage_name
+    )
+    |> distinct(true)
+    |> Repo.all()
+  end
+
   def search(name, usage_types) do
     like = "%#{name}%"
 

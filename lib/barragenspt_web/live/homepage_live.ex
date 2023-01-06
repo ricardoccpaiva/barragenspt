@@ -91,12 +91,15 @@ defmodule BarragensptWeb.HomepageLive do
 
     dam = prepare_dam_metadata(dam)
 
+    usage_types = Dams.usage_types(dam.site_id)
+
     socket =
       socket
       |> assign(dam: dam)
       |> assign(current_capacity: current_storage)
       |> assign(basin_detail_class: "sidenav detail_class_invisible")
       |> assign(dam_detail_class: "sidenav detail_class_visible")
+      |> assign(dam_usage_types: usage_types)
       |> push_event("update_chart", %{kind: :dam, data: data, lines: lines})
 
     if(params["nz"]) do

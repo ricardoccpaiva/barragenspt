@@ -23,6 +23,16 @@ defmodule DamDetailComponent do
     </h6>
 
     <div class="field" style="margin-top: 10px;">
+      <span class="is-size-7 has-text-weight-bold">Tipos de utilização</span>
+      <div class="control" style="margin-top: 5px;">
+      <%= for ut <- @dam_usage_types do %>
+
+    <span class="tag is-link is-light"><%= ut %></span>
+    <% end %>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top: 10px;">
       <span class="is-size-7 has-text-weight-bold">Armazenamento atual: <%= @current_capacity %>%</span>
       <div class="control" style="margin-top: 5px;">
         <progress class="progress is-link is-small" value={@current_capacity} max="100"></progress>

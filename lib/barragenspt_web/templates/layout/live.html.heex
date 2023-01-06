@@ -107,7 +107,7 @@
       <% end %>
         <%= if Map.has_key?(assigns, :dam) do %>
           <.live_component module={DamDetailComponent} id="dam_detail" dam={@dam} current_capacity={@current_capacity}
-            class={@dam_detail_class} />
+            dam_usage_types={@dam_usage_types} class={@dam_detail_class} />
           <% end %>
             <%= @inner_content %>
               <div id="credits-modal" class="modal">
