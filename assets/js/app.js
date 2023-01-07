@@ -254,6 +254,39 @@ window.addEventListener('phx:update_dams_visibility', (e) => {
     })
 })
 
+let areBasinsVisible = true;
+let areDamColorsVisible = false;
+
+document.getElementById('switchBasins').addEventListener("click", e => {
+    document.getElementById('sidebar').classList.remove('active');
+
+    const allLayers = map.getStyle().layers;
+    const opacity = areBasinsVisible ? 0.1 : 0.7;
+
+    allLayers.forEach(function (item) {
+        if (item.id.includes('_fill')) {
+            map.setPaintProperty(item.id, 'fill-opacity', opacity);
+        }
+    });
+
+    areBasinsVisible = !areBasinsVisible;
+});
+
+document.getElementById('switchDams').addEventListener("click", e => {
+    document.getElementById('sidebar').classList.remove('active');
+
+    fetch('/dams')
+        .then(response => response.json())
+        .then(function (response) {
+            response.data.forEach(function (element) {
+                let marker = document.getElementById("marker_" + element.site_id);
+                marker.style.color = areDamColorsVisible ? element.current_storage_color : "gray";
+            });
+        });
+
+    areDamColorsVisible = !areDamColorsVisible;
+});
+
 let highlightedRowId = null;
 
 const enableTabs = () => {
