@@ -27,6 +27,9 @@ import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 let Hooks = {}
+let areBasinsVisible = true;
+let areDamColorsVisible = false;
+
 Hooks.BasinChartTimeWindow = {
     mounted() {
         this.el.addEventListener("input", e => {
@@ -149,7 +152,7 @@ window.addEventListener('phx:zoom_map', (e) => {
 
         allLayers.forEach(function (item) {
             if (item.id == e.detail.basin_id + '_fill') {
-                map.setPaintProperty(item.id, 'fill-opacity', 0.8);
+                map.setPaintProperty(item.id, 'fill-opacity', areBasinsVisible ? 0.7 : 0.1);
             }
             else if (item.id.includes('_fill')) {
                 map.setPaintProperty(item.id, 'fill-opacity', 0.1);
@@ -177,7 +180,7 @@ window.addEventListener('phx:zoom_map', (e) => {
 
         allLayers.forEach(function (item) {
             if (item.id.includes('_fill')) {
-                map.setPaintProperty(item.id, 'fill-opacity', 0.7);
+                map.setPaintProperty(item.id, 'fill-opacity', areBasinsVisible ? 0.7 : 0.1);
             }
         })
     }
@@ -231,7 +234,7 @@ window.addEventListener('phx:update_basins_summary', (e) => {
             var summary_for_basin = e.detail.basins_summary.find(e => e.id + '_fill' == item.id);
             if (summary_for_basin != undefined) {
                 map.setPaintProperty(item.id, 'fill-color', summary_for_basin.capacity_color);
-                map.setPaintProperty(item.id, 'fill-opacity', 0.7);
+                map.setPaintProperty(item.id, 'fill-opacity', areBasinsVisible ? 0.7 : 0.1);
             }
             else {
                 map.setPaintProperty(item.id, 'fill-opacity', 0);
@@ -253,9 +256,6 @@ window.addEventListener('phx:update_dams_visibility', (e) => {
         }
     })
 })
-
-let areBasinsVisible = true;
-let areDamColorsVisible = false;
 
 document.getElementById('switchBasins').addEventListener("click", e => {
     document.getElementById('sidebar').classList.remove('active');
