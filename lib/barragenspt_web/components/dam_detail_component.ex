@@ -23,6 +23,20 @@ defmodule DamDetailComponent do
     </h6>
 
     <div class="field" style="margin-top: 10px;">
+      <span class="is-size-7 has-text-weight-bold">Armazenamento a <%= @last_data_point %>: <%= @current_capacity %>%</span>
+      <i id="show_last_updated_at_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"></i>
+      <div class="control" style="margin-top: 5px;">
+        <progress class="progress is-link is-small" value={@current_capacity} max="100"></progress>
+      </div>
+      <div id="last_updated_at_info" class="notification is-info is-light" style="padding: 1rem 2rem 1rem 1rem; margin-top: 10px; line-height: 1em; display: none;">
+        <button id="hide_last_updated_at_info_btn" class="delete"></button>
+        <span class="is-size-7 has-text-weight-bold">
+          Atualizamos o barragens.pt pelo menos 1 vez por dia. No entanto, para algumas barragens, os dados oficiais podem ter até 1 semana de atraso.
+        </span>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top: 10px;">
       <span class="is-size-7 has-text-weight-bold">Tipos de utilização</span>
       <div class="control" style="margin-top: 5px;">
       <%= for ut <- @dam_usage_types do %>
@@ -32,12 +46,6 @@ defmodule DamDetailComponent do
       </div>
     </div>
 
-    <div class="field" style="margin-top: 10px;">
-      <span class="is-size-7 has-text-weight-bold">Armazenamento atual: <%= @current_capacity %>%</span>
-      <div class="control" style="margin-top: 5px;">
-        <progress class="progress is-link is-small" value={@current_capacity} max="100"></progress>
-      </div>
-    </div>
     <div class="field">
       <span class="is-size-7 has-text-weight-bold">Evolução temporal</span>
       <div class="control">
