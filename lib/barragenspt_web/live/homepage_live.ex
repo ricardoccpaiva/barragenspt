@@ -32,19 +32,6 @@ defmodule BarragensptWeb.HomepageLive do
   end
 
   def handle_params(%{"basin_id" => id}, _url, socket) do
-    rivers =
-      Dams.all()
-      |> Enum.filter(fn d -> d.river != nil end)
-      |> Enum.map(fn d ->
-        %{
-          basin_id: d.basin_id,
-          river_display_name: d.metadata |> Map.get("Barragem") |> Map.get("Curso de água"),
-          river_name: d.river
-        }
-      end)
-      |> Enum.uniq()
-      |> Enum.sort_by(&Map.fetch(&1, :river_name))
-
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
 
     stats = Basins.monthly_stats_for_basin(id, usage_types)
@@ -64,7 +51,6 @@ defmodule BarragensptWeb.HomepageLive do
       |> assign(
         basin_summary: basin_summary,
         basin: basin_name,
-        rivers: rivers,
         usage_types: Dams.usage_types()
       )
       |> assign(basin_detail_class: "sidenav detail_class_visible")
