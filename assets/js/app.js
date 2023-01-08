@@ -288,14 +288,6 @@ document.getElementById('switchDams').addEventListener("click", e => {
     areDamColorsVisible = !areDamColorsVisible;
 });
 
-document.getElementById('show_last_updated_at_info_btn').addEventListener("click", e => {
-    document.getElementById("last_updated_at_info").style.display = 'block';
-});
-
-document.getElementById('hide_last_updated_at_info_btn').addEventListener("click", e => {
-    document.getElementById("last_updated_at_info").style.display = 'none';
-});
-
 let highlightedRowId = null;
 
 const enableTabs = () => {
