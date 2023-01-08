@@ -21,15 +21,29 @@ defmodule Barragenspt.Workers.StatsCacher do
       |> Enum.uniq_by(fn %{basin_id: basin_id} -> basin_id end)
       |> Enum.map(fn %{basin_id: basin_id} -> basin_id end)
 
+    hourly_periods = [1, 2]
     daily_periods = [1, 6]
     monthly_periods = [2, 5, 10, 50]
 
-    cache_dams_stats(dams, daily_periods, monthly_periods, usage_types_combinations)
+    cache_dams_stats(
+      dams,
+      hourly_periods,
+      daily_periods,
+      monthly_periods,
+      usage_types_combinations
+    )
+
     cache_basin_stats(basin_ids, daily_periods, monthly_periods, usage_types_combinations)
     :ok
   end
 
-  defp cache_dams_stats(dams, daily_periods, monthly_periods, usage_types) do
+  defp cache_dams_stats(dams, hourly_periods, daily_periods, monthly_periods, usage_types) do
+    Enum.each(hourly_periods, fn period ->
+      Enum.each(dams, fn dam ->
+        Dams.hourly_stats(dam.site_id, period)
+      end)
+    end)
+
     Enum.each(usage_types, fn ut -> Dams.current_storage(ut) end)
 
     Enum.each(daily_periods, fn period ->

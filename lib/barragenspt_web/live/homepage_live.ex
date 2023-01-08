@@ -89,6 +89,12 @@ defmodule BarragensptWeb.HomepageLive do
       [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
         [%{k: "Média", v: "grey"}]
 
+    last_data_point =
+      id
+      |> Dams.last_data_point()
+      |> then(fn %{last_data_point: last_data_point} -> last_data_point end)
+      |> Timex.format!("{D}/{M}/{YYYY}")
+
     dam = prepare_dam_metadata(dam)
 
     usage_types = Dams.usage_types(dam.site_id)
@@ -100,6 +106,7 @@ defmodule BarragensptWeb.HomepageLive do
       |> assign(basin_detail_class: "sidenav detail_class_invisible")
       |> assign(dam_detail_class: "sidenav detail_class_visible")
       |> assign(dam_usage_types: usage_types)
+      |> assign(last_data_point: last_data_point)
       |> push_event("update_chart", %{kind: :dam, data: data, lines: lines})
 
     if(params["nz"]) do
@@ -155,6 +162,10 @@ defmodule BarragensptWeb.HomepageLive do
       "m" <> val ->
         {int_value, ""} = Integer.parse(val)
         Dams.daily_stats(id, int_value)
+
+      "s" <> val ->
+        {int_value, ""} = Integer.parse(val)
+        Dams.hourly_stats(id, int_value)
     end
   end
 

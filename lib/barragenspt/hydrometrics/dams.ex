@@ -245,6 +245,67 @@ defmodule Barragenspt.Hydrometrics.Dams do
     current_storage_filtered(usage_types)
   end
 
+  @decorate cacheable(
+              cache: Cache,
+              key: "hourly_stats_for_site_#{id}-#{period}",
+              ttl: @ttl
+            )
+  def hourly_stats(id, period \\ 1) do
+    %{last_data_point: ldp} = last_data_point(id)
+
+    query =
+      from(dp in DataPoint,
+        join: d in Dam,
+        on: d.site_id == dp.site_id,
+        where:
+          dp.param_name == "volume_last_hour" and
+            dp.site_id == ^id and
+            dp.colected_at >= ^query_limit(ldp, period, :week),
+        group_by: [
+          :site_id,
+          :colected_at
+        ],
+        select: {
+          sum(dp.value) /
+            fragment(
+              "sum((? -> ? ->> ?)::decimal)",
+              d.metadata,
+              "Albufeira",
+              "Capacidade total (dam3)"
+            ),
+          dp.colected_at
+        }
+      )
+
+    query
+    |> Repo.all()
+    |> Stream.map(fn {value, date} ->
+      %{
+        basin_id: id,
+        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+        date: date,
+        basin: "Observado"
+      }
+    end)
+    |> Stream.reject(fn %{value: value} -> value > 100 end)
+    |> Enum.to_list()
+    |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
+  end
+
+  @decorate cacheable(cache: Cache, key: "dam_last_data_point_#{site_id}", ttl: @ttl)
+  def last_data_point(site_id) do
+    Repo.one(
+      from(dp in DataPoint,
+        where: dp.site_id == ^site_id and dp.param_name == "volume_last_hour",
+        order_by: [desc: dp.colected_at],
+        limit: 1,
+        select: %{
+          last_data_point: dp.colected_at
+        }
+      )
+    )
+  end
+
   def daily_average_storage_by_site_query(basin_id, usage_types) do
     filter = dynamic([dp], dp.param_name == "volume_last_hour")
 
@@ -399,6 +460,12 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Timex.end_of_month()
     |> Timex.shift(months: period * -1)
     |> Timex.beginning_of_month()
+    |> Timex.to_naive_datetime()
+  end
+
+  defp query_limit(date, period, :week) do
+    date
+    |> Timex.shift(weeks: period * -1)
     |> Timex.to_naive_datetime()
   end
 end
