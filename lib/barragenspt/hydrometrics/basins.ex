@@ -246,7 +246,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
           site_name: dd.name,
           basin_name: dd.basin,
           current_storage: fragment("round((?/?)*100, 1)", b.value, dd.total_capacity),
-          average_storage: fragment("round((?/?)*100, 1)", d.value, dd.total_capacity)
+          average_storage: fragment("round(?, 1)", d.value)
         }
       )
 
