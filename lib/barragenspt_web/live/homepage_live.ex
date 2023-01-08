@@ -269,6 +269,7 @@ defmodule BarragensptWeb.HomepageLive do
 
   def handle_event("basin_change_window", %{"value" => value}, socket) do
     id = socket.assigns.basin_id
+    usage_types = Map.get(socket.assigns, :selected_usage_types, [])
 
     %{current_storage: current_storage} = Basins.get_storage(id)
 
@@ -276,18 +277,18 @@ defmodule BarragensptWeb.HomepageLive do
       case value do
         "y" <> val ->
           {int_value, ""} = Integer.parse(val)
-          Basins.monthly_stats_for_basin(id, int_value)
+          Basins.monthly_stats_for_basin(id, usage_types, int_value)
 
         "m" <> val ->
           {int_value, ""} = Integer.parse(val)
-          Basins.daily_stats_for_basin(id, int_value)
+          Basins.daily_stats_for_basin(id, usage_types, int_value)
       end
 
     lines =
       [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
         [%{k: "Média", v: "grey"}]
 
-    socket = push_event(socket, "update_chart", %{data: data, lines: lines})
+    socket = push_event(socket, "update_chart", %{kind: :basin, data: data, lines: lines})
 
     {:noreply, socket}
   end
@@ -306,7 +307,7 @@ defmodule BarragensptWeb.HomepageLive do
     socket =
       socket
       |> assign(chart_window_value: value)
-      |> push_event("update_chart", %{data: data, lines: lines})
+      |> push_event("update_chart", %{kind: :dam, data: data, lines: lines})
 
     {:noreply, socket}
   end
