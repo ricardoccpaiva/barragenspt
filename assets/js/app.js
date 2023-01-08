@@ -126,6 +126,11 @@ window.addEventListener(`phx:update_chart`, (e) => {
 
     chart.scale({ value: { min: 0, max: 100 } });
 
+    chart.tooltip({
+        showCrosshairs: true,
+        shared: true,
+    });
+
     items = e.detail.lines.map(function (item) {
         return item.v;
     });
@@ -137,10 +142,6 @@ window.addEventListener(`phx:update_chart`, (e) => {
         .shape('smooth');
 
     chart.render();
-
-    colors = chart.geometries[0].elements.map(function (item) {
-        return { color: item.model.color, id: item.model.data[0].basin_id }
-    });
 });
 
 window.addEventListener('phx:zoom_map', (e) => {
