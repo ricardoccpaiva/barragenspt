@@ -81,6 +81,9 @@ defmodule Barragenspt.Workers.FetchDams do
   defp insert_dam(basin_id, basin_name, dam_code, name, site_id) do
     formatted_name =
       name
+      |> String.trim_leading("Albufeira Da")
+      |> String.trim_leading("Albufeira De")
+      |> String.trim_leading("Albufeira Do")
       |> String.trim_trailing("(R.E.)")
       |> String.trim_trailing()
       |> String.downcase()

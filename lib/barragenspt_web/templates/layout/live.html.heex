@@ -25,10 +25,13 @@
             <%= if assigns[:dam_names] !=nil && Enum.count(assigns[:dam_names])> 0 do %>
               <div class="dropdown-menu" id="dropdown-menu" role="menu" style="display:inline">
                 <div class="dropdown-content" style="max-height: 200px; width: 240px; overflow-y: scroll;">
-                  <%= for %{id: id, name: name} <- @dam_names do%>
+                  <%= for %{id: id, name: name, current_storage: cs, current_storage_color: csc} <- @dam_names do%>
                     <a data-phx-link='patch' data-phx-link-state='push' href={"?dam_id=#{id}"}
                       class="dropdown-item is-small">
                       <%= name %>
+                        <span class="tag is-link is-light" style={"background-color: #{csc}"}>
+                          <%= cs %>%
+                        </span>
                     </a>
                     <% end %>
                 </div>

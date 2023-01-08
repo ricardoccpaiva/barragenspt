@@ -207,6 +207,23 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
+  @decorate cacheable(
+              cache: Cache,
+              key: "dam_current_storage_for_sites_#{Enum.join(site_ids)}",
+              ttl: @ttl
+            )
+  def current_storage_for_sites(site_ids) when is_list(site_ids) do
+    Repo.all(
+      from(b in SiteCurrentStorage,
+        where: b.site_id in ^site_ids and b.current_storage <= 100,
+        select: %{
+          site_id: b.site_id,
+          current_storage: fragment("round(?, 1)", b.current_storage)
+        }
+      )
+    )
+  end
+
   @decorate cacheable(cache: Cache, key: "dam_current_storage_#{site_id}", ttl: @ttl)
   def current_storage(site_id) when is_binary(site_id) do
     Repo.one(

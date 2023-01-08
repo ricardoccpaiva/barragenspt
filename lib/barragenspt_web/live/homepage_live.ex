@@ -235,6 +235,22 @@ defmodule BarragensptWeb.HomepageLive do
         _ -> Barragenspt.Hydrometrics.Dams.search(search_term, usage_types)
       end
 
+    site_ids = Enum.map(dam_names, fn %{id: id, name: _name} -> id end)
+    dams_current_storage = Dams.current_storage_for_sites(site_ids)
+
+    dam_names =
+      Enum.map(dam_names, fn %{id: id, name: name} ->
+        site_storage_info =
+          Enum.find(dams_current_storage, %{current_storage: 0}, fn dcs -> dcs.site_id == id end)
+
+        %{
+          id: id,
+          name: name,
+          current_storage: site_storage_info.current_storage,
+          current_storage_color: Colors.lookup_capacity(site_storage_info.current_storage)
+        }
+      end)
+
     socket = assign(socket, dam_names: dam_names)
 
     {:noreply, socket}
