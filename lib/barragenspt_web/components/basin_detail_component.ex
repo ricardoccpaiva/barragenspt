@@ -39,7 +39,7 @@ defmodule BasinDetailComponent do
           <table class="table is-fullwidth">
             <thead>
               <tr>
-                <th>Rio</th>
+                <th>Albufeira</th>
                 <th>% Atual</th>
                 <th>% Média</th>
               </tr>
