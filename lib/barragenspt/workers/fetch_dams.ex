@@ -16,39 +16,11 @@ defmodule Barragenspt.Workers.FetchDams do
     |> Stream.map(fn row -> parse_row(row) end)
     |> Enum.reject(fn row -> row == :noop end)
     |> Stream.each(fn {basin_id, basin_name, dam_code, name, site_id} ->
-      if active_dam?(basin_id, site_id) do
-        insert_dam(basin_id, basin_name, dam_code, name, site_id)
-      end
+      insert_dam(basin_id, basin_name, dam_code, name, site_id)
     end)
     |> Stream.run()
 
     :ok
-  end
-
-  defp active_dam?(basin_id, site_id) do
-    payload = Snirh.dam_info(basin_id, site_id)
-
-    tbl = payload |> Floki.parse_document!() |> Floki.find("#tbl_info")
-
-    if tbl != nil do
-      [{"table", _css, items}] = tbl
-
-      item = items |> List.delete_at(length(items) - 1) |> List.last()
-
-      if item != nil do
-        {"tr", [],
-         [
-           {"td", [{"class", "tbl_tit"}, {"style", "text-align:left"}], ["ESTADO"]},
-           {"td", [{"class", "tbl_val"}, {"style", "text-align:left"}], [state]}
-         ]} = item
-
-        state == "ATIVA"
-      else
-        false
-      end
-    else
-      false
-    end
   end
 
   defp parse_row({"tr", [], [_item1, item2, item3, item4 | _rest]}) do
