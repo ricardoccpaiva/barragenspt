@@ -4,7 +4,9 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
   require Logger
 
   @impl Oban.Worker
-  def perform(_args) do
+  def perform(%Oban.Job{attempt: 1, args: %{"jcid" => jcid}}) do
+    Barragenspt.Cache.flush()
+
     # 354895424 - Cota da Albufeira na última hora
     # 1629599726 - Cota da Albufeira
     # 354895398 - Volume armazenado na última hora (dam3)
@@ -33,6 +35,7 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
         Enum.map(data_params, fn {param_id, param_name} ->
           Barragenspt.Workers.FetchDamParameters.new(%{
             "id" => :rand.uniform(999_999_999),
+            "parent_jcid" => jcid,
             "dam_code" => dam.code,
             "basin_id" => dam.basin_id,
             "site_id" => dam.site_id,
@@ -48,9 +51,43 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
       end
     end)
     |> List.flatten()
+    |> tap(&Logger.info("Spawning #{Enum.count(&1)} jobs to update data points"))
     |> Enum.reject(fn row -> row == [] end)
     |> Oban.insert_all()
 
-    :ok
+    Logger.info("Snoozing DataPointsUpdate for the first initial 30s")
+
+    {:snooze, 30}
+  end
+
+  def perform(%Oban.Job{attempt: attempt, args: %{"jcid" => jcid}}) when attempt > 1 do
+    handle_retry(jcid)
+  end
+
+  defp handle_retry(jcid) do
+    {:ok,
+     %Postgrex.Result{
+       columns: ["count"],
+       command: :select,
+       num_rows: 1,
+       rows: [[rows]]
+     }} =
+      Barragenspt.Repo.query(
+        "select count(1) from oban_jobs where args->>'parent_jcid' = '#{jcid}'"
+      )
+
+    if rows == 0 do
+      Logger.info("DataPointsUpdate coordinator job has finished. parent_jcid = '#{jcid}'")
+
+      %{} |> Barragenspt.Workers.StatsCacher.new() |> Oban.insert()
+
+      :ok
+    else
+      Logger.info(
+        "DataPointsUpdate coordinator job still has child #{rows} jobs running. parent_jcid = '#{jcid}'"
+      )
+
+      {:snooze, 30}
+    end
   end
 end

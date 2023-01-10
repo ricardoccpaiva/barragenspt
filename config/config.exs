@@ -47,18 +47,21 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+{seconds, micro_seconds} = DateTime.to_gregorian_seconds(DateTime.utc_now())
+unique_id = "#{seconds}_#{micro_seconds}"
+
 config :barragenspt, Oban,
   repo: Barragenspt.Repo,
   plugins: [
     Oban.Plugins.Pruner,
     {Oban.Plugins.Cron,
      crontab: [
-       {"0 3 * * *", Barragenspt.Workers.DataPointsUpdate, max_attempts: 3},
-       {"0 6 * * *", Barragenspt.Workers.StatsCacher, max_attempts: 3},
+       {"0 5 * * *", Barragenspt.Workers.DataPointsUpdate,
+        args: %{jcid: unique_id}, max_attempts: 50},
        {"@reboot", Barragenspt.Workers.StatsCacher, max_attempts: 3}
      ]}
   ],
-  queues: [dams_info: 10, dam_levels: 10, stats_cacher: 1, data_points_update: 4]
+  queues: [dams_info: 2, dam_levels: 10, stats_cacher: 1, data_points_update: 1]
 
 config :barragenspt, :snirh,
   csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php"
