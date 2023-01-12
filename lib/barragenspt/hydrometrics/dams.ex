@@ -77,6 +77,57 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Repo.all()
   end
 
+  @decorate cacheable(
+              cache: Cache,
+              key: "river_names",
+              ttl: @ttl
+            )
+  def get_river_names() do
+    all()
+    |> Enum.filter(fn d -> d.river != nil end)
+    |> Enum.map(fn d ->
+      %{
+        basin_id: d.basin_id,
+        site_id: d.site_id,
+        river_display_name: d.metadata |> Map.get("Barragem") |> Map.get("Curso de água"),
+        river_name: d.river
+      }
+    end)
+    |> Enum.uniq_by(fn %{river_display_name: rdn} -> rdn end)
+    |> Enum.sort_by(&Map.fetch(&1, :river_name))
+  end
+
+  @decorate cacheable(
+              cache: Cache,
+              key: "dams_by_river#{river_name}",
+              ttl: @ttl
+            )
+  def get_dams_by_river(river_name) do
+    all()
+    |> Enum.filter(fn d -> d.river != nil end)
+    |> Enum.map(fn d ->
+      %{
+        basin_id: d.basin_id,
+        site_id: d.site_id,
+        river_display_name: d.metadata |> Map.get("Barragem") |> Map.get("Curso de água"),
+        river_name: d.river
+      }
+    end)
+    |> Enum.filter(fn r -> r.river_name == river_name end)
+    |> Enum.map(fn r -> %{basin_id: r.basin_id, site_id: r.site_id} end)
+  end
+
+  def bounding_box(site_ids) when is_list(site_ids) do
+    query = from(d in Dam, where: d.site_id in ^site_ids)
+
+    query
+    |> Barragenspt.Repo.all()
+    |> Stream.map(fn dam -> Coordinates.from_dam(dam) end)
+    |> Stream.map(fn %{lat: lat, lon: lon} -> [lon, lat] end)
+    |> Enum.to_list()
+    |> Geocalc.bounding_box_for_points()
+  end
+
   def bounding_box(basin_id) do
     query = from(d in Dam, where: d.basin_id == ^basin_id)
 

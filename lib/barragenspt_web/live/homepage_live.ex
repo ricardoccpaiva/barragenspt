@@ -6,21 +6,8 @@ defmodule BarragensptWeb.HomepageLive do
 
   def mount(_, _session, socket) do
     basins_summary = get_data()
-
-    rivers =
-      Dams.all()
-      |> Enum.filter(fn d -> d.river != nil end)
-      |> Enum.map(fn d ->
-        %{
-          basin_id: d.basin_id,
-          river_display_name: d.metadata |> Map.get("Barragem") |> Map.get("Curso de água"),
-          river_name: d.river
-        }
-      end)
-      |> Enum.uniq()
-      |> Enum.sort_by(&Map.fetch(&1, :river_name))
-
     usage_types = Dams.usage_types()
+    rivers = Dams.get_river_names()
 
     socket =
       socket
@@ -111,6 +98,7 @@ defmodule BarragensptWeb.HomepageLive do
       |> push_event("zoom_map", %{})
       |> assign(basin_detail_class: "sidenav detail_class_invisible")
       |> assign(dam_detail_class: "sidenav detail_class_invisible")
+      |> assign(river_detail_class: "sidenav detail_class_invisible")
 
     {:noreply, socket}
   end
@@ -176,12 +164,41 @@ defmodule BarragensptWeb.HomepageLive do
   end
 
   def handle_event("select_river", %{"basin_id" => basin_id, "river_name" => river_name}, socket) do
-    bounding_box = Dams.bounding_box(basin_id)
+    visible_site_ids =
+      river_name
+      |> Dams.get_dams_by_river()
+      |> Enum.map(fn d -> d.site_id end)
+
+    bounding_box = Dams.bounding_box(visible_site_ids)
+
+    basin_summary =
+      basin_id
+      |> get_basin_summary([])
+      |> Enum.filter(fn %{site_id: site_id} ->
+        Enum.any?(visible_site_ids, fn vsid -> vsid == site_id end)
+      end)
 
     socket =
       socket
+      |> assign(basin_detail_class: "sidenav detail_class_invisible")
+      |> assign(dam_detail_class: "sidenav detail_class_invisible")
+      |> assign(river_detail_class: "sidenav detail_class_visible")
+      |> assign(river: river_name, basin_summary: basin_summary)
       |> push_event("zoom_map", %{basin_id: basin_id, bounding_box: bounding_box})
       |> push_event("focus_river", %{basin_id: basin_id, river_name: river_name})
+      |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
+
+    {:noreply, socket}
+  end
+
+  def handle_event("select_river", %{}, socket) do
+    visible_site_ids = Dams.all() |> Enum.map(fn d -> d.site_id end)
+
+    socket =
+      socket
+      |> assign(river_detail_class: "sidenav detail_class_invisible")
+      |> push_event("zoom_map", %{})
+      |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
 
     {:noreply, socket}
   end

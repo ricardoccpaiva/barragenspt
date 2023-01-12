@@ -47,7 +47,7 @@
         <div class="control">
           <div class="select is-small">
             <p>
-              <select id="river_select" phx-hook="RiverChanged">
+              <select id="river_select" phx-hook="RiverChanged" phx-update="ignore">
                 <option value=""></option>
                 <%= for %{river_display_name: river_display_name, river_name: river_name, basin_id: basin_id} <- @rivers
                   do%>
@@ -127,50 +127,54 @@
           <.live_component module={DamDetailComponent} id="dam_detail" dam={@dam} current_capacity={@current_capacity}
             last_data_point={@last_data_point} dam_usage_types={@dam_usage_types} class={@dam_detail_class} />
           <% end %>
-            <%= @inner_content %>
-              <div id="credits-modal" class="modal">
-                <div class="modal-background"></div>
-                <div class="modal-content">
-                  <div class="box">
-                    <article class="media">
-                      <div class="media-left">
-                        <figure class="image is-64x64">
-                          <img src="images/dam.png" alt="Image">
-                        </figure>
+            <%= if Map.has_key?(assigns, :river) do %>
+              <.live_component module={RiverDetailComponent} id="river_detail" river={@river}
+                basin_summary={@basin_summary} class={@river_detail_class} />
+              <% end %>
+                <%= @inner_content %>
+                  <div id="credits-modal" class="modal">
+                    <div class="modal-background"></div>
+                    <div class="modal-content">
+                      <div class="box">
+                        <article class="media">
+                          <div class="media-left">
+                            <figure class="image is-64x64">
+                              <img src="images/dam.png" alt="Image">
+                            </figure>
+                          </div>
+                          <div class="media-content">
+                            <div class="content">
+                              <p>Dados obtidos através do portal do <a href="https://snirh.apambiente.pt/">SNIRH</a></p>
+                              <p>Código fonte <a href="https://github.com/ricardoccpaiva/barragenspt"><i
+                                    class='fa-brands fa-github'></i></a></p>
+                              <p>Desenhado e implementado por <a
+                                  href="https://twitter.com/ricardoccpaiva">@ricardoccpaiva</a>
+                              </p>
+                              <p>Logo by <a href="https://www.flaticon.com/free-icons/dam" title="dam icons">Freepik</a>
+                              </p>
+                            </div>
+                          </div>
+                        </article>
                       </div>
-                      <div class="media-content">
-                        <div class="content">
-                          <p>Dados obtidos através do portal do <a href="https://snirh.apambiente.pt/">SNIRH</a></p>
-                          <p>Código fonte <a href="https://github.com/ricardoccpaiva/barragenspt"><i
-                                class='fa-brands fa-github'></i></a></p>
-                          <p>Desenhado e implementado por <a
-                              href="https://twitter.com/ricardoccpaiva">@ricardoccpaiva</a>
-                          </p>
-                          <p>Logo by <a href="https://www.flaticon.com/free-icons/dam" title="dam icons">Freepik</a>
-                          </p>
-                        </div>
-                      </div>
-                    </article>
+                    </div>
+                    <button class="modal-close is-large" aria-label="close"></button>
                   </div>
-                </div>
-                <button class="modal-close is-large" aria-label="close"></button>
-              </div>
 
-              <div class="legend">
-                <p><b>% Armazenamento</b></p>
-                <div><span style="background-color: #ff675c"></span>0 - 20</div>
-                <div><span style="background-color: #ffc34a"></span>21 - 40</div>
-                <div><span style="background-color: #ffe99c"></span>41 - 50</div>
-                <div><span style="background-color: #c2faaa"></span>51 - 60</div>
-                <div><span style="background-color: #a6d8ff"></span>61 - 80</div>
-                <div><span style="background-color: #1c9dff"></span>81 - 100</div>
-              </div>
+                  <div class="legend">
+                    <p><b>% Armazenamento</b></p>
+                    <div><span style="background-color: #ff675c"></span>0 - 20</div>
+                    <div><span style="background-color: #ffc34a"></span>21 - 40</div>
+                    <div><span style="background-color: #ffe99c"></span>41 - 50</div>
+                    <div><span style="background-color: #c2faaa"></span>51 - 60</div>
+                    <div><span style="background-color: #a6d8ff"></span>61 - 80</div>
+                    <div><span style="background-color: #1c9dff"></span>81 - 100</div>
+                  </div>
 
-              <div class="credits">
-                <button class="js-modal-trigger credits-btn" data-target="credits-modal">
-                  Acerca <i class="fa-solid fa-lg fa-circle-info"></i>
-                </button>
-              </div>
+                  <div class="credits">
+                    <button class="js-modal-trigger credits-btn" data-target="credits-modal">
+                      Acerca <i class="fa-solid fa-lg fa-circle-info"></i>
+                    </button>
+                  </div>
   </main>
 </div>
 

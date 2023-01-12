@@ -49,11 +49,14 @@ Hooks.DamChartTimeWindow = {
 Hooks.RiverChanged = {
     mounted() {
         this.el.addEventListener("input", e => {
+            topbar.show();
             var codes = this.el.value.split('_');
             if (codes.length == 2) {
                 this.pushEvent("select_river", { basin_id: codes[1], river_name: codes[0] });
             }
             else {
+                this.pushEvent("select_river", {});
+
                 var allLayers = map.getStyle().layers;
                 allLayers.forEach(function (item) {
                     if (item.id.includes('rio_') && item.id.includes('_outline')) {
@@ -188,6 +191,8 @@ window.addEventListener('phx:zoom_map', (e) => {
 })
 
 window.addEventListener('phx:focus_river', (e) => {
+    topbar.hide();
+
     document.getElementById('sidebar').classList.remove('active');
 
     var allLayers = map.getStyle().layers;
@@ -245,15 +250,18 @@ window.addEventListener('phx:update_basins_summary', (e) => {
 })
 
 window.addEventListener('phx:update_dams_visibility', (e) => {
+    topbar.hide();
+
     var siteIds = e.detail.visible_site_ids;
     const allMarkers = Array.from(document.getElementsByClassName("fa-lg marker"));
 
     allMarkers.forEach(function (item) {
-        if (!siteIds.includes(item.id)) {
-            document.getElementById(item.id).style.display = "none";
+        var itemId = "marker_" + item.id;
+        if (!siteIds.includes(itemId)) {
+            document.getElementById(itemId).style.display = "none";
         }
         else {
-            document.getElementById(item.id).style.display = "inline";
+            document.getElementById(itemId).style.display = "inline";
         }
     })
 })
@@ -343,16 +351,6 @@ const loadDams = () => {
                     .Marker(el)
                     .setLngLat([element.lon, element.lat]);
 
-
-                marker
-                    .getElement()
-                    .addEventListener('mouseenter', () => {
-                        if (window.location.pathname != "/") {
-                            highlightRow(element.site_id)
-                        }
-                    });
-
-
                 marker.addTo(map);
             });
         });
@@ -405,19 +403,6 @@ const loadBasins = () => {
                 });
             });
         });
-}
-
-const highlightRow = (rowId) => {
-    if (highlightedRowId != rowId) {
-        let rows = document.querySelectorAll('.row');
-        rows.forEach(function (row) {
-            row.classList.remove('is-highlighted');
-        });
-
-        highlightedRowId = rowId;
-        let row = document.getElementById("row_" + highlightedRowId);
-        row.classList.add('is-highlighted');
-    }
 }
 
 mapboxgl.accessToken = document.getElementById("mapbox_token").value;
