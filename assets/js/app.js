@@ -250,20 +250,20 @@ window.addEventListener('phx:update_basins_summary', (e) => {
 })
 
 window.addEventListener('phx:update_dams_visibility', (e) => {
-    topbar.hide();
-
-    var siteIds = e.detail.visible_site_ids;
     const allMarkers = Array.from(document.getElementsByClassName("fa-lg marker"));
 
     allMarkers.forEach(function (item) {
-        var itemId = "marker_" + item.id;
-        if (!siteIds.includes(itemId)) {
-            document.getElementById(itemId).style.display = "none";
+        var idParts = item.id.split('_');
+
+        if (!e.detail.visible_site_ids.includes(idParts[1])) {
+            document.getElementById(item.id).style.display = "none";
         }
         else {
-            document.getElementById(itemId).style.display = "inline";
+            document.getElementById(item.id).style.display = "inline";
         }
-    })
+    });
+
+    topbar.hide();
 })
 
 document.getElementById('switchBasins').addEventListener("click", e => {
