@@ -229,7 +229,7 @@ defmodule BarragensptWeb.HomepageLive do
     visible_site_ids =
       usage_types
       |> Dams.current_storage()
-      |> Enum.map(fn d -> "marker_#{d.site_id}" end)
+      |> Enum.map(fn d -> d.site_id end)
 
     socket =
       socket
