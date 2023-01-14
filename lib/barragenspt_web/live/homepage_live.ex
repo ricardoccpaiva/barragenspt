@@ -81,6 +81,7 @@ defmodule BarragensptWeb.HomepageLive do
       |> assign(current_capacity: current_storage)
       |> assign(basin_detail_class: "sidenav detail_class_invisible")
       |> assign(dam_detail_class: "sidenav detail_class_visible")
+      |> assign(search_results_class: "dropdown-content detail_class_invisible")
       |> assign(dam_usage_types: usage_types)
       |> assign(last_data_point: last_data_point)
       |> push_event("update_chart", %{kind: :dam, data: data, lines: lines})
@@ -272,7 +273,10 @@ defmodule BarragensptWeb.HomepageLive do
         }
       end)
 
-    socket = assign(socket, dam_names: dam_names)
+    socket =
+      socket
+      |> assign(dam_names: dam_names)
+      |> assign(search_results_class: "dropdown-content")
 
     {:noreply, socket}
   end
