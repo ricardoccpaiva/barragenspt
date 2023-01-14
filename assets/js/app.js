@@ -148,7 +148,6 @@ window.addEventListener(`phx:update_chart`, (e) => {
 });
 
 window.addEventListener('phx:zoom_map', (e) => {
-
     var allLayers = map.getStyle().layers;
 
     if (e.detail.bounding_box && e.detail.site_id == null) {
@@ -161,25 +160,22 @@ window.addEventListener('phx:zoom_map', (e) => {
             else if (item.id.includes('_fill')) {
                 map.setPaintProperty(item.id, 'fill-opacity', 0.1);
             }
-
-            if (item.id.includes('_reservoir_fill')) {
-                map.removeLayer(item.id);
-            }
-            if (item.id.includes('_reservoir_outline')) {
-                map.removeLayer(item.id);
-            }
         })
     }
     else if (e.detail.bounding_box && e.detail.site_id != null) {
-        loadReservoir(e.detail.site_id, e.detail.current_storage_color);
-
-        map.fitBounds(e.detail.bounding_box, { maxZoom: 12 });
-
         allLayers.forEach(function (item) {
             if (item.id.includes('_fill')) {
                 map.setPaintProperty(item.id, 'fill-opacity', 0);
             }
+
+            if (item.id.includes('_reservoir_fill') || item.id.includes('_reservoir_outline')) {
+                map.removeLayer(item.id);
+            }
         })
+
+        loadReservoir(e.detail.site_id, e.detail.current_storage_color);
+
+        map.fitBounds(e.detail.bounding_box, { maxZoom: 12 });
     }
     else {
         map.fitBounds([
@@ -360,13 +356,16 @@ const loadDams = () => {
 
 const loadReservoir = (site_id, current_storage_color) => {
     var fill_layer_id = site_id + '_reservoir_fill'
+    var source_id = site_id + '_reservoir_source';
 
-    map.addSource(site_id, { type: 'geojson', data: '/geojson/reservoirs/' + site_id + '.geojson' });
+    if (map.getSource(source_id) == null) {
+        map.addSource(source_id, { type: 'geojson', data: '/geojson/reservoirs/' + site_id + '.geojson' });
+    }
 
     map.addLayer({
         'id': fill_layer_id,
         'type': 'fill',
-        'source': site_id,
+        'source': source_id,
         'layout': {},
         'paint': {
             'fill-color': current_storage_color,
@@ -377,7 +376,7 @@ const loadReservoir = (site_id, current_storage_color) => {
     map.addLayer({
         'id': site_id + '_reservoir_outline',
         'type': 'line',
-        'source': site_id,
+        'source': source_id,
         'layout': {},
         'paint': {
             'line-color': '#000',
