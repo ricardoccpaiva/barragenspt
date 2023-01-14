@@ -1,0 +1,73 @@
+site_id, dam_name, urls
+1627743428, alto lindoso, https://www.openstreetmap.org/api/0.6/way/31759302
+1627759476, touvedo, https://www.openstreetmap.org/api/0.6/relation/2446035
+1627743430, alto rabagão, https://www.openstreetmap.org/api/0.6/relation/1420612
+1627743674, caniçada, https://www.openstreetmap.org/api/0.6/relation/2441813
+1627758928, paradela, https://www.openstreetmap.org/api/0.6/way/32599280
+1627759378, salamonde, https://www.openstreetmap.org/api/0.6/way/896146766
+1627759522, venda nova, https://www.openstreetmap.org/api/0.6/way/33745954
+1627759560, vilarinho das furnas, https://www.openstreetmap.org/api/0.6/way/33749215
+1627758686, guilhofrei, https://www.openstreetmap.org/api/0.6/relation/2462596
+1627743406, alijó, https://www.openstreetmap.org/api/0.6/way/119958886
+1627743482, azibo, https://www.openstreetmap.org/api/0.6/relation/2455968
+1627743548, bemposta, https://www.openstreetmap.org/api/0.6/way/53154472
+1627743682, carrapatelo, https://www.openstreetmap.org/api/0.6/relation/3688774
+1627751912, crestuma, 
+1627753166, esteveinha,
+1627758660, freigil, https://www.openstreetmap.org/api/0.6/way/223721154
+1627758786, miranda, https://www.openstreetmap.org/api/0.6/way/47916216
+1627758968, picote, https://www.openstreetmap.org/api/0.6/relation/2520395
+1627758976, pocinho, 
+1627759330, ranhados, https://www.openstreetmap.org/api/0.6/way/119510772
+1627759340, regua, 
+1627759434, serra serrada, https://www.openstreetmap.org/api/0.6/way/93885416
+1627759468, torrao, 
+1627759510, valeira, 
+1627759512, varosa, https://www.openstreetmap.org/api/0.6/way/93769426
+1627759554, vilar, https://www.openstreetmap.org/api/0.6/relation/1661467
+7554829602, feiticeiro,
+1627743426, alto ceira, https://www.openstreetmap.org/api/0.6/way/96787152
+1627743662, caldeirao, https://www.openstreetmap.org/api/0.6/relation/1710157
+1627758668, fronhas, https://www.openstreetmap.org/api/0.6/way/96827000
+1627758736, lagoa comprida, https://www.openstreetmap.org/api/0.6/relation/1690995
+1627758738, lagoacho, https://www.openstreetmap.org/api/0.6/relation/6409278
+1627759328, raiva, https://www.openstreetmap.org/api/0.6/way/183579878
+1627759502, vale do rossim, https://www.openstreetmap.org/api/0.6/relation/1684603
+1627743458, apartadura, https://www.openstreetmap.org/api/0.6/way/141796429
+1627743544, belver, https://www.openstreetmap.org/api/0.6/relation/2431470
+1627743586, cabril, https://www.openstreetmap.org/api/0.6/relation/2665375
+1627743678, capinha, https://www.openstreetmap.org/api/0.6/way/133893457
+1627743896, castelo de bode, 
+1627751888, cova do viriato, https://www.openstreetmap.org/api/0.6/way/95401505
+1627752100, divor, https://www.openstreetmap.org/api/0.6/way/83601312
+1627758658, fratel, https://www.openstreetmap.org/api/0.6/way/96294205;https://www.openstreetmap.org/api/0.6/relation/2643879
+1627758756, magos, https://www.openstreetmap.org/api/0.6/way/116405602
+1627758764, maranhao, https://www.openstreetmap.org/api/0.6/relation/1977571
+1627758774, meimoa,https://www.openstreetmap.org/api/0.6/relation/10867804
+1627758784, minutos, https://www.openstreetmap.org/api/0.6/relation/2072412
+1627759290, povoa e meadas, https://www.openstreetmap.org/api/0.6/relation/2431468
+1627759292, pracana, https://www.openstreetmap.org/api/0.6/way/502722827;https://www.openstreetmap.org/api/0.6/way/502512035
+1627759382, Santa águeda, https://www.openstreetmap.org/api/0.6/relation/7768755
+1627759390, santa luzia, https://www.openstreetmap.org/api/0.6/relation/3301627
+1627743416, alqueva, 
+1627743538, beliche, https://www.openstreetmap.org/api/0.6/relation/4658475;https://www.openstreetmap.org/api/0.6/relation/2727413
+1627743648, caia, https://www.openstreetmap.org/api/0.6/way/186639536;https://www.openstreetmap.org/api/0.6/way/186639571;https://www.openstreetmap.org/api/0.6/relation/2513732
+1627758752, lucefecit, https://www.openstreetmap.org/api/0.6/relation/7396320
+1627758834, monte novo, https://www.openstreetmap.org/api/0.6/way/135919762
+1627758894, odeleite, https://www.openstreetmap.org/api/0.6/relation/1203341
+1627759534, vigia, https://www.openstreetmap.org/api/0.6/way/585163802
+1627743440, alvito, https://www.openstreetmap.org/api/0.6/relation/9186454;https://www.openstreetmap.org/api/0.6/relation/10383543;https://www.openstreetmap.org/api/0.6/relation/10383676
+1627743668, campilhas, https://www.openstreetmap.org/api/0.6/way/507953256;https://www.openstreetmap.org/api/0.6/way/507953291
+1627758624, fonte serne, https://www.openstreetmap.org/api/0.6/way/671165973
+1627758830, monte gato, https://www.openstreetmap.org/api/0.6/way/211689571
+1627758832, monte migueis, https://www.openstreetmap.org/api/0.6/way/215485132
+1627758846, monte da rocha, https://www.openstreetmap.org/api/0.6/relation/7358372;https://www.openstreetmap.org/api/0.6/relation/7358374;https://www.openstreetmap.org/api/0.6/way/503386655;https://www.openstreetmap.org/api/0.6/way/503405823;https://www.openstreetmap.org/api/0.6/relation/7358373
+1627758906, odivelas, https://www.openstreetmap.org/api/0.6/relation/1636770
+1627758948, pego do altar,https://www.openstreetmap.org/api/0.6/relation/11190256;https://www.openstreetmap.org/api/0.6/way/869140642;https://www.openstreetmap.org/api/0.6/relation/3873333
+1627759368, roxo, https://www.openstreetmap.org/api/0.6/way/209886097
+1627759492, vale do gaio, https://www.openstreetmap.org/api/0.6/relation/4831031
+1627751880, corte brique, https://www.openstreetmap.org/api/0.6/way/116236396
+1627759384, santa clara, https://www.openstreetmap.org/api/0.6/relation/5158024
+1627743568, bravura, https://www.openstreetmap.org/api/0.6/relation/1204358
+1627743460, arade, https://www.openstreetmap.org/api/0.6/relation/2631593
+1627758670, funcho, https://www.openstreetmap.org/api/0.6/relation/10612864

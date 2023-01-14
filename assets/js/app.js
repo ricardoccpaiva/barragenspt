@@ -151,7 +151,7 @@ window.addEventListener('phx:zoom_map', (e) => {
 
     var allLayers = map.getStyle().layers;
 
-    if (e.detail.bounding_box) {
+    if (e.detail.bounding_box && e.detail.site_id == null) {
         map.fitBounds(e.detail.bounding_box, { maxZoom: 8 });
 
         allLayers.forEach(function (item) {
@@ -161,15 +161,20 @@ window.addEventListener('phx:zoom_map', (e) => {
             else if (item.id.includes('_fill')) {
                 map.setPaintProperty(item.id, 'fill-opacity', 0.1);
             }
+
+            if (item.id.includes('_reservoir_fill')) {
+                map.removeLayer(item.id);
+            }
+            if (item.id.includes('_reservoir_outline')) {
+                map.removeLayer(item.id);
+            }
         })
     }
-    else if (e.detail.center) {
-        map.flyTo({
-            center: e.detail.center,
-            essential: true,
-            zoom: 12,
-            speed: 2
-        });
+    else if (e.detail.bounding_box && e.detail.site_id != null) {
+        loadReservoir(e.detail.site_id, e.detail.current_storage_color);
+
+        map.fitBounds(e.detail.bounding_box, { maxZoom: 12 });
+
         allLayers.forEach(function (item) {
             if (item.id.includes('_fill')) {
                 map.setPaintProperty(item.id, 'fill-opacity', 0);
@@ -296,8 +301,6 @@ document.getElementById('switchDams').addEventListener("click", e => {
     areDamColorsVisible = !areDamColorsVisible;
 });
 
-let highlightedRowId = null;
-
 const enableTabs = () => {
     let tabs = document.querySelectorAll('.tabs li');
     let tabsContent = document.querySelectorAll('.tab-content');
@@ -340,7 +343,6 @@ const loadDams = () => {
     fetch('/dams')
         .then(response => response.json())
         .then(function (response) {
-
             response.data.forEach(function (element) {
                 el = document.createElement('div');
                 innerHTML = "<a id='marker_" + element.site_id + "' class='fa-solid fa-location-dot fa-lg marker' data-phx-link='patch' ";
@@ -354,6 +356,34 @@ const loadDams = () => {
                 marker.addTo(map);
             });
         });
+}
+
+const loadReservoir = (site_id, current_storage_color) => {
+    var fill_layer_id = site_id + '_reservoir_fill'
+
+    map.addSource(site_id, { type: 'geojson', data: '/geojson/reservoirs/' + site_id + '.geojson' });
+
+    map.addLayer({
+        'id': fill_layer_id,
+        'type': 'fill',
+        'source': site_id,
+        'layout': {},
+        'paint': {
+            'fill-color': current_storage_color,
+            'fill-opacity': 0.8
+        }
+    });
+
+    map.addLayer({
+        'id': site_id + '_reservoir_outline',
+        'type': 'line',
+        'source': site_id,
+        'layout': {},
+        'paint': {
+            'line-color': '#000',
+            'line-width': 1
+        }
+    });
 }
 
 const loadBasins = () => {
@@ -427,7 +457,9 @@ map.addControl(
 
 map.on('load', function () {
     loadDams();
-    loadBasins();
+    if (!window.location.search.includes("?dam_id")) {
+        loadBasins();
+    }
     map.resize();
 });
 

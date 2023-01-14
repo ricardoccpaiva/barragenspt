@@ -1,6 +1,26 @@
 defmodule Barragenspt.Geo.Coordinates do
   alias Barragenspt.Hydrometrics.Dams
 
+  def bounding_box(site_id) do
+    path = "priv/static/geojson/reservoirs/#{site_id}.geojson"
+
+    if File.exists?(path) do
+      path
+      |> File.read!()
+      |> Jason.decode!()
+      |> Map.get("features")
+      |> Enum.at(0)
+      |> Map.get("geometry")
+      |> Map.get("coordinates")
+      |> Enum.at(0)
+      |> Enum.to_list()
+      |> Geocalc.bounding_box_for_points()
+    else
+      %{lat: lat, lon: lon} = from_dam(site_id)
+      Geocalc.bounding_box([lon, lat], 10)
+    end
+  end
+
   def from_dam(id) when is_binary(id) do
     dam = Dams.get(id)
 

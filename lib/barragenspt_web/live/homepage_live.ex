@@ -57,9 +57,10 @@ defmodule BarragensptWeb.HomepageLive do
     data = get_data_for_period(id, chart_window_value)
 
     %{current_storage: current_storage} = Dams.current_storage(id)
+    current_storage_color = Colors.lookup_capacity(current_storage)
 
     lines =
-      [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
+      [%{k: "Observado", v: current_storage_color}] ++
         [%{k: "Média", v: "grey"}]
 
     last_data_point =
@@ -71,6 +72,8 @@ defmodule BarragensptWeb.HomepageLive do
     dam = prepare_dam_metadata(dam)
 
     usage_types = Dams.usage_types(dam.site_id)
+
+    bounding_box = Coordinates.bounding_box(id)
 
     socket =
       socket
@@ -85,8 +88,12 @@ defmodule BarragensptWeb.HomepageLive do
     if(params["nz"]) do
       {:noreply, socket}
     else
-      %{lat: lat, lon: lon} = Coordinates.from_dam(dam)
-      {:noreply, push_event(socket, "zoom_map", %{center: [lon, lat]})}
+      {:noreply,
+       push_event(socket, "zoom_map", %{
+         site_id: id,
+         bounding_box: bounding_box,
+         current_storage_color: current_storage_color
+       })}
     end
   end
 
