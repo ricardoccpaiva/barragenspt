@@ -408,8 +408,15 @@ defmodule Barragenspt.Hydrometrics.Dams do
       }
   end
 
-  def sites_current_storage_query(usage_types) do
+  def sites_current_storage_query(basin_id, usage_types) do
     filter = dynamic([dp, _du], dp.param_name == "volume_last_hour")
+
+    filter =
+      if basin_id do
+        dynamic([dp, _du], ^filter and dp.basin_id == ^basin_id)
+      else
+        filter
+      end
 
     filter =
       if usage_types != [] do

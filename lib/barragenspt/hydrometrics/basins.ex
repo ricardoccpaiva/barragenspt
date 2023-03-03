@@ -236,7 +236,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
 
     query =
       from(d in subquery(Dams.daily_average_storage_by_site_query(id, usage_types)),
-        join: b in subquery(Dams.sites_current_storage_query(usage_types)),
+        join: b in subquery(Dams.sites_current_storage_query(id, usage_types)),
         join: du in DamUsage,
         join: dd in Dam,
         on: d.site_id == b.site_id and b.site_id == du.site_id and d.site_id == dd.site_id,
@@ -365,7 +365,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
   end
 
   defp basin_current_storage_query(usage_types) do
-    from(dp in subquery(Dams.sites_current_storage_query(usage_types)),
+    from(dp in subquery(Dams.sites_current_storage_query(nil, usage_types)),
       join: d in Dam,
       on: d.site_id == dp.site_id,
       group_by: [d.basin_id, d.basin],
