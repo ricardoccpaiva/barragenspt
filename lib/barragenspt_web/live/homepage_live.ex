@@ -225,19 +225,38 @@ defmodule BarragensptWeb.HomepageLive do
         Enum.reject(usage_types, fn ut -> ut == usage_type end)
       end
 
-    basins_summary = get_data(usage_types)
+    tasks = [
+      Task.async(fn -> {:basins_summary, get_data(usage_types)} end),
+      Task.async(fn ->
+        ret =
+          if socket.assigns[:basin_id] do
+            get_basin_summary(socket.assigns[:basin_id], usage_types)
+          else
+            []
+          end
 
-    basin_summary =
-      if socket.assigns[:basin_id] do
-        get_basin_summary(socket.assigns[:basin_id], usage_types)
-      else
-        []
-      end
+        {:basin_summary, ret}
+      end),
+      Task.async(fn ->
+        ret =
+          usage_types
+          |> Dams.current_storage()
+          |> Enum.map(fn d -> d.site_id end)
 
-    visible_site_ids =
-      usage_types
-      |> Dams.current_storage()
-      |> Enum.map(fn d -> d.site_id end)
+        {:visible_site_ids, ret}
+      end)
+    ]
+
+    tasks_result = Task.await_many(tasks)
+
+    {:basins_summary, basins_summary} =
+      Enum.find(tasks_result, fn {k, _ret} -> k == :basins_summary end)
+
+    {:basin_summary, basin_summary} =
+      Enum.find(tasks_result, fn {k, _ret} -> k == :basin_summary end)
+
+    {:visible_site_ids, visible_site_ids} =
+      Enum.find(tasks_result, fn {k, _ret} -> k == :visible_site_ids end)
 
     socket =
       socket
