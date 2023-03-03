@@ -21,9 +21,11 @@ defmodule Barragenspt.Workers.MapRiverToDam do
       query = from(d in Barragenspt.Hydrometrics.Dam, where: like(d.code, ^code))
       dam = Barragenspt.Repo.one(query)
 
-      dam = Ecto.Changeset.change(dam, river: rio)
+      if(dam != nil) do
+        dam = Ecto.Changeset.change(dam, river: rio)
 
-      Barragenspt.Repo.update!(dam)
+        Barragenspt.Repo.update!(dam)
+      end
     end
   end
 end
