@@ -100,6 +100,13 @@ defmodule BarragensptWeb.HomepageLive do
 
   def handle_params(_params, _url, socket) do
     socket = %{socket | assigns: Map.delete(socket.assigns, :basin)}
+    socket = %{socket | assigns: Map.delete(socket.assigns, :basin_id)}
+
+    visible_site_ids =
+      socket.assigns
+      |> Map.get(:selected_usage_types, [])
+      |> Dams.current_storage()
+      |> Enum.map(fn d -> d.site_id end)
 
     socket =
       socket
@@ -107,6 +114,7 @@ defmodule BarragensptWeb.HomepageLive do
       |> assign(basin_detail_class: "sidenav detail_class_invisible")
       |> assign(dam_detail_class: "sidenav detail_class_invisible")
       |> assign(river_detail_class: "sidenav detail_class_invisible")
+      |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
 
     {:noreply, socket}
   end
@@ -123,8 +131,10 @@ defmodule BarragensptWeb.HomepageLive do
     end)
   end
 
-  defp get_data(usage_types \\ []) do
-    Enum.map(Basins.summary_stats(usage_types), fn {basin_id, name, current_storage, value} ->
+  defp get_data(basin_id \\ nil, usage_types \\ []) do
+    Basins.summary_stats(usage_types)
+    |> Enum.reject(fn {bid, _n, _cs, _v} -> basin_id && bid != basin_id end)
+    |> Enum.map(fn {basin_id, name, current_storage, value} ->
       %{
         id: basin_id,
         name: name,
@@ -226,7 +236,7 @@ defmodule BarragensptWeb.HomepageLive do
       end
 
     tasks = [
-      Task.async(fn -> {:basins_summary, get_data(usage_types)} end),
+      Task.async(fn -> {:basins_summary, get_data(socket.assigns[:basin_id], usage_types)} end),
       Task.async(fn ->
         ret =
           if socket.assigns[:basin_id] do
@@ -241,6 +251,9 @@ defmodule BarragensptWeb.HomepageLive do
         ret =
           usage_types
           |> Dams.current_storage()
+          |> Enum.reject(fn d ->
+            socket.assigns[:basin_id] && socket.assigns[:basin_id] != d.basin_id
+          end)
           |> Enum.map(fn d -> d.site_id end)
 
         {:visible_site_ids, ret}
