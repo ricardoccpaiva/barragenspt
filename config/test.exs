@@ -20,9 +20,6 @@ config :barragenspt, BarragensptWeb.Endpoint,
   secret_key_base: "y/wuu5B1fH5OJTdPOZHcJUmu4ZgF4Jq0nZNgzlsLhWdtWQ+LOzezc+A/bJxayqa8",
   server: false
 
-# In test we don't send emails.
-config :barragenspt, Barragenspt.Mailer, adapter: Swoosh.Adapters.Test
-
 # Print only warnings and errors during test
 config :logger, level: :warn
 

@@ -42,13 +42,12 @@ defmodule Barragenspt.MixProject do
       {:phoenix_live_view, "~> 0.17.7"},
       {:phoenix_live_dashboard, "~> 0.6"},
       {:esbuild, "~> 0.3", runtime: Mix.env() == :dev},
-      {:swoosh, "~> 1.3"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:nimble_csv, "~> 1.1"},
+      {:nimble_csv, "~> 1.2.0"},
       {:oban, "~> 2.10"},
       {:httpoison, "~> 1.8"},
       {:floki, "~> 0.32.0"},
@@ -63,7 +62,14 @@ defmodule Barragenspt.MixProject do
       {:plug_canonical_host, "~> 2.0"},
       {:tesla, "~> 1.4"},
       {:codepagex, "~> 0.1.6"},
-      {:recase, "~> 0.5"}
+      {:recase, "~> 0.5"},
+      {:opentelemetry_api, "~> 1.0"},
+      {:opentelemetry, "~> 1.0"},
+      {:opentelemetry_exporter, "~> 1.0"},
+      {:opentelemetry_phoenix, "~> 1.0"},
+      {:opentelemetry_ecto, "~> 1.0"},
+      {:opentelemetry_oban, "~> 1.0"},
+      {:opentelemetry_liveview, "~> 1.0.0-rc"}
     ]
   end
 

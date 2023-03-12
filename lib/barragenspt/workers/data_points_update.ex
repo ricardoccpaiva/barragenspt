@@ -53,7 +53,7 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
     |> List.flatten()
     |> tap(&Logger.info("Spawning #{Enum.count(&1)} jobs to update data points"))
     |> Enum.reject(fn row -> row == [] end)
-    |> Oban.insert_all()
+    |> OpentelemetryOban.insert_all()
 
     Logger.info("Snoozing DataPointsUpdate for the first initial 30s")
 

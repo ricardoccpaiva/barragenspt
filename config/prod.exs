@@ -49,5 +49,5 @@ config :logger, level: :info
 #       force_ssl: [hsts: true]
 #
 # Check `Plug.SSL` for all available options in `force_ssl`.
-config :barragenspt, BarragensptWeb.Endpoint,
-  force_ssl: [rewrite_on: [:x_forwarded_proto], hsts: true, host: nil]
+#config :barragenspt, BarragensptWeb.Endpoint,
+ # force_ssl: [rewrite_on: [:x_forwarded_proto], hsts: false, host: nil]
