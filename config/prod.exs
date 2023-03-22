@@ -11,7 +11,12 @@ import Config
 # before starting your production server.
 config :barragenspt, BarragensptWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json",
-  check_origin: ["https://beta.barragens.pt", "https://www.beta.barragens.pt"]
+  check_origin: [
+    "https://beta.barragens.pt",
+    "https://www.beta.barragens.pt",
+    "https://barragens.pt",
+    "https://www.barragens.pt"
+  ]
 
 # Do not print debug messages in production
 config :logger, level: :info
@@ -49,5 +54,5 @@ config :logger, level: :info
 #       force_ssl: [hsts: true]
 #
 # Check `Plug.SSL` for all available options in `force_ssl`.
-#config :barragenspt, BarragensptWeb.Endpoint,
- # force_ssl: [rewrite_on: [:x_forwarded_proto], hsts: false, host: nil]
+# config :barragenspt, BarragensptWeb.Endpoint,
+# force_ssl: [rewrite_on: [:x_forwarded_proto], hsts: false, host: nil]
