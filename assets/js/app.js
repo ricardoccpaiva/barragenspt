@@ -463,17 +463,19 @@ map.on('load', function () {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    introJs().setOptions({
-        steps: [{
-            title: 'Bem vindo!',
-            intro: 'Novas funcionalidades disponíveis aqui.',
-            element: document.querySelector('.menu-icon'),
-        }],
-        showBullets: false,
-        showButtons: false,
-        dontShowAgain: true,
-        dontShowAgainLabel: "Não mostrar de novo"
-    }).start()
+    if (getComputedStyle(document.getElementById('sidebar')).position == 'fixed') {
+        introJs().setOptions({
+            steps: [{
+                title: 'Bem vindo!',
+                intro: 'Novas funcionalidades disponíveis aqui.',
+                element: document.querySelector('.menu-icon'),
+            }],
+            showBullets: false,
+            showButtons: false,
+            dontShowAgain: true,
+            dontShowAgainLabel: "Não mostrar de novo"
+        }).start()
+    }
 
     // Functions to open and close a modal
     function openModal($el) {
