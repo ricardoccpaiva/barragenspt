@@ -29,6 +29,7 @@ import topbar from "../vendor/topbar"
 let Hooks = {}
 let areBasinsVisible = true;
 let areDamColorsVisible = false;
+let isPdsiVisible = false;
 
 Hooks.BasinChartTimeWindow = {
     mounted() {
@@ -282,6 +283,42 @@ document.getElementById('switchBasins').addEventListener("click", e => {
     areBasinsVisible = !areBasinsVisible;
 });
 
+document.getElementById('switchPDSI').addEventListener("click", e => {
+    topbar.show();
+    isPdsiVisible = !isPdsiVisible;
+
+    if (isPdsiVisible) {
+        document.getElementById('damsLevelLegend').style.display = "none";
+        document.getElementById('pdsiLevelsLegend').style.display = "inline";
+
+        map.addSource('wms-pdsi-source', {
+            'type': 'raster',
+            'tiles': [
+                'https://mapservices.ipma.pt/observations/climate/PalmerDroughtSeverityIndex/wms?service=WMS&request=GetMap&layers=mpdsi.obsSup.monthly.vector.conc&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=2022-11-01T00%3A00%3A00Z&srs=EPSG%3A3857&bbox={bbox-epsg-3857}&width=256&height=256'
+            ],
+            'tileSize': 256
+        });
+        map.addLayer(
+            {
+                'id': 'wms-pdsi-layer',
+                'type': 'raster',
+                'source': 'wms-pdsi-source',
+                'paint': {}
+            },
+            'building'
+        );
+    }
+    else {
+        document.getElementById('damsLevelLegend').style.display = "inline";
+        document.getElementById('pdsiLevelsLegend').style.display = "none";
+
+        map.removeLayer('wms-pdsi-layer');
+        map.removeSource('wms-pdsi-source');
+    }
+
+    document.getElementById('sidebar').classList.remove('active');
+});
+
 document.getElementById('switchDams').addEventListener("click", e => {
     document.getElementById('sidebar').classList.remove('active');
 
@@ -460,6 +497,10 @@ map.on('load', function () {
         loadBasins();
     }
     map.resize();
+});
+
+map.on('idle', (e) => {
+    topbar.hide();
 });
 
 document.addEventListener('DOMContentLoaded', () => {

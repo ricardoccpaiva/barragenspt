@@ -106,6 +106,10 @@
             <input id="switchDams" type="checkbox" name="switchDams" class="switch is-small">
             <label for="switchDams">Barragens</label>
           </div>
+          <div class="field">
+            <input id="switchPDSI" type="checkbox" name="switchPDSI" class="switch is-small cenas">
+            <label for="switchPDSI">PDSI</label>
+          </div>
         </div>
       </div>
     </div>
@@ -160,7 +164,7 @@
                     <button class="modal-close is-large" aria-label="close"></button>
                   </div>
 
-                  <div class="legend">
+                  <div id="damsLevelLegend" class="legend">
                     <p><b>% Armazenamento</b></p>
                     <div><span style="background-color: #ff675c"></span>0 - 20</div>
                     <div><span style="background-color: #ffc34a"></span>21 - 40</div>
@@ -168,6 +172,19 @@
                     <div><span style="background-color: #c2faaa"></span>51 - 60</div>
                     <div><span style="background-color: #a6d8ff"></span>61 - 80</div>
                     <div><span style="background-color: #1c9dff"></span>81 - 100</div>
+                  </div>
+
+                  <div id="pdsiLevelsLegend" class="legend" style="display:none">
+                    <p><b>Classes do PDSI</b></p>
+                    <div><span style="background-color: #218291"></span>Chuva extrema</div>
+                    <div><span style="background-color: #5c9e9c"></span>Chuva severa</div>
+                    <div><span style="background-color: #91bda8"></span>Chuva moderada</div>
+                    <div><span style="background-color: #c7deb4"></span>Chuva fraca</div>
+                    <div><span style="background-color: #e9ffbe"></span>Normal</div>
+                    <div><span style="background-color: #e8cf90"></span>Seca fraca</div>
+                    <div><span style="background-color: #cfa263"></span>Seca moderada</div>
+                    <div><span style="background-color: #b5773e"></span>Seca severa</div>
+                    <div><span style="background-color: #9c551f"></span>Seca extrema</div>
                   </div>
 
                   <div class="credits">
