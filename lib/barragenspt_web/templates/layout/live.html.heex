@@ -109,7 +109,16 @@
           <div class="field">
             <input id="switchPDSI" type="checkbox" name="switchPDSI" class="switch is-small cenas">
             <label for="switchPDSI">PDSI</label>
+            <i id="usage_types_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"  onclick="showPdsiInfo()">
+            </i>
           </div>
+          <div id="pdsi_info" class="notification is-warning is-light"
+          style="line-height: 1em; max-width: 240px; display: none;">
+          <button class="delete" onclick="hidePdsiInfo()"></button>
+          <span class="is-size-7">
+            O índice de severidade de seca de Palmer ou índice PDSI é um índice usado para monitorizar eventos de seca.
+          </span>
+        </div>
         </div>
       </div>
     </div>
@@ -234,4 +243,11 @@
     document.getElementById("usage_types_info").style.display = 'none';
   }
 
+  function showPdsiInfo() {
+    document.getElementById("pdsi_info").style.display = 'block';
+  }
+
+  function hidePdsiInfo() {
+    document.getElementById("pdsi_info").style.display = 'none';
+  }
 </script>
