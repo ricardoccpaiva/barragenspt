@@ -291,10 +291,13 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
         document.getElementById('damsLevelLegend').style.display = "none";
         document.getElementById('pdsiLevelsLegend').style.display = "inline";
 
+        const date = new Date();
+        const fmtDate = date.getFullYear() + "-0" + date.getMonth() + "-01";
+
         map.addSource('wms-pdsi-source', {
             'type': 'raster',
             'tiles': [
-                'https://mapservices.ipma.pt/observations/climate/PalmerDroughtSeverityIndex/wms?service=WMS&request=GetMap&layers=mpdsi.obsSup.monthly.vector.conc&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=2022-11-01T00%3A00%3A00Z&srs=EPSG%3A3857&bbox={bbox-epsg-3857}&width=256&height=256'
+                "https://mapservices.ipma.pt/observations/climate/PalmerDroughtSeverityIndex/wms?service=WMS&request=GetMap&layers=mpdsi.obsSup.monthly.vector.conc&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=" + fmtDate + "T00%3A00%3A00Z&srs=EPSG%3A3857&bbox={bbox-epsg-3857}&width=256&height=256"
             ],
             'tileSize': 256
         });
