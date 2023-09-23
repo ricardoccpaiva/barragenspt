@@ -30,6 +30,7 @@ let Hooks = {}
 let areBasinsVisible = true;
 let areDamColorsVisible = false;
 let isPdsiVisible = false;
+let areSpainBasinsVisible = false;
 
 Hooks.BasinChartTimeWindow = {
     mounted() {
@@ -275,7 +276,7 @@ document.getElementById('switchBasins').addEventListener("click", e => {
     const opacity = areBasinsVisible ? 0.1 : 0.7;
 
     allLayers.forEach(function (item) {
-        if (item.id.includes('_fill')) {
+        if ((item.id.includes('_fill') && !item.id.includes('_fill_es')) || (item.id.includes('_fill_es') && areSpainBasinsVisible)) {
             map.setPaintProperty(item.id, 'fill-opacity', opacity);
         }
     });
@@ -320,6 +321,30 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
     }
 
     document.getElementById('sidebar').classList.remove('active');
+});
+
+document.getElementById('switchSpainBasins').addEventListener("click", e => {
+    topbar.show();
+    areSpainBasinsVisible = !areSpainBasinsVisible;
+
+    if (areSpainBasinsVisible) {
+        loadEsBasins().then(() => {
+            map.fitBounds([
+                [-10.0186, 35.588],
+                [3.8135, 43.9644]
+            ]);
+
+            document.getElementById('sidebar').classList.remove('active');
+            topbar.hide();
+        });
+    }
+    else {
+        map.fitBounds([
+            [-9.708570, 36.682035],
+            [-6.072327, 42.615949]
+        ]);
+        removeEsBasinLayers();
+    }
 });
 
 document.getElementById('switchDams').addEventListener("click", e => {
@@ -425,12 +450,13 @@ const loadReservoir = (site_id, current_storage_color) => {
     });
 }
 
-const loadBasins = () => {
+const loadPtBasins = () => {
 
-    fetch('/basins')
+    fetch('/basins?country=pt')
         .then(response => response.json())
         .then(function (response) {
             response.data.forEach(function (item) {
+
                 var fill_layer_id = item.id + '_fill'
 
                 map.addSource(item.id, { type: 'geojson', data: '/geojson/' + item.name + '.geojson' });
@@ -474,6 +500,52 @@ const loadBasins = () => {
         });
 }
 
+const removeEsBasinLayers = () => {
+    const allLayers = map.getStyle().layers;
+
+    allLayers.forEach(function (item) {
+        if (item.id.includes('_fill_es') || item.id.includes('_outline_es')) {
+            map.removeLayer(item.id);
+        }
+    });
+}
+
+async function loadEsBasins() {
+    await fetch('/basins?country=es')
+        .then(response => response.json())
+        .then(function (response) {
+            response.data.forEach(function (item) {
+                {
+                    var fill_layer_id = item.id + '_fill_es'
+                    map.addSource(item.id, { type: 'geojson', data: '/geojson/spain/' + item.name + '.geojson' });
+
+
+                    map.addLayer({
+                        'id': fill_layer_id,
+                        'type': 'fill',
+                        'source': item.id,
+                        'layout': {},
+                        'paint': {
+                            'fill-color': item.capacity_color,
+                            'fill-opacity': 0.7
+                        }
+                    });
+
+                    map.addLayer({
+                        'id': item.id + '_outline_es',
+                        'type': 'line',
+                        'source': item.id,
+                        'layout': {},
+                        'paint': {
+                            'line-color': '#000',
+                            'line-width': 1
+                        }
+                    });
+                }
+            });
+        });
+}
+
 mapboxgl.accessToken = document.getElementById("mapbox_token").value;
 const map = new mapboxgl.Map({
     container: 'map',
@@ -497,7 +569,7 @@ map.addControl(
 map.on('load', function () {
     loadDams();
     if (!window.location.search.includes("?dam_id")) {
-        loadBasins();
+        loadPtBasins();
     }
     map.resize();
 });
