@@ -296,6 +296,10 @@ document.getElementById('switchBasins').addEventListener("click", e => {
     areBasinsVisible = !areBasinsVisible;
 
     if (areBasinsVisible) {
+        gtag('event', 'toggle_basins', {
+            'app_name': 'barragens.pt',
+            'screen_name': 'Home'
+        });
         document.getElementById('damsLevelLegend').style.display = "inline";
     }
     else {
