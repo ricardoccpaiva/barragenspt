@@ -31,6 +31,7 @@ let areBasinsVisible = true;
 let areDamColorsVisible = false;
 let isPdsiVisible = false;
 let isSmiVisible = false;
+let isRainVisible = false;
 let areSpainBasinsVisible = false;
 
 Hooks.BasinChartTimeWindow = {
@@ -277,7 +278,9 @@ document.getElementById('switchBasins').addEventListener("click", e => {
     if (isPdsiVisible) {
         document.getElementById('switchPDSI').click();
     }
-
+    if (isRainVisible) {
+        document.getElementById('switchRain').click();
+    }
 
     document.getElementById('sidebar').classList.remove('active');
 
@@ -291,6 +294,13 @@ document.getElementById('switchBasins').addEventListener("click", e => {
     });
 
     areBasinsVisible = !areBasinsVisible;
+
+    if (areBasinsVisible) {
+        document.getElementById('damsLevelLegend').style.display = "inline";
+    }
+    else {
+        document.getElementById('damsLevelLegend').style.display = "none";
+    }
 });
 
 document.getElementById('switchPDSI').addEventListener("click", e => {
@@ -309,7 +319,7 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
             'app_name': 'barragens.pt',
             'screen_name': 'Home'
         });
-        document.getElementById('damsLevelLegend').style.display = "none";
+
         document.getElementById('pdsiLevelsLegend').style.display = "inline";
 
         const date = new Date();
@@ -333,7 +343,6 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
         );
     }
     else {
-        document.getElementById('damsLevelLegend').style.display = "inline";
         document.getElementById('pdsiLevelsLegend').style.display = "none";
 
         map.removeLayer('wms-pdsi-layer');
@@ -359,11 +368,12 @@ document.getElementById('switchSMI').addEventListener("click", e => {
             'app_name': 'barragens.pt',
             'screen_name': 'Home'
         });
-        document.getElementById('damsLevelLegend').style.display = "none";
         document.getElementById('smiLevelsLegend').style.display = "inline";
 
         const date = new Date();
-        const fmtDate = date.getFullYear() + "-" + (date.getMonth() + 1).toString().padStart(2, "0") + "-" + (date.getDate() - 1);
+        date.setDate(date.getDate() - 1);
+
+        const fmtDate = date.getFullYear() + "-" + (date.getMonth() + 1).toString().padStart(2, "0") + "-" + date.getDate();
 
         map.addSource('wms-smi-source', {
             'type': 'raster',
@@ -383,11 +393,63 @@ document.getElementById('switchSMI').addEventListener("click", e => {
         );
     }
     else {
-        document.getElementById('damsLevelLegend').style.display = "inline";
         document.getElementById('smiLevelsLegend').style.display = "none";
 
         map.removeLayer('wms-smi-layer');
         map.removeSource('wms-smi-source');
+    }
+
+    document.getElementById('sidebar').classList.remove('active');
+});
+
+document.getElementById('switchRain').addEventListener("click", e => {
+    if (areBasinsVisible) {
+        document.getElementById('switchBasins').click();
+    }
+    if (isPdsiVisible) {
+        document.getElementById('switchPDSI').click();
+    }
+    if (isSmiVisible) {
+        document.getElementById('switchSMI').click();
+    }
+
+    topbar.show();
+    isRainVisible = !isRainVisible;
+
+    if (isRainVisible) {
+        gtag('event', 'toggle_rain', {
+            'app_name': 'barragens.pt',
+            'screen_name': 'Home'
+        });
+        document.getElementById('rainLevelsLegend').style.display = "inline";
+
+        const date = new Date();
+        date.setDate(date.getDate() - 2);
+
+        const fmtDate = date.getFullYear() + "-" + (date.getMonth() + 1).toString().padStart(2, "0") + "-" + date.getDate();
+
+        map.addSource('wms-rain-source', {
+            'type': 'raster',
+            'tiles': [
+                "https://mapservices.ipma.pt/observations/climate/precipitation/wms?service=WMS&request=GetMap&layers=mrrto.obsSup.daily.vector.conc&styles=&format=image/png&transparent=true&version=1.1.1&time=" + fmtDate + "T00:00:00Z&width=256&height=256&srs=EPSG:3857&bbox={bbox-epsg-3857}"
+            ],
+            'tileSize': 256
+        });
+        map.addLayer(
+            {
+                'id': 'wms-rain-layer',
+                'type': 'raster',
+                'source': 'wms-rain-source',
+                'paint': {}
+            },
+            'building'
+        );
+    }
+    else {
+        document.getElementById('rainLevelsLegend').style.display = "none";
+
+        map.removeLayer('wms-rain-layer');
+        map.removeSource('wms-rain-source');
     }
 
     document.getElementById('sidebar').classList.remove('active');

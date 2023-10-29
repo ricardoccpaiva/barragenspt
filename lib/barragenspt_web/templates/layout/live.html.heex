@@ -117,7 +117,7 @@
         <div class="control">
           <div class="field">
             <input id="switchPDSI" type="checkbox" name="switchPDSI" class="switch is-small cenas">
-            <label for="switchPDSI">Palmer Drought Severity Index</label>
+            <label for="switchPDSI">Palmer Drought Severity Index 🌱</label>
             <i id="usage_types_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"
               onclick="showPdsiInfo()">
             </i>
@@ -132,7 +132,7 @@
           </div>
           <div class="field">
             <input id="switchSMI" type="checkbox" name="switchSMI" class="switch is-small cenas">
-            <label for="switchSMI">Soil Moisture Index</label>
+            <label for="switchSMI">Soil Moisture Index 💦</label>
             <i id="smi_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info" onclick="showSmiInfo()">
             </i>
           </div>
@@ -144,6 +144,20 @@
               cm profundidade), em relação
               à capacidade de água utilizável pelas plantas, entre o ponto de emurchecimento permanente (PEP) e a
               capacidade de campo (CC) e a eficiência de evaporação a aumentar linearmente entre 0% e 100%.
+            </span>
+          </div>
+          <div class="field">
+            <input id="switchRain" type="checkbox" name="switchRain" class="switch is-small cenas">
+            <label for="switchRain">Precipitação acumulada 🌧️</label>
+            <i id="rain_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info" onclick="showRainInfo()">
+            </i>
+          </div>
+          <div id="rain_info" class="notification is-warning is-light"
+            style="line-height: 1em; max-width: 240px; display: none;">
+            <button class="delete" onclick="hideRainInfo()"></button>
+            <span class="is-size-7">
+              Valor médio da precipitação acumulada para a área definida pelos limites de Concelho, obtida através do
+              processo de interpolação com recurso aos dados das estações meteorológicas automáticas da rede do IPMA.
             </span>
           </div>
         </div>
@@ -235,6 +249,20 @@
                     <div><span style="background-color: #b45d4d"></span>PEP (&lt;1)</div>
                   </div>
 
+                  <div id="rainLevelsLegend" class="legend" style="display:none">
+                    <p><b>Precipitação (mm)</b></p>
+                    <div><span style="background-color: #000000"></span>100</div>
+                    <div><span style="background-color: #360e38"></span>80-100</div>
+                    <div><span style="background-color: #88228c"></span>60-80</div>
+                    <div><span style="background-color: #763d8d"></span>40-60</div>
+                    <div><span style="background-color: #685e98"></span>20-40</div>
+                    <div><span style="background-color: #6a74a4"></span>10-20</div>
+                    <div><span style="background-color: #788db4"></span>5-10</div>
+                    <div><span style="background-color: #8ca4c4"></span>1-5</div>
+                    <div><span style="background-color: #aec5dc"></span>0.5-1</div>
+                    <div><span style="background-color: #e0ecf4"></span>0-0.5</div>
+                  </div>
+
                   <div class="credits">
                     <button class="js-modal-trigger credits-btn" data-target="credits-modal">
                       Acerca <i class="fa-solid fa-lg fa-circle-info"></i>
@@ -296,5 +324,13 @@
 
   function hideSmiInfo() {
     document.getElementById("smi_info").style.display = 'none';
+  }
+
+  function showRainInfo() {
+    document.getElementById("rain_info").style.display = 'block';
+  }
+
+  function hideRainInfo() {
+    document.getElementById("rain_info").style.display = 'none';
   }
 </script>
