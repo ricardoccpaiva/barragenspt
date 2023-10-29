@@ -107,20 +107,44 @@
             <label for="switchDams">Barragens</label>
           </div>
           <div class="field">
+            <input id="switchSpainBasins" type="checkbox" name="switchSpainBasins" class="switch is-small cenas">
+            <label for="switchSpainBasins">Espanha 🇪🇸</label>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-top: 30px;">
+        <label class="label">Índices Meteorológicos</label>
+        <div class="control">
+          <div class="field">
             <input id="switchPDSI" type="checkbox" name="switchPDSI" class="switch is-small cenas">
-            <label for="switchPDSI">PDSI</label>
-            <i id="usage_types_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"  onclick="showPdsiInfo()">
+            <label for="switchPDSI">Palmer Drought Severity Index</label>
+            <i id="usage_types_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"
+              onclick="showPdsiInfo()">
             </i>
           </div>
-          <div id="pdsi_info" class="notification is-warning is-light" style="line-height: 1em; max-width: 240px; display: none;">
+          <div id="pdsi_info" class="notification is-warning is-light"
+            style="line-height: 1em; max-width: 240px; display: none;">
             <button class="delete" onclick="hidePdsiInfo()"></button>
             <span class="is-size-7">
-              O índice de severidade de seca de Palmer ou índice PDSI é um índice usado para monitorizar eventos de seca.
+              O índice de severidade de seca de Palmer ou índice PDSI é um índice usado para monitorizar eventos de
+              seca.
             </span>
           </div>
           <div class="field">
-            <input id="switchSpainBasins" type="checkbox" name="switchSpainBasins" class="switch is-small cenas">
-            <label for="switchSpainBasins">Espanha 🇪🇸</label>
+            <input id="switchSMI" type="checkbox" name="switchSMI" class="switch is-small cenas">
+            <label for="switchSMI">Soil Moisture Index</label>
+            <i id="smi_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info" onclick="showSmiInfo()">
+            </i>
+          </div>
+          <div id="smi_info" class="notification is-warning is-light"
+            style="line-height: 1em; max-width: 240px; display: none;">
+            <button class="delete" onclick="hideSmiInfo()"></button>
+            <span class="is-size-7">
+              O SMI (Soil Moisture Index) considera a variação dos valores de percentagem de água no solo (média 0-100
+              cm profundidade), em relação
+              à capacidade de água utilizável pelas plantas, entre o ponto de emurchecimento permanente (PEP) e a
+              capacidade de campo (CC) e a eficiência de evaporação a aumentar linearmente entre 0% e 100%.
+            </span>
           </div>
         </div>
       </div>
@@ -199,6 +223,18 @@
                     <div><span style="background-color: #9c551f"></span>Seca extrema</div>
                   </div>
 
+                  <div id="smiLevelsLegend" class="legend" style="display:none">
+                    <p><b>Classes do SMI</b></p>
+                    <div><span style="background-color: #1f4275"></span>CC (&gt;99)</div>
+                    <div><span style="background-color: #207f89"></span>81-89</div>
+                    <div><span style="background-color: #17b566"></span>61-80</div>
+                    <div><span style="background-color: #24da05"></span>41-60</div>
+                    <div><span style="background-color: #cae01f"></span>21-40</div>
+                    <div><span style="background-color: #f1be0c"></span>11-20</div>
+                    <div><span style="background-color: #d4822d"></span>1-10</div>
+                    <div><span style="background-color: #b45d4d"></span>PEP (&lt;1)</div>
+                  </div>
+
                   <div class="credits">
                     <button class="js-modal-trigger credits-btn" data-target="credits-modal">
                       Acerca <i class="fa-solid fa-lg fa-circle-info"></i>
@@ -252,5 +288,13 @@
 
   function hidePdsiInfo() {
     document.getElementById("pdsi_info").style.display = 'none';
+  }
+
+  function showSmiInfo() {
+    document.getElementById("smi_info").style.display = 'block';
+  }
+
+  function hideSmiInfo() {
+    document.getElementById("smi_info").style.display = 'none';
   }
 </script>

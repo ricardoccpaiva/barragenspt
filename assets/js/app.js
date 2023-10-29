@@ -30,6 +30,7 @@ let Hooks = {}
 let areBasinsVisible = true;
 let areDamColorsVisible = false;
 let isPdsiVisible = false;
+let isSmiVisible = false;
 let areSpainBasinsVisible = false;
 
 Hooks.BasinChartTimeWindow = {
@@ -289,6 +290,10 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
     isPdsiVisible = !isPdsiVisible;
 
     if (isPdsiVisible) {
+        gtag('event', 'toggle_pdsi', {
+            'app_name': 'barragens.pt',
+            'screen_name': 'Home'
+        });
         document.getElementById('damsLevelLegend').style.display = "none";
         document.getElementById('pdsiLevelsLegend').style.display = "inline";
 
@@ -323,11 +328,59 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
     document.getElementById('sidebar').classList.remove('active');
 });
 
+document.getElementById('switchSMI').addEventListener("click", e => {
+    topbar.show();
+    isSmiVisible = !isSmiVisible;
+
+    if (isSmiVisible) {
+        gtag('event', 'toggle_smi', {
+            'app_name': 'barragens.pt',
+            'screen_name': 'Home'
+        });
+        document.getElementById('damsLevelLegend').style.display = "none";
+        document.getElementById('smiLevelsLegend').style.display = "inline";
+
+        const date = new Date();
+        const fmtDate = date.getFullYear() + "-0" + date.getMonth() + "-01";
+
+        map.addSource('wms-smi-source', {
+            'type': 'raster',
+            'tiles': [
+                "https://mapservices.ipma.pt/observations/climate/SoilMoistureIndex/wms?service=WMS&request=GetMap&layers=smi.obsRem.daily.grid.continental.timeDimension&styles=&format=image/png&transparent=true&version=1.1.1&time=2023-10-25T00:00:00Z&width=256&height=256&srs=EPSG:3857&bbox={bbox-epsg-3857}"
+            ],
+            'tileSize': 256
+        });
+        map.addLayer(
+            {
+                'id': 'wms-smi-layer',
+                'type': 'raster',
+                'source': 'wms-smi-source',
+                'paint': {}
+            },
+            'building'
+        );
+    }
+    else {
+        document.getElementById('damsLevelLegend').style.display = "inline";
+        document.getElementById('smiLevelsLegend').style.display = "none";
+
+        map.removeLayer('wms-smi-layer');
+        map.removeSource('wms-smi-source');
+    }
+
+    document.getElementById('sidebar').classList.remove('active');
+});
+
 document.getElementById('switchSpainBasins').addEventListener("click", e => {
     topbar.show();
     areSpainBasinsVisible = !areSpainBasinsVisible;
 
     if (areSpainBasinsVisible) {
+        gtag('event', 'toggle_spain_basins', {
+            'app_name': 'barragens.pt',
+            'screen_name': 'Home'
+        });
+
         loadEsBasins().then(() => {
             map.fitBounds([
                 [-10.0186, 35.588],
