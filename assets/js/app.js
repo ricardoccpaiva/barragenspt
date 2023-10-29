@@ -271,6 +271,14 @@ window.addEventListener('phx:update_dams_visibility', (e) => {
 })
 
 document.getElementById('switchBasins').addEventListener("click", e => {
+    if (isSmiVisible) {
+        document.getElementById('switchSMI').click();
+    }
+    if (isPdsiVisible) {
+        document.getElementById('switchPDSI').click();
+    }
+
+
     document.getElementById('sidebar').classList.remove('active');
 
     const allLayers = map.getStyle().layers;
@@ -286,6 +294,13 @@ document.getElementById('switchBasins').addEventListener("click", e => {
 });
 
 document.getElementById('switchPDSI').addEventListener("click", e => {
+    if (areBasinsVisible) {
+        document.getElementById('switchBasins').click();
+    }
+    if (isSmiVisible) {
+        document.getElementById('switchSMI').click();
+    }
+
     topbar.show();
     isPdsiVisible = !isPdsiVisible;
 
@@ -298,7 +313,7 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
         document.getElementById('pdsiLevelsLegend').style.display = "inline";
 
         const date = new Date();
-        const fmtDate = date.getFullYear() + "-0" + date.getMonth() + "-01";
+        const fmtDate = date.getFullYear() + "-" + date.getMonth().toString().padStart(2, "0") + "-01";
 
         map.addSource('wms-pdsi-source', {
             'type': 'raster',
@@ -329,6 +344,13 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
 });
 
 document.getElementById('switchSMI').addEventListener("click", e => {
+    if (areBasinsVisible) {
+        document.getElementById('switchBasins').click();
+    }
+    if (isPdsiVisible) {
+        document.getElementById('switchPDSI').click();
+    }
+
     topbar.show();
     isSmiVisible = !isSmiVisible;
 
@@ -341,12 +363,12 @@ document.getElementById('switchSMI').addEventListener("click", e => {
         document.getElementById('smiLevelsLegend').style.display = "inline";
 
         const date = new Date();
-        const fmtDate = date.getFullYear() + "-0" + date.getMonth() + "-01";
+        const fmtDate = date.getFullYear() + "-" + (date.getMonth() + 1).toString().padStart(2, "0") + "-" + (date.getDate() - 1);
 
         map.addSource('wms-smi-source', {
             'type': 'raster',
             'tiles': [
-                "https://mapservices.ipma.pt/observations/climate/SoilMoistureIndex/wms?service=WMS&request=GetMap&layers=smi.obsRem.daily.grid.continental.timeDimension&styles=&format=image/png&transparent=true&version=1.1.1&time=2023-10-25T00:00:00Z&width=256&height=256&srs=EPSG:3857&bbox={bbox-epsg-3857}"
+                "https://mapservices.ipma.pt/observations/climate/SoilMoistureIndex/wms?service=WMS&request=GetMap&layers=smi.obsRem.daily.grid.continental.timeDimension&styles=&format=image/png&transparent=true&version=1.1.1&time=" + fmtDate + "T00:00:00Z&width=256&height=256&srs=EPSG:3857&bbox={bbox-epsg-3857}"
             ],
             'tileSize': 256
         });
