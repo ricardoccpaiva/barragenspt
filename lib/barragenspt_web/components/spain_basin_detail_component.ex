@@ -16,7 +16,7 @@ defmodule SpainBasinDetailComponent do
     <div class="card-content">
     <h6 class="is-6">
       <b>Bacia: </b>
-      <%= @basin %>
+      <%= @basin %> 🇪🇸
     </h6>
     <div class="field" style="margin-top: 10px;">
       <span class="is-size-7 has-text-weight-bold">Armazenamento atual: <%= @current_pct %>%</span>
