@@ -137,6 +137,10 @@ a.dropdown-item {
 }
 
 @media only screen and (max-width: 46.875em) {
+  .credits-in-menu {
+    display: none;
+  }
+  
   .map-overlay {
     width: 300px;
     height: 32px;
@@ -161,6 +165,10 @@ a.dropdown-item {
 
 /* Non-mobile styles, 750px breakpoint */
 @media only screen and (min-width: 46.875em) {
+  .credits {
+    display: none;
+  }
+    
   .legend {
     margin-left: 280px;
   }
@@ -230,7 +238,7 @@ a.dropdown-item {
   bottom: 0px;
   right: 5px;
   position: absolute;
-  z-index: 99999999999999999999999999;
+  z-index: 9999;
 }
 
 .legend {
@@ -268,7 +276,7 @@ a.dropdown-item {
   right: 0;
   background-color: #fff;
   overflow-x: hidden;
-  margin: 10px;
+  margin: 5px;
   border-radius: 6px;
   box-shadow: #a94442;
 }
