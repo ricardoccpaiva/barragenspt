@@ -90,4 +90,5 @@
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.7.0", "bc84380c9ab48177092f43ac89e4dfa2c6d62b40b8bd132b1059ecc7232f9a78", [:rebar3], [], "hexpm", "25eee6d67df61960cf6a794239566599b09e17e668d3700247bc498638152521"},
   "uuid": {:hex, :uuid, "1.1.8", "e22fc04499de0de3ed1116b770c7737779f226ceefa0badb3592e64d5cfb4eb9", [:mix], [], "hexpm", "c790593b4c3b601f5dc2378baae7efaf5b3d73c4c6456ba85759905be792f2ac"},
   "xlsxir": {:hex, :xlsxir, "0.0.5", "f7fe85f6ba169b0b455c2a7815afc83738d87b34ac8c99f168881a0c992f8331", [:mix], [{:earmark, "~> 0.2.1", [hex: :earmark, repo: "hexpm", optional: false]}, {:ex_doc, "~> 0.11.4", [hex: :ex_doc, repo: "hexpm", optional: false]}, {:sweet_xml, "~> 0.6.1", [hex: :sweet_xml, repo: "hexpm", optional: false]}], "hexpm", "d15e08cc5d7445d70ea84e29e05141f8a2e290b5a67a5636546764daa8a55ebd"},
+  "xxhash": {:hex, :xxhash, "0.3.1", "0e978aeba3d7ea0f53b88c5c975a0bee8e873856f0daad9764f9e5e7b60c8d17", [:mix], [], "hexpm", "14fef02f550c1b393de52912f7ef4ce53b5749c63db70ffdc6582474e625513c"},
 }

@@ -18,6 +18,23 @@ defmodule BarragensptWeb.HomepageLive do
     {:ok, socket}
   end
 
+  def handle_params(%{"basin_id" => id, "country" => "es"}, _url, socket) do
+    %{id: _id, basin_name: basin_name, current_pct: current_pct, capacity_color: capacity_color} =
+      Barragenspt.Hydrometrics.EmbalsesNet.basin_info(id)
+
+    socket =
+      socket
+      |> assign(basin_id: id)
+      |> assign(spain: true)
+      |> assign(basin: basin_name)
+      |> assign(current_pct: current_pct)
+      |> assign(capacity_color: capacity_color)
+      |> assign(basin_detail_class: "sidenav sidenav-short detail_class_visible")
+      |> assign(dam_detail_class: "sidenav sidenav-short detail_class_invisible")
+
+    {:noreply, socket}
+  end
+
   def handle_params(%{"basin_id" => id}, _url, socket) do
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
 
@@ -40,6 +57,7 @@ defmodule BarragensptWeb.HomepageLive do
         basin: basin_name,
         usage_types: Dams.usage_types()
       )
+      |> assign(spain: false)
       |> assign(basin_detail_class: "sidenav detail_class_visible")
       |> assign(dam_detail_class: "sidenav detail_class_invisible")
       |> push_event("update_chart", %{kind: :basin, data: stats, lines: chart_lines})

@@ -692,6 +692,20 @@ async function loadEsBasins() {
                             'line-width': 1
                         }
                     });
+
+                    map.on('click', fill_layer_id, (e) => {
+                        if (!e.originalEvent.target.id.includes('marker')) {
+                            let basin_id = e.features[0].source;
+                            var a = document.getElementById('basin_detail_btn');
+                            a.href = "?basin_id=" + basin_id + "&country=es";
+
+                            document.getElementById('basin_detail_btn').click();
+                        }
+                    });
+
+                    map.on("mouseenter", fill_layer_id, () => {
+                        map.getCanvas().style.cursor = "pointer";
+                    });
                 }
             });
         });

@@ -273,6 +273,10 @@ a.dropdown-item {
   box-shadow: #a94442;
 }
 
+.sidenav-short{
+  height: 125px;
+}
+
 @media screen and (max-height: 450px) {
   .sidenav {
     padding-top: 15px;

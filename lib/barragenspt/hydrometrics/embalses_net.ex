@@ -1,4 +1,11 @@
 defmodule Barragenspt.Hydrometrics.EmbalsesNet do
+  use Nebulex.Caching
+  alias Barragenspt.Cache
+  alias Barragenspt.Mappers.Colors
+
+  @ttl :timer.hours(1)
+
+  @decorate cacheable(cache: Cache, key: "spain_basins", ttl: @ttl)
   def basins_info() do
     tbl =
       Barragenspt.Services.EmbalsesNet.basins_info()
@@ -19,6 +26,12 @@ defmodule Barragenspt.Hydrometrics.EmbalsesNet do
     [_header | rows] = tbl_content
 
     Enum.map(rows, fn row -> parse_row(row) end)
+  end
+
+  def basin_info(id) do
+    basins = basins_info()
+
+    Enum.find(basins, fn b -> b.id == id end)
   end
 
   defp parse_row(row) do
@@ -60,6 +73,16 @@ defmodule Barragenspt.Hydrometrics.EmbalsesNet do
         mapping -> mapping[:resource_name]
       end
 
-    %{basin_name: name, current_pct: current_pct_fixed}
+    %{
+      id: "#{XXHash.xxh32(name)}",
+      basin_name: name,
+      current_pct: current_pct_fixed,
+      capacity_color:
+        current_pct_fixed
+        |> Decimal.parse()
+        |> then(fn {dc, ""} -> dc end)
+        |> Decimal.to_float()
+        |> Colors.lookup_capacity()
+    }
   end
 end

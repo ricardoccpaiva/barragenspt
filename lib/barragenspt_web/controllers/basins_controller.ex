@@ -25,18 +25,18 @@ defmodule BarragensptWeb.BasinController do
     basins_raw = Barragenspt.Hydrometrics.EmbalsesNet.basins_info()
 
     basins =
-      Enum.map(basins_raw, fn %{basin_name: name, current_pct: current_storage} ->
+      Enum.map(basins_raw, fn %{
+                                id: id,
+                                basin_name: name,
+                                current_pct: current_storage,
+                                capacity_color: capacity_color
+                              } ->
         %{
-          id: to_string(:rand.uniform(9_999_999_999)),
+          id: to_string(id),
           name: name |> String.downcase() |> String.replace(" ", "_"),
           current_storage: current_storage,
           average_historic_value: 0,
-          capacity_color:
-            current_storage
-            |> Decimal.parse()
-            |> then(fn {dc, ""} -> dc end)
-            |> Decimal.to_float()
-            |> Colors.lookup_capacity(),
+          capacity_color: capacity_color,
           country: "es"
         }
       end)
