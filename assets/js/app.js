@@ -315,6 +315,10 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
         document.getElementById('switchSMI').click();
     }
 
+    if (isRainVisible) {
+        document.getElementById('switchRain').click();
+    }
+
     topbar.show();
     isPdsiVisible = !isPdsiVisible;
 
@@ -385,7 +389,7 @@ document.getElementById('switchSMI').addEventListener("click", e => {
 
         document.getElementById("smiLegendDate").innerHTML = date.getDate() + "/" + (date.getMonth() + 1).toString().padStart(2, "0") + "/" + date.getFullYear();
 
-        const fmtDate = date.getFullYear() + "-" + (date.getMonth() + 1).toString().padStart(2, "0") + "-" + date.getDate();
+        const fmtDate = date.getFullYear() + "-" + (date.getMonth() + 1).toString().padStart(2, "0") + "-" + date.getDate().toString().padStart(2, "0");
 
         map.addSource('wms-smi-source', {
             'type': 'raster',
@@ -440,7 +444,7 @@ document.getElementById('switchRain').addEventListener("click", e => {
 
         document.getElementById("rainLegendDate").innerHTML = date.getDate() + "/" + (date.getMonth() + 1).toString().padStart(2, "0") + "/" + date.getFullYear();
 
-        const fmtDate = date.getFullYear() + "-" + (date.getMonth() + 1).toString().padStart(2, "0") + "-" + date.getDate();
+        const fmtDate = date.getFullYear() + "-" + (date.getMonth() + 1).toString().padStart(2, "0") + "-" + date.getDate().toString().padStart(2, "0");
 
         map.addSource('wms-rain-source', {
             'type': 'raster',
