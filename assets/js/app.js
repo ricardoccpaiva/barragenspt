@@ -440,7 +440,7 @@ document.getElementById('switchRain').addEventListener("click", e => {
         document.getElementById('rainLevelsLegend').style.display = "inline";
 
         const date = new Date();
-        date.setDate(date.getDate() - 2);
+        date.setDate(date.getDate() - 1);
 
         document.getElementById("rainLegendDate").innerHTML = date.getDate() + "/" + (date.getMonth() + 1).toString().padStart(2, "0") + "/" + date.getFullYear();
 
