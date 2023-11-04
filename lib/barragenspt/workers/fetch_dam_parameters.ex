@@ -13,7 +13,8 @@ defmodule Barragenspt.Workers.FetchDamParameters do
     data_params = [
       {1_629_599_798, "volume"},
       {354_895_398, "volume_last_hour"},
-      {304_545_050, "volume_last_day_month"}
+      {304_545_050, "volume_last_day_month"},
+      {2284, "ouput_flow_rate_daily"}
     ]
 
     # data_params = [{354_895_398, "volume_last_hour"}]
@@ -22,7 +23,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
     years = [
       {1990, 2000},
       {2001, 2010},
-      {2011, 2022}
+      {2011, 2023}
     ]
 
     from(d in Barragenspt.Hydrometrics.Dam, where: not is_nil(d.metadata))

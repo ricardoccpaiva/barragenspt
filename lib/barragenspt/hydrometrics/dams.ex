@@ -198,6 +198,79 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
+  @decorate cacheable(
+              cache: Cache,
+              key: "discharge_daily_stats_#{id}_#{period}_#{unit}",
+              ttl: @ttl
+            )
+  def discharge_stats(id, period \\ 2, unit) do
+    query =
+      from(dp in DataPoint,
+        join: d in Dam,
+        on: d.site_id == dp.site_id,
+        where:
+          dp.param_name == "ouput_flow_rate_daily" and
+            dp.site_id == ^id and
+            dp.colected_at >= ^query_limit(period, unit),
+        select: {
+          dp.value,
+          fragment("DATE(?)", dp.colected_at)
+        }
+      )
+
+    query
+    |> Repo.all()
+    |> Stream.map(fn {value, date} ->
+      %{
+        basin_id: id,
+        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+        date: date
+      }
+    end)
+    |> Enum.to_list()
+  end
+
+  @decorate cacheable(
+              cache: Cache,
+              key: "discharge_monthly_stats_#{id}_#{period}",
+              ttl: @ttl
+            )
+  def discharge_monthly_stats(id, period \\ 2) do
+    query =
+      from(dp in DataPoint,
+        join: d in Dam,
+        on: d.site_id == dp.site_id,
+        where:
+          dp.param_name == "ouput_flow_rate_daily" and
+            dp.site_id == ^id and
+            dp.colected_at >= ^query_limit(period),
+        group_by: [
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          )
+        ],
+        select: {
+          sum(dp.value),
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          )
+        }
+      )
+
+    query
+    |> Repo.all()
+    |> Stream.map(fn {value, date} ->
+      %{
+        basin_id: id,
+        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+        date: date
+      }
+    end)
+    |> Enum.to_list()
+  end
+
   @decorate cacheable(cache: Cache, key: "for_site_#{id}-#{period}", ttl: @ttl)
   def monthly_stats(id, period \\ 2) do
     historic_values =
@@ -517,6 +590,14 @@ defmodule Barragenspt.Hydrometrics.Dams do
     Timex.now()
     |> Timex.end_of_month()
     |> Timex.shift(months: period * -1)
+    |> Timex.beginning_of_month()
+    |> Timex.to_naive_datetime()
+  end
+
+  defp query_limit(period, :week) do
+    Timex.now()
+    |> Timex.end_of_month()
+    |> Timex.shift(weeks: period * -1)
     |> Timex.beginning_of_month()
     |> Timex.to_naive_datetime()
   end

@@ -54,7 +54,8 @@ defmodule DamDetailComponent do
             <select id="ctw_d" phx-hook="DamChartTimeWindow">
               <option value="s1">1 semana</option>
               <option value="s2">2 semanas</option>
-              <option value="m2">1 mês</option>
+              <option value="m1">1 mês</option>
+              <option value="m2">2 meses</option>
               <option value="m6">6 meses</option>
               <option value="y2" selected>2 anos</option>
               <option value="y5">5 anos</option>

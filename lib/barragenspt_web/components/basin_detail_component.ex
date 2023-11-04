@@ -68,7 +68,8 @@ defmodule BasinDetailComponent do
           <div style="text-align:right;">
             <div class="select is-small" style="margin-top:15px; margin-bottom: 10px;">
               <select id="ctw_b" phx-hook="BasinChartTimeWindow">
-                <option value="m2">1 mês</option>
+                <option value="m1">1 mês</option>
+                <option value="m2">2 meses</option>
                 <option value="m6">6 meses</option>
                 <option value="y2" selected>2 anos</option>
                 <option value="y5">5 anos</option>

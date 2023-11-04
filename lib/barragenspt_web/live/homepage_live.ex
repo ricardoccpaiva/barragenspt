@@ -102,7 +102,11 @@ defmodule BarragensptWeb.HomepageLive do
       |> assign(search_results_class: "dropdown-content detail_class_invisible")
       |> assign(dam_usage_types: usage_types)
       |> assign(last_data_point: last_data_point)
-      |> push_event("update_chart", %{kind: :dam, data: data, lines: lines})
+      |> push_event("update_chart", %{
+        kind: :dam,
+        data: data,
+        lines: lines
+      })
 
     if(params["nz"]) do
       {:noreply, socket}
@@ -167,15 +171,49 @@ defmodule BarragensptWeb.HomepageLive do
     case value do
       "y" <> val ->
         {int_value, ""} = Integer.parse(val)
-        Dams.monthly_stats(id, int_value)
+        discharge_data = Dams.discharge_monthly_stats(id, int_value)
+
+        data =
+          Enum.map(discharge_data, fn dd ->
+            %{
+              outflow: dd.value,
+              date: dd.date,
+              basin: "Descarga"
+            }
+          end)
+
+        Dams.monthly_stats(id, int_value) ++ data
 
       "m" <> val ->
         {int_value, ""} = Integer.parse(val)
-        Dams.daily_stats(id, int_value)
+
+        discharge_data = Dams.discharge_stats(id, int_value, :month)
+
+        data =
+          Enum.map(discharge_data, fn dd ->
+            %{
+              outflow: dd.value,
+              date: dd.date,
+              basin: "Descarga"
+            }
+          end)
+
+        Dams.daily_stats(id, int_value) ++ data
 
       "s" <> val ->
         {int_value, ""} = Integer.parse(val)
-        Dams.hourly_stats(id, int_value)
+        discharge_data = Dams.discharge_stats(id, int_value, :week)
+
+        data =
+          Enum.map(discharge_data, fn dd ->
+            %{
+              outflow: dd.value,
+              date: dd.date,
+              basin: "Descarga"
+            }
+          end)
+
+        Dams.hourly_stats(id, int_value) ++ data
     end
   end
 
@@ -366,7 +404,8 @@ defmodule BarragensptWeb.HomepageLive do
 
     lines =
       [%{k: "Observado", v: Colors.lookup_capacity(current_storage)}] ++
-        [%{k: "Média", v: "grey"}]
+        [%{k: "Média", v: "grey"}] ++
+        [%{k: "Descarga", v: "#91CC75"}]
 
     socket =
       socket
