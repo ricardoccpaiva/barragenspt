@@ -50,7 +50,7 @@ defmodule DamDetailComponent do
       <span class="is-size-7 has-text-weight-bold">Evolução temporal</span>
       <div class="control">
         <div style="text-align:right;">
-          <div class="select is-small" style="margin-top:15px; margin-bottom: 10px;">
+          <div class="select is-small" style="margin-top:-25px; margin-bottom: 10px;">
             <select id="ctw_d" phx-hook="DamChartTimeWindow">
               <option value="s1">1 semana</option>
               <option value="s2">2 semanas</option>
@@ -64,7 +64,7 @@ defmodule DamDetailComponent do
             </select>
           </div>
         </div>
-        <div id="dam_chart_evo" phx-update="ignore"></div>
+        <div style="width:335px; height: 230px" id="graph_ot" phx-hook="MetricsEvolution"/>
       </div>
     </div>
 

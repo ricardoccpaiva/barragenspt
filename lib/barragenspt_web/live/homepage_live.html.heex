@@ -1,0 +1,360 @@
+<div class="grid-container">
+  <div id="menu-icon" class="menu-icon" data-position='top'>
+    <i class="fa-solid fa-bars header__menu"></i>
+  </div>
+
+  <aside id="sidebar" class={if assigns[:dam_names] !=nil, do: "sidebar active" , else: "sidebar" }>
+    <div id="sidebar__close-icon" class="sidebar__close-icon">
+      <i class="fas fa-times sidebar__brand-close"></i>
+    </div>
+    <div style="margin-left: 20px; margin-top: 30px;">
+      <div class="field">
+        <label class="label">Barragens</label>
+        <div class="control">
+
+          <div class="dropdown is-active">
+            <div class="dropdown-trigger">
+              <div class="field">
+                <div class="control is-expanded has-icons-right">
+                  <input id="search_input" class="input is-small search-input" type="search" placeholder="Pesquisar..."
+                    phx-hook="SearchDam" />
+                  <span class="icon is-small is-right"><i class="fas fa-search"></i></span>
+                </div>
+              </div>
+            </div>
+            <%= if assigns[:dam_names] !=nil && Enum.count(assigns[:dam_names])> 0 do %>
+              <div class="dropdown-menu" id="dropdown-menu" role="menu" style="display:inline">
+                <div class={@search_results_class} style="max-height: 200px; width: 240px; overflow-y: scroll;">
+                  <%= for %{id: id, name: name, current_storage: cs, current_storage_color: csc} <- @dam_names do%>
+                    <a data-phx-link='patch' data-phx-link-state='push' href={"?dam_id=#{id}"}
+                      class="dropdown-item is-small">
+                      <%= name %>
+                        <span class="tag is-link is-light" style={"background-color: #{csc}"}>
+                          <%= cs %>%
+                        </span>
+                    </a>
+                    <% end %>
+                </div>
+              </div>
+              <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-left: 20px; margin-top: 30px;">
+      <div class="field">
+        <label class="label">Rios</label>
+        <div class="control">
+          <div class="select is-small">
+            <p>
+              <select id="river_select" phx-hook="RiverChanged" phx-update="ignore">
+                <option value=""></option>
+                <%= for %{river_display_name: river_display_name, river_name: river_name, basin_id: basin_id} <- @rivers
+                  do%>
+                  <option value={"#{river_name}_#{basin_id}"}>
+                    <%= river_display_name %>
+                  </option>
+                  <% end %>
+              </select>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-left: 20px; margin-top: 30px;">
+      <div class="field">
+        <div id="usage_types_info" class="notification is-warning is-light"
+          style="line-height: 1em; max-width: 240px; display: none;">
+          <button class="delete" onclick="hidesageTypesInfo()"></button>
+          <span class="is-size-7">
+            O filtro seguinte faz com que sejam consideradas apenas as barragens com os tipos seleccionados.
+            Consequentemente a composição das bacias tem em conta apenas essas mesmas barragens, o que faz com
+            que
+            as
+            cores da % de armazenamento sejam ajustadas.
+          </span>
+        </div>
+        <label class="label" style="display: inline">Tipos de utilização</label>
+        <i id="usage_types_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"
+          onclick="showUsageTypesInfo()"></i>
+        <div class="control">
+
+
+          <div class="usage_types" style="max-width: 200px" phx-update="ignore">
+            <%= for {usage_type} <- @usage_types do %>
+              <p>
+                <label class="checkbox">
+                  <input id="usage_type" type="checkbox" name={usage_type} value={usage_type}
+                    phx-hook="UsageTypeChanged">
+                  <%= usage_type %>
+                </label>
+              </p>
+              <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-left: 20px; margin-top: 30px;" phx-update="ignore">
+      <div class="field">
+        <label class="label">% de armazenamento</label>
+        <div class="control">
+          <div class="field">
+            <input id="switchBasins" type="checkbox" name="switchBasins" class="switch is-small" checked>
+            <label for="switchBasins">Bacias Hidrográficas</label>
+          </div>
+          <div class="field">
+            <input id="switchDams" type="checkbox" name="switchDams" class="switch is-small">
+            <label for="switchDams">Barragens</label>
+          </div>
+          <div class="field">
+            <input id="switchSpainBasins" type="checkbox" name="switchSpainBasins" class="switch is-small cenas">
+            <label for="switchSpainBasins">Espanha 🇪🇸</label>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-top: 30px;">
+        <label class="label">Índices Meteorológicos</label>
+        <div class="control">
+          <div class="field">
+            <input id="switchPDSI" type="checkbox" name="switchPDSI" class="switch is-small cenas">
+            <label for="switchPDSI">Palmer Drought Severity Index 🌱</label>
+            <i id="usage_types_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"
+              onclick="showPdsiInfo()">
+            </i>
+          </div>
+          <div id="pdsi_info" class="notification is-warning is-light"
+            style="line-height: 1em; max-width: 240px; display: none;">
+            <button class="delete" onclick="hidePdsiInfo()"></button>
+            <span class="is-size-7">
+              O índice de severidade de seca de Palmer ou índice PDSI é um índice usado para monitorizar eventos de
+              seca.
+            </span>
+          </div>
+          <div class="field">
+            <input id="switchSMI" type="checkbox" name="switchSMI" class="switch is-small cenas">
+            <label for="switchSMI">Soil Moisture Index 💦</label>
+            <i id="smi_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info" onclick="showSmiInfo()">
+            </i>
+          </div>
+          <div id="smi_info" class="notification is-warning is-light"
+            style="line-height: 1em; max-width: 240px; display: none;">
+            <button class="delete" onclick="hideSmiInfo()"></button>
+            <span class="is-size-7">
+              O SMI (Soil Moisture Index) considera a variação dos valores de percentagem de água no solo (média 0-100
+              cm profundidade), em relação
+              à capacidade de água utilizável pelas plantas, entre o ponto de emurchecimento permanente (PEP) e a
+              capacidade de campo (CC) e a eficiência de evaporação a aumentar linearmente entre 0% e 100%.
+            </span>
+          </div>
+          <div class="field">
+            <input id="switchRain" type="checkbox" name="switchRain" class="switch is-small cenas">
+            <label for="switchRain">Precipitação acumulada 🌧️</label>
+            <i id="rain_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info" onclick="showRainInfo()">
+            </i>
+          </div>
+          <div id="rain_info" class="notification is-warning is-light"
+            style="line-height: 1em; max-width: 240px; display: none;">
+            <button class="delete" onclick="hideRainInfo()"></button>
+            <span class="is-size-7">
+              Valor médio da precipitação acumulada para a área definida pelos limites de Concelho, obtida através do
+              processo de interpolação com recurso aos dados das estações meteorológicas automáticas da rede do IPMA.
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-top: 30px;">
+        <button class="js-modal-trigger credits-btn" data-target="credits-modal">
+          <label class="label info-label">Acerca</label>
+          <i id="usage_types_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"></i>
+        </button>
+        <br/>
+        <br/>
+        <div class="credits-in-menu">
+          <a href="https://www.buymeacoffee.com/barragenspt">
+            <img style="height: 30px"
+              src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+          </a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main id="main" class="main">
+    <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
+    <div id='map' style="height: 100%;" phx-update="ignore">
+      <div class="map-overlay map-overlay-logo">
+        <a href="/"><span class="logo-text">BARRAGENS.PT</span></a>
+      </div>
+    </div>
+    <a data-phx-link='patch' data-phx-link-state='push' href="" id="basin_detail_btn" style="display:none"></a>
+    <%= if Map.has_key?(assigns, :basin) && Map.get(assigns, :spain) == true do %>
+      <.live_component module={SpainBasinDetailComponent} id="basin_detail" basin={@basin} capacity_color={@capacity_color} current_pct={@current_pct}
+        class={@basin_detail_class} />
+      <% end %>
+        <%= if Map.has_key?(assigns, :basin) && Map.get(assigns, :spain) == false do %>
+          <.live_component module={BasinDetailComponent} id="basin_detail" basin={@basin} basin_summary={@basin_summary}
+            class={@basin_detail_class} />
+          <% end %>
+            <%= if Map.has_key?(assigns, :dam) do %>
+              <.live_component module={DamDetailComponent} id="dam_detail" dam={@dam}
+                current_capacity={@current_capacity} last_data_point={@last_data_point}
+                dam_usage_types={@dam_usage_types} class={@dam_detail_class} />
+              <% end %>
+                <%= if Map.has_key?(assigns, :river) do %>
+                  <.live_component module={RiverDetailComponent} id="river_detail" river={@river}
+                    basin_summary={@basin_summary} class={@river_detail_class} />
+                  <% end %>
+                      <div id="credits-modal" class="modal">
+                        <div class="modal-background"></div>
+                        <div class="modal-content">
+                          <div class="box">
+                            <article class="media">
+                              <div class="media-left">
+                                <figure class="image is-64x64">
+                                  <img src="images/dam.png" alt="Image">
+                                </figure>
+                              </div>
+                              <div class="media-content">
+                                <div class="content">
+                                  <p>Dados obtidos através do portal do <a href="https://snirh.apambiente.pt/">SNIRH</a>
+                                  </p>
+                                  <p>Código fonte <a href="https://github.com/ricardoccpaiva/barragenspt"><i
+                                        class='fa-brands fa-github'></i></a></p>
+                                  <p>Desenhado e implementado por <a
+                                      href="https://twitter.com/ricardoccpaiva">@ricardoccpaiva</a>
+                                  </p>
+                                  <p>Logo by <a href="https://www.flaticon.com/free-icons/dam"
+                                      title="dam icons">Freepik</a>
+                                  </p>
+                                </div>
+                              </div>
+                            </article>
+                          </div>
+                        </div>
+                        <button class="modal-close is-large" aria-label="close"></button>
+                      </div>
+
+                      <div id="damsLevelLegend" class="legend">
+                        <p><b>% Armazenamento</b></p>
+                        <div><span style="background-color: #ff675c"></span>0 - 20</div>
+                        <div><span style="background-color: #ffc34a"></span>21 - 40</div>
+                        <div><span style="background-color: #ffe99c"></span>41 - 50</div>
+                        <div><span style="background-color: #c2faaa"></span>51 - 60</div>
+                        <div><span style="background-color: #a6d8ff"></span>61 - 80</div>
+                        <div><span style="background-color: #1c9dff"></span>81 - 100</div>
+                      </div>
+
+                      <div id="pdsiLevelsLegend" class="legend" style="display:none">
+                        <span class="tag is-warning"><b>Dados relativos a <label id="pdsiLegendDate"></label></b></span>
+                        <p><b>Classes do PDSI</b></p>
+                        <div><span style="background-color: #218291"></span>Chuva extrema</div>
+                        <div><span style="background-color: #5c9e9c"></span>Chuva severa</div>
+                        <div><span style="background-color: #91bda8"></span>Chuva moderada</div>
+                        <div><span style="background-color: #c7deb4"></span>Chuva fraca</div>
+                        <div><span style="background-color: #e9ffbe"></span>Normal</div>
+                        <div><span style="background-color: #e8cf90"></span>Seca fraca</div>
+                        <div><span style="background-color: #cfa263"></span>Seca moderada</div>
+                        <div><span style="background-color: #b5773e"></span>Seca severa</div>
+                        <div><span style="background-color: #9c551f"></span>Seca extrema</div>
+                      </div>
+
+                      <div id="smiLevelsLegend" class="legend" style="display:none">
+                        <span class="tag is-warning"><b>Dados relativos a <label id="smiLegendDate"></label></b></span>
+                        <p><b>Classes do SMI</b></p>
+                        <div><span style="background-color: #1f4275"></span>CC (&gt;99)</div>
+                        <div><span style="background-color: #207f89"></span>81-89</div>
+                        <div><span style="background-color: #17b566"></span>61-80</div>
+                        <div><span style="background-color: #24da05"></span>41-60</div>
+                        <div><span style="background-color: #cae01f"></span>21-40</div>
+                        <div><span style="background-color: #f1be0c"></span>11-20</div>
+                        <div><span style="background-color: #d4822d"></span>1-10</div>
+                        <div><span style="background-color: #b45d4d"></span>PEP (&lt;1)</div>
+                      </div>
+
+                      <div id="rainLevelsLegend" class="legend" style="display:none">
+                        <span class="tag is-warning"><b>Dados relativos a <label id="rainLegendDate"></label></b></span>
+                        <p><b>Precipitação (mm)</b></p>
+                        <div><span style="background-color: #000000"></span>100</div>
+                        <div><span style="background-color: #360e38"></span>80-100</div>
+                        <div><span style="background-color: #88228c"></span>60-80</div>
+                        <div><span style="background-color: #763d8d"></span>40-60</div>
+                        <div><span style="background-color: #685e98"></span>20-40</div>
+                        <div><span style="background-color: #6a74a4"></span>10-20</div>
+                        <div><span style="background-color: #788db4"></span>5-10</div>
+                        <div><span style="background-color: #8ca4c4"></span>1-5</div>
+                        <div><span style="background-color: #aec5dc"></span>0.5-1</div>
+                        <div><span style="background-color: #e0ecf4"></span>0-0.5</div>
+                      </div>
+
+                      <div class="credits">
+                        <a href="https://www.buymeacoffee.com/barragenspt">
+                          <img style="height: 30px"
+                            src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+                        </a>
+                      </div>
+  </main>
+</div>
+
+<script>
+  document.getElementById('main').addEventListener("click", e => {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar.classList.contains('active')) {
+      sidebar.classList.remove('active');
+    }
+  });
+
+  const menuIconEl = document.getElementById('menu-icon');
+  const sidenavEl = document.getElementById('sidebar');
+  const sidenavCloseEl = document.getElementById('sidebar__close-icon');
+
+  // Add and remove provided class names
+  function toggleClassName(el, className) {
+    if (el.classList.contains(className)) {
+      el.classList.remove(className);
+    } else {
+      el.classList.add(className);
+    }
+  }
+
+  // Open the side nav on click
+  menuIconEl.addEventListener("click", e => {
+    toggleClassName(sidenavEl, 'active');
+  });
+
+  // Close the side nav on click
+  sidenavCloseEl.addEventListener("click", e => {
+    toggleClassName(sidenavEl, 'active');
+  });
+
+  function showUsageTypesInfo() {
+    document.getElementById("usage_types_info").style.display = 'block';
+  }
+
+  function hidesageTypesInfo() {
+    document.getElementById("usage_types_info").style.display = 'none';
+  }
+
+  function showPdsiInfo() {
+    document.getElementById("pdsi_info").style.display = 'block';
+  }
+
+  function hidePdsiInfo() {
+    document.getElementById("pdsi_info").style.display = 'none';
+  }
+
+  function showSmiInfo() {
+    document.getElementById("smi_info").style.display = 'block';
+  }
+
+  function hideSmiInfo() {
+    document.getElementById("smi_info").style.display = 'none';
+  }
+
+  function showRainInfo() {
+    document.getElementById("rain_info").style.display = 'block';
+  }
+
+  function hideRainInfo() {
+    document.getElementById("rain_info").style.display = 'none';
+  }
+</script>

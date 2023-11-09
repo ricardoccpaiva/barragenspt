@@ -2,6 +2,14 @@
 /*@import "./phoenix.css";*/
 @import "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css";
 
+#vg-tooltip-element table tr td.key {
+  font-size: 11px;
+}
+
+#vg-tooltip-element table tr td.value {
+  font-size: 11px;
+}
+
 .mapboxgl-ctrl-bottom-right{
   z-index: 9999999;
 }
@@ -243,6 +251,17 @@ a.dropdown-item {
   left: 6px;
   position: absolute;
   z-index: 9999;
+  bottom: 20px;
+  font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+  padding: 5px;
+  position: absolute;
+  z-index: 998;
+}
+
+.credits {
+  bottom: -5px;
+  position: absolute;
+  left: 2px;
 }
 
 .legend {
@@ -254,7 +273,7 @@ a.dropdown-item {
   padding: 10px;
   position: absolute;
   left: 6px;
-  z-index: 99999999;
+  z-index: 998;
 }
 
 
@@ -275,7 +294,6 @@ a.dropdown-item {
   height: max(60%, 400px);
   width: 365px;
   position: fixed;
-  z-index: 999999999;
   bottom: 0;
   right: 0;
   background-color: #fff;
@@ -283,6 +301,7 @@ a.dropdown-item {
   margin: 5px;
   border-radius: 6px;
   box-shadow: #a94442;
+  z-index: 999;
 }
 
 .sidenav-short{
@@ -359,8 +378,7 @@ bodys:after {
   margin-bottom: 0;
 }
 
-#tabs-with-content .tab-content {
-  padding: 1rem;
+#tabs-with-content .tab-content {  
   display: none;
 }
 

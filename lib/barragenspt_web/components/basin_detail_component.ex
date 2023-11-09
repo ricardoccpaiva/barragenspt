@@ -27,7 +27,7 @@ defmodule BasinDetailComponent do
             </a>
           </li>
           <li>
-            <a>
+            <a onclick="document.getElementById('ctw_b').click();">
               <span class="icon is-small"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
               <span>Dados históricos</span>
             </a>
@@ -78,7 +78,7 @@ defmodule BasinDetailComponent do
               </select>
             </div>
           </div>
-          <div id="basin_chart_evo" phx-update="ignore"></div>
+          <div style="width:335px; height: 230px" id="graph_ot" phx-hook="MetricsEvolution"/>
         </section>
       </div>
     </div>

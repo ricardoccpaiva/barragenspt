@@ -25,8 +25,9 @@ import "phoenix_html"
 import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
+import MetricsEvolution from './hooks/metrics_evolution'
 
-let Hooks = {}
+let Hooks = { MetricsEvolution }
 let areBasinsVisible = true;
 let areDamColorsVisible = false;
 let isPdsiVisible = false;
@@ -36,6 +37,10 @@ let areSpainBasinsVisible = false;
 
 Hooks.BasinChartTimeWindow = {
     mounted() {
+        this.el.addEventListener("click", e => {
+            this.pushEvent("basin_change_window", { value: this.el.value });
+        })
+
         this.el.addEventListener("input", e => {
             this.pushEvent("basin_change_window", { value: this.el.value });
         })
@@ -115,41 +120,6 @@ window.liveSocket = liveSocket
 window.addEventListener(`phx:enable_tabs`, (e) => {
     enableTabs();
 })
-
-window.addEventListener(`phx:update_chart`, (e) => {
-    const divId = e.detail.kind == "basin" ? "basin_chart_evo" : "dam_chart_evo";
-
-    document.getElementById(divId).innerHTML = "";
-
-    const chart = new G2.Chart({
-        container: divId,
-        autoFit: false,
-        height: 220,
-        width: 325,
-        padding: [30, 20, 70, 30]
-    });
-
-    chart.data(e.detail.data);
-
-    chart.scale({ value: { min: 0, max: 100 } });
-
-    chart.tooltip({
-        showCrosshairs: true,
-        shared: true,
-    });
-
-    items = e.detail.lines.map(function (item) {
-        return item.v;
-    });
-
-    chart
-        .line()
-        .position('date*value')
-        .color('basin', items.reverse())
-        .shape('smooth');
-
-    chart.render();
-});
 
 window.addEventListener('phx:zoom_map', (e) => {
     var allLayers = map.getStyle().layers;

@@ -70,7 +70,8 @@ defmodule Barragenspt.MixProject do
       {:opentelemetry_ecto, "~> 1.0"},
       {:opentelemetry_oban, "~> 1.0"},
       {:opentelemetry_liveview, "~> 1.0.0-rc"},
-      {:xxhash, "~> 0.3.1"}
+      {:xxhash, "~> 0.3.1"},
+      {:vega_lite, "~> 0.1.8"}
     ]
   end
 
