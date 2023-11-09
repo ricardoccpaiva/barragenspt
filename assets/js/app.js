@@ -129,10 +129,10 @@ window.addEventListener('phx:zoom_map', (e) => {
 
         allLayers.forEach(function (item) {
             if (item.id == e.detail.basin_id + '_fill') {
-                map.setPaintProperty(item.id, 'fill-opacity', areBasinsVisible ? 0.7 : 0.1);
+                map.setPaintProperty(item.id, 'fill-opacity', areBasinsVisible ? 0.7 : 0);
             }
             else if (item.id.includes('_fill')) {
-                map.setPaintProperty(item.id, 'fill-opacity', 0.1);
+                map.setPaintProperty(item.id, 'fill-opacity', 0);
             }
         })
     }
@@ -159,7 +159,7 @@ window.addEventListener('phx:zoom_map', (e) => {
 
         allLayers.forEach(function (item) {
             if (item.id.includes('_fill')) {
-                map.setPaintProperty(item.id, 'fill-opacity', areBasinsVisible ? 0.7 : 0.1);
+                map.setPaintProperty(item.id, 'fill-opacity', areBasinsVisible ? 0.7 : 0);
             }
         })
     }
@@ -215,7 +215,7 @@ window.addEventListener('phx:update_basins_summary', (e) => {
             var summary_for_basin = e.detail.basins_summary.find(e => e.id + '_fill' == item.id);
             if (summary_for_basin != undefined) {
                 map.setPaintProperty(item.id, 'fill-color', summary_for_basin.capacity_color);
-                map.setPaintProperty(item.id, 'fill-opacity', areBasinsVisible ? 0.7 : 0.1);
+                map.setPaintProperty(item.id, 'fill-opacity', areBasinsVisible ? 0.7 : 0);
             }
             else {
                 map.setPaintProperty(item.id, 'fill-opacity', 0);
@@ -255,7 +255,7 @@ document.getElementById('switchBasins').addEventListener("click", e => {
     document.getElementById('sidebar').classList.remove('active');
 
     const allLayers = map.getStyle().layers;
-    const opacity = areBasinsVisible ? 0.1 : 0.7;
+    const opacity = areBasinsVisible ? 0 : 0.7;
 
     allLayers.forEach(function (item) {
         if ((item.id.includes('_fill') && !item.id.includes('_fill_es')) || (item.id.includes('_fill_es') && areSpainBasinsVisible)) {
