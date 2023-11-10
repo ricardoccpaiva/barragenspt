@@ -34,6 +34,8 @@ defmodule Barragenspt.Workers.StatsCacher do
     )
 
     cache_basin_stats(basin_ids, daily_periods, monthly_periods, usage_types_combinations)
+
+    cache_discharge_stats(dams, hourly_periods, daily_periods, monthly_periods)
     :ok
   end
 
@@ -78,6 +80,26 @@ defmodule Barragenspt.Workers.StatsCacher do
     Enum.each(monthly_periods, fn period ->
       Enum.each(basin_ids, fn basin_id ->
         Enum.each(usage_types, fn ut -> Basins.monthly_stats_for_basin(basin_id, ut, period) end)
+      end)
+    end)
+  end
+
+  defp cache_discharge_stats(dams, hourly_periods, daily_periods, monthly_periods) do
+    Enum.each(hourly_periods, fn period ->
+      Enum.each(dams, fn dam ->
+        Dams.discharge_stats(dam.site_id, period, :week)
+      end)
+    end)
+
+    Enum.each(daily_periods, fn period ->
+      Enum.each(dams, fn dam ->
+        Dams.discharge_stats(dam.site_id, period, :month)
+      end)
+    end)
+
+    Enum.each(monthly_periods, fn period ->
+      Enum.each(dams, fn dam ->
+        Dams.discharge_monthly_stats(dam.site_id, period)
       end)
     end)
   end

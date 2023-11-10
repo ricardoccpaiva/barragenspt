@@ -26,8 +26,10 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import MetricsEvolution from './hooks/metrics_evolution'
+import Dashboard from './hooks/snaps'
+import MapHistoric from './hooks/map_historic'
 
-let Hooks = { MetricsEvolution }
+let Hooks = { MetricsEvolution, Dashboard, MapHistoric }
 let areBasinsVisible = true;
 let areDamColorsVisible = false;
 let isPdsiVisible = false;

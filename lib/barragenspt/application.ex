@@ -7,10 +7,10 @@ defmodule Barragenspt.Application do
 
   @impl true
   def start(_type, _args) do
-    OpentelemetryPhoenix.setup()
-    OpentelemetryEcto.setup([:barragenspt, :repo])
-    OpentelemetryOban.setup()
-    OpentelemetryLiveView.setup()
+    # OpentelemetryPhoenix.setup()
+    # OpentelemetryEcto.setup([:barragenspt, :repo])
+    # OpentelemetryOban.setup()
+    # OpentelemetryLiveView.setup()
 
     children = [
       Barragenspt.PromEx,

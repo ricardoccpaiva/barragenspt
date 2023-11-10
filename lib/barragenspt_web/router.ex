@@ -20,8 +20,11 @@ defmodule BarragensptWeb.Router do
     get("/dams", DamController, :index)
     get("/basins", BasinController, :index)
 
+    resources "/snapshots", SnapshotController
+
     live_session :default do
       live("/", HomepageLive, :index)
+      live("/snaps", SnapsLive, :index)
     end
   end
 
