@@ -1,8 +1,11 @@
 defmodule SnapsComponent do
   use Phoenix.LiveComponent
   alias BarragensptWeb.Router.Helpers, as: Routes
+  alias Barragenspt.Hydrometrics.Basins
 
   def update(_, socket) do
+    get_data_for_all_basins()
+
     {:ok, content} = File.read("#{File.cwd!()}/priv/static/geojson/pt_basins.json")
 
     basins =
@@ -28,7 +31,7 @@ defmodule SnapsComponent do
 
     File.write("#{File.cwd!()}/priv/static/geojson/pt_basins_with_values.json", replaced_json)
 
-    data_url =
+    _data_url =
       "https://gist.githubusercontent.com/ricardoccpaiva/bdb5a0db0836988aab98c330accf1d71/raw/374d854284e4bdf074405db2714db53e3918eec1/gistfile1.txt"
 
     spec =
@@ -145,5 +148,18 @@ defmodule SnapsComponent do
     <div style="width:400px; height: 400px" id="graph_ot" phx-hook="OverTime"/>
     </div>
     """
+  end
+
+  defp get_data_for_all_basins() do
+    date = Date.utc_today()
+
+    Basins.all()
+    |> Enum.reduce([], fn b, acc ->
+      sub_data = Basins.monthly_stats_for_basin(b.id, [], 2)
+      Calendar.strftime(date, "%b %Y") |> IO.inspect(label: "---------->")
+      acc ++ Enum.filter(sub_data, fn sd -> sd.date.year == date.year end)
+    end)
+    |> Enum.group_by(fn b -> b.basin_id end)
+    |> IO.inspect(label: "------->")
   end
 end
