@@ -145,6 +145,64 @@ defmodule Barragenspt.Hydrometrics.Basins do
   end
 
   @decorate cacheable(cache: Cache, key: "basins.monthly_stats_for_basins", ttl: @ttl)
+  def monthly_stats_for_basins(usage_types, period \\ 2) do
+    filter =
+      dynamic(
+        [dp],
+        dp.param_name == "volume_last_day_month" and
+          dp.colected_at >= ^query_limit(period) and
+          dp.colected_at <= ^end_of_previous_month()
+      )
+
+    filter =
+      if usage_types != [] do
+        dynamic([_dp, _d, du, dd], ^filter and du.usage_name in ^usage_types)
+      else
+        filter
+      end
+
+    query =
+      from(dp in DataPoint,
+        join: b in Basin,
+        on: dp.basin_id == b.id,
+        where: ^filter,
+        group_by: [
+          b.id,
+          b.name,
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          )
+        ],
+        select: {
+          b.id,
+          b.name,
+          fragment(
+            "sum(value) / (SELECT sum(d.total_capacity) from dam d where basin_id = ?)",
+            b.id
+          ),
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          )
+        }
+      )
+
+    query
+    |> Repo.all()
+    |> Stream.map(fn {basin_id, basin_name, value, date} ->
+      %{
+        basin_id: basin_id,
+        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+        date: date,
+        basin: basin_name
+      }
+    end)
+    |> Stream.reject(fn %{value: value} -> value > 100 end)
+    |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
+  end
+
+  @decorate cacheable(cache: Cache, key: "basins.monthly_stats_for_basins", ttl: @ttl)
   def monthly_stats_for_basins() do
     query =
       from(dp in DataPoint,

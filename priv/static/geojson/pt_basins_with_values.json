@@ -51554,7 +51554,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Mondego",
-            "percent": 0.6940000000000001, "percent_historic": 0.631,
+            "percent": 0.654, "percent_historic": 0.643, "basin_id": 47,
             "fill": "#FF0055",
             "stroke": "#FF0055",
             "fillOpacity": "0.35",
@@ -51679,7 +51679,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Douro",
-            "percent": 0.929, "percent_historic": 0.84,
+            "percent": 0.9059999999999999, "percent_historic": 0.8190000000000001, "basin_id": 12,
             "fill": "#028E76",
             "stroke": "#028E76",
             "fillOpacity": "0.75",
@@ -51758,7 +51758,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Ave",
-            "percent": 0.9209999999999999, "percent_historic": 0.53,
+            "percent": 0.7759999999999999, "percent_historic": 0.579, "basin_id": 1551779242,
             "fill": "#028E76",
             "stroke": "#028E76",
             "fillOpacity": "0.75",
@@ -51894,7 +51894,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Cávado",
-            "percent": 0.8590000000000001, "percent_historic": 0.66,
+            "percent": 0.899, "percent_historic": 0.6859999999999999, "basin_id": 107,
             "fill": "#028E76",
             "stroke": "#028E76",
             "fillOpacity": "0.75",
@@ -51954,7 +51954,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Lima",
-            "percent": 0.787, "percent_historic": 0.732,
+            "percent": 0.667, "percent_historic": 0.738, "basin_id": 1551779250,
             "fill": "#028E76",
             "stroke": "#028E76",
             "fillOpacity": "0.75",
@@ -52026,7 +52026,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Tejo",
-            "percent": 0.752, "percent_historic": 0.6920000000000001,
+            "percent": 0.775, "percent_historic": 0.731, "basin_id": 17,
             "fill": "#028E76",
             "stroke": "#028E76",
             "fillOpacity": "0.75",
@@ -52077,7 +52077,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Guadiana",
-            "percent": 0.6829999999999999, "percent_historic": 0.55,
+            "percent": 0.6990000000000001, "percent_historic": 0.594, "basin_id": 23,
             "fill": "#028E76",
             "stroke": "#028E76",
             "fillOpacity": "0.75",
@@ -52140,7 +52140,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Sado",
-            "percent": 0.368, "percent_historic": 0.39899999999999997,
+            "percent": 0.40399999999999997, "percent_historic": 0.44799999999999995, "basin_id": 38,
             "fill": "#028E76",
             "stroke": "#028E76",
             "fillOpacity": "0.75",
@@ -52193,7 +52193,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Mira",
-            "percent": 0.31, "percent_historic": 0.593,
+            "percent": 0.309, "percent_historic": 0.564, "basin_id": 68,
             "fill": "#028E76",
             "stroke": "#028E76",
             "fillOpacity": "0.75",
@@ -52220,7 +52220,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Ribeiras do Algarve",
-            "percent": 0.076, "percent_historic": 0.541,
+            "percent": 0.076, "percent_historic": 0.585, "basin_id": 992,
             "fill": "#028E76",
             "stroke": "#028E76",
             "fillOpacity": "0.75",
@@ -52258,7 +52258,7 @@
           "type": "Polygon",
           "properties": {
             "name": "Arade",
-            "percent": 0.255, "percent_historic": 0.375,
+            "percent": 0.248, "percent_historic": 0.41100000000000003, "basin_id": 8,
             "fill": "#028E76",
             "stroke": "#028E76",
             "fillOpacity": "0.75",

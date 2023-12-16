@@ -25,7 +25,7 @@ defmodule SnapsComponent do
         String.replace(
           acc,
           r.replacement_key,
-          "#{r.current_storage / 100}, \"percent_historic\": #{r.average_historic_value / 100}"
+          "#{r.current_storage / 100}, \"percent_historic\": #{r.average_historic_value / 100}, \"basin_id\": #{r.id}"
         )
       end)
 
@@ -152,14 +152,43 @@ defmodule SnapsComponent do
 
   defp get_data_for_all_basins() do
     date = Date.utc_today()
+    stats = Basins.monthly_stats_for_basins([], 2)
 
-    Basins.all()
-    |> Enum.reduce([], fn b, acc ->
-      sub_data = Basins.monthly_stats_for_basin(b.id, [], 2)
-      Calendar.strftime(date, "%b %Y") |> IO.inspect(label: "---------->")
-      acc ++ Enum.filter(sub_data, fn sd -> sd.date.year == date.year end)
-    end)
-    |> Enum.group_by(fn b -> b.basin_id end)
-    |> IO.inspect(label: "------->")
+    stats |> IO.inspect(label: "----->")
+    # basin_id, name, data1, data2
+    # Calendar.strftime(date, "%b %Y") |> IO.inspect(label: "---------->")
+
+    all_basins = Enum.map(Basins.all(), fn b -> %{id: b.id, name: b.name} end)
+
+    all_dates =
+      stats
+      |> Enum.filter(fn sd -> sd.date.year == date.year end)
+      |> Enum.uniq(fn sd -> Calendar.strftime(sd.date, "%b %Y") end)
+      |> Enum.map(fn sd -> sd.date end)
+      |> Enum.sort({:asc, Date})
+
+    content =
+      Enum.map(all_basins, fn %{id: id, name: name} ->
+        Enum.map(all_dates, fn ad ->
+          Map.get(
+            Enum.find(stats, fn s -> s.basin_id == id && s.date == ad end) || %{},
+            :value,
+            0
+          )
+        end)
+        |> Enum.map(&(&1 / 100))
+        |> Enum.map(&Float.ceil(&1, 4))
+        |> Enum.join(",")
+        |> String.replace_prefix("", "#{id},#{name},")
+      end)
+      |> Enum.join("\r\n")
+      |> String.replace_prefix(
+        "",
+        "basin_id,basin_name,#{all_dates |> Enum.map(&Calendar.strftime(&1, "%b %Y")) |> Enum.join(",")}\r\n"
+      )
+
+    path = "#{File.cwd!()}/priv/static/csv/pt_basins_values.csv"
+
+    File.write!(path, content)
   end
 end
