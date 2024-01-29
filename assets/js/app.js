@@ -643,8 +643,9 @@ async function loadEsBasins() {
             response.data.forEach(function (item) {
                 {
                     var fill_layer_id = item.id + '_fill_es'
-                    map.addSource(item.id, { type: 'geojson', data: '/geojson/spain/' + item.name + '.geojson' });
-
+                    if (map.getSource(item.id) == null) {
+                        map.addSource(item.id, { type: 'geojson', data: '/geojson/spain/' + item.name + '.geojson' });
+                    }
 
                     map.addLayer({
                         'id': fill_layer_id,
