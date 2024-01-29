@@ -301,6 +301,7 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
         document.getElementById('pdsiLevelsLegend').style.display = "inline";
 
         const date = new Date();
+        date.setMonth(date.getMonth() - 1);
         const fmtDate = date.getFullYear() + "-" + date.getMonth().toString().padStart(2, "0") + "-01";
 
         document.getElementById("pdsiLegendDate").innerHTML = "01/" + (date.getMonth() + 1).toString().padStart(2, "0") + "/" + date.getFullYear();
