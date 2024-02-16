@@ -8,7 +8,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
     from(_x in PrecipitationMonthlyValue) |> Barragenspt.Repo.delete_all()
 
     combinations =
-      for year <- 1981..2023,
+      for year <- 2000..2023,
           month <- 1..12,
           layer <- ["mrrto.obsSup.monthly.vector.conc"],
           img_format <- [:svg],
