@@ -200,7 +200,20 @@ defmodule BarragensptWeb.ReportsController do
     end
   end
 
-  defp parse_and_validate_date_range(start_date, end_date, _meteo_index)
+  defp parse_and_validate_date_range(start_date, end_date, "precipitation")
+       when byte_size(start_date) == 4 and byte_size(end_date) == 4 do
+    if String.to_integer(start_date) < 2000 || String.to_integer(end_date) < 2000 do
+      {:error, :invalid_date_precipitation}
+    else
+      if String.to_integer(start_date) > String.to_integer(end_date) do
+        {:error, :start_lt_end}
+      else
+        :ok
+      end
+    end
+  end
+
+  defp parse_and_validate_date_range(start_date, end_date, "pdsi")
        when byte_size(start_date) == 4 and byte_size(end_date) == 4 do
     if String.to_integer(start_date) > String.to_integer(end_date) do
       {:error, :start_lt_end}
