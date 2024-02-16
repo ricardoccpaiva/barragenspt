@@ -1,0 +1,284 @@
+<%= form_for @conn.params, Routes.reports_path(@conn, :index), [method: :get], fn f -> %>
+
+  <div class="grid-container">
+    <div id="menu-icon" class="menu-icon" data-position='top'>
+      <i class="fa-solid fa-bars header__menu"></i>
+    </div>
+
+    <aside id="sidebar" class="sidebar">
+      <div id="sidebar__close-icon" class="sidebar__close-icon">
+        <i class="fas fa-times sidebar__brand-close"></i>
+      </div>
+      <div style="margin-left: 20px; margin-top:10px;">
+        <div class="field" style="margin-top: 0px;">
+          <button class="js-modal-trigger credits-btn" data-target="credits-modal">
+            <label class="label info-label">Acerca</label>
+            <i id="info_credits" style="cursor: pointer" class="fa-solid fa-circle-info"></i>
+          </button>
+          <div class="credits-in-menu" style="margin-top: 5px">
+            <a href="https://www.buymeacoffee.com/barragenspt">
+              <img style="height: 30px"
+                src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+            </a>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Indicadores meteorológicos 💧</label>
+          <div class="control">
+            <div class="select is-small">
+              <p>
+                <select id="meteo_index" name="meteo_index">
+                  <option value="pdsi">Índice de seca (PDSI) 🌱</option>
+                  <option value="precipitation">Precipitação acumulada 🌧️</option>
+                </select>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div style="margin-left: 20px; margin-top: 10px;">
+        <div class="field">
+          <label class="label">Frequência 🕖</label>
+          <div class="control">
+            <div class="select is-small">
+              <p>
+                <select id="time_frequency" name="time_frequency">
+                  <option value="daily" disabled>Diário</option>
+                  <option value="monthly">Mensal</option>
+                </select>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-left: 20px; margin-top: 10px;">
+        <div class="field">
+          <label class="label">Modo visualização 📹</label>
+          <div class="control">
+            <div class="select is-small">
+              <p>
+                <select id="viz_mode" name="viz_mode">
+                  <option value="static">Estático</option>
+                  <option value="animated">Animado</option>
+                </select>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-left: 20px; margin-top: 10px;">
+        <div class="field">
+          <label class="label">Periodo 📅</label>
+          <div class="control">
+            <div class="field">
+              <span class="label-datepicker">De</span>
+              <input type="text" class="input is-small bpt-datepicker" id="start" name="start" value={@dt_start}>
+            </div>
+
+            <div class="field">
+              <span class="label-datepicker">Até</span>
+              <input type="text" class="input is-small bpt-datepicker" id="end" name="end" value={@dt_end}>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-left: 20px; margin-top: 25px;">
+        <div class="field">
+          <button type="submit" class="button is-link is-normal" title="Disabled button">Analisar 🛠️</button>
+        </div>
+      </div>
+    </aside>
+
+
+    <div id="main" class="main">
+      <%= if @errors do %>
+        <div class="notification report-notification is-warning">
+          <button class="delete"></button>
+          <strong class="error-message-title">Ops, encontrámos alguns erros....</strong>
+          <div class="error-messages">
+            <%= @errors %>
+          </div>
+        </div>
+        <% end %>
+          <%= if !Enum.any?(@maps) && !@errors do %>
+            <div class="reports-header box" style="margin-bottom: 6px;">
+              <label class="label">
+                Por favor use os filtros do menu à esquerda para começar.
+              </label>
+            </div>
+            <% end %>
+              <%= if Enum.any?(@maps) do %>
+                <div class="reports-header box" style="margin-bottom: 6px;">
+                  <label class="label reports-header-text">
+                    <%= @title %>
+                  </label>
+                </div>
+                <div class="reports-header box">
+                  <%= if @meteo_index=="precipitation" do %>
+                    <div class="columns reports-legend-group reports-legend-group-precipitation">
+                      <div class="column reports-legend">
+                        <div style="font-weight: bold">Precipitação (mm)</div>
+                      </div>
+                      <div class="column reports-legend">
+                        <div><span style="background-color: #000000"></span>100</div>
+                      </div>
+                      <div class="column reports-legend">
+                        <div><span style="background-color: #360e38"></span>80-100</div>
+                      </div>
+                      <div class="column reports-legend">
+                        <div><span style="background-color: #88228c"></span>60-80</div>
+                      </div>
+                      <div class="column reports-legend">
+                        <div><span style="background-color: #763d8d"></span>40-60</div>
+                      </div>
+                      <div class="column reports-legend">
+                        <div><span style="background-color: #685e98"></span>20-40</div>
+                      </div>
+                      <div class="column reports-legend">
+                        <div><span style="background-color: #6a74a4"></span>10-20</div>
+                      </div>
+                      <div class="column reports-legend">
+                        <div><span style="background-color: #788db4"></span>5-10</div>
+                      </div>
+                      <div class="column reports-legend">
+                        <div><span style="background-color: #8ca4c4"></span>1-5</div>
+                      </div>
+                      <div class="column reports-legend">
+                        <div><span style="background-color: #aec5dc"></span>0.5-1</div>
+                      </div>
+                      <div class="column reports-legend">
+                        <div><span style="background-color: #e0ecf4"></span>0-0.5</div>
+                      </div>
+                    </div>
+                    <% end %>
+                      <%= if @meteo_index=="pdsi" do %>
+                        <div class="columns reports-legend-group">
+                          <div class="column reports-legend">
+                            <div style="font-weight: bold">Classes do PDSI</div>
+                          </div>
+                          <div class="column reports-legend">
+                            <div><span style="background-color: #218291"></span>Chuva extrema</div>
+                          </div>
+                          <div class="column reports-legend">
+                            <div><span style="background-color: #5c9e9c"></span>Chuva severa</div>
+                          </div>
+                          <div class="column reports-legend">
+                            <div><span style="background-color: #91bda8"></span>Chuva moderada</div>
+                          </div>
+                          <div class="column reports-legend">
+                            <div><span style="background-color: #c7deb4"></span>Chuva fraca</div>
+                          </div>
+                          <div class="column reports-legend">
+                            <div><span style="background-color: #e9ffbe"></span>Normal</div>
+                          </div>
+                          <div class="column reports-legend">
+                            <div><span style="background-color: #e8cf90"></span>Seca fraca</div>
+                          </div>
+                          <div class="column reports-legend">
+                            <div><span style="background-color: #cfa263"></span>Seca moderada</div>
+                          </div>
+                          <div class="column reports-legend">
+                            <div><span style="background-color: #b5773e"></span>Seca severa</div>
+                          </div>
+                          <div class="column reports-legend">
+                            <div><span style="background-color: #9c551f"></span>Seca extrema</div>
+                          </div>
+                        </div>
+                        <% end %>
+                </div>
+                <div class="table-container">
+                  <%= if @time_frequency=="monthly" do %>
+                    <table>
+                      <thead>
+                        <tr class="reports-header" style="margin-top: 100px">
+                          <th class="first-header"></th>
+                          <th class="xeca">Jan</th>
+                          <th>Fev</th>
+                          <th>Mar</th>
+                          <th>Abr</th>
+                          <th>Mai</th>
+                          <th>Jun</th>
+                          <th>Jul</th>
+                          <th>Ago</th>
+                          <th>Set</th>
+                          <th>Out</th>
+                          <th>Nov</th>
+                          <th class="last-header">Dez</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <%= for {year, map1} <- @maps do %>
+                          <tr>
+                            <td>
+                              <label class="year-column">
+                                <%= year %>
+                              </label>
+                            </td>
+                            <%= for map <- map1 do %>
+                              <td>
+                                <img src={map.url} />
+                              </td>
+                              <% end %>
+                          </tr>
+                          <% end %>
+                      </tbody>
+                    </table>
+                    <% end %>
+
+                      <%= if @time_frequency=="daily" do %>
+                        <table>
+                          <%= for map_url <- @maps do %>
+                            <tr>
+                              <%= for map <- map_url do %>
+                                <td>
+                                  <label class="daily-date">
+                                    <%= map.date %>
+                                  </label>
+                                  <img src={map.url} />
+                                </td>
+                                <% end %>
+                            </tr>
+                            <% end %>
+                        </table>
+                        <% end %>
+                </div>
+                <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
+                <!--<div id='map' style="height: 100%;" phx-update="ignore"></div>-->
+                <% end %>
+    </div>
+  </div>
+  <%end %>
+    <script>
+      document.getElementById('main').addEventListener("click", e => {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar.classList.contains('active')) {
+          sidebar.classList.remove('active');
+        }
+      });
+
+      const menuIconEl = document.getElementById('menu-icon');
+      const sidenavEl = document.getElementById('sidebar');
+      const sidenavCloseEl = document.getElementById('sidebar__close-icon');
+
+      // Add and remove provided class names
+      function toggleClassName(el, className) {
+        if (el.classList.contains(className)) {
+          el.classList.remove(className);
+        } else {
+          el.classList.add(className);
+        }
+      }
+
+      // Open the side nav on click
+      menuIconEl.addEventListener("click", e => {
+        toggleClassName(sidenavEl, 'active');
+      });
+
+      // Close the side nav on click
+      sidenavCloseEl.addEventListener("click", e => {
+        toggleClassName(sidenavEl, 'active');
+      });
+    </script>

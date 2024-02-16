@@ -1,6 +1,30 @@
 /* This file is for your main application CSS */
 /*@import "./phoenix.css";*/
-@import "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css";
+@import "https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css";
+@import "https://raw.githubusercontent.com/Wikiki/bulma-timeline/master/dist/css/bulma-timeline.min.css";
+
+.div-timeline {
+  width: 160px;
+  position: absolute;
+  z-index: 9999999;
+  float: right;
+  display: block;
+  top: 0;
+  right: -9px;
+  left: inherit;
+  margin-top: 150px;
+  backdrop-filter: blur(2px);
+  background: transparent;
+  border-radius: 10px;
+}
+
+.timeline .timeline-item {
+  padding-bottom: 0px;
+}
+
+.heading {
+  margin-bottom: 0px;
+}
 
 #vg-tooltip-element table tr td.key {
   font-size: 11px;
@@ -10,7 +34,7 @@
   font-size: 11px;
 }
 
-.mapboxgl-ctrl-bottom-right{
+.mapboxgl-ctrl-bottom-right {
   z-index: 9999999;
 }
 
@@ -152,7 +176,7 @@ a.dropdown-item {
   .credits-in-menu {
     display: none;
   }
-  
+
   .map-overlay {
     width: 300px;
     height: 32px;
@@ -180,7 +204,7 @@ a.dropdown-item {
   .credits {
     display: none;
   }
-    
+
   .legend {
     margin-left: 280px;
   }
@@ -304,7 +328,7 @@ a.dropdown-item {
   z-index: 999;
 }
 
-.sidenav-short{
+.sidenav-short {
   height: 125px;
 }
 
@@ -378,7 +402,7 @@ bodys:after {
   margin-bottom: 0;
 }
 
-#tabs-with-content .tab-content {  
+#tabs-with-content .tab-content {
   display: none;
 }
 

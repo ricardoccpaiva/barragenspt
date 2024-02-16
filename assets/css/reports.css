@@ -1,0 +1,161 @@
+.bpt-datepicker {
+    max-width: 100px;
+}
+
+.label-datepicker {
+    width: 25px;
+    display: inline-block;
+}
+
+.datepicker {
+    margin-left: -30px;
+}
+
+.report-notification {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-top: 20px;
+    margin-right: 20px;
+    padding: 0.625rem 1.25rem 0.625rem 0.75rem;
+}
+
+.maps_pane {
+    max-height: 93lvh;
+    overflow-y: scroll;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.reports-header {
+    margin-top: 6px;
+    padding: 0.15rem;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+.reports-header-text {
+    margin-left: 8px;
+}
+
+.label-report-date {
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    width: 99%;
+}
+
+.column {
+    padding: 0px;
+    flex-basis: unset;
+}
+
+.error-messages {
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.error-message-title {
+    font-size: 14px;
+}
+
+.year-column {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    flex-grow: unset;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.empty-column {
+    flex-grow: unset;
+    width: 80px;
+}
+
+.table-container {
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    margin-left: 15px;
+    margin-right: 15px;
+    margin-top: 8px;
+}
+
+.block:not(:last-child),
+.box:not(:last-child),
+.breadcrumb:not(:last-child),
+.content:not(:last-child),
+.level:not(:last-child),
+.message:not(:last-child),
+.notification:not(:last-child),
+.pagination:not(:last-child),
+.progress:not(:last-child),
+.subtitle:not(:last-child),
+.table-container:not(:last-child),
+.table:not(:last-child),
+.tabs:not(:last-child),
+.title:not(:last-child) {
+    margin-bottom: 0rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 4px;
+    text-align: left;
+    background-color: #fff;
+    box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, .1), 0 0 0 1px rgba(10, 10, 10, .02);
+}
+
+th {
+    background-color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.first-header {
+    background-color: #fff;
+    border-top-left-radius: 6px;
+    box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, .1), 0 0 0 1px rgba(10, 10, 10, .02);
+}
+
+.last-header {
+    background-color: #fff;
+    border-top-right-radius: 6px;
+    box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, .1), 0 0 0 1px rgba(10, 10, 10, .02);
+}
+
+tbody td {
+    position: relative;
+}
+
+.daily-date {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.reports-legend {
+    font: 12px/20px Helvetica Neue, Arial, Helvetica, sans-serif;
+}
+
+.reports-legend-group {
+    margin-left: 0px;
+    padding: 0.60rem;
+}
+
+.reports-legend-group-precipitation {
+    max-width: 800px;
+}
+
+.reports-legend div span {
+    border-radius: 50%;
+    display: inline-block;
+    height: 10px;
+    margin-right: 5px;
+    width: 10px;
+}

@@ -1,3 +1,5 @@
+<script defer phx-track-static type="text/javascript" src="/assets/homepage.js" )}></script>
+
 <div class="grid-container">
   <div id="menu-icon" class="menu-icon" data-position='top'>
     <i class="fa-solid fa-bars header__menu"></i>
@@ -11,7 +13,7 @@
       <div class="field" style="margin-top: 0px;">
         <button class="js-modal-trigger credits-btn" data-target="credits-modal">
           <label class="label info-label">Acerca</label>
-          <i id="usage_types_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"></i>
+          <i id="info_credits" style="cursor: pointer" class="fa-solid fa-circle-info"></i>
         </button>
         <div class="credits-in-menu" style="margin-top: 5px">
           <a href="https://www.buymeacoffee.com/barragenspt">
@@ -73,7 +75,7 @@
         </div>
       </div>
     </div>
-    <div style="margin-left: 20px; margin-top: 10px;" phx-update="ignore">
+    <div style="margin-left: 20px; margin-top: 10px;" phx-update="ignore" id="indexes">
       <div class="field">
         <label class="label">% de armazenamento</label>
         <div class="control">
@@ -97,8 +99,7 @@
           <div class="field">
             <input id="switchPDSI" type="checkbox" name="switchPDSI" class="switch is-small cenas">
             <label for="switchPDSI">Índice de seca (PDSI) 🌱</label>
-            <i id="usage_types_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"
-              onclick="showPdsiInfo()">
+            <i id="pdsi_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info" onclick="showPdsiInfo()">
             </i>
           </div>
           <div id="pdsi_info" class="notification is-warning is-light"
@@ -161,7 +162,7 @@
         <div class="control">
 
 
-          <div class="usage_types" style="max-width: 200px" phx-update="ignore">
+          <div class="usage_types" style="max-width: 200px" phx-update="ignore" id="usage_types">
             <%= for {usage_type} <- @usage_types do %>
               <p>
                 <label class="checkbox">
