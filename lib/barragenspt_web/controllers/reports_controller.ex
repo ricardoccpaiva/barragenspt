@@ -3,7 +3,7 @@ defmodule BarragensptWeb.ReportsController do
 
   def index(
         conn,
-        %{
+        params = %{
           "meteo_index" => meteo_index,
           "viz_mode" => _viz_mode,
           "time_frequency" => "monthly",
@@ -26,6 +26,7 @@ defmodule BarragensptWeb.ReportsController do
           dt_start: dt_start,
           dt_end: dt_end,
           errors: nil,
+          correlate: Map.get(params, "correlate", "off"),
           title: build_title(meteo_index, "monthly", dt_start, dt_end)
         )
 

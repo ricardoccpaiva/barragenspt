@@ -8,45 +8,48 @@ if (window.location.pathname == "/reports") {
     let endRangepicker;
 
     document.addEventListener('DOMContentLoaded', () => {
-
-
-        var elements = document.getElementsByClassName("vega_chart_rain");
-
-        Array.from(elements).forEach(function (element) {
-
-            spec = {
-                "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                "data": { "url": "meteo_data?year=" + element.id + ".csv" },
-                "mark": "bar",
-                "width": 1100,
-                "height": 50,
-                "encoding": {
-                    "x": {
-                        "field": "date", "type": "ordinal",
-                        "axis": {
-                            "ticks": false,
-                            "labels": false
-                        }
-                    },
-                    "y": { "title": "", "aggregate": "mean", "field": "value" }
-                }
-            }
-
-            vegaEmbed(element, spec, { actions: false })
-                .then((result) => result.view)
-                .catch((error) => console.error(error))
-        });
-
         const urlParams = new URLSearchParams(window.location.search);
         const meteo_index = urlParams.get('meteo_index');
         const time_frequency = urlParams.get('time_frequency');
+        const correlate = urlParams.get('correlate');
 
         if (urlParams.size > 0) {
+            document.getElementById("chk_correlate").checked = (correlate == "on");
+
             document.getElementById("meteo_index").value = meteo_index;
             document.getElementById("meteo_index").dispatchEvent(new Event('change'));
 
             document.getElementById("time_frequency").value = time_frequency;
             document.getElementById("time_frequency").dispatchEvent(new Event('change'));
+        }
+
+        if (document.getElementById("chk_correlate").checked) {
+            var elements = document.getElementsByClassName("vega_chart_rain");
+
+            Array.from(elements).forEach(function (element) {
+
+                spec = {
+                    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                    "data": { "url": "meteo_data?year=" + element.id + ".csv" },
+                    "mark": "bar",
+                    "width": 1100,
+                    "height": 50,
+                    "encoding": {
+                        "x": {
+                            "field": "date", "type": "ordinal",
+                            "axis": {
+                                "ticks": false,
+                                "labels": false
+                            }
+                        },
+                        "y": { "title": "", "aggregate": "mean", "field": "value" }
+                    }
+                }
+
+                vegaEmbed(element, spec, { actions: false })
+                    .then((result) => result.view)
+                    .catch((error) => console.error(error))
+            });
         }
 
         const startElem = document.getElementById('start');
@@ -75,6 +78,7 @@ if (window.location.pathname == "/reports") {
     document.getElementById('meteo_index').addEventListener("change", e => {
 
         if (e.currentTarget.value == "pdsi" || e.currentTarget.value == "basin_storage") {
+            document.getElementById("chk_correlate").disabled = false;
             document.querySelectorAll("#time_frequency option").forEach(opt => {
                 if (opt.value == "daily") {
                     opt.disabled = true;
@@ -84,6 +88,8 @@ if (window.location.pathname == "/reports") {
             });
         }
         else {
+            document.getElementById("chk_correlate").disabled = true;
+            document.getElementById("chk_correlate").checked = false;
             if (e.currentTarget.value == "min_temperature" || e.currentTarget.value == "max_temperature") {
                 document.querySelectorAll("#time_frequency option").forEach(opt => {
                     if (opt.value == "monthly") {
