@@ -13,6 +13,10 @@ defmodule Barragenspt.Services.Ipma do
     get(indicator, year, month, day, "image/svg+xml", layer)
   end
 
+  def get_image(indicator, year, month, day, :png, layer) do
+    get(indicator, year, month, day, "image/png", layer)
+  end
+
   defp get(:pdsi, year, month, format, layer) do
     get_internal("PalmerDroughtSeverityIndex", year, month, format, layer)
   end
@@ -23,6 +27,14 @@ defmodule Barragenspt.Services.Ipma do
 
   defp get(:precipitation, year, month, day, format, layer) do
     get_internal("precipitation", year, month, day, format, layer)
+  end
+
+  defp get(:temperature, year, month, day, format, layer) do
+    get_internal("temperature", year, month, day, format, layer)
+  end
+
+  defp get(:smi, year, month, day, format, layer) do
+    get_internal("SoilMoistureIndex", year, month, day, format, layer)
   end
 
   defp get_internal(indicator, year, month, format, layer) do
