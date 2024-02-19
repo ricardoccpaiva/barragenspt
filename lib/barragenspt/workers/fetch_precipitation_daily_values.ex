@@ -3,6 +3,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationDailyValues do
   require Logger
   alias Barragenspt.Hydrometrics.PrecipitationDailyValue
   import Ecto.Query
+  alias Barragenspt.Converters.ColorConverter
 
   def spawn_workers do
     from(_x in PrecipitationDailyValue) |> Barragenspt.Repo.delete_all()
@@ -120,34 +121,20 @@ defmodule Barragenspt.Workers.FetchPrecipitationDailyValues do
 
     {red, green, blue} =
       case Regex.run(regex, input) do
-        ["fill:rgb(0%,0%,0%);", "0%", "", "0%", "", "0%"] -> {"0%", "0%", "0%"}
-        ["fill:rgb(100%,100%,100%);", red, "", green, "", blue] -> {red, green, blue}
-        [_ignore1, red, _ignore2, green, _ignore3, blue, _ignore4] -> {red, green, blue}
+        ["fill:rgb(0%,0%,0%);", "0%", "", "0%", "", "0%"] ->
+          {"0%", "0%", "0%"}
+
+        ["fill:rgb(100%,100%,100%);", _red, "", _green, "", _blue] ->
+          {"100.0%", "100.0%", "100.0%"}
+
+        [_ignore1, red, _ignore2, green, _ignore3, blue, _ignore4] ->
+          {red, green, blue}
       end
 
-    # Convert RGB percentages to hexadecimal
-    rgb_to_hex(parse_float(red), parse_float(green), parse_float(blue))
-  end
-
-  defp parse_float(float) do
-    float
-    |> String.replace("%", "")
-    |> Float.parse()
-    |> then(fn {float, ""} -> float end)
-  end
-
-  defp rgb_to_hex(red_percent, green_percent, blue_percent) do
-    # Convert percentage to integer value (0-255)
-    red = round(red_percent * 255 / 100)
-    green = round(green_percent * 255 / 100)
-    blue = round(blue_percent * 255 / 100)
-
-    # Convert integer values to hexadecimal
-    hex =
-      Integer.to_string(red, 16) <> Integer.to_string(green, 16) <> Integer.to_string(blue, 16)
-
-    # Ensure the hexadecimal string has two characters for each color
-    String.pad_leading(hex, 6, "0")
+    ColorConverter.get_hex_color(
+      "precipitation",
+      "rgb(#{red},#{green},#{blue})"
+    )
   end
 
   defp build_struct(pdsi_value, year, month, day) do
