@@ -65,11 +65,15 @@ defmodule BarragensptWeb.ReportsController do
           "end" => dt_end
         }
       ) do
+    meteo_index_parts = String.split(meteo_index, "_")
+    meteo_index = List.last(meteo_index_parts)
+    variant = List.first(meteo_index_parts)
+
     case parse_and_validate_date_range(dt_start, dt_end, meteo_index) do
       :ok ->
         map_urls =
           dt_start
-          |> get_range(dt_end, meteo_index)
+          |> get_range(dt_end, meteo_index, variant)
           |> Enum.chunk_every(12)
 
         render(conn, :index,
@@ -120,6 +124,10 @@ defmodule BarragensptWeb.ReportsController do
     render(conn, :index, maps: [], dt_start: nil, dt_end: nil, errors: nil)
   end
 
+  defp build_title("temperature", "daily", dt_start, dt_end) do
+    "Observação diária da temperatura 🌡️ entre #{dt_start} e #{dt_end}"
+  end
+
   defp build_title("precipitation", "daily", dt_start, dt_end) do
     "Observação diária da precipitação acumulada 🌧️ entre #{dt_start} e #{dt_end}"
   end
@@ -138,6 +146,40 @@ defmodule BarragensptWeb.ReportsController do
 
   defp build_title("pdsi", "monthly", dt_start, dt_end) do
     "Observação mensal do índice de seca (PDSI) 🌱 entre #{dt_start} e #{dt_end}"
+  end
+
+  defp build_title("basin_storage", "monthly", dt_start, dt_end) do
+    "Observação mensal da água armazenada 💦 entre #{dt_start} e #{dt_end}"
+  end
+
+  defp parse_and_validate_date_range(start_date, end_date, "temperature")
+       when byte_size(start_date) == 7 and byte_size(end_date) == 7 do
+    %{"day" => s_d, "month" => s_m, "year" => s_y} = parse_date(start_date)
+    %{"day" => e_d, "month" => e_m, "year" => e_y} = parse_date(end_date)
+
+    if String.to_integer(s_y) < 2000 || String.to_integer(e_y) < 2000 do
+      {:error, :invalid_date_precipitation}
+    else
+      start_date =
+        Date.new!(
+          String.to_integer(s_y),
+          String.to_integer(s_m),
+          String.to_integer(s_d)
+        )
+
+      end_date =
+        Date.new!(
+          String.to_integer(e_y),
+          String.to_integer(e_m),
+          String.to_integer(e_d)
+        )
+
+      if Date.diff(end_date, start_date) > 365 do
+        {:error, :period_too_long}
+      else
+        :ok
+      end
+    end
   end
 
   defp parse_and_validate_date_range(start_date, end_date, "precipitation")
@@ -222,6 +264,15 @@ defmodule BarragensptWeb.ReportsController do
     end
   end
 
+  defp parse_and_validate_date_range(start_date, end_date, "basin_storage")
+       when byte_size(start_date) == 4 and byte_size(end_date) == 4 do
+    if String.to_integer(start_date) > String.to_integer(end_date) do
+      {:error, :start_lt_end}
+    else
+      :ok
+    end
+  end
+
   defp get_range(start_date, end_date, meteo_index)
        when byte_size(start_date) == 4 and byte_size(end_date) == 4 do
     for year <- String.to_integer(start_date)..String.to_integer(end_date),
@@ -229,11 +280,11 @@ defmodule BarragensptWeb.ReportsController do
         do: build_map_struct(year, month, meteo_index)
   end
 
-  defp get_range(start_date, end_date, meteo_index)
+  defp get_range(start_date, end_date, meteo_index, variant \\ nil)
        when byte_size(start_date) == 7 and byte_size(end_date) == 7 do
     start_date
     |> get_range(end_date)
-    |> Enum.map(fn d -> build_map_struct(d, meteo_index) end)
+    |> Enum.map(fn d -> build_map_struct(d, meteo_index, variant) end)
   end
 
   defp get_range(start_date, end_date) do
@@ -273,7 +324,7 @@ defmodule BarragensptWeb.ReportsController do
     Map.put(date, "day", "#{d}")
   end
 
-  defp build_map_struct(year, month, meteo_index) do
+  defp build_map_struct(year, month, meteo_index) when is_integer(year) and is_integer(month) do
     month_name = DateHelper.get_month_name({year, month, 1})
     abbreviated_year = String.slice("#{year}", -2, 2)
 
@@ -284,7 +335,7 @@ defmodule BarragensptWeb.ReportsController do
     }
   end
 
-  defp build_map_struct(date, meteo_index) do
+  defp build_map_struct(date, meteo_index, variant) do
     date = Date.to_string(date)
     regex = ~r/^(?'year'\d{4})-(?'month'\d{2})-(?'day'\d{2})$/
     %{"day" => d, "month" => m, "year" => y} = Regex.named_captures(regex, date)
@@ -292,8 +343,15 @@ defmodule BarragensptWeb.ReportsController do
     mx = String.replace(m, "0", "")
     dx = String.replace(d, "0", "")
 
+    url =
+      if variant do
+        "images/#{meteo_index}/svg/daily/#{y}_#{mx}_#{dx}_#{variant}.svg"
+      else
+        "images/#{meteo_index}/svg/daily/#{y}_#{mx}_#{dx}.svg"
+      end
+
     %{
-      url: "images/#{meteo_index}/svg/daily/#{y}_#{mx}_#{dx}.svg",
+      url: url,
       date: "#{d}/#{m}/#{y}",
       year: y
     }

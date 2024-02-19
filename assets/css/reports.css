@@ -59,6 +59,15 @@
     font-size: 14px;
 }
 
+.rain-bar-chart-column {
+    font-size: 9px;
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    flex-grow: unset;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
 .year-column {
     writing-mode: vertical-lr;
     transform: rotate(180deg);
