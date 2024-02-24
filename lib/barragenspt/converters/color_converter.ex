@@ -1,41 +1,26 @@
 defmodule Barragenspt.Converters.ColorConverter do
-  def get_hex_color("precipitation", "rgb(0%,0%,0%)") do
-    "000000"
-  end
+  use Nebulex.Caching
+  alias Barragenspt.Hydrometrics.LegendMapping
+  alias Barragenspt.Repo
+  alias Barragenspt.Cache
+  import Ecto.Query
 
-  def get_hex_color("precipitation", "rgb(21.176471%,5.490196%,21.960784%)") do
-    "360e38"
-  end
+  @ttl :timer.hours(720)
 
-  def get_hex_color("precipitation", "rgb(53.333333%,13.333333%,54.901961%)") do
-    "88218c"
-  end
+  @decorate cacheable(
+              cache: Cache,
+              key: "legend_mapping_#{meteo_index}_#{color_xyz}",
+              ttl: @ttl
+            )
+  def get_hex_color(meteo_index, color_xyz) do
+    query =
+      from(d in LegendMapping,
+        where:
+          d.color_xyz == ^color_xyz and
+            d.meteo_index == ^meteo_index
+      )
 
-  def get_hex_color("precipitation", "rgb(46.27451%,23.921569%,55.294118%)") do
-    "753d8d"
-  end
-
-  def get_hex_color("precipitation", "rgb(40.784314%,36.862745%,59.607843%)") do
-    "685e98"
-  end
-
-  def get_hex_color("precipitation", "rgb(41.568627%,45.490196%,64.313725%)") do
-    "6a74a4"
-  end
-
-  def get_hex_color("precipitation", "rgb(47.058824%,55.294118%,70.588235%)") do
-    "788db4"
-  end
-
-  def get_hex_color("precipitation", "rgb(54.901961%,64.313725%,76.862745%)") do
-    "8da4c4"
-  end
-
-  def get_hex_color("precipitation", "rgb(68.235294%,77.254902%,86.27451%)") do
-    "aec5dc"
-  end
-
-  def get_hex_color("precipitation", "rgb(87.843137%,92.54902%,95.686275%)") do
-    "e0ecf4"
+    lm = Repo.one!(query)
+    lm.color_hex
   end
 end
