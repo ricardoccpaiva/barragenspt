@@ -55,7 +55,10 @@ defmodule Barragenspt.Workers.FetchSvgAreas do
   end
 
   defp stream_calculate_areas(svg_paths) do
-    Stream.map(svg_paths, fn svg_path -> %{svg_path: svg_path, area: calculate_area(svg_path)} end)
+    Stream.map(svg_paths, fn svg_path ->
+      svg_path = extract_path(svg_path)
+      %{svg_path: svg_path, area: calculate_area(svg_path)}
+    end)
   end
 
   defp calculate_area(svg_path) do
