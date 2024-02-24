@@ -11,7 +11,7 @@ defmodule Barragenspt.Workers.FetchSvgAreas do
     "priv/static/svg/basins_pdsi.svg"
     |> Path.expand()
     |> File.read!()
-    |> stream_parse_xml()
+    |> stream_parse_xml(~c"/svg/g/path/@d")
     |> stream_calculate_areas()
     |> Stream.map(fn a -> build_struct(a, "basin") end)
     |> Enum.each(fn a -> Barragenspt.Repo.insert!(a) end)
@@ -19,7 +19,7 @@ defmodule Barragenspt.Workers.FetchSvgAreas do
     "priv/static/svg/pt_map.svg"
     |> Path.expand()
     |> File.read!()
-    |> stream_parse_xml()
+    |> stream_parse_xml(~c"/svg/path/@d")
     |> stream_calculate_areas()
     |> Stream.map(fn a -> build_struct(a, "municipality") end)
     |> Enum.each(fn a -> Barragenspt.Repo.insert!(a) end)
@@ -36,16 +36,22 @@ defmodule Barragenspt.Workers.FetchSvgAreas do
     }
   end
 
-  defp stream_parse_xml(xmldoc) do
+  defp stream_parse_xml(xmldoc, xpath) do
     {doc, []} = xmldoc |> to_charlist() |> :xmerl_scan.string()
 
-    paths_list = :xmerl_xpath.string(~c"/svg/g/path/@d", doc)
+    paths_list = :xmerl_xpath.string(xpath, doc)
+  end
 
-    Stream.map(paths_list, fn pl ->
-      {:xmlAttribute, :d, [], [], [], [path: _p, g: _g, svg: _svg], _, [], path_str, false} = pl
+  defp extract_path(
+         {:xmlAttribute, :d, [], [], [], [path: _p, svg: _g], _svg, [], path_str, false}
+       ) do
+    path_str
+  end
 
-      path_str
-    end)
+  defp extract_path(
+         {:xmlAttribute, :d, [], [], [], [path: _p, g: _g, svg: _svg], _, [], path_str, false}
+       ) do
+    path_str
   end
 
   defp stream_calculate_areas(svg_paths) do

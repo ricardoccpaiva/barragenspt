@@ -20,7 +20,9 @@ defmodule Barragenspt.Converters.ColorConverter do
             d.meteo_index == ^meteo_index
       )
 
-    lm = Repo.one!(query)
-    lm.color_hex
+    query
+    |> Repo.all()
+    |> List.first()
+    |> Map.get(:color_hex)
   end
 end
