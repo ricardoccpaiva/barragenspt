@@ -19,7 +19,7 @@ defmodule Barragenspt.Workers.FetchSvgAreas do
     "priv/static/svg/pt_map.svg"
     |> Path.expand()
     |> File.read!()
-    |> stream_parse_xml(~c"/svg/path/@d")
+    |> stream_parse_xml(~c"/svg/g/path/@d")
     |> stream_calculate_areas()
     |> Stream.map(fn a -> build_struct(a, "municipality") end)
     |> Enum.each(fn a -> Barragenspt.Repo.insert!(a) end)

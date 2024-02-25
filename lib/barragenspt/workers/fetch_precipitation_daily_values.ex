@@ -64,6 +64,8 @@ defmodule Barragenspt.Workers.FetchPrecipitationDailyValues do
     |> Stream.map(fn c -> build_struct(c, year, month, day) end)
     |> Enum.each(fn m -> Barragenspt.Repo.insert!(m) end)
 
+    ExOptimizer.optimize(file_path)
+
     :timer.sleep(50)
 
     :ok
@@ -77,8 +79,6 @@ defmodule Barragenspt.Workers.FetchPrecipitationDailyValues do
       "priv/static/images/precipitation/svg/daily/#{year}_#{month}_#{day}.svg"
 
     File.write!(path, image_payload)
-
-    ExOptimizer.optimize(path)
 
     Logger.info("Successfully got precipitation image (svg format) for #{day}/#{month}/#{year}")
 

@@ -44,6 +44,8 @@ defmodule Barragenspt.Workers.FetchPdsiValues do
     |> Stream.map(fn c -> build_struct(c, year, month, layer) end)
     |> Enum.each(fn m -> Barragenspt.Repo.insert!(m) end)
 
+    ExOptimizer.optimize(file_path)
+
     :ok
   end
 
@@ -54,15 +56,13 @@ defmodule Barragenspt.Workers.FetchPdsiValues do
 
     File.write!(path, image_payload)
 
-    ExOptimizer.optimize(path)
-
     Logger.info("Successfully got PDSI image (svg format) for year #{month}/#{year}")
 
     path
   end
 
   defp build_struct(pdsi_value, year, month, "mpdsi.obsSup.monthly.vector.conc") do
-    build_struct(pdsi_value, year, month, "municipalities")
+    build_struct(pdsi_value, year, month, "municipality")
   end
 
   defp build_struct(pdsi_value, year, month, "mpdsi.obsSup.monthly.vector.baciasHidro") do
