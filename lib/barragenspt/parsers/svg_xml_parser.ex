@@ -4,7 +4,7 @@ defmodule Barragenspt.Parsers.SvgXmlParser do
   def stream_parse_xml(xmldoc, meteo_index) do
     {doc, []} = xmldoc |> to_charlist() |> :xmerl_scan.string()
 
-    paths_list = :xmerl_xpath.string(~c"/svg/path", doc)
+    paths_list = :xmerl_xpath.string(~c"/svg/g/path", doc)
 
     Stream.map(paths_list, fn pl ->
       %{path: path, style: style} = extract_path_and_style(pl)
@@ -21,11 +21,14 @@ defmodule Barragenspt.Parsers.SvgXmlParser do
   end
 
   defp extract_path_and_style(pl) do
-    {:xmlElement, :path, :path, [], {:xmlNamespace, _, []}, [svg: _], _,
+    {:xmlElement, :path, :path, [],
+     {:xmlNamespace, :"http://www.w3.org/2000/svg",
+      [{~c"xlink", :"http://www.w3.org/1999/xlink"}]}, [g: _g, svg: _svg], _n1,
      [
-       {:xmlAttribute, :d, [], [], [], [path: _, svg: _], _, [], path, _},
-       {:xmlAttribute, :style, [], [], [], [path: _, svg: _], _, [], style, _}
-     ], [], [], _, _} = pl
+       {:xmlAttribute, :style, [], [], [], [path: _p1, g: _g1, svg: _svg1], _n2, [], style,
+        false},
+       {:xmlAttribute, :d, [], [], [], [path: _p2, g: _g2, svg: _svg2], _n3, [], path, false}
+     ], [], [], _path, _ignore} = pl
 
     %{path: path, style: style}
   end
