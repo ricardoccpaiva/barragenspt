@@ -1,0 +1,16 @@
+<table id="tbl_magic">
+    <tbody>
+        <%= for {year, map1} <- @maps do %>
+            <tr>
+                <td>
+                    <label class="year-column">
+                        <%= year %>
+                    </label>
+                </td>
+                <td>
+                    <div style="width: 100%; height: 100px" id={"#{year}"} class="vega_chart_rain" />
+                </td>
+            </tr>
+            <% end %>
+    </tbody>
+</table>

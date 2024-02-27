@@ -1,0 +1,14 @@
+<table>
+    <%= for map_url <- @maps do %>
+        <tr>
+            <%= for map <- map_url do %>
+                <td>
+                    <label class="daily-date">
+                        <%= map.date %>
+                    </label>
+                    <img src={map.url} />
+                </td>
+                <% end %>
+        </tr>
+        <% end %>
+</table>
