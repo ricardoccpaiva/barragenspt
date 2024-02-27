@@ -1,16 +1,17 @@
 import "../css/reports.css"
 import '../node_modules/vanillajs-datepicker/dist/css/datepicker-bulma.css';
 import Datepicker from '../node_modules/vanillajs-datepicker/js/Datepicker.js';
-import vegaEmbed from 'vega-embed';
+import { build_pdsi_spec, build_precipitation_spec, build_temperature_spec, draw_spec } from "./vega_lite_specs.js";
 
 if (window.location.pathname == "/reports") {
     let startRangepicker;
     let endRangepicker;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    window.onload = function () {
         const urlParams = new URLSearchParams(window.location.search);
         const meteo_index = urlParams.get('meteo_index');
         const time_frequency = urlParams.get('time_frequency');
+        const viz_type = urlParams.get('viz_type');
         const correlate = urlParams.get('correlate');
 
         if (urlParams.size > 0) {
@@ -21,37 +22,48 @@ if (window.location.pathname == "/reports") {
 
             document.getElementById("time_frequency").value = time_frequency;
             document.getElementById("time_frequency").dispatchEvent(new Event('change'));
+
+            document.getElementById("viz_type").value = viz_type;
+            document.getElementById("viz_type").dispatchEvent(new Event('change'));
         }
 
         if (document.getElementById("chk_correlate").checked) {
             var elements = document.getElementsByClassName("vega_chart_rain");
 
             Array.from(elements).forEach(function (element) {
-
-                spec = {
-                    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                    "data": { "url": "meteo_data?year=" + element.id + ".csv" },
-                    "mark": "bar",
-                    "width": 1100,
-                    "height": 50,
-                    "encoding": {
-                        "x": {
-                            "field": "date", "type": "ordinal",
-                            "axis": {
-                                "ticks": false,
-                                "labels": false
-                            }
-                        },
-                        "y": { "title": "", "aggregate": "mean", "field": "value" }
-                    }
-                }
-
-                vegaEmbed(element, spec, { actions: false })
-                    .then((result) => result.view)
-                    .catch((error) => console.error(error))
+                let spec = build_precipitation_spec(element.id);
+                draw_spec(element, spec);
             });
         }
 
+        if (viz_type == 'chart') {
+            if (meteo_index.includes("temperature")) {
+                var elements = document.getElementsByClassName("vega_chart_temperature");
+
+                Array.from(elements).forEach(function (element) {
+
+                    var chartContainer = document.getElementById("tbl_magic");
+                    var containerWidth = chartContainer.offsetWidth * 0.92;
+                    let [year, month] = element.id.split('-');
+
+                    let spec = build_temperature_spec(year, month, meteo_index, containerWidth);
+
+                    draw_spec(element, spec);
+                });
+            }
+            else {
+                var elements = document.getElementsByClassName("vega_chart_rain");
+
+                Array.from(elements).forEach(function (element) {
+                    var chartContainer = document.getElementById("tbl_magic");
+                    var containerWidth = chartContainer.offsetWidth * 0.92;
+
+                    let spec = build_pdsi_spec(meteo_index, element.id, containerWidth);
+
+                    draw_spec(element, spec);
+                });
+            }
+        }
         const startElem = document.getElementById('start');
         const endElem = document.getElementById('end');
 
@@ -73,6 +85,19 @@ if (window.location.pathname == "/reports") {
             language: 'pt',
             pickLevel: pickLevel
         });
+    };
+
+    document.getElementById('viz_type').addEventListener("change", e => {
+        if (e.currentTarget.value == "chart") {
+            document.getElementById("viz_mode_div").classList.add("hidden");
+            document.getElementById("chk_correlate").checked = false;
+            document.getElementById("chk_correlate_div").classList.add("hidden");
+        }
+        else {
+            document.getElementById("viz_mode_div").classList.remove("hidden");
+            document.getElementById("chk_correlate_div").classList.remove("hidden");
+        }
+
     });
 
     document.getElementById('meteo_index').addEventListener("change", e => {
@@ -84,6 +109,9 @@ if (window.location.pathname == "/reports") {
                     opt.disabled = true;
                     document.getElementById("time_frequency").value = "monthly";
                     document.getElementById("time_frequency").dispatchEvent(new Event('change'));
+                }
+                else {
+                    opt.disabled = false;
                 }
             });
         }

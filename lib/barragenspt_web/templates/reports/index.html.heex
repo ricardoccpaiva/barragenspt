@@ -39,12 +39,42 @@
             </div>
           </div>
         </div>
-        <label class="checkbox chk-correlate">
+      </div>
+      <div style="margin-left: 20px; margin-top: 10px;">
+        <div class="field">
+          <label class="label">Tipo visualização 📊</label>
+          <div class="control">
+            <div class="select is-small">
+              <p>
+                <select id="viz_type" name="viz_type">
+                  <option value="map">Mapa</option>
+                  <option value="chart">Gráfico</option>
+                </select>
+              </p>
+            </div>
+          </div>
+        </div>
+        <label class="checkbox chk-correlate" id="chk_correlate_div">
           <input id="chk_correlate" name="correlate" type="checkbox">
           Mostrar informação sobre precipitação
         </label>
       </div>
 
+      <div style="margin-left: 20px; margin-top: 10px;" id="viz_mode_div">
+        <div class="field">
+          <label class="label">Modo visualização 📹</label>
+          <div class="control">
+            <div class="select is-small">
+              <p>
+                <select id="viz_mode" name="viz_mode">
+                  <option value="static">Estático</option>
+                  <option value="animated">Animado</option>
+                </select>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div style="margin-left: 20px; margin-top: 10px;">
         <div class="field">
@@ -55,21 +85,6 @@
                 <select id="time_frequency" name="time_frequency">
                   <option value="daily" disabled>Diário</option>
                   <option value="monthly">Mensal</option>
-                </select>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div style="margin-left: 20px; margin-top: 10px;">
-        <div class="field">
-          <label class="label">Modo visualização 📹</label>
-          <div class="control">
-            <div class="select is-small">
-              <p>
-                <select id="viz_mode" name="viz_mode">
-                  <option value="static">Estático</option>
-                  <option value="animated">Animado</option>
                 </select>
               </p>
             </div>
@@ -123,150 +138,24 @@
                     <%= @title %>
                   </label>
                 </div>
-                <div class="reports-header box">
-                  <%= if @meteo_index=="precipitation" do %>
-                    <div class="columns reports-legend-group reports-legend-group-precipitation">
-                      <div class="column reports-legend">
-                        <div style="font-weight: bold">Precipitação (mm)</div>
-                      </div>
-                      <div class="column reports-legend">
-                        <div><span style="background-color: #000000"></span>100</div>
-                      </div>
-                      <div class="column reports-legend">
-                        <div><span style="background-color: #360e38"></span>80-100</div>
-                      </div>
-                      <div class="column reports-legend">
-                        <div><span style="background-color: #88228c"></span>60-80</div>
-                      </div>
-                      <div class="column reports-legend">
-                        <div><span style="background-color: #763d8d"></span>40-60</div>
-                      </div>
-                      <div class="column reports-legend">
-                        <div><span style="background-color: #685e98"></span>20-40</div>
-                      </div>
-                      <div class="column reports-legend">
-                        <div><span style="background-color: #6a74a4"></span>10-20</div>
-                      </div>
-                      <div class="column reports-legend">
-                        <div><span style="background-color: #788db4"></span>5-10</div>
-                      </div>
-                      <div class="column reports-legend">
-                        <div><span style="background-color: #8ca4c4"></span>1-5</div>
-                      </div>
-                      <div class="column reports-legend">
-                        <div><span style="background-color: #aec5dc"></span>0.5-1</div>
-                      </div>
-                      <div class="column reports-legend">
-                        <div><span style="background-color: #e0ecf4"></span>0-0.5</div>
-                      </div>
-                    </div>
-                    <% end %>
-                      <%= if @meteo_index=="pdsi" do %>
-                        <div class="columns reports-legend-group">
-                          <div class="column reports-legend">
-                            <div style="font-weight: bold">Classes do PDSI</div>
-                          </div>
-                          <div class="column reports-legend">
-                            <div><span style="background-color: #218291"></span>Chuva extrema</div>
-                          </div>
-                          <div class="column reports-legend">
-                            <div><span style="background-color: #5c9e9c"></span>Chuva severa</div>
-                          </div>
-                          <div class="column reports-legend">
-                            <div><span style="background-color: #91bda8"></span>Chuva moderada</div>
-                          </div>
-                          <div class="column reports-legend">
-                            <div><span style="background-color: #c7deb4"></span>Chuva fraca</div>
-                          </div>
-                          <div class="column reports-legend">
-                            <div><span style="background-color: #e9ffbe"></span>Normal</div>
-                          </div>
-                          <div class="column reports-legend">
-                            <div><span style="background-color: #e8cf90"></span>Seca fraca</div>
-                          </div>
-                          <div class="column reports-legend">
-                            <div><span style="background-color: #cfa263"></span>Seca moderada</div>
-                          </div>
-                          <div class="column reports-legend">
-                            <div><span style="background-color: #b5773e"></span>Seca severa</div>
-                          </div>
-                          <div class="column reports-legend">
-                            <div><span style="background-color: #9c551f"></span>Seca extrema</div>
-                          </div>
-                        </div>
-                        <% end %>
-                </div>
-                <div class="table-container">
-                  <%= if @time_frequency=="monthly" do %>
-                    <table>
-                      <thead>
-                        <tr class="reports-header" style="margin-top: 100px">
-                          <th class="first-header"></th>
-                          <th class="xeca">Jan</th>
-                          <th>Fev</th>
-                          <th>Mar</th>
-                          <th>Abr</th>
-                          <th>Mai</th>
-                          <th>Jun</th>
-                          <th>Jul</th>
-                          <th>Ago</th>
-                          <th>Set</th>
-                          <th>Out</th>
-                          <th>Nov</th>
-                          <th class="last-header">Dez</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <%= for {year, map1} <- @maps do %>
-                          <tr>
-                            <td>
-                              <label class="year-column">
-                                <%= year %>
-                              </label>
-                            </td>
-                            <%= for map <- map1 do %>
-                              <td>
-                                <img src={map.url} />
-                              </td>
-                              <% end %>
-                          </tr>
-                          <%= if @correlate=="on" do %>
-                            <tr>
-                              <td>
-                                <label class="rain-bar-chart-column">
-                                  Precipitação
-                                </label>
-                              </td>
-                              <td colspan="12">
-                                <div style="width: 100%; height: 100px" id={"#{year}"} class="vega_chart_rain" />
-                              </td>
-                            </tr>
-                            <% end %>
-                              <% end %>
-                      </tbody>
-                    </table>
+                <%= if @viz_type=="map" do %>
+                  <%= render "_viz_type_map.html" , assigns %>
                     <% end %>
 
-                      <%= if @time_frequency=="daily" do %>
-                        <table>
-                          <%= for map_url <- @maps do %>
-                            <tr>
-                              <%= for map <- map_url do %>
-                                <td>
-                                  <label class="daily-date">
-                                    <%= map.date %>
-                                  </label>
-                                  <img src={map.url} />
-                                </td>
-                                <% end %>
-                            </tr>
-                            <% end %>
-                        </table>
-                        <% end %>
-                </div>
-                <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
-                <!--<div id='map' style="height: 100%;" phx-update="ignore"></div>-->
-                <% end %>
+
+
+                      <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
+                      <!--<div id='map' style="height: 100%;" phx-update="ignore"></div>-->
+
+                        <%= if @viz_type=="chart" do %>
+                          <%= if @meteo_index=="pdsi" do %>
+                            <%= render "_pdsi_vtt.html" , assigns %>
+                              <% end %>
+                                <%= if @meteo_index=="temperature" do %>
+                                  <%= render "_temperature_vtt.html" , assigns %>
+                                    <% end %>
+                                      <% end %>
+                                        <% end %>
     </div>
   </div>
   <%end %>
