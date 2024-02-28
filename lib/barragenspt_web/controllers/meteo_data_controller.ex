@@ -5,7 +5,6 @@ defmodule BarragensptWeb.MeteoDataController do
   alias Barragenspt.Meteo.Temperature
   alias Barragenspt.Meteo.Precipitation
   alias Barragenspt.Meteo.Pdsi
-  import Ecto.Query
 
   def index(conn, %{"year" => year, "month" => month, "meteo_index" => meto_index}) do
     year = String.to_integer(year)

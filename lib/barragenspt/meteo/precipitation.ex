@@ -5,7 +5,6 @@ defmodule Barragenspt.Meteo.Precipitation do
   alias Barragenspt.Repo
   alias Barragenspt.Hydrometrics.SvgArea
   alias Barragenspt.Hydrometrics.PrecipitationDailyValue
-  alias Barragenspt.Hydrometrics.PdsiValue
   alias Barragenspt.Hydrometrics.LegendMapping
 
   @decorate cacheable(
