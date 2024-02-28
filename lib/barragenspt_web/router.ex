@@ -19,6 +19,8 @@ defmodule BarragensptWeb.Router do
 
     get("/dams", DamController, :index)
     get("/basins", BasinController, :index)
+    get("/reports", ReportsController, :index)
+    get("/meteo_data", MeteoDataController, :index)
 
     live_session :default do
       live("/", HomepageLive, :index)
