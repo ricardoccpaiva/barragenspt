@@ -1,192 +1,198 @@
 <%= form_for @conn.params, Routes.reports_path(@conn, :index), [method: :get], fn f -> %>
-
-  <div class="grid-container">
-    <div id="menu-icon" class="menu-icon" data-position='top'>
+<div class="grid-container">
+   <div id="menu-icon" class="menu-icon" data-position='top'>
       <i class="fa-solid fa-bars header__menu"></i>
-    </div>
-
-    <aside id="sidebar" class="sidebar">
+   </div>
+   <aside id="sidebar" class="sidebar">
       <div id="sidebar__close-icon" class="sidebar__close-icon">
-        <i class="fas fa-times sidebar__brand-close"></i>
+         <i class="fas fa-times sidebar__brand-close"></i>
       </div>
       <div style="margin-left: 20px; margin-top:10px;">
-        <div class="field" style="margin-top: 0px;">
-          <button class="js-modal-trigger credits-btn" data-target="credits-modal">
+         <div class="field" style="margin-top: 0px;">
+            <button class="js-modal-trigger credits-btn" data-target="credits-modal">
             <label class="label info-label">Acerca</label>
             <i id="info_credits" style="cursor: pointer" class="fa-solid fa-circle-info"></i>
-          </button>
-          <div class="credits-in-menu" style="margin-top: 5px">
-            <a href="https://www.buymeacoffee.com/barragenspt">
-              <img style="height: 30px"
-                src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
-            </a>
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="label">Indicadores meteorológicos 💧</label>
-          <div class="control">
-            <div class="select is-small">
-              <p>
-                <select id="meteo_index" name="meteo_index">
-                  <option value="basin_storage">Água armazenada 💦</option>
-                  <option value="pdsi">Índice de seca (PDSI) 🌱</option>
-                  <option value="precipitation">Precipitação acumulada 🌧️</option>
-                  <option value="min_temperature">Temperatura mínima ❄️</option>
-                  <option value="max_temperature">Temperatura máxima ☀️</option>
-                </select>
-              </p>
+            </button>
+            <div class="credits-in-menu" style="margin-top: 5px">
+               <a href="https://www.buymeacoffee.com/barragenspt">
+               <img style="height: 30px"
+                  src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+               </a>
             </div>
-          </div>
-        </div>
+         </div>
+         <div class="field">
+            <label class="label">Indicadores meteorológicos 💧</label>
+            <div class="control">
+               <div class="select is-small">
+                  <p>
+                     <select id="meteo_index" name="meteo_index">
+                        <option value="basin_storage">Água armazenada 💦</option>
+                        <option value="pdsi">Índice de seca (PDSI) 🌱</option>
+                        <option value="precipitation">Precipitação acumulada 🌧️</option>
+                        <option value="min_temperature">Temperatura mínima ❄️</option>
+                        <option value="max_temperature">Temperatura máxima ☀️</option>
+                     </select>
+                  </p>
+               </div>
+            </div>
+         </div>
       </div>
       <div style="margin-left: 20px; margin-top: 10px;">
-        <div class="field">
-          <label class="label">Tipo visualização 📊</label>
-          <div class="control">
-            <div class="select is-small">
-              <p>
-                <select id="viz_type" name="viz_type">
-                  <option value="map">Mapa</option>
-                  <option value="chart">Gráfico</option>
-                </select>
-              </p>
+         <div class="field">
+            <label class="label">Tipo visualização 📊</label>
+            <div class="control">
+               <div class="select is-small">
+                  <p>
+                     <select id="viz_type" name="viz_type">
+                        <option value="map">Mapa</option>
+                        <option value="chart">Gráfico</option>
+                     </select>
+                  </p>
+               </div>
             </div>
-          </div>
-        </div>
-        <label class="checkbox chk-correlate" id="chk_correlate_div">
-          <input id="chk_correlate" name="correlate" type="checkbox">
-          Mostrar informação sobre precipitação
-        </label>
+         </div>
+         <label class="checkbox chk-correlate" id="chk_correlate_div">
+         <input id="chk_correlate" name="correlate" type="checkbox">
+         Mostrar informação sobre precipitação
+         </label>
       </div>
-
+      <div style="margin-left: 20px; margin-top: 10px;" id="scale_type_div" class="hidden">
+         <div class="field">
+            <label class="label">Escala 🔢</label>
+            <div class="control">
+               <div class="select is-small">
+                  <p>
+                     <select id="scale_type" name="scale_type">
+                        <option value="absolute">Absoluta</option>
+                        <option value="relative">Relativa</option>
+                     </select>
+                  </p>
+               </div>
+            </div>
+         </div>
+      </div>
       <div style="margin-left: 20px; margin-top: 10px;" id="viz_mode_div">
-        <div class="field">
-          <label class="label">Modo visualização 📹</label>
-          <div class="control">
-            <div class="select is-small">
-              <p>
-                <select id="viz_mode" name="viz_mode">
-                  <option value="static">Estático</option>
-                  <option value="animated">Animado</option>
-                </select>
-              </p>
+         <div class="field">
+            <label class="label">Modo visualização 📹</label>
+            <div class="control">
+               <div class="select is-small">
+                  <p>
+                     <select id="viz_mode" name="viz_mode">
+                        <option value="static">Estático</option>
+                        <option value="animated">Animado</option>
+                     </select>
+                  </p>
+               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-left: 20px; margin-top: 10px;">
-        <div class="field">
-          <label class="label">Frequência 🕖</label>
-          <div class="control">
-            <div class="select is-small">
-              <p>
-                <select id="time_frequency" name="time_frequency">
-                  <option value="daily" disabled>Diário</option>
-                  <option value="monthly">Mensal</option>
-                </select>
-              </p>
-            </div>
-          </div>
-        </div>
+         </div>
       </div>
       <div style="margin-left: 20px; margin-top: 10px;">
-        <div class="field">
-          <label class="label">Periodo 📅</label>
-          <div class="control">
-            <div class="field">
-              <span class="label-datepicker">De</span>
-              <input type="text" class="input is-small bpt-datepicker" id="start" name="start" value={@dt_start}>
+         <div class="field">
+            <label class="label">Frequência 🕖</label>
+            <div class="control">
+               <div class="select is-small">
+                  <p>
+                     <select id="time_frequency" name="time_frequency">
+                        <option value="daily" disabled>Diário</option>
+                        <option value="monthly">Mensal</option>
+                     </select>
+                  </p>
+               </div>
             </div>
-
-            <div class="field">
-              <span class="label-datepicker">Até</span>
-              <input type="text" class="input is-small bpt-datepicker" id="end" name="end" value={@dt_end}>
+         </div>
+      </div>
+      <div style="margin-left: 20px; margin-top: 10px;">
+         <div class="field">
+            <label class="label">Periodo 📅</label>
+            <div class="control">
+               <div class="field">
+                  <span class="label-datepicker">De</span>
+                  <input type="text" class="input is-small bpt-datepicker" id="start" name="start" value={@dt_start}>
+               </div>
+               <div class="field">
+                  <span class="label-datepicker">Até</span>
+                  <input type="text" class="input is-small bpt-datepicker" id="end" name="end" value={@dt_end}>
+               </div>
             </div>
-          </div>
-        </div>
+         </div>
       </div>
       <div style="margin-left: 20px; margin-top: 25px;">
-        <div class="field">
-          <button type="submit" class="button is-link is-normal" title="Disabled button">Analisar 🛠️</button>
-        </div>
+         <div class="field">
+            <button type="submit" class="button is-link is-normal" title="Disabled button">Analisar 🛠️</button>
+         </div>
       </div>
-    </aside>
-
-
-    <div id="main" class="main">
+   </aside>
+   <div id="main" class="main">
       <%= if @errors do %>
-        <div class="notification report-notification is-warning">
-          <button class="delete"></button>
-          <strong class="error-message-title">Ops, encontrámos alguns erros....</strong>
-          <div class="error-messages">
+      <div class="notification report-notification is-warning">
+         <button class="delete"></button>
+         <strong class="error-message-title">Ops, encontrámos alguns erros....</strong>
+         <div class="error-messages">
             <%= @errors %>
-          </div>
-        </div>
+         </div>
+      </div>
+      <% end %>
+      <%= if !Enum.any?(@maps) && !@errors do %>
+      <div class="reports-header box" style="margin-bottom: 6px;">
+         <label class="label">
+         Por favor use os filtros do menu à esquerda para começar.
+         </label>
+      </div>
+      <% end %>
+      <%= if Enum.any?(@maps) do %>
+      <div class="reports-header box" style="margin-bottom: 6px;">
+         <label class="label reports-header-text">
+         <%= @title %>
+         </label>
+      </div>
+      <%= if @viz_type=="map" do %>
+        <%= render "_viz_type_map.html" , assigns %>
+      <% end %>
+      <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
+      <!--<div id='map' style="height: 100%;" phx-update="ignore"></div>-->
+      <%= if @viz_type=="chart" do %>
+        <%= if @meteo_index=="pdsi" do %>
+          <%= render "_pdsi_vtt.html" , assigns %>
         <% end %>
-          <%= if !Enum.any?(@maps) && !@errors do %>
-            <div class="reports-header box" style="margin-bottom: 6px;">
-              <label class="label">
-                Por favor use os filtros do menu à esquerda para começar.
-              </label>
-            </div>
-            <% end %>
-              <%= if Enum.any?(@maps) do %>
-                <div class="reports-header box" style="margin-bottom: 6px;">
-                  <label class="label reports-header-text">
-                    <%= @title %>
-                  </label>
-                </div>
-                <%= if @viz_type=="map" do %>
-                  <%= render "_viz_type_map.html" , assigns %>
-                    <% end %>
-
-
-
-                      <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
-                      <!--<div id='map' style="height: 100%;" phx-update="ignore"></div>-->
-
-                        <%= if @viz_type=="chart" do %>
-                          <%= if @meteo_index=="pdsi" do %>
-                            <%= render "_pdsi_vtt.html" , assigns %>
-                              <% end %>
-                                <%= if @meteo_index=="temperature" do %>
-                                  <%= render "_temperature_vtt.html" , assigns %>
-                                    <% end %>
-                                      <% end %>
-                                        <% end %>
-    </div>
-  </div>
-  <%end %>
-    <script>
-      document.getElementById('main').addEventListener("click", e => {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar.classList.contains('active')) {
-          sidebar.classList.remove('active');
-        }
-      });
-
-      const menuIconEl = document.getElementById('menu-icon');
-      const sidenavEl = document.getElementById('sidebar');
-      const sidenavCloseEl = document.getElementById('sidebar__close-icon');
-
-      // Add and remove provided class names
-      function toggleClassName(el, className) {
-        if (el.classList.contains(className)) {
-          el.classList.remove(className);
-        } else {
-          el.classList.add(className);
-        }
-      }
-
-      // Open the side nav on click
-      menuIconEl.addEventListener("click", e => {
-        toggleClassName(sidenavEl, 'active');
-      });
-
-      // Close the side nav on click
-      sidenavCloseEl.addEventListener("click", e => {
-        toggleClassName(sidenavEl, 'active');
-      });
-    </script>
+        <%= if @meteo_index=="temperature" do %>
+          <%= render "_temperature_vtt.html" , assigns %>
+        <% end %>
+        <%= if @meteo_index=="precipitation" do %>
+          <%= render "_pdsi_vtt.html" , assigns %>
+        <% end %>
+      <% end %>
+    <% end %>
+   </div>
+</div>
+<%end %>
+<script>
+   document.getElementById('main').addEventListener("click", e => {
+     const sidebar = document.getElementById('sidebar');
+     if (sidebar.classList.contains('active')) {
+       sidebar.classList.remove('active');
+     }
+   });
+   
+   const menuIconEl = document.getElementById('menu-icon');
+   const sidenavEl = document.getElementById('sidebar');
+   const sidenavCloseEl = document.getElementById('sidebar__close-icon');
+   
+   // Add and remove provided class names
+   function toggleClassName(el, className) {
+     if (el.classList.contains(className)) {
+       el.classList.remove(className);
+     } else {
+       el.classList.add(className);
+     }
+   }
+   
+   // Open the side nav on click
+   menuIconEl.addEventListener("click", e => {
+     toggleClassName(sidenavEl, 'active');
+   });
+   
+   // Close the side nav on click
+   sidenavCloseEl.addEventListener("click", e => {
+     toggleClassName(sidenavEl, 'active');
+   });
+</script>
