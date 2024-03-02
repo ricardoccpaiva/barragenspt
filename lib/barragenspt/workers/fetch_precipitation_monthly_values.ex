@@ -67,7 +67,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
       color_hex: pdsi_value.color_hex,
       year: year,
       month: month,
-      geographic_area_type: "municipalities"
+      geographic_area_type: "municipality"
     }
   end
 end
