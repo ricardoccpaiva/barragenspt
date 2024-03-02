@@ -5,8 +5,10 @@ defmodule BarragensptWeb.ReportsController do
         conn,
         params = %{
           "meteo_index" => meteo_index,
-          "viz_mode" => _viz_mode,
+          "viz_mode" => viz_mode,
+          "viz_type" => viz_type,
           "time_frequency" => "monthly",
+          "scale_type" => scale_type,
           "start" => dt_start,
           "end" => dt_end
         }
@@ -23,7 +25,10 @@ defmodule BarragensptWeb.ReportsController do
           maps: map_urls,
           time_frequency: "monthly",
           meteo_index: meteo_index,
+          viz_type: viz_type,
+          viz_mode: viz_mode,
           dt_start: dt_start,
+          scale_type: scale_type,
           dt_end: dt_end,
           errors: nil,
           correlate: Map.get(params, "correlate", "off"),
@@ -60,7 +65,8 @@ defmodule BarragensptWeb.ReportsController do
         conn,
         %{
           "meteo_index" => meteo_index,
-          "viz_mode" => _viz_mode,
+          "viz_mode" => viz_mode,
+          "viz_type" => viz_type,
           "time_frequency" => "daily",
           "start" => dt_start,
           "end" => dt_end
@@ -73,14 +79,20 @@ defmodule BarragensptWeb.ReportsController do
     case parse_and_validate_date_range(dt_start, dt_end, meteo_index) do
       :ok ->
         map_urls =
-          dt_start
-          |> get_range(dt_end, meteo_index, variant)
-          |> Enum.chunk_every(12)
+          if viz_type == "chart" do
+            DateHelper.generate_monthly_maps(dt_start, dt_end)
+          else
+            dt_start
+            |> get_range(dt_end, meteo_index, variant)
+            |> Enum.chunk_every(12)
+          end
 
         render(conn, :index,
           maps: map_urls,
           time_frequency: "daily",
           meteo_index: meteo_index,
+          viz_type: viz_type,
+          viz_mode: viz_mode,
           dt_start: dt_start,
           dt_end: dt_end,
           errors: nil,
@@ -345,7 +357,7 @@ defmodule BarragensptWeb.ReportsController do
     dx = String.replace(d, "0", "")
 
     url =
-      if variant do
+      if variant in ["min", "max"] do
         "images/#{meteo_index}/svg/daily/#{y}_#{mx}_#{dx}_#{variant}.svg"
       else
         "images/#{meteo_index}/svg/daily/#{y}_#{mx}_#{dx}.svg"
@@ -356,13 +368,5 @@ defmodule BarragensptWeb.ReportsController do
       date: "#{d}/#{m}/#{y}",
       year: y
     }
-  end
-end
-
-defmodule DateHelper do
-  @months ~w(Jan Fev Mar Abr Mai Jun Jul Ago Set Out Nov Dez)a
-
-  def get_month_name({_year, month, _day}) do
-    Enum.at(@months, month - 1)
   end
 end
