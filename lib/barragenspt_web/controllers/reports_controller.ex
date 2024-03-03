@@ -1,6 +1,13 @@
 defmodule BarragensptWeb.ReportsController do
   use BarragensptWeb, :controller
 
+  @mappings [
+    %{meteo_index: "temperature", limits: %{min: 2000, max: 2024}},
+    %{meteo_index: "precipitation", limits: %{min: 2000, max: 2024}},
+    %{meteo_index: "pdsi", limits: %{min: 1981, max: 2024}},
+    %{meteo_index: "basin_storage", limits: %{min: 1981, max: 2024}}
+  ]
+
   def index(
         conn,
         params = %{
@@ -13,13 +20,14 @@ defmodule BarragensptWeb.ReportsController do
           "end" => dt_end
         }
       ) do
-    case parse_and_validate_date_range(dt_start, dt_end, meteo_index) do
-      :ok ->
+    case parse_and_validate_date_range(dt_start, dt_end, meteo_index, :monthly) do
+      {:ok, dates: %{start_date: start_date, end_date: end_date}} ->
         map_urls =
-          dt_start
-          |> get_range(dt_end, meteo_index)
+          get_range(start_date, end_date, meteo_index, :monthly)
           |> Enum.group_by(fn r -> r.year end)
           |> Map.to_list()
+
+        dbg()
 
         render(conn, :index,
           maps: map_urls,
@@ -77,7 +85,7 @@ defmodule BarragensptWeb.ReportsController do
     variant = List.first(meteo_index_parts)
 
     case parse_and_validate_date_range(dt_start, dt_end, meteo_index) do
-      :ok ->
+      {:ok, dates: %{start_date: start_date, end_date: end_date}} ->
         map_urls =
           if viz_type == "chart" do
             DateHelper.generate_monthly_maps(dt_start, dt_end)
@@ -165,169 +173,90 @@ defmodule BarragensptWeb.ReportsController do
     "Observação mensal da água armazenada 💦 entre #{dt_start} e #{dt_end}"
   end
 
-  defp parse_and_validate_date_range(start_date, end_date, "temperature")
-       when byte_size(start_date) == 7 and byte_size(end_date) == 7 do
-    %{"day" => s_d, "month" => s_m, "year" => s_y} = parse_date(start_date)
-    %{"day" => e_d, "month" => e_m, "year" => e_y} = parse_date(end_date)
+  defp parse_and_validate_date_range(
+         start_date,
+         end_date,
+         meteo_index,
+         time_frequency \\ :monthly
+       ) do
+    start_date = parse_date(start_date)
+    end_date = parse_date(end_date, time_frequency == :monthly)
 
-    if String.to_integer(s_y) < 2000 || String.to_integer(e_y) < 2000 do
-      {:error, :invalid_date_precipitation}
+    case validate_date_limits(start_date, end_date, meteo_index, time_frequency) do
+      :ok -> {:ok, dates: %{start_date: start_date, end_date: end_date}}
+      error -> error
+    end
+  end
+
+  defp validate_date_limits(start_date, end_date, meteo_index, time_frequency) do
+    %{limits: %{min: min, max: max}} =
+      Enum.find(@mappings, fn m -> m.meteo_index == meteo_index end)
+
+    if start_date.year < min || end_date.year < min do
+      {:error, :invalid_min_date}
     else
-      start_date =
-        Date.new!(
-          String.to_integer(s_y),
-          String.to_integer(s_m),
-          String.to_integer(s_d)
-        )
-
-      end_date =
-        Date.new!(
-          String.to_integer(e_y),
-          String.to_integer(e_m),
-          String.to_integer(e_d)
-        )
-
-      if Date.diff(end_date, start_date) > 365 do
-        {:error, :period_too_long}
+      if start_date.year > max || end_date.year > max do
+        {:error, :invalid_max_date}
       else
-        :ok
+        if end_date < start_date do
+          {:error, :start_lt_end}
+        else
+          if Date.diff(end_date, start_date) > 365 && meteo_index == "precipitation" &&
+               time_frequency == :daily do
+            {:error, :period_too_long}
+          else
+            :ok
+          end
+        end
       end
     end
   end
 
-  defp parse_and_validate_date_range(start_date, end_date, "precipitation")
-       when byte_size(start_date) == 7 and byte_size(end_date) == 7 do
-    %{"day" => s_d, "month" => s_m, "year" => s_y} = parse_date(start_date)
-    %{"day" => e_d, "month" => e_m, "year" => e_y} = parse_date(end_date)
+  defp get_range(start_date, end_date, meteo_index, time_frequency) do
+    range = Date.range(start_date, end_date)
 
-    if String.to_integer(s_y) < 2000 || String.to_integer(e_y) < 2000 do
-      {:error, :invalid_date_precipitation}
+    range
+    |> Enum.reject(fn r -> r.day > 1 && time_frequency == :monthly end)
+    |> Enum.map(fn r -> build_map_struct(r.year, r.month, meteo_index) end)
+  end
+
+  defp get_range(start_date, end_date, meteo_index, variant) do
+    range = Date.range(start_date, end_date)
+
+    Enum.map(range, fn r -> build_map_struct(r, meteo_index, variant) end)
+  end
+
+  defp parse_date(date, is_end_date \\ false) do
+    regex_year_month = ~r/^(?'month'\d{2})\/(?'year'\d{4})$/
+    regex_year = ~r/^(?'year'\d{4})$/
+
+    if(Regex.match?(regex_year_month, date)) do
+      %{"month" => m, "year" => y} = Regex.named_captures(regex_year_month, date)
+
+      y = String.to_integer(y)
+      m = String.to_integer(m)
+
+      Date.new!(y, m, 1)
     else
-      start_date =
-        Date.new!(
-          String.to_integer(s_y),
-          String.to_integer(s_m),
-          String.to_integer(s_d)
-        )
+      if Regex.match?(regex_year, date) do
+        %{"year" => y} = Regex.named_captures(regex_year, date)
 
-      end_date =
-        Date.new!(
-          String.to_integer(e_y),
-          String.to_integer(e_m),
-          String.to_integer(e_d)
-        )
+        y = String.to_integer(y)
 
-      if Date.diff(end_date, start_date) > 365 do
-        {:error, :period_too_long}
+        if is_end_date do
+          Date.new!(y, 12, 31)
+        else
+          Date.new!(y, 1, 1)
+        end
       else
-        :ok
+        {:error, :invalid_date}
       end
     end
-  end
-
-  defp parse_and_validate_date_range(start_date, end_date, "pdsi")
-       when byte_size(start_date) == 7 and byte_size(end_date) == 7 do
-    %{"day" => s_d, "month" => s_m, "year" => s_y} = parse_date(start_date)
-    %{"day" => e_d, "month" => e_m, "year" => e_y} = parse_date(end_date)
-
-    if String.to_integer(s_y) < 1981 || String.to_integer(e_y) < 1981 do
-      {:error, :invalid_date_pdsi}
-    else
-      start_date =
-        Date.new!(
-          String.to_integer(s_y),
-          String.to_integer(s_m),
-          String.to_integer(s_d)
-        )
-
-      end_date =
-        Date.new!(
-          String.to_integer(e_y),
-          String.to_integer(e_m),
-          String.to_integer(e_d)
-        )
-
-      if end_date < start_date do
-        {:error, :start_lt_end}
-      else
-        :ok
-      end
-    end
-  end
-
-  defp parse_and_validate_date_range(start_date, end_date, "precipitation")
-       when byte_size(start_date) == 4 and byte_size(end_date) == 4 do
-    if String.to_integer(start_date) < 2000 || String.to_integer(end_date) < 2000 do
-      {:error, :invalid_date_precipitation}
-    else
-      if String.to_integer(start_date) > String.to_integer(end_date) do
-        {:error, :start_lt_end}
-      else
-        :ok
-      end
-    end
-  end
-
-  defp parse_and_validate_date_range(start_date, end_date, "pdsi")
-       when byte_size(start_date) == 4 and byte_size(end_date) == 4 do
-    if String.to_integer(start_date) > String.to_integer(end_date) do
-      {:error, :start_lt_end}
-    else
-      :ok
-    end
-  end
-
-  defp parse_and_validate_date_range(start_date, end_date, "basin_storage")
-       when byte_size(start_date) == 4 and byte_size(end_date) == 4 do
-    if String.to_integer(start_date) > String.to_integer(end_date) do
-      {:error, :start_lt_end}
-    else
-      :ok
-    end
-  end
-
-  defp get_range(start_date, end_date, meteo_index)
-       when byte_size(start_date) == 4 and byte_size(end_date) == 4 do
-    for year <- String.to_integer(start_date)..String.to_integer(end_date),
-        month <- 1..12,
-        do: build_map_struct(year, month, meteo_index)
-  end
-
-  defp get_range(start_date, end_date, meteo_index, variant \\ nil)
-       when byte_size(start_date) == 7 and byte_size(end_date) == 7 do
-    start_date
-    |> get_range(end_date)
-    |> Enum.map(fn d -> build_map_struct(d, meteo_index, variant) end)
-  end
-
-  defp get_range(start_date, end_date) do
-    %{"day" => s_d, "month" => s_m, "year" => s_y} = parse_date(start_date)
-    %{"day" => e_d, "month" => e_m, "year" => e_y} = parse_date(end_date, :end_date)
-
-    start_date =
-      Date.new!(
-        String.to_integer(s_y),
-        String.to_integer(s_m),
-        String.to_integer(s_d)
-      )
-
-    end_date =
-      Date.new!(
-        String.to_integer(e_y),
-        String.to_integer(e_m),
-        String.to_integer(e_d)
-      )
-
-    Date.range(start_date, end_date)
-  end
-
-  defp parse_date(date) do
-    ~r/^(?'month'\d{2})\/(?'year'\d{4})$/
-    |> Regex.named_captures(date)
-    |> Map.put("day", "1")
   end
 
   defp parse_date(date, :end_date) do
+    dbg()
+
     date =
       %{"month" => m, "year" => y} =
       Regex.named_captures(~r/^(?'month'\d{2})\/(?'year'\d{4})$/, date)
