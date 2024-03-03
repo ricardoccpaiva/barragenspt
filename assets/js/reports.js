@@ -38,7 +38,7 @@ if (window.location.pathname == "/reports") {
         }
 
         if (document.getElementById("chk_correlate").checked) {
-            var elements = document.getElementsByClassName("vega_chart_rain");
+            var elements = document.getElementsByClassName("vega_chart");
 
             Array.from(elements).forEach(function (element) {
                 let spec = build_precipitation_spec(element.id);
@@ -68,6 +68,7 @@ if (window.location.pathname == "/reports") {
                 var containerWidth = chartContainer.offsetWidth * 0.92;
                 var scale = document.getElementById("scale_type").value
 
+                console.log(elements);
                 Array.from(elements).forEach(function (element) {
                     if (time_frequency == "monthly") {
                         let spec = build_monthly_precipitation_spec(meteo_index, element.id, containerWidth, scale);
@@ -82,7 +83,7 @@ if (window.location.pathname == "/reports") {
                     }
                 });
             } else if (meteo_index == "pdsi") {
-                var elements = document.getElementsByClassName("vega_chart_rain");
+                var elements = document.getElementsByClassName("vega_chart");
                 Array.from(elements).forEach(function (element) {
                     console.log(element.id);
                     var chartContainer = document.getElementById("tbl_magic");
