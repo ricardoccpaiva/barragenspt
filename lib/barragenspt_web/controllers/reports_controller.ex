@@ -1,11 +1,30 @@
 defmodule BarragensptWeb.ReportsController do
   use BarragensptWeb, :controller
 
-  @mappings [
+  @meteo_index_limits_mapping [
     %{meteo_index: "temperature", limits: %{min: 2000, max: 2024}},
     %{meteo_index: "precipitation", limits: %{min: 2000, max: 2024}},
     %{meteo_index: "pdsi", limits: %{min: 1981, max: 2024}},
     %{meteo_index: "basin_storage", limits: %{min: 1981, max: 2024}}
+  ]
+
+  @error_types_mapping [
+    %{
+      error_type: :invalid_min_date,
+      error_message: "A ano de início não pode ser inferior a"
+    },
+    %{
+      error_type: :invalid_max_date,
+      error_message: "A ano de fim não pode ser inferior a"
+    },
+    %{
+      error_type: :start_lt_end,
+      error_message: "A data de início não pode ser superior à data de fim."
+    },
+    %{
+      error_type: :period_too_long,
+      error_message: "O período máximo para análise diária é de 1 ano."
+    }
   ]
 
   def index(
@@ -27,8 +46,6 @@ defmodule BarragensptWeb.ReportsController do
           |> Enum.group_by(fn r -> r.year end)
           |> Map.to_list()
 
-        dbg()
-
         render(conn, :index,
           maps: map_urls,
           time_frequency: "monthly",
@@ -43,28 +60,14 @@ defmodule BarragensptWeb.ReportsController do
           title: build_title(meteo_index, "monthly", dt_start, dt_end)
         )
 
-      {:error, :invalid_date_pdsi} ->
-        render(conn, :index,
-          maps: [],
-          dt_start: dt_start,
-          dt_end: dt_end,
-          errors: ["A ano de início/fim não pode ser inferior a 1981."]
-        )
+      {:error, error_type} ->
+        error_message = build_error_message(error_type, meteo_index)
 
-      {:error, :invalid_date_precipitation} ->
         render(conn, :index,
           maps: [],
           dt_start: dt_start,
           dt_end: dt_end,
-          errors: ["A ano de início/fim não pode ser inferior a 2000."]
-        )
-
-      {:error, :start_lt_end} ->
-        render(conn, :index,
-          maps: [],
-          dt_start: dt_start,
-          dt_end: dt_end,
-          errors: ["A data de início não pode ser superior à data de fim."]
+          errors: [error_message]
         )
     end
   end
@@ -84,15 +87,15 @@ defmodule BarragensptWeb.ReportsController do
     meteo_index = List.last(meteo_index_parts)
     variant = List.first(meteo_index_parts)
 
-    case parse_and_validate_date_range(dt_start, dt_end, meteo_index) do
+    case parse_and_validate_date_range(dt_start, dt_end, meteo_index, :daily) do
       {:ok, dates: %{start_date: start_date, end_date: end_date}} ->
         map_urls =
           if viz_type == "chart" do
             DateHelper.generate_monthly_maps(dt_start, dt_end)
           else
-            dt_start
-            |> get_range(dt_end, meteo_index, variant)
-            |> Enum.chunk_every(12)
+            range = get_range(start_date, end_date, meteo_index, :daily, variant)
+
+            Enum.chunk_every(range, 12)
           end
 
         render(conn, :index,
@@ -107,36 +110,14 @@ defmodule BarragensptWeb.ReportsController do
           title: build_title(meteo_index, "daily", dt_start, dt_end)
         )
 
-      {:error, :period_too_long} ->
-        render(conn, :index,
-          maps: [],
-          dt_start: dt_start,
-          dt_end: dt_end,
-          errors: ["O período máximo para análise diária é de 1 ano."]
-        )
+      {:error, error_type} ->
+        error_message = build_error_message(error_type, meteo_index)
 
-      {:error, :invalid_date_pdsi} ->
         render(conn, :index,
           maps: [],
           dt_start: dt_start,
           dt_end: dt_end,
-          errors: ["A ano de início/fim não pode ser inferior a 1981."]
-        )
-
-      {:error, :invalid_date_precipitation} ->
-        render(conn, :index,
-          maps: [],
-          dt_start: dt_start,
-          dt_end: dt_end,
-          errors: ["A ano de início/fim não pode ser inferior a 2000."]
-        )
-
-      {:error, :start_lt_end} ->
-        render(conn, :index,
-          maps: [],
-          dt_start: dt_start,
-          dt_end: dt_end,
-          errors: ["A data de início não pode ser superior à data de fim."]
+          errors: [error_message]
         )
     end
   end
@@ -173,12 +154,7 @@ defmodule BarragensptWeb.ReportsController do
     "Observação mensal da água armazenada 💦 entre #{dt_start} e #{dt_end}"
   end
 
-  defp parse_and_validate_date_range(
-         start_date,
-         end_date,
-         meteo_index,
-         time_frequency \\ :monthly
-       ) do
+  defp parse_and_validate_date_range(start_date, end_date, meteo_index, time_frequency) do
     start_date = parse_date(start_date)
     end_date = parse_date(end_date, time_frequency == :monthly)
 
@@ -190,7 +166,7 @@ defmodule BarragensptWeb.ReportsController do
 
   defp validate_date_limits(start_date, end_date, meteo_index, time_frequency) do
     %{limits: %{min: min, max: max}} =
-      Enum.find(@mappings, fn m -> m.meteo_index == meteo_index end)
+      Enum.find(@meteo_index_limits_mapping, fn m -> m.meteo_index == meteo_index end)
 
     if start_date.year < min || end_date.year < min do
       {:error, :invalid_min_date}
@@ -201,8 +177,7 @@ defmodule BarragensptWeb.ReportsController do
         if end_date < start_date do
           {:error, :start_lt_end}
         else
-          if Date.diff(end_date, start_date) > 365 && meteo_index == "precipitation" &&
-               time_frequency == :daily do
+          if time_frequency == :daily && Date.diff(end_date, start_date) > 365 do
             {:error, :period_too_long}
           else
             :ok
@@ -220,7 +195,7 @@ defmodule BarragensptWeb.ReportsController do
     |> Enum.map(fn r -> build_map_struct(r.year, r.month, meteo_index) end)
   end
 
-  defp get_range(start_date, end_date, meteo_index, variant) do
+  defp get_range(start_date, end_date, meteo_index, _time_frequency, variant) do
     range = Date.range(start_date, end_date)
 
     Enum.map(range, fn r -> build_map_struct(r, meteo_index, variant) end)
@@ -254,18 +229,6 @@ defmodule BarragensptWeb.ReportsController do
     end
   end
 
-  defp parse_date(date, :end_date) do
-    dbg()
-
-    date =
-      %{"month" => m, "year" => y} =
-      Regex.named_captures(~r/^(?'month'\d{2})\/(?'year'\d{4})$/, date)
-
-    d = Date.days_in_month(Date.new!(String.to_integer(y), String.to_integer(m), 1))
-
-    Map.put(date, "day", "#{d}")
-  end
-
   defp build_map_struct(year, month, meteo_index) when is_integer(year) and is_integer(month) do
     month_name = DateHelper.get_month_name({year, month, 1})
     abbreviated_year = String.slice("#{year}", -2, 2)
@@ -297,5 +260,22 @@ defmodule BarragensptWeb.ReportsController do
       date: "#{d}/#{m}/#{y}",
       year: y
     }
+  end
+
+  defp build_error_message(error_type, meteo_index) do
+    %{limits: %{min: min, max: _max}} =
+      Enum.find(@meteo_index_limits_mapping, fn m -> m.meteo_index == meteo_index end)
+
+    %{error_message: error_message} =
+      Enum.find(@error_types_mapping, fn m -> m.error_type == error_type end)
+
+    error_message_sufix =
+      case error_type do
+        :invalid_min_date -> " #{min}."
+        :invalid_max_date -> " #{min}."
+        _ -> ""
+      end
+
+    "#{error_message}#{error_message_sufix}"
   end
 end
