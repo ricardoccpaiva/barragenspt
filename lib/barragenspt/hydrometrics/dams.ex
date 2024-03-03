@@ -450,8 +450,9 @@ defmodule Barragenspt.Hydrometrics.Dams do
     subquery =
       from(dp in DataPoint,
         join: d in Dam,
+        on: dp.site_id == d.site_id,
         join: du in DamUsage,
-        on: dp.site_id == d.site_id and d.site_id == du.site_id,
+        on: d.site_id == du.site_id,
         where: ^filter,
         order_by: dp.colected_at,
         select: %{

@@ -66,11 +66,8 @@ defmodule BarragensptWeb.HomepageLive do
   end
 
   def handle_params(%{"dam_id" => id} = params, _url, socket) do
-    chart_window_value = Map.get(socket.assigns, :chart_window_value, "y2")
-
     dam = Dams.get(id)
 
-    data = get_data_for_period(id, chart_window_value)
     %{current_storage: current_storage} = Dams.current_storage(id)
     current_storage_color = Colors.lookup_capacity(current_storage)
 

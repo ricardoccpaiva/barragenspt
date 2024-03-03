@@ -39,7 +39,7 @@ defmodule Barragenspt.Workers.FetchSvgAreas do
   defp stream_parse_xml(xmldoc, xpath) do
     {doc, []} = xmldoc |> to_charlist() |> :xmerl_scan.string()
 
-    paths_list = :xmerl_xpath.string(xpath, doc)
+    :xmerl_xpath.string(xpath, doc)
   end
 
   defp extract_path(

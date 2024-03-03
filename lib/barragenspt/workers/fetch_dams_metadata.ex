@@ -121,8 +121,6 @@ defmodule Barragenspt.Workers.FetchDamsMetadata do
   end
 
   defp fetch_xls_payload(cookie) do
-    options = [recv_timeout: @timeout, timeout: @timeout, hackney: [cookie: [cookie]]]
-
     %HTTPoison.Response{body: body} =
       HTTPoison.get!(
         "https://snirh.apambiente.pt/snirh/_dadossintese/albufeirasinv/export.php",

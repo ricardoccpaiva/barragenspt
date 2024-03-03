@@ -2,8 +2,6 @@ defmodule Barragenspt.Hydrometrics.Basins do
   import Ecto.Query
 
   alias Barragenspt.Hydrometrics.{
-    DailyAverageStorageBySite,
-    SiteCurrentStorage,
     DataPoint,
     BasinStorage,
     Basin,
@@ -237,9 +235,11 @@ defmodule Barragenspt.Hydrometrics.Basins do
     query =
       from(d in subquery(Dams.daily_average_storage_by_site_query(id, usage_types)),
         join: b in subquery(Dams.sites_current_storage_query(id, usage_types)),
+        on: d.site_id == b.site_id,
         join: du in DamUsage,
+        on: b.site_id == du.site_id,
         join: dd in Dam,
-        on: d.site_id == b.site_id and b.site_id == du.site_id and d.site_id == dd.site_id,
+        on: d.site_id == dd.site_id,
         where: ^filter,
         select: %{
           site_id: d.site_id,
@@ -287,8 +287,9 @@ defmodule Barragenspt.Hydrometrics.Basins do
     subquery =
       from(dp in DataPoint,
         join: d in Dam,
+        on: dp.site_id == d.site_id,
         join: du in DamUsage,
-        on: dp.site_id == d.site_id and d.site_id == du.site_id,
+        on: d.site_id == du.site_id,
         where: ^filter,
         order_by: dp.colected_at,
         select: %{
@@ -338,8 +339,9 @@ defmodule Barragenspt.Hydrometrics.Basins do
     subquery =
       from(dp in DataPoint,
         join: d in Dam,
+        on: dp.site_id == d.site_id,
         join: du in DamUsage,
-        on: dp.site_id == d.site_id and d.site_id == du.site_id,
+        on: d.site_id == du.site_id,
         where: ^filter,
         order_by: dp.colected_at,
         select: %{

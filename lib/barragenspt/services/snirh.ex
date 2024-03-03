@@ -1,6 +1,6 @@
 defmodule Barragenspt.Services.Snirh do
   @timeout 25000
-  @base_url Application.get_env(:barragenspt, :snirh)[:csv_data_url]
+  @base_url Application.compile_env!(:barragenspt, :snirh)[:csv_data_url]
 
   def get_raw_csv_data(site_id, parameter_id, start_date, end_date) do
     query_params =
