@@ -22,8 +22,12 @@ defmodule BarragensptWeb.ReportsController do
       error_message: "A data de início não pode ser superior à data de fim."
     },
     %{
-      error_type: :period_too_long,
+      error_type: :daily_analysis_period_too_long,
       error_message: "O período máximo para análise diária é de 1 ano."
+    },
+    %{
+      error_type: :monthly_analysis_period_too_long,
+      error_message: "O período máximo para análise mensal é de 10 anos."
     }
   ]
 
@@ -178,9 +182,13 @@ defmodule BarragensptWeb.ReportsController do
           {:error, :start_lt_end}
         else
           if time_frequency == :daily && Date.diff(end_date, start_date) > 365 do
-            {:error, :period_too_long}
+            {:error, :daily_analysis_period_too_long}
           else
-            :ok
+            if time_frequency == :monthly && end_date.year - start_date.year > 10 do
+              {:error, :monthly_analysis_period_too_long}
+            else
+              :ok
+            end
           end
         end
       end
