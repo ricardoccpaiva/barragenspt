@@ -90,7 +90,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationDailyValues do
       svg_path_hash: pdsi_value.svg_path_hash,
       color_hex: pdsi_value.color_hex,
       date: Date.new!(year, month, day),
-      geographic_area_type: "municipalities"
+      geographic_area_type: "municipality"
     }
   end
 end
