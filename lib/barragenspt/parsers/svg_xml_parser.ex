@@ -39,12 +39,6 @@ defmodule Barragenspt.Parsers.SvgXmlParser do
 
     {red, green, blue} =
       case Regex.run(regex, input) do
-        ["fill:rgb(0%,0%,0%);", "0%", "", "0%", "", "0%"] ->
-          {"0.0%", "0.0%", "0.0%"}
-
-        ["fill:rgb(100%,100%,100%);", _red, "", _green, "", _blue] ->
-          {"100.0%", "100.0%", "100.0%"}
-
         [_ignore1, red, _ignore2, green, _ignore3, blue] ->
           {red, green, blue}
 
@@ -55,7 +49,7 @@ defmodule Barragenspt.Parsers.SvgXmlParser do
           {"0%", "0%", "0%"}
 
         ["fill:rgb(100%,100%,100%);", _red, "", _green, "", _blue] ->
-          {"100.0%", "100.0%", "100.0%"}
+          {"100%", "100%", "100%"}
 
         [_ignore1, red, _ignore2, green, _ignore3, blue, _ignore4] ->
           {red, green, blue}
