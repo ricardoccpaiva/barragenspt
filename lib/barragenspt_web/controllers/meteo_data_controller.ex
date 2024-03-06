@@ -21,9 +21,13 @@ defmodule BarragensptWeb.MeteoDataController do
 
     raw_data =
       if month == 0 do
-        Precipitation.get_precipitation_data_by_scale(year, scale)
+        Precipitation.get_monthly_precipitation_data_by_scale(year, scale)
       else
-        Precipitation.get_precipitation_data_by_scale(year, month, scale)
+        if month == -1 do
+          Precipitation.get_daily_precipitation_data_by_scale(year, scale)
+        else
+          Precipitation.get_daily_precipitation_data_by_scale(year, month, scale)
+        end
       end
 
     data = build_precipitation_csv(raw_data, year, month, scale)
@@ -145,7 +149,8 @@ defmodule BarragensptWeb.MeteoDataController do
           %{color_hex: "#788db4", index: 5},
           %{color_hex: "#8da4c4", index: 6},
           %{color_hex: "#aec5dc", index: 7},
-          %{color_hex: "#e0ecf4", index: 8}
+          %{color_hex: "#e0ecf4", index: 8},
+          %{color_hex: "000000", index: -1}
         ]
       else
         [
