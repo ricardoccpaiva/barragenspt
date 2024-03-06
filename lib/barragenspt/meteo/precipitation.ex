@@ -9,10 +9,10 @@ defmodule Barragenspt.Meteo.Precipitation do
 
   @decorate cacheable(
               cache: Cache,
-              key: "precipitation_data_by_scale_#{year}_#{month}_absolute",
+              key: "daily_precipitation_data_by_scale_#{year}_#{month}_absolute",
               ttl: 99_999_999
             )
-  def get_precipitation_data_by_scale(year, month, :absolute) do
+  def get_daily_precipitation_data_by_scale(year, month, :absolute) do
     query =
       from pdv in PrecipitationDailyValue,
         join: sa in SvgArea,
@@ -40,10 +40,10 @@ defmodule Barragenspt.Meteo.Precipitation do
 
   @decorate cacheable(
               cache: Cache,
-              key: "precipitation_data_by_scale_#{year}_#{month}_relative",
+              key: "daily_precipitation_data_by_scale_#{year}_#{month}_relative",
               ttl: 99_999_999
             )
-  def get_precipitation_data_by_scale(year, month, :relative) do
+  def get_daily_precipitation_data_by_scale(year, month, :relative) do
     query =
       from pdv in PrecipitationDailyValue,
         join: sa in SvgArea,
@@ -66,10 +66,40 @@ defmodule Barragenspt.Meteo.Precipitation do
 
   @decorate cacheable(
               cache: Cache,
-              key: "precipitation_data_by_scale_#{year}_absolute",
+              key: "daily_precipitation_data_by_scale_#{year}_absolute",
               ttl: 99_999_999
             )
-  def get_precipitation_data_by_scale(year, :absolute) do
+  def get_daily_precipitation_data_by_scale(year, :absolute) do
+    query =
+      from pdv in PrecipitationDailyValue,
+        join: sa in SvgArea,
+        on: pdv.svg_path_hash == sa.svg_path_hash,
+        join: plm in LegendMapping,
+        on:
+          pdv.color_hex == plm.color_hex and
+            pdv.geographic_area_type == sa.geographic_area_type and
+            sa.geographic_area_type ==
+              ^"municipality",
+        where:
+          plm.meteo_index == "precipitation" and
+            fragment("EXTRACT(year FROM ?) = ?", pdv.date, ^year),
+        group_by: [pdv.date, pdv.color_hex],
+        order_by: [asc: pdv.date],
+        select: %{
+          value: sum((plm.max_value + plm.min_value) / 2),
+          date: pdv.date,
+          color_hex: pdv.color_hex
+        }
+
+    Repo.all(query)
+  end
+
+  @decorate cacheable(
+              cache: Cache,
+              key: "monthly_precipitation_data_by_scale_#{year}_absolute",
+              ttl: 99_999_999
+            )
+  def get_monthly_precipitation_data_by_scale(year, :absolute) do
     query =
       from pdv in PrecipitationMonthlyValue,
         join: sa in SvgArea,
@@ -95,10 +125,10 @@ defmodule Barragenspt.Meteo.Precipitation do
 
   @decorate cacheable(
               cache: Cache,
-              key: "precipitation_data_by_scale_#{year}_relative",
+              key: "monthly_precipitation_data_by_scale_#{year}_relative",
               ttl: 99_999_999
             )
-  def get_precipitation_data_by_scale(year, :relative) do
+  def get_monthly_precipitation_data_by_scale(year, :relative) do
     query =
       from pdv in PrecipitationMonthlyValue,
         join: sa in SvgArea,
