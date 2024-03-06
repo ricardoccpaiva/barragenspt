@@ -3,7 +3,7 @@ import '../node_modules/vanillajs-datepicker/dist/css/datepicker-bulma.css';
 import Datepicker from '../node_modules/vanillajs-datepicker/js/Datepicker.js';
 import {
     build_pdsi_spec,
-    build_precipitation_spec,
+    build_daily_precipitation_for_one_year_spec,
     build_temperature_spec,
     build_monthly_precipitation_spec,
     build_daily_precipitation_spec,
@@ -39,21 +39,22 @@ if (window.location.pathname == "/reports") {
 
         if (document.getElementById("chk_correlate").checked) {
             var elements = document.getElementsByClassName("vega_chart");
+            var chartContainer = document.getElementById("tbl_magic");
 
             Array.from(elements).forEach(function (element) {
-                let spec = build_precipitation_spec(element.id);
+                let spec = build_daily_precipitation_for_one_year_spec(element.id);
+
                 draw_spec(element, spec);
             });
         }
 
         if (viz_type == 'chart') {
+            var elements = document.getElementsByClassName("vega_chart");
+            var chartContainer = document.getElementById("tbl_magic");
+            var containerWidth = chartContainer.offsetWidth * 0.92;
+
             if (meteo_index.includes("temperature")) {
-                var elements = document.getElementsByClassName("vega_chart");
-
                 Array.from(elements).forEach(function (element) {
-
-                    var chartContainer = document.getElementById("tbl_magic");
-                    var containerWidth = chartContainer.offsetWidth * 0.92;
                     let [year, month] = element.id.split('-');
 
                     let spec = build_temperature_spec(year, month, meteo_index, containerWidth);
@@ -62,33 +63,23 @@ if (window.location.pathname == "/reports") {
                 });
             }
             else if (meteo_index == "precipitation") {
-                console.log(time_frequency);
-                var elements = document.getElementsByClassName("vega_chart");
-                var chartContainer = document.getElementById("tbl_magic");
-                var containerWidth = chartContainer.offsetWidth * 0.92;
                 var scale = document.getElementById("scale_type").value
+                let spec = null;
 
-                console.log(elements);
                 Array.from(elements).forEach(function (element) {
                     if (time_frequency == "monthly") {
-                        let spec = build_monthly_precipitation_spec(meteo_index, element.id, containerWidth, scale);
-
-                        draw_spec(element, spec);
+                        spec = build_monthly_precipitation_spec(meteo_index, element.id, containerWidth, scale);
                     }
                     else {
                         let [year, month] = element.id.split('-');
-                        let spec = build_daily_precipitation_spec(meteo_index, year, month, containerWidth, scale);
-
-                        draw_spec(element, spec);
+                        spec = build_daily_precipitation_spec(meteo_index, year, month, containerWidth, scale);
                     }
+
+                    draw_spec(element, spec);
                 });
             } else if (meteo_index == "pdsi") {
-                var elements = document.getElementsByClassName("vega_chart");
-                Array.from(elements).forEach(function (element) {
-                    console.log(element.id);
-                    var chartContainer = document.getElementById("tbl_magic");
-                    var containerWidth = chartContainer.offsetWidth * 0.92;
 
+                Array.from(elements).forEach(function (element) {
                     let spec = build_pdsi_spec(meteo_index, element.id, containerWidth);
 
                     draw_spec(element, spec);
@@ -140,11 +131,16 @@ if (window.location.pathname == "/reports") {
     });
 
     document.getElementById('meteo_index').addEventListener("change", e => {
-        if (document.getElementById('meteo_index').value == "precipitation") {
-            document.getElementById("scale_type_div").classList.remove("hidden");
-        }
-        else {
-            document.getElementById("scale_type_div").classList.add("hidden");
+        if (e.currentTarget.value == "chart") {
+            if (document.getElementById('meteo_index').value == "precipitation") {
+                document.getElementById("scale_type_div").classList.remove("hidden");
+            }
+            else {
+                document.getElementById("scale_type_div").classList.add("hidden");
+                document.getElementById("viz_mode_div").classList.remove("hidden");
+                document.getElementById("chk_correlate_div").classList.remove("hidden");
+            }
+
         }
 
         if (e.currentTarget.value == "pdsi" || e.currentTarget.value == "basin_storage") {

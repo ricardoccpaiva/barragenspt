@@ -10,25 +10,43 @@ import {
     daily_precipitation_range
 } from './vega_lite_spec_constants';
 
-export function build_precipitation_spec(id) {
-    url = "meteo_data?meteo_index=precipitation&year=" + id + "&format=.csv";
+export function build_daily_precipitation_for_one_year_spec(year) {
+    url = "meteo_data?meteo_index=precipitation" + "&year=" + year + "&month=-1&scale=absolute&grouped=true&format.csv";
 
     return {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-        "data": { "url": url },
-        "mark": "bar",
+        "data": {
+            "url": url
+        },
         "width": "container",
         "height": 50,
+        "mark": "bar",
+        "config": {
+            "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
+        },
         "encoding": {
             "x": {
-                "field": "date", "type": "ordinal",
-                "axis": {
-                    "ticks": false,
-                    "labels": false
+                "field": "date", "type": "temporal",
+                "axis": { "title": "", "labelAngle": -45 }
+            },
+            "y": {
+                "title": "", "field": "value", "type": "quantitative", "axis": {
+                    "labelAngle": -45
                 }
             },
-            "y": { "title": "", "aggregate": "mean", "field": "value" }
-        }
+            "color": {
+                "field": "index",
+                "type": "nominal",
+                "scale": {
+                    "domain": daily_precipitation_domain,
+                    "range": daily_precipitation_range
+                },
+            },
+            "tooltip": [
+                { "field": "date", "type": "ordinal", "title": "Dia", "timeUnit": "binnedutcyearmonthdate" },
+                { "field": "value", "type": "quantitative", "title": "Precipitação (mm)", "format": ".2f" }
+            ]
+        },
     }
 }
 
