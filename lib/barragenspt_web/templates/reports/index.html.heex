@@ -142,13 +142,13 @@
       <!--<div id='map' style="height: 100%;" phx-update="ignore"></div>-->
       <%= if @viz_type=="chart" do %>
         <%= if @meteo_index=="pdsi" do %>
-          <%= render "_pdsi_vtt.html" , assigns %>
+          <%= render "_viz_type_chart.html" , assigns %>
         <% end %>
         <%= if @meteo_index=="temperature" do %>
           <%= render "_temperature_vtt.html" , assigns %>
         <% end %>
         <%= if @meteo_index=="precipitation" do %>
-          <%= render "_pdsi_vtt.html" , assigns %>
+          <%= render "_viz_type_chart.html" , assigns %>
         <% end %>
       <% end %>
     <% end %>
