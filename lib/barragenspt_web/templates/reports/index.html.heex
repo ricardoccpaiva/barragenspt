@@ -135,22 +135,9 @@
          <%= @title %>
          </label>
       </div>
-      <%= if @viz_type=="map" do %>
-        <%= render "_viz_type_map.html" , assigns %>
-      <% end %>
       <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
       <!--<div id='map' style="height: 100%;" phx-update="ignore"></div>-->
-      <%= if @viz_type=="chart" do %>
-        <%= if @meteo_index=="pdsi" do %>
-          <%= render "_viz_type_chart.html" , assigns %>
-        <% end %>
-        <%= if @meteo_index=="temperature" do %>
-          <%= render "_temperature_vtt.html" , assigns %>
-        <% end %>
-        <%= if @meteo_index=="precipitation" do %>
-          <%= render "_viz_type_chart.html" , assigns %>
-        <% end %>
-      <% end %>
+      <%= render "_viz_type_#{@viz_type}.html" , assigns %>
     <% end %>
    </div>
 </div>
