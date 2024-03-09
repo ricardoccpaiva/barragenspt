@@ -147,7 +147,15 @@ export function build_monthly_precipitation_spec(meteo_index, year, width, compa
                 "axis": { "title": "", "labelAngle": -45, "format": "%b" }
             },
             "xOffset": { "field": "type" },
-            "color": { "field": "type", "type": "nominal", "title": "" },
+            "color": {
+                "field": "index",
+                "type": "nominal",
+                "title": "",
+                "scale": {
+                    "domain": monthly_precipitation_domain,
+                    "range": monthly_precipitation_range
+                },
+            },
             "y": { "field": "value", "type": "quantitative", "axis": { "title": "" } },
             "tooltip": [
                 { "field": "date", "type": "ordinal", "title": "Mês", "format": "%b", "timeUnit": "yearmonth" },

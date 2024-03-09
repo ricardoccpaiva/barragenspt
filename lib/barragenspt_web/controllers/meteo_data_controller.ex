@@ -196,7 +196,7 @@ defmodule BarragensptWeb.MeteoDataController do
       if ref_data do
         rd = Enum.find(ref_data, fn rd -> rd.month == d.date.month end)
 
-        new_x = "#{d.date},#000000,#{rd.value},0,historic"
+        new_x = "#{d.date},#C1E1C1,#{rd.value},17,historic"
         [x, new_x]
       else
         [x]

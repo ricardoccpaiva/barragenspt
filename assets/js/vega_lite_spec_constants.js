@@ -56,8 +56,8 @@ export const temperature_range = [
     "#6a0000"
 ];
 
-export const monthly_precipitation_range = ["#000000", "#fde0dd", "#fcc5c0", "#fa9fb5", "#f768a1", "#de3497", "#ae027e", "#7a0277", "#753d8d", "#685e98", "#6a74a4", "#788db4", "#8da4c4", "#aec5dc", "#e0ecf4", "#f7fcfd", "#ffffff"]
-export const monthly_precipitation_domain = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"];
+export const monthly_precipitation_range = ["#000000", "#fde0dd", "#fcc5c0", "#fa9fb5", "#f768a1", "#de3497", "#ae027e", "#7a0277", "#753d8d", "#685e98", "#6a74a4", "#788db4", "#8da4c4", "#aec5dc", "#e0ecf4", "#f7fcfd", "#ffffff", "#C1E1C1"]
+export const monthly_precipitation_domain = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"];
 
 export const daily_precipitation_range = ["#360e38", "#88218c", "#753d8d", "#685e98", "#6a74a4", "#788db4", "#8da4c4", "#aec5dc", "#e0ecf4"]
 export const daily_precipitation_domain = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
