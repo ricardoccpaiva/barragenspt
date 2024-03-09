@@ -126,6 +126,9 @@ if (window.location.pathname == "/reports") {
                     document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
             }
         }
+        else {
+            document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
+        }
     });
 
     document.getElementById('meteo_index').addEventListener("change", e => {
@@ -141,6 +144,9 @@ if (window.location.pathname == "/reports") {
                 document.getElementById("viz_mode_div").classList.remove("hidden");
                 document.getElementById("chk_correlate_div").classList.remove("hidden");
             }
+        }
+        else {
+            document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
         }
 
         if (e.currentTarget.value == "pdsi" || e.currentTarget.value == "basin_storage") {
@@ -190,6 +196,9 @@ if (window.location.pathname == "/reports") {
                 else
                     document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
             }
+        }
+        else {
+            document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
         }
 
         startRangepicker.setOptions({
