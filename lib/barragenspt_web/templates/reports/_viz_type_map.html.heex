@@ -1,4 +1,8 @@
-<%= render "_legend_#{@meteo_index}.html" , assigns %>
+<%= if @meteo_index == "precipitation" do %>
+    <%= render "_legend_#{@meteo_index}_#{@time_frequency}.html" , assigns %>
+<% else %>
+    <%= render "_legend_#{@meteo_index}.html" , assigns %>
+<% end %>
 
 <div class="table-container">
     <%= render "_table_#{@time_frequency}.html" , assigns %>
