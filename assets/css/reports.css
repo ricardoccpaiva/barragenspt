@@ -173,6 +173,11 @@ tbody td {
     font-size: 12px;
 }
 
+.chk-correlate-precipitation {
+    margin-top: 15px;
+    font-size: 12px;
+}
+
 .hidden {
     display: none;
 }

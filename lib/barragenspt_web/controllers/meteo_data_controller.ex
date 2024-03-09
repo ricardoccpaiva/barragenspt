@@ -6,31 +6,77 @@ defmodule BarragensptWeb.MeteoDataController do
   alias Barragenspt.Meteo.Precipitation
   alias Barragenspt.Meteo.Pdsi
 
+  @daily_scale [
+    %{color_hex: "#360e38", index: 0},
+    %{color_hex: "#88218c", index: 1},
+    %{color_hex: "#753d8d", index: 2},
+    %{color_hex: "#685e98", index: 3},
+    %{color_hex: "#6a74a4", index: 4},
+    %{color_hex: "#788db4", index: 5},
+    %{color_hex: "#8da4c4", index: 6},
+    %{color_hex: "#aec5dc", index: 7},
+    %{color_hex: "#e0ecf4", index: 8},
+    %{color_hex: "000000", index: -1}
+  ]
+
+  @monthly_scale [
+    %{index: 1, color_hex: "#000000"},
+    %{index: 2, color_hex: "#fde0dd"},
+    %{index: 3, color_hex: "#fcc5c0"},
+    %{index: 4, color_hex: "#fa9fb5"},
+    %{index: 5, color_hex: "#f768a1"},
+    %{index: 6, color_hex: "#de3497"},
+    %{index: 7, color_hex: "#ae027e"},
+    %{index: 8, color_hex: "#7a0277"},
+    %{index: 9, color_hex: "#753d8d"},
+    %{index: 10, color_hex: "#685e98"},
+    %{index: 11, color_hex: "#6a74a4"},
+    %{index: 12, color_hex: "#788db4"},
+    %{index: 13, color_hex: "#8da4c4"},
+    %{index: 14, color_hex: "#aec5dc"},
+    %{index: 15, color_hex: "#e0ecf4"},
+    %{index: 16, color_hex: "#f7fcfd"},
+    %{index: 17, color_hex: "#ffffff"}
+  ]
+
   def index(
         conn,
         args = %{
           "year" => year,
-          "scale" => scale,
-          "grouped" => "true",
+          "month" => month,
           "meteo_index" => "precipitation"
         }
       ) do
     year = String.to_integer(year)
-    scale = String.to_atom(scale)
-    month = args |> Map.get("month", "0") |> String.to_integer()
+    month = String.to_integer(month)
+    compare = Map.get(args, "compare_with_ref", "off")
 
-    raw_data =
+    data =
       if month == 0 do
-        Precipitation.get_monthly_precipitation_data_by_scale(year, scale)
+        raw_data = Precipitation.get_monthly_precipitation_data_by_scale(year)
+
+        raw_ref_data =
+          if compare == "on",
+            do: Precipitation.get_reference_monthly_precipitation(),
+            else: nil
+
+        build_precipitation_csv(raw_data, year, month, @monthly_scale, raw_ref_data)
       else
-        if month == -1 do
-          Precipitation.get_daily_precipitation_data_by_scale(year, scale)
-        else
-          Precipitation.get_daily_precipitation_data_by_scale(year, month, scale)
-        end
+        raw_data = Precipitation.get_precipitation_data(year, month)
+        build_precipitation_csv(raw_data, year, month, @daily_scale)
       end
 
-    data = build_precipitation_csv(raw_data, year, month, scale)
+    conn
+    |> put_resp_content_type("text/csv")
+    |> send_resp(200, data)
+  end
+
+  def index(conn, %{"year" => year, "meteo_index" => "precipitation"}) do
+    data =
+      year
+      |> String.to_integer()
+      |> Precipitation.get_precipitation_data()
+      |> build_precipitation_csv(year, 0, @daily_scale)
 
     conn
     |> put_resp_content_type("text/csv")
@@ -59,17 +105,6 @@ defmodule BarragensptWeb.MeteoDataController do
 
     raw_data = Pdsi.get_pdsi_data_by_scale(year)
     data = build_pdsi_csv(raw_data, year)
-
-    conn
-    |> put_resp_content_type("text/csv")
-    |> send_resp(200, data)
-  end
-
-  def index(conn, %{"year" => year, "meteo_index" => "precipitation"}) do
-    year = String.to_integer(year)
-
-    raw_data = Precipitation.get_precipitation_data(year)
-    data = build_csv(raw_data, year)
 
     conn
     |> put_resp_content_type("text/csv")
@@ -134,47 +169,12 @@ defmodule BarragensptWeb.MeteoDataController do
 
   @decorate cacheable(
               cache: Cache,
-              key: "precipitation_csv_data_#{year}_#{month}_#{variant}",
+              key:
+                "precipitation_csv_data_#{year}_#{month}_#{:erlang.phash2(color_scale)}_#{:erlang.phash2(ref_data)}",
               ttl: 999
             )
-  def build_precipitation_csv(data, year, month \\ 0, variant) do
-    colors_index =
-      if month != 0 do
-        [
-          %{color_hex: "#360e38", index: 0},
-          %{color_hex: "#88218c", index: 1},
-          %{color_hex: "#753d8d", index: 2},
-          %{color_hex: "#685e98", index: 3},
-          %{color_hex: "#6a74a4", index: 4},
-          %{color_hex: "#788db4", index: 5},
-          %{color_hex: "#8da4c4", index: 6},
-          %{color_hex: "#aec5dc", index: 7},
-          %{color_hex: "#e0ecf4", index: 8},
-          %{color_hex: "000000", index: -1}
-        ]
-      else
-        [
-          %{index: 1, color_hex: "#000000"},
-          %{index: 2, color_hex: "#fde0dd"},
-          %{index: 3, color_hex: "#fcc5c0"},
-          %{index: 4, color_hex: "#fa9fb5"},
-          %{index: 5, color_hex: "#f768a1"},
-          %{index: 6, color_hex: "#de3497"},
-          %{index: 7, color_hex: "#ae027e"},
-          %{index: 8, color_hex: "#7a0277"},
-          %{index: 9, color_hex: "#753d8d"},
-          %{index: 10, color_hex: "#685e98"},
-          %{index: 11, color_hex: "#6a74a4"},
-          %{index: 12, color_hex: "#788db4"},
-          %{index: 13, color_hex: "#8da4c4"},
-          %{index: 14, color_hex: "#aec5dc"},
-          %{index: 15, color_hex: "#e0ecf4"},
-          %{index: 16, color_hex: "#f7fcfd"},
-          %{index: 17, color_hex: "#ffffff"}
-        ]
-      end
-
-    header = "date,color_hex,value,index"
+  def build_precipitation_csv(data, year, month, color_scale, ref_data \\ nil) do
+    header = "date,color_hex,value,index,type"
 
     data
     |> Enum.map(fn d ->
@@ -187,12 +187,22 @@ defmodule BarragensptWeb.MeteoDataController do
     end)
     |> Enum.map(fn d ->
       index =
-        colors_index
+        color_scale
         |> Enum.find(fn c -> c.color_hex == d.color_hex end)
         |> Map.get(:index)
 
-      "#{d.date},#{d.color_hex},#{d.value},#{index}"
+      x = "#{d.date},#{d.color_hex},#{d.value},#{index},observed"
+
+      if ref_data do
+        rd = Enum.find(ref_data, fn rd -> rd.month == d.date.month end)
+
+        new_x = "#{d.date},#000000,#{rd.value},0,historic"
+        [x, new_x]
+      else
+        [x]
+      end
     end)
+    |> List.flatten()
     |> Enum.join("\n")
     |> Kernel.then(fn v -> "#{header}\n#{v}" end)
   end

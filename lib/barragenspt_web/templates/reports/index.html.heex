@@ -52,24 +52,9 @@
             </div>
          </div>
          <label class="checkbox chk-correlate" id="chk_correlate_div">
-         <input id="chk_correlate" name="correlate" type="checkbox">
-         Mostrar informação sobre precipitação
+            <input id="chk_correlate" name="correlate" type="checkbox">
+            Mostrar informação sobre precipitação
          </label>
-      </div>
-      <div style="margin-left: 20px; margin-top: 10px;" id="scale_type_div" class="hidden">
-         <div class="field">
-            <label class="label">Escala 🔢</label>
-            <div class="control">
-               <div class="select is-small">
-                  <p>
-                     <select id="scale_type" name="scale_type">
-                        <option value="absolute">Absoluta</option>
-                        <option value="relative">Relativa</option>
-                     </select>
-                  </p>
-               </div>
-            </div>
-         </div>
       </div>
       <div style="margin-left: 20px; margin-top: 10px;" id="viz_mode_div">
          <div class="field">
@@ -99,6 +84,10 @@
                   </p>
                </div>
             </div>
+            <label class="checkbox chk-correlate-precipitation hidden" id="chk_precipitation_ref_period_div">
+               <input id="compare_with_ref" name="compare_with_ref" type="checkbox">
+                  Comparar com período de referência
+            </label>
          </div>
       </div>
       <div style="margin-left: 20px; margin-top: 10px;">

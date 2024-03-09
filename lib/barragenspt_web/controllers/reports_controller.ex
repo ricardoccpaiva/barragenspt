@@ -38,7 +38,6 @@ defmodule BarragensptWeb.ReportsController do
           "viz_mode" => viz_mode,
           "viz_type" => viz_type,
           "time_frequency" => "monthly",
-          "scale_type" => scale_type,
           "start" => dt_start,
           "end" => dt_end
         }
@@ -57,10 +56,10 @@ defmodule BarragensptWeb.ReportsController do
           viz_type: viz_type,
           viz_mode: viz_mode,
           dt_start: dt_start,
-          scale_type: scale_type,
           dt_end: dt_end,
           errors: nil,
           correlate: Map.get(params, "correlate", "off"),
+          compare_with_ref: Map.get(params, "compare_with_ref", "off"),
           title: build_title(meteo_index, "monthly", dt_start, dt_end)
         )
 

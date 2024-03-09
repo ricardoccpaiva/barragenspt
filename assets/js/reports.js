@@ -20,10 +20,11 @@ if (window.location.pathname == "/reports") {
         const time_frequency = urlParams.get('time_frequency');
         const viz_type = urlParams.get('viz_type');
         const correlate = urlParams.get('correlate');
-        const scale_type = urlParams.get('scale_type');
+        const compare_with_ref = urlParams.get('compare_with_ref');
 
         if (urlParams.size > 0) {
             document.getElementById("chk_correlate").checked = (correlate == "on");
+            document.getElementById("compare_with_ref").checked = (compare_with_ref == "on");
 
             document.getElementById("meteo_index").value = meteo_index;
             document.getElementById("meteo_index").dispatchEvent(new Event('change'));
@@ -33,8 +34,6 @@ if (window.location.pathname == "/reports") {
 
             document.getElementById("viz_type").value = viz_type;
             document.getElementById("viz_type").dispatchEvent(new Event('change'));
-
-            document.getElementById("scale_type").value = scale_type;
         }
 
         if (document.getElementById("chk_correlate").checked) {
@@ -63,16 +62,15 @@ if (window.location.pathname == "/reports") {
                 });
             }
             else if (meteo_index == "precipitation") {
-                var scale = document.getElementById("scale_type").value
                 let spec = null;
 
                 Array.from(elements).forEach(function (element) {
                     if (time_frequency == "monthly") {
-                        spec = build_monthly_precipitation_spec(meteo_index, element.id, containerWidth, scale);
+                        spec = build_monthly_precipitation_spec(meteo_index, element.id, containerWidth, compare_with_ref);
                     }
                     else {
                         let [year, month] = element.id.split('-');
-                        spec = build_daily_precipitation_spec(meteo_index, year, month, containerWidth, scale);
+                        spec = build_daily_precipitation_spec(meteo_index, year, month, containerWidth);
                     }
 
                     draw_spec(element, spec);
@@ -85,7 +83,6 @@ if (window.location.pathname == "/reports") {
                     draw_spec(element, spec);
                 });
             }
-
         }
         const startElem = document.getElementById('start');
         const endElem = document.getElementById('end');
@@ -115,32 +112,35 @@ if (window.location.pathname == "/reports") {
             document.getElementById("viz_mode_div").classList.add("hidden");
             document.getElementById("chk_correlate").checked = false;
             document.getElementById("chk_correlate_div").classList.add("hidden");
-            if (document.getElementById('meteo_index').value == "precipitation") {
-                document.getElementById("scale_type_div").classList.remove("hidden");
-            }
-            else {
-                document.getElementById("scale_type_div").classList.add("hidden");
-            }
         }
         else {
-            document.getElementById("scale_type_div").classList.add("hidden");
             document.getElementById("viz_mode_div").classList.remove("hidden");
             document.getElementById("chk_correlate_div").classList.remove("hidden");
         }
 
+        if (document.getElementById('viz_type').value == "chart") {
+            if (document.getElementById('meteo_index').value == "precipitation") {
+                if (document.getElementById("time_frequency").value == "monthly")
+                    document.getElementById("chk_precipitation_ref_period_div").classList.remove("hidden");
+                else
+                    document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
+            }
+        }
     });
 
     document.getElementById('meteo_index').addEventListener("change", e => {
         if (e.currentTarget.value == "chart") {
             if (document.getElementById('meteo_index').value == "precipitation") {
-                document.getElementById("scale_type_div").classList.remove("hidden");
+                if (document.getElementById("time_frequency").value == "monthly")
+                    document.getElementById("chk_precipitation_ref_period_div").classList.remove("hidden");
+                else
+                    document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
             }
-            else {
-                document.getElementById("scale_type_div").classList.add("hidden");
+
+            if (document.getElementById('meteo_index').value != "precipitation") {
                 document.getElementById("viz_mode_div").classList.remove("hidden");
                 document.getElementById("chk_correlate_div").classList.remove("hidden");
             }
-
         }
 
         if (e.currentTarget.value == "pdsi" || e.currentTarget.value == "basin_storage") {
@@ -182,6 +182,15 @@ if (window.location.pathname == "/reports") {
     document.getElementById('time_frequency').addEventListener("change", e => {
         let pickLevel = e.currentTarget.value == "monthly" ? 2 : 1;
         let format = e.currentTarget.value == "monthly" ? "yyyy" : "mm/yyyy";
+
+        if (document.getElementById('viz_type').value == "chart") {
+            if (document.getElementById('meteo_index').value == "precipitation") {
+                if (document.getElementById("time_frequency").value == "monthly")
+                    document.getElementById("chk_precipitation_ref_period_div").classList.remove("hidden");
+                else
+                    document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
+            }
+        }
 
         startRangepicker.setOptions({
             pickLevel: pickLevel,

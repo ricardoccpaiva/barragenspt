@@ -11,7 +11,7 @@ import {
 } from './vega_lite_spec_constants';
 
 export function build_daily_precipitation_for_one_year_spec(year) {
-    url = "meteo_data?meteo_index=precipitation" + "&year=" + year + "&month=-1&scale=absolute&grouped=true&format.csv";
+    url = "meteo_data?meteo_index=precipitation" + "&year=" + year + "&format.csv";
 
     return {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
@@ -113,15 +113,19 @@ export function build_pdsi_spec(meteo_index, year, width) {
                     "domain": pdsi_domain,
                     "range": pdsi_range
                 },
-            }
+            },
+            "tooltip": [
+                { "field": "month", "type": "ordinal", "title": "Mês", "format": "%b", "timeUnit": "yearmonth" },
+                { "field": "value", "type": "quantitative", "title": "PDSI", "format": ".2f" }
+            ]
         }
     }
 }
 
-export function build_monthly_precipitation_spec(meteo_index, year, width, scale) {
-    url = "meteo_data?meteo_index=" + meteo_index + "&year=" + year + "&scale=" + scale + "&grouped=true&format.csv";
+export function build_monthly_precipitation_spec(meteo_index, year, width, compare_with_ref) {
+    url = "meteo_data?meteo_index=" + meteo_index + "&year=" + year + "&compare_with_ref=" + compare_with_ref + "&month=0&format.csv";
 
-    var unit = scale == "absolute" ? "(mm)" : "(%)";
+    var unit = "(mm)";
 
     return {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
@@ -142,15 +146,9 @@ export function build_monthly_precipitation_spec(meteo_index, year, width, scale
                 "field": "date", "type": "ordinal", "timeUnit": "yearmonth",
                 "axis": { "title": "", "labelAngle": -45, "format": "%b" }
             },
+            "xOffset": { "field": "type" },
+            "color": { "field": "type", "type": "nominal", "title": "" },
             "y": { "field": "value", "type": "quantitative", "axis": { "title": "" } },
-            "color": {
-                "field": "index",
-                "type": "nominal",
-                "scale": {
-                    "domain": monthly_precipitation_domain,
-                    "range": monthly_precipitation_range
-                },
-            },
             "tooltip": [
                 { "field": "date", "type": "ordinal", "title": "Mês", "format": "%b", "timeUnit": "yearmonth" },
                 { "field": "value", "type": "quantitative", "title": "Precipitação " + unit, "format": ".2f" }
@@ -159,11 +157,10 @@ export function build_monthly_precipitation_spec(meteo_index, year, width, scale
     }
 }
 
-export function build_daily_precipitation_spec(meteo_index, year, month, width, scale) {
-    url = "meteo_data?meteo_index=" + meteo_index + "&year=" + year + "&month=" + month + "&scale=" + scale + "&grouped=true&format.csv";
+export function build_daily_precipitation_spec(meteo_index, year, month, width) {
+    url = "meteo_data?meteo_index=" + meteo_index + "&year=" + year + "&month=" + month + "&format.csv";
 
-    var unit = scale == "absolute" ? "(mm)" : "(%)";
-
+    var unit = "(mm)";
     return {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
         "data": {
