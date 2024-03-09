@@ -132,7 +132,7 @@ if (window.location.pathname == "/reports") {
     });
 
     document.getElementById('meteo_index').addEventListener("change", e => {
-        if (e.currentTarget.value == "chart") {
+        if (document.getElementById('viz_type').value == "chart") {
             if (document.getElementById('meteo_index').value == "precipitation") {
                 if (document.getElementById("time_frequency").value == "monthly")
                     document.getElementById("chk_precipitation_ref_period_div").classList.remove("hidden");
