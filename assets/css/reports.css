@@ -181,3 +181,26 @@ tbody td {
 .hidden {
     display: none;
 }
+
+.map-container {
+    position: relative;
+}
+
+.map-image {
+    position: absolute;
+    /* Adjust according to label height */
+    left: 0;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.control-buttons {
+    position: relative;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.progress-animated-map {
+    width: 200px;
+}

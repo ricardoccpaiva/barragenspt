@@ -5,5 +5,9 @@
 <% end %>
 
 <div class="table-container">
-    <%= render "_table_#{@time_frequency}.html" , assigns %>
+    <%= if @viz_mode == "static" do %>
+        <%= render "_table_#{@time_frequency}.html" , assigns %>
+    <% else %> 
+        <%= render "_animated_map.html" , assigns %>
+    <% end %> 
 </div>

@@ -1,0 +1,66 @@
+<div class="columns">
+    <div class="column">
+        <div class="map-container" style="height: 100lvh">
+            <%= if @time_frequency == "monthly" do %>
+                <%= for {_year, map1} <- @maps do %>
+                    <%= for map <- map1 do %>  
+                        <img src={map.url} class="map-image" alt={map.date}/>
+                    <% end %>
+                <% end %> 
+            <% else %>
+                <%= for map1 <- @maps do %>
+                    <%= for map <- map1 do %>  
+                        <img src={map.url} class="map-image" alt={map.date}/>
+                    <% end %>
+                <% end %> 
+            <% end %>
+        </div>
+    </div>
+    <div class="column">
+        <div style="margin-top:20px">
+            <span id="current_image_label" class="tag is-info is-normal"></span>
+            <br />
+            <br/>
+            <progress id="progress_bar" class="progress progress-animated-map is-primary is-small" value="15" max="100">0%</progress>
+        </div>
+    </div>
+</div>
+<script>
+    const images = document.querySelectorAll('.map-image');
+    let currentIndex = 0;
+    let animationInterval;
+
+    function fadeInNextImage() {
+        const nextIndex = (currentIndex + 1) % images.length;
+
+        const pct = Math.round(((currentIndex + 1) / images.length)*100);
+        
+        if (pct > 100){
+            pct = 100;
+        }
+
+        document.getElementById("progress_bar").value = pct;
+        document.getElementById("current_image_label").innerText = images[currentIndex].alt;
+
+        images[currentIndex].style.opacity = 0;
+        images[nextIndex].style.opacity = 1;
+
+        currentIndex = nextIndex;
+    }
+
+    function startAnimation() {
+        fadeInNextImage(); // Show the first image immediately
+        animationInterval = setInterval(fadeInNextImage, 2000); // Change image every 2 seconds
+    }
+
+    function toggleAnimation() {
+        if (animationInterval) {
+            clearInterval(animationInterval);
+            animationInterval = null;
+        } else {
+            startAnimation();
+        }
+    }
+
+    startAnimation();
+</script>

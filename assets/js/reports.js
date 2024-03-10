@@ -19,6 +19,7 @@ if (window.location.pathname == "/reports") {
         const meteo_index = urlParams.get('meteo_index');
         const time_frequency = urlParams.get('time_frequency');
         const viz_type = urlParams.get('viz_type');
+        const viz_mode = urlParams.get('viz_mode');
         const correlate = urlParams.get('correlate');
         const compare_with_ref = urlParams.get('compare_with_ref');
         const startElem = document.getElementById('start');
@@ -55,6 +56,9 @@ if (window.location.pathname == "/reports") {
 
             document.getElementById("viz_type").value = viz_type;
             document.getElementById("viz_type").dispatchEvent(new Event('change'));
+
+            document.getElementById("viz_mode").value = viz_mode;
+            document.getElementById("viz_mode").dispatchEvent(new Event('change'));
         }
 
         if (document.getElementById("chk_correlate").checked) {
