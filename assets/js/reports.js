@@ -21,6 +21,27 @@ if (window.location.pathname == "/reports") {
         const viz_type = urlParams.get('viz_type');
         const correlate = urlParams.get('correlate');
         const compare_with_ref = urlParams.get('compare_with_ref');
+        const startElem = document.getElementById('start');
+        const endElem = document.getElementById('end');
+
+        let pickLevel = (startElem.value.length == 4 || startElem.value == "") ? 2 : 1;
+        let format = (startElem.value.length == 4 || startElem.value == "") ? "yyyy" : "mm/yyyy";
+
+        startRangepicker = new Datepicker(startElem, {
+            autohide: true,
+            format: format,
+            orientation: 'bottom left',
+            language: 'pt',
+            pickLevel: pickLevel
+        });
+
+        endRangepicker = new Datepicker(endElem, {
+            autohide: true,
+            format: format,
+            orientation: 'bottom left',
+            language: 'pt',
+            pickLevel: pickLevel
+        });
 
         if (urlParams.size > 0) {
             document.getElementById("chk_correlate").checked = (correlate == "on");
@@ -84,27 +105,6 @@ if (window.location.pathname == "/reports") {
                 });
             }
         }
-        const startElem = document.getElementById('start');
-        const endElem = document.getElementById('end');
-
-        let pickLevel = (startElem.value.length == 4 || startElem.value == "") ? 2 : 1;
-        let format = (startElem.value.length == 4 || startElem.value == "") ? "yyyy" : "mm/yyyy";
-
-        startRangepicker = new Datepicker(startElem, {
-            autohide: true,
-            format: format,
-            orientation: 'bottom left',
-            language: 'pt',
-            pickLevel: pickLevel
-        });
-
-        endRangepicker = new Datepicker(endElem, {
-            autohide: true,
-            format: format,
-            orientation: 'bottom left',
-            language: 'pt',
-            pickLevel: pickLevel
-        });
     };
 
     document.getElementById('viz_type').addEventListener("change", e => {
@@ -125,6 +125,9 @@ if (window.location.pathname == "/reports") {
                 else
                     document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
             }
+            else {
+                document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
+            }
         }
         else {
             document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
@@ -138,6 +141,9 @@ if (window.location.pathname == "/reports") {
                     document.getElementById("chk_precipitation_ref_period_div").classList.remove("hidden");
                 else
                     document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
+            }
+            else {
+                document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
             }
 
             if (document.getElementById('meteo_index').value != "precipitation") {
@@ -196,6 +202,9 @@ if (window.location.pathname == "/reports") {
                 else
                     document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
             }
+            else {
+                document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
+            }
         }
         else {
             document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
@@ -213,5 +222,13 @@ if (window.location.pathname == "/reports") {
 
         startRangepicker.refresh();
         endRangepicker.refresh();
+    });
+
+    (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
+        const $notification = $delete.parentNode;
+
+        $delete.addEventListener('click', () => {
+            $notification.parentNode.removeChild($notification);
+        });
     });
 }
