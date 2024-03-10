@@ -72,6 +72,13 @@ if (window.location.pathname == "/reports") {
             });
         }
 
+        if (meteo_index == "pdsi" && viz_mode == "static") {
+            document.getElementById("chk_correlate_div").classList.remove("hidden");
+        }
+        else {
+            document.getElementById("chk_correlate_div").classList.add("hidden");
+        }
+
         if (viz_type == 'chart') {
             var elements = document.getElementsByClassName("vega_chart");
             var chartContainer = document.getElementById("tbl_magic");
@@ -160,7 +167,8 @@ if (window.location.pathname == "/reports") {
         }
 
         if (e.currentTarget.value == "pdsi" || e.currentTarget.value == "basin_storage") {
-            document.getElementById("chk_correlate").disabled = false;
+            document.getElementById("chk_correlate_div").classList.remove("hidden");
+
             document.querySelectorAll("#time_frequency option").forEach(opt => {
                 if (opt.value == "daily") {
                     opt.disabled = true;
@@ -173,8 +181,8 @@ if (window.location.pathname == "/reports") {
             });
         }
         else {
-            document.getElementById("chk_correlate").disabled = true;
             document.getElementById("chk_correlate").checked = false;
+            document.getElementById("chk_correlate_div").classList.add("hidden");
             if (e.currentTarget.value == "min_temperature" || e.currentTarget.value == "max_temperature") {
                 document.querySelectorAll("#time_frequency option").forEach(opt => {
                     if (opt.value == "monthly") {
@@ -226,6 +234,20 @@ if (window.location.pathname == "/reports") {
 
         startRangepicker.refresh();
         endRangepicker.refresh();
+    });
+
+    document.getElementById('viz_mode').addEventListener("change", e => {
+        if (e.currentTarget.value == "static") {
+            if (document.getElementById('meteo_index').value == "pdsi") {
+                document.getElementById("chk_correlate_div").classList.remove("hidden");
+            }
+            else {
+                document.getElementById("chk_correlate_div").classList.add("hidden");
+            }
+        }
+        else {
+            document.getElementById("chk_correlate_div").classList.add("hidden");
+        }
     });
 
     (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
