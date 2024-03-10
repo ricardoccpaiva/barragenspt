@@ -224,7 +224,7 @@ defmodule BarragensptWeb.ReportsController do
       y = String.to_integer(y)
       m = String.to_integer(m)
 
-      Date.new!(y, m, 1)
+      {:ok, Date.new!(y, m, 1)}
     else
       if Regex.match?(regex_year, date) do
         %{"year" => y} = Regex.named_captures(regex_year, date)
