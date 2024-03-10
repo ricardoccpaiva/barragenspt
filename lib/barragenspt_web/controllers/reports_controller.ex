@@ -28,6 +28,10 @@ defmodule BarragensptWeb.ReportsController do
     %{
       error_type: :monthly_analysis_period_too_long,
       error_message: "O período máximo para análise mensal é de 10 anos."
+    },
+    %{
+      error_type: :invalid_date,
+      error_message: "As datas selecionadas são inválidas."
     }
   ]
 
@@ -43,7 +47,7 @@ defmodule BarragensptWeb.ReportsController do
         }
       ) do
     case parse_and_validate_date_range(dt_start, dt_end, meteo_index, :monthly) do
-      {:ok, dates: %{start_date: start_date, end_date: end_date}} ->
+      {:ok, start_date: start_date, end_date: end_date} ->
         map_urls =
           get_range(start_date, end_date, meteo_index, :monthly)
           |> Enum.group_by(fn r -> r.year end)
@@ -91,7 +95,7 @@ defmodule BarragensptWeb.ReportsController do
     variant = List.first(meteo_index_parts)
 
     case parse_and_validate_date_range(dt_start, dt_end, meteo_index, :daily) do
-      {:ok, dates: %{start_date: start_date, end_date: end_date}} ->
+      {:ok, start_date: start_date, end_date: end_date} ->
         map_urls =
           if viz_type == "chart" do
             DateHelper.generate_monthly_maps(dt_start, dt_end)
@@ -158,11 +162,13 @@ defmodule BarragensptWeb.ReportsController do
   end
 
   defp parse_and_validate_date_range(start_date, end_date, meteo_index, time_frequency) do
-    start_date = parse_date(start_date)
-    end_date = parse_date(end_date, time_frequency == :monthly)
+    is_end? = time_frequency == :monthly
 
-    case validate_date_limits(start_date, end_date, meteo_index, time_frequency) do
-      :ok -> {:ok, dates: %{start_date: start_date, end_date: end_date}}
+    with {:ok, start_date} <- parse_date(start_date),
+         {:ok, end_date} <- parse_date(end_date, is_end?),
+         :ok <- validate_date_limits(start_date, end_date, meteo_index, time_frequency) do
+      {:ok, start_date: start_date, end_date: end_date}
+    else
       error -> error
     end
   end
@@ -225,11 +231,9 @@ defmodule BarragensptWeb.ReportsController do
 
         y = String.to_integer(y)
 
-        if is_end_date do
-          Date.new!(y, 12, 31)
-        else
-          Date.new!(y, 1, 1)
-        end
+        date = if is_end_date, do: Date.new!(y, 12, 31), else: Date.new!(y, 1, 1)
+
+        {:ok, date}
       else
         {:error, :invalid_date}
       end
