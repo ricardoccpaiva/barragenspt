@@ -4,6 +4,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
   alias Barragenspt.Hydrometrics.PrecipitationMonthlyValue
   import Ecto.Query
   alias Barragenspt.Parsers.SvgXmlParser
+  alias Barragenspt.Services.S3
 
   def spawn_workers do
     from(_x in PrecipitationMonthlyValue) |> Barragenspt.Repo.delete_all()
@@ -35,7 +36,20 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
   def perform(%Oban.Job{
         args: %{"year" => year, "month" => month, "format" => "svg", "layer" => layer}
       }) do
-    file_path = fetch_image(year, month, :svg, layer)
+    query =
+      from(pdv in PrecipitationMonthlyValue,
+        where: pdv.year == ^year and pdv.month == ^month
+      )
+
+    Barragenspt.Repo.delete_all(query)
+
+    {:ok, path} = Briefly.create(directory: true)
+
+    file_path = Path.join(path, "#{UUID.uuid4()}.xls")
+
+    file_payload = fetch_image(year, month, :svg, layer)
+
+    :ok = File.write!(file_path, file_payload)
 
     file_path
     |> Path.expand()
@@ -44,7 +58,19 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
     |> Stream.map(fn c -> build_struct(c, year, month) end)
     |> Enum.each(fn m -> Barragenspt.Repo.insert!(m) end)
 
+    S3.upload(
+      file_path,
+      "assets-barragens-pt",
+      "/precipitation/svg/monthly/raw/#{year}_#{month}.svg"
+    )
+
     ExOptimizer.optimize(file_path)
+
+    S3.upload(
+      file_path,
+      "assets-barragens-pt",
+      "/precipitation/svg/monthly/minified/#{year}_#{month}.svg"
+    )
 
     :ok
   end
@@ -52,13 +78,9 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
   defp fetch_image(year, month, _format, layer) do
     image_payload = Barragenspt.Services.Ipma.get_image(:precipitation, year, month, :svg, layer)
 
-    path = "priv/static/images/precipitation/svg/monthly/#{year}_#{month}.svg"
-
-    File.write!(path, image_payload)
-
     Logger.info("Successfully got precipitation image (svg format) for year #{month}/#{year}")
 
-    path
+    image_payload
   end
 
   defp build_struct(pdsi_value, year, month) do

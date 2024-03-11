@@ -4,6 +4,7 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
   alias Barragenspt.Hydrometrics.TemperatureDailyValue
   import Ecto.Query
   alias Barragenspt.Parsers.SvgXmlParser
+  alias Barragenspt.Services.S3
 
   def spawn_workers do
     from(_x in TemperatureDailyValue) |> Barragenspt.Repo.delete_all()
@@ -55,7 +56,13 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
 
     Barragenspt.Repo.delete_all(query)
 
-    file_path = fetch_image(year, month, day, :svg, layer)
+    {:ok, path} = Briefly.create(directory: true)
+
+    file_path = Path.join(path, "#{UUID.uuid4()}.xls")
+
+    file_payload = fetch_image(year, month, day, :svg, layer)
+
+    :ok = File.write!(file_path, file_payload)
 
     file_path
     |> Path.expand()
@@ -64,9 +71,19 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
     |> Stream.map(fn c -> build_struct(c, year, month, day, layer) end)
     |> Enum.each(fn m -> Barragenspt.Repo.insert!(m) end)
 
+    S3.upload(
+      file_path,
+      "assets-barragens-pt",
+      "/temperature/svg/monthly/raw/#{year}_#{month}_#{day}.svg"
+    )
+
     ExOptimizer.optimize(file_path)
 
-    :timer.sleep(50)
+    S3.upload(
+      file_path,
+      "assets-barragens-pt",
+      "/temperature/svg/monthly/minified/#{year}_#{month}_#{day}.svg"
+    )
 
     :ok
   end
@@ -75,14 +92,9 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
     image_payload =
       Barragenspt.Services.Ipma.get_image(:temperature, year, month, day, :svg, layer)
 
-    path =
-      "priv/static/images/temperature/svg/daily/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
-
-    File.write!(path, image_payload)
-
     Logger.info("Successfully got temperature image (svg format) for #{day}/#{month}/#{year}")
 
-    path
+    image_payload
   end
 
   defp build_struct(pdsi_value, year, month, day, layer) do
