@@ -8,7 +8,7 @@ defmodule Barragenspt.Workers.FetchSvgAreas do
   def perform(_args) do
     from(_x in SvgArea) |> Barragenspt.Repo.delete_all()
 
-    "priv/static/svg/basins_pdsi.svg"
+    "resources/svg/basins_pdsi.svg"
     |> Path.expand()
     |> File.read!()
     |> stream_parse_xml(~c"/svg/g/path/@d")
@@ -16,7 +16,7 @@ defmodule Barragenspt.Workers.FetchSvgAreas do
     |> Stream.map(fn a -> build_struct(a, "basin") end)
     |> Enum.each(fn a -> Barragenspt.Repo.insert!(a) end)
 
-    "priv/static/svg/pt_map.svg"
+    "resources/svg/pt_map.svg"
     |> Path.expand()
     |> File.read!()
     |> stream_parse_xml(~c"/svg/g/path/@d")
