@@ -20,7 +20,7 @@ defmodule Barragenspt.MixProject do
   def application do
     [
       mod: {Barragenspt.Application, []},
-      extra_applications: [:logger, :runtime_tools, :httpoison, :scrivener]
+      extra_applications: [:logger, :runtime_tools, :httpoison, :scrivener, :xmerl]
     ]
   end
 
@@ -46,9 +46,9 @@ defmodule Barragenspt.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"},
+      {:plug_cowboy, "~> 2.7"},
       {:nimble_csv, "~> 1.2.0"},
-      {:oban, "~> 2.10"},
+      {:oban, "~> 2.12"},
       {:httpoison, "~> 1.8"},
       {:floki, "~> 0.32.0"},
       {:geocalc, "~> 0.8"},
@@ -58,7 +58,7 @@ defmodule Barragenspt.MixProject do
       {:nebulex, "~> 2.2"},
       {:decorator, "~> 1.4"},
       {:scrivener_ecto, "~> 2.7"},
-      {:prom_ex, "~> 1.7.1"},
+      {:prom_ex, "~> 1.9.0"},
       {:plug_canonical_host, "~> 2.0"},
       {:tesla, "~> 1.4"},
       {:codepagex, "~> 0.1.6"},
@@ -71,7 +71,10 @@ defmodule Barragenspt.MixProject do
       {:opentelemetry_oban, "~> 1.0"},
       {:opentelemetry_liveview, "~> 1.0.0-rc"},
       {:xxhash, "~> 0.3.1"},
-      {:vega_lite, "~> 0.1.8"}
+      {:vega_lite, "~> 0.1.8"},
+      {:ex_aws, "~> 2.1"},
+      {:ex_aws_s3, "~> 2.0"},
+      {:sweet_xml, "~> 0.7.4"}
     ]
   end
 
