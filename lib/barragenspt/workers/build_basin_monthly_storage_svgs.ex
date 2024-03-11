@@ -2,6 +2,7 @@ defmodule Barragenspt.Workers.BuildBasinMonthlyStorageSvgs do
   use Oban.Worker, queue: :dams_info
   require Logger
   alias Barragenspt.Hydrometrics.Basins
+  alias Barragenspt.Services.S3
 
   @impl Oban.Worker
   def perform(_args) do
@@ -21,7 +22,7 @@ defmodule Barragenspt.Workers.BuildBasinMonthlyStorageSvgs do
     ]
 
     basins_svg_template =
-      "priv/static/svg/pt_basins_template.svg"
+      "resources/svg/pt_basins_template.svg"
       |> Path.expand()
       |> File.read!()
 
@@ -56,9 +57,16 @@ defmodule Barragenspt.Workers.BuildBasinMonthlyStorageSvgs do
         String.replace(acc, from, to)
       end)
 
-    path =
-      "priv/static/images/basin_storage/svg/monthly/#{date.year}_#{date.month}.svg"
+    {:ok, path} = Briefly.create(directory: true)
 
-    File.write!(path, templated_svg)
+    file_path = Path.join(path, "#{UUID.uuid4()}.xls")
+
+    :ok = File.write!(file_path, templated_svg)
+
+    S3.upload(
+      file_path,
+      "assets-barragens-pt",
+      "/basin_storage/svg/monthly/#{date.year}_#{date.month}.svg"
+    )
   end
 end
