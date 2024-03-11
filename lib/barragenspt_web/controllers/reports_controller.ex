@@ -245,7 +245,7 @@ defmodule BarragensptWeb.ReportsController do
     abbreviated_year = String.slice("#{year}", -2, 2)
 
     %{
-      url: "images/#{meteo_index}/svg/monthly/#{year}_#{month}.svg",
+      url: "https://assets.barragens.pt/#{meteo_index}/svg/monthly/minified/#{year}_#{month}.svg",
       date: "#{month_name} '#{abbreviated_year}",
       year: year
     }
@@ -261,9 +261,9 @@ defmodule BarragensptWeb.ReportsController do
 
     url =
       if variant in ["min", "max"] do
-        "images/#{meteo_index}/svg/daily/#{y}_#{mx}_#{dx}_#{variant}.svg"
+        "https://assets.barragens.pt/#{meteo_index}/svg/daily/minified/#{y}_#{mx}_#{dx}_#{variant}.svg"
       else
-        "images/#{meteo_index}/svg/daily/#{y}_#{mx}_#{dx}.svg"
+        "https://assets.barragens.pt/#{meteo_index}/svg/daily/minified/#{y}_#{mx}_#{dx}.svg"
       end
 
     %{
