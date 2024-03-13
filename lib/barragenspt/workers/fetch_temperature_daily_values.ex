@@ -74,7 +74,7 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
     S3.upload(
       file_path,
       "assets-barragens-pt",
-      "/temperature/svg/monthly/raw/#{year}_#{month}_#{day}.svg"
+      "/temperature/svg/daily/raw/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
     )
 
     ExOptimizer.optimize(file_path)
@@ -82,7 +82,7 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
     S3.upload(
       file_path,
       "assets-barragens-pt",
-      "/temperature/svg/monthly/minified/#{year}_#{month}_#{day}.svg"
+      "/temperature/svg/daily/minified/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
     )
 
     :ok
