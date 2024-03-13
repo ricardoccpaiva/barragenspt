@@ -7,6 +7,10 @@ defmodule Barragenspt.Converters.ColorConverter do
 
   @ttl :timer.hours(720)
 
+  def get_hex_color(_mi, "rgb(100%,100%,100%)") do
+    "#FFFFFF"
+  end
+
   @decorate cacheable(
               cache: Cache,
               key: "legend_mapping_#{meteo_index}_#{color_xyz}",
