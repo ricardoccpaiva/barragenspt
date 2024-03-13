@@ -4,7 +4,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
   alias Barragenspt.Hydrometrics.PrecipitationMonthlyValue
   import Ecto.Query
   alias Barragenspt.Parsers.SvgXmlParser
-  alias Barragenspt.Services.S3
+  alias Barragenspt.Services.R2
 
   def spawn_workers do
     from(_x in PrecipitationMonthlyValue) |> Barragenspt.Repo.delete_all()
@@ -47,7 +47,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
 
     file_path = Path.join(path, "#{UUID.uuid4()}.xls")
 
-    file_payload = fetch_image(year, month, :svg, layer)
+    {:ok, cache_status, file_payload} = fetch_image(year, month, layer)
 
     :ok = File.write!(file_path, file_payload)
 
@@ -58,29 +58,42 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
     |> Stream.map(fn c -> build_struct(c, year, month) end)
     |> Enum.each(fn m -> Barragenspt.Repo.insert!(m) end)
 
-    S3.upload(
-      file_path,
-      "assets-barragens-pt",
-      "/precipitation/svg/monthly/raw/#{year}_#{month}.svg"
-    )
+    if cache_status == :cache_miss do
+      R2.upload(
+        file_path,
+        "/precipitation/svg/monthly/raw/#{year}_#{month}.svg"
+      )
 
-    ExOptimizer.optimize(file_path)
+      ExOptimizer.optimize(file_path)
 
-    S3.upload(
-      file_path,
-      "assets-barragens-pt",
-      "/precipitation/svg/monthly/minified/#{year}_#{month}.svg"
-    )
+      R2.upload(
+        file_path,
+        "/precipitation/svg/monthly/minified/#{year}_#{month}.svg"
+      )
+    end
 
     :ok
   end
 
-  defp fetch_image(year, month, _format, layer) do
-    image_payload = Barragenspt.Services.Ipma.get_image(:precipitation, year, month, :svg, layer)
+  defp fetch_image(year, month, layer) do
+    case R2.download("/precipitation/svg/monthly/raw/#{year}_#{month}.svg") do
+      {:ok, payload} ->
+        {:ok, :cache_hit, payload}
 
-    Logger.info("Successfully got precipitation image (svg format) for year #{month}/#{year}")
+      {:error, :not_found} ->
+        payload = get_from_ipma(year, month, layer)
+        {:ok, :cache_miss, payload}
+    end
+  end
 
-    image_payload
+  defp get_from_ipma(year, month, layer) do
+    payload = Barragenspt.Services.Ipma.get_image(:precipitation, year, month, :svg, layer)
+
+    Logger.info(
+      "Falling back download of /precipitation/svg/monthly/raw/#{year}_#{month}.svg from IPMA"
+    )
+
+    payload
   end
 
   defp build_struct(pdsi_value, year, month) do

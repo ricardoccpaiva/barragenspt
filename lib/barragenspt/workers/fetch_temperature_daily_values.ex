@@ -4,7 +4,7 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
   alias Barragenspt.Hydrometrics.TemperatureDailyValue
   import Ecto.Query
   alias Barragenspt.Parsers.SvgXmlParser
-  alias Barragenspt.Services.S3
+  alias Barragenspt.Services.R2
 
   def spawn_workers do
     from(_x in TemperatureDailyValue) |> Barragenspt.Repo.delete_all()
@@ -60,7 +60,7 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
 
     file_path = Path.join(path, "#{UUID.uuid4()}.xls")
 
-    file_payload = fetch_image(year, month, day, :svg, layer)
+    {:ok, cache_status, file_payload} = fetch_image(year, month, day, layer)
 
     :ok = File.write!(file_path, file_payload)
 
@@ -71,30 +71,45 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
     |> Stream.map(fn c -> build_struct(c, year, month, day, layer) end)
     |> Enum.each(fn m -> Barragenspt.Repo.insert!(m) end)
 
-    S3.upload(
-      file_path,
-      "assets-barragens-pt",
-      "/temperature/svg/daily/raw/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
-    )
+    if cache_status == :cache_miss do
+      R2.upload(
+        file_path,
+        "/temperature/svg/daily/raw/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
+      )
 
-    ExOptimizer.optimize(file_path)
+      ExOptimizer.optimize(file_path)
 
-    S3.upload(
-      file_path,
-      "assets-barragens-pt",
-      "/temperature/svg/daily/minified/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
-    )
+      R2.upload(
+        file_path,
+        "/temperature/svg/daily/minified/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
+      )
+    end
 
     :ok
   end
 
-  defp fetch_image(year, month, day, _format, layer) do
-    image_payload =
-      Barragenspt.Services.Ipma.get_image(:temperature, year, month, day, :svg, layer)
+  defp fetch_image(year, month, day, layer) do
+    remote_path =
+      "/temperature/svg/daily/raw/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
 
-    Logger.info("Successfully got temperature image (svg format) for #{day}/#{month}/#{year}")
+    case R2.download(remote_path) do
+      {:ok, payload} ->
+        {:ok, :cache_hit, payload}
 
-    image_payload
+      {:error, :not_found} ->
+        payload = get_from_ipma(year, month, day, layer)
+        {:ok, :cache_miss, payload}
+    end
+  end
+
+  defp get_from_ipma(year, month, day, layer) do
+    payload = Barragenspt.Services.Ipma.get_image(:temperature, year, month, day, :svg, layer)
+
+    Logger.info(
+      "Falling back download of for  /temperature/svg/daily/raw/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg from IPMA"
+    )
+
+    payload
   end
 
   defp build_struct(pdsi_value, year, month, day, layer) do
