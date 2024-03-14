@@ -9,12 +9,16 @@ defmodule Barragenspt.Workers.FetchPdsiValues do
   def spawn_workers do
     from(_x in PdsiValue) |> Barragenspt.Repo.delete_all()
 
+    sd = Date.new!(1981, 1, 1)
+    ed = Date.utc_today()
+    dates = Date.range(sd, ed)
+    dates = Enum.filter(dates, fn dt -> dt.day == 1 end)
+
     combinations =
-      for year <- 1981..2023,
-          month <- 1..12,
+      for date <- dates,
           layer <- ["mpdsi.obsSup.monthly.vector.conc", "mpdsi.obsSup.monthly.vector.baciasHidro"],
           img_format <- [:svg],
-          do: {year, month, layer, img_format}
+          do: {date.year, date.month, layer, img_format}
 
     combinations
     |> Enum.map(fn {year, month, layer, img_format} ->

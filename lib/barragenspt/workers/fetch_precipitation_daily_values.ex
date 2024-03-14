@@ -9,12 +9,16 @@ defmodule Barragenspt.Workers.FetchPrecipitationDailyValues do
   def spawn_workers do
     from(_x in PrecipitationDailyValue) |> Barragenspt.Repo.delete_all()
 
+    sd = Date.new!(2000, 1, 1)
+    ed = Date.utc_today()
+    dates = Date.range(sd, ed)
+    dates = Enum.filter(dates, fn dt -> dt.day == 1 end)
+
     combinations =
-      for year <- 2000..2023,
-          month <- 1..12,
+      for date <- dates,
           layer <- ["mrrto.obsSup.daily.vector.conc"],
           img_format <- [:svg],
-          do: {year, month, layer, img_format}
+          do: {date.year, date.month, layer, img_format}
 
     Enum.each(combinations, fn {year, month, layer, img_format} ->
       jobs = build_worker(year, month, layer, img_format)
