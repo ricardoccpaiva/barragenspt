@@ -1,7 +1,7 @@
 defmodule Barragenspt.Parsers.SvgXmlParser do
   alias Barragenspt.Converters.ColorConverter
 
-  def stream_parse_xml(xmldoc, meteo_index) do
+  def stream_parse_xml(xmldoc, meteo_index, variant \\ nil) do
     {doc, []} = xmldoc |> to_charlist() |> :xmerl_scan.string()
 
     paths_list = :xmerl_xpath.string(~c"/svg/g/path", doc)
@@ -14,7 +14,7 @@ defmodule Barragenspt.Parsers.SvgXmlParser do
         |> :crypto.hash(to_string(path))
         |> Base.encode16()
 
-      hex = convert_svg_color(to_string(style), meteo_index)
+      hex = convert_svg_color(to_string(style), meteo_index, variant)
 
       %{svg_path_hash: hash, color_hex: hex}
     end)
@@ -33,7 +33,7 @@ defmodule Barragenspt.Parsers.SvgXmlParser do
     %{path: path, style: style}
   end
 
-  defp convert_svg_color(input, meteo_index) do
+  defp convert_svg_color(input, meteo_index, variant) do
     # Extract RGB percentages from the input string
     regex = ~r/fill:rgb\((\d+(\.\d+)?%)\s*,\s*(\d+(\.\d+)?%)\s*,\s*(\d+(\.\d+)?%)\);/
 
@@ -57,7 +57,8 @@ defmodule Barragenspt.Parsers.SvgXmlParser do
 
     ColorConverter.get_hex_color(
       meteo_index,
-      "rgb(#{red},#{green},#{blue})"
+      "rgb(#{red},#{green},#{blue})",
+      variant
     )
   end
 end

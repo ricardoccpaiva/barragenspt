@@ -59,7 +59,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
       file_path
       |> Path.expand()
       |> File.read!()
-      |> SvgXmlParser.stream_parse_xml("precipitation")
+      |> SvgXmlParser.stream_parse_xml("precipitation", "monthly")
       |> Stream.map(fn c -> build_struct(c, year, month) end)
       |> Enum.map(fn m -> Barragenspt.Repo.insert!(m) end)
 
