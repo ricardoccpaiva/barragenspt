@@ -12,13 +12,13 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.12.3-erlang-24.2-debian-bullseye-20210902-slim
 #
-ARG BUILDER_IMAGE="hexpm/elixir:1.12.3-erlang-24.2-debian-bullseye-20210902-slim"
+ARG BUILDER_IMAGE="hexpm/elixir:1.15.7-erlang-25.3.2.6-debian-buster-20230612-slim"
 ARG RUNNER_IMAGE="python:3.9-slim-bullseye"
 
 FROM ${BUILDER_IMAGE} as builder
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git \
+RUN apt-get update -y && apt-get install -y build-essential git npm \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # prepare build dir
@@ -51,6 +51,8 @@ COPY resources resources
 # step down so that `lib` is available.
 COPY assets assets
 
+RUN cd assets && npm install
+
 # compile assets
 RUN mix assets.deploy
 
@@ -69,10 +71,14 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM ${RUNNER_IMAGE}
 
-RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses5 locales \
+RUN apt-get update -y && apt-get install -y libstdc++6 openssl libncurses5 locales npm\
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 RUN pip install csvkit
+RUN pip install shapely
+RUN pip install svg.path
+RUN npm install -g svgo
+
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
@@ -87,6 +93,14 @@ RUN chown nobody /app
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/prod/rel/barragenspt ./
 RUN mkdir "bin/resources"
+RUN mkdir "bin/resources/svg"
+
+COPY --from=builder --chown=nobody:root /app/resources/svg/svg_area.py ./bin/resources/svg
+COPY --from=builder --chown=nobody:root /app/resources/svg/svgo-config.mjs ./bin/resources/svg
+COPY --from=builder --chown=nobody:root /app/resources/svg/pt_map.svg ./bin/resources/svg
+COPY --from=builder --chown=nobody:root /app/resources/svg/pt_basins_template.svg ./bin/resources/svg
+COPY --from=builder --chown=nobody:root /app/resources/svg/basins_pdsi.svg ./bin/resources/svg
+
 COPY --from=builder --chown=nobody:root /app/resources/dams.csv ./bin/resources
 COPY --from=builder --chown=nobody:root /app/resources/albufs.csv ./bin/resources
 COPY --from=builder --chown=nobody:root /app/resources/rivers_mapping.csv ./bin/resources
