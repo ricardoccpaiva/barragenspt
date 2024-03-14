@@ -1,7 +1,47 @@
 defmodule Barragenspt.Workers.MeteoDataCacher do
   use Oban.Worker, queue: :stats_cacher
 
-  def spawn_workers() do
+  @impl Oban.Worker
+  def perform(%Oban.Job{args: %{"jcid" => _jcid}}) do
+    spawn_workers()
+  end
+
+  @impl Oban.Worker
+  def perform(%Oban.Job{
+        args: %{
+          "year" => year,
+          "month" => month,
+          "layer" => layer,
+          "meteo_index" => "temperature"
+        }
+      }) do
+    Barragenspt.Meteo.Temperature.get_data_by_scale(year, month, layer)
+    :ok
+  end
+
+  def perform(%Oban.Job{
+        args: %{"year" => year, "month" => month, "meteo_index" => "precipitation"}
+      }) do
+    Barragenspt.Meteo.Precipitation.get_precipitation_data(year, month)
+    :ok
+  end
+
+  def perform(%Oban.Job{
+        args: %{"year" => year, "meteo_index" => "precipitation"}
+      }) do
+    Barragenspt.Meteo.Precipitation.get_monthly_precipitation_data_by_scale(year)
+    Barragenspt.Meteo.Precipitation.get_precipitation_data(year)
+    :ok
+  end
+
+  def perform(%Oban.Job{
+        args: %{"year" => year, "meteo_index" => "pdsi"}
+      }) do
+    Barragenspt.Meteo.Pdsi.get_pdsi_data_by_scale(year)
+    :ok
+  end
+
+  defp spawn_workers() do
     Barragenspt.Cache.flush()
 
     sd = Date.new!(2000, 1, 1)
@@ -62,40 +102,5 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
       end)
 
     Oban.insert_all(jobs)
-  end
-
-  @impl Oban.Worker
-  def perform(%Oban.Job{
-        args: %{
-          "year" => year,
-          "month" => month,
-          "layer" => layer,
-          "meteo_index" => "temperature"
-        }
-      }) do
-    Barragenspt.Meteo.Temperature.get_data_by_scale(year, month, layer)
-    :ok
-  end
-
-  def perform(%Oban.Job{
-        args: %{"year" => year, "month" => month, "meteo_index" => "precipitation"}
-      }) do
-    Barragenspt.Meteo.Precipitation.get_precipitation_data(year, month)
-    :ok
-  end
-
-  def perform(%Oban.Job{
-        args: %{"year" => year, "meteo_index" => "precipitation"}
-      }) do
-    Barragenspt.Meteo.Precipitation.get_monthly_precipitation_data_by_scale(year)
-    Barragenspt.Meteo.Precipitation.get_precipitation_data(year)
-    :ok
-  end
-
-  def perform(%Oban.Job{
-        args: %{"year" => year, "meteo_index" => "pdsi"}
-      }) do
-    Barragenspt.Meteo.Pdsi.get_pdsi_data_by_scale(year)
-    :ok
   end
 end
