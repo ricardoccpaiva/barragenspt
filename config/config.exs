@@ -47,13 +47,26 @@ config :barragenspt, Oban,
        {"0 5 * * *", Barragenspt.Workers.DataPointsUpdate,
         args: %{jcid: unique_id}, max_attempts: 50},
        {"@reboot", Barragenspt.Workers.DataPointsUpdate,
+        args: %{jcid: unique_id}, max_attempts: 50},
+       {"0 5 * * *", Barragenspt.Workers.MeteoDataCacher,
+        args: %{jcid: unique_id}, max_attempts: 50},
+       {"@reboot", Barragenspt.Workers.MeteoDataCacher,
         args: %{jcid: unique_id}, max_attempts: 50}
      ]}
   ],
-  queues: [dams_info: 10, dam_levels: 10, stats_cacher: 1, data_points_update: 1]
+  queues: [dams_info: 10, dam_levels: 10, stats_cacher: 10, data_points_update: 1]
 
 config :barragenspt, :snirh,
   csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php"
+
+config :ex_aws,
+  access_key_id: [{:system, "AWS_ACCESS_KEY_ID"}, :instance_role],
+  secret_access_key: [{:system, "AWS_SECRET_ACCESS_KEY"}, :instance_role]
+
+config :ex_aws, :s3,
+  scheme: "https://",
+  host: "e5841afb091ae329ae85de35190a8e5d.r2.cloudflarestorage.com",
+  port: 443
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
