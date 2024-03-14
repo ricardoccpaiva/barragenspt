@@ -38,7 +38,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
 
   @impl Oban.Worker
   def perform(%Oban.Job{
-        args: %{"year" => year, "month" => month, "format" => "svg", "layer" => layer}
+        args: args = %{"year" => year, "month" => month, "format" => "svg", "layer" => layer}
       }) do
     query =
       from(pdv in PrecipitationMonthlyValue,
@@ -55,25 +55,30 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
 
     :ok = File.write!(file_path, file_payload)
 
-    file_path
-    |> Path.expand()
-    |> File.read!()
-    |> SvgXmlParser.stream_parse_xml("precipitation")
-    |> Stream.map(fn c -> build_struct(c, year, month) end)
-    |> Enum.each(fn m -> Barragenspt.Repo.insert!(m) end)
+    rows_created =
+      file_path
+      |> Path.expand()
+      |> File.read!()
+      |> SvgXmlParser.stream_parse_xml("precipitation")
+      |> Stream.map(fn c -> build_struct(c, year, month) end)
+      |> Enum.map(fn m -> Barragenspt.Repo.insert!(m) end)
 
-    if cache_status == :cache_miss do
-      R2.upload(
-        file_path,
-        "/precipitation/svg/monthly/raw/#{year}_#{month}.svg"
-      )
+    if Enum.any?(rows_created) do
+      if cache_status == :cache_miss do
+        R2.upload(
+          file_path,
+          "/precipitation/svg/monthly/raw/#{year}_#{month}.svg"
+        )
 
-      ExOptimizer.optimize(file_path)
+        ExOptimizer.optimize(file_path)
 
-      R2.upload(
-        file_path,
-        "/precipitation/svg/monthly/minified/#{year}_#{month}.svg"
-      )
+        R2.upload(
+          file_path,
+          "/precipitation/svg/monthly/minified/#{year}_#{month}.svg"
+        )
+      end
+    else
+      Logger.info("Precipitation information not available for #{inspect(args)}")
     end
 
     :ok

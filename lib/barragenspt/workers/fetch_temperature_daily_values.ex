@@ -43,13 +43,14 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
 
   @impl Oban.Worker
   def perform(%Oban.Job{
-        args: %{
-          "year" => year,
-          "month" => month,
-          "day" => day,
-          "format" => "svg",
-          "layer" => layer
-        }
+        args:
+          args = %{
+            "year" => year,
+            "month" => month,
+            "day" => day,
+            "format" => "svg",
+            "layer" => layer
+          }
       }) do
     dt = Date.new!(year, month, day)
 
@@ -68,25 +69,30 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
 
     :ok = File.write!(file_path, file_payload)
 
-    file_path
-    |> Path.expand()
-    |> File.read!()
-    |> SvgXmlParser.stream_parse_xml("temperature")
-    |> Stream.map(fn c -> build_struct(c, year, month, day, layer) end)
-    |> Enum.each(fn m -> Barragenspt.Repo.insert!(m) end)
+    rows_created =
+      file_path
+      |> Path.expand()
+      |> File.read!()
+      |> SvgXmlParser.stream_parse_xml("temperature")
+      |> Stream.map(fn c -> build_struct(c, year, month, day, layer) end)
+      |> Enum.map(fn m -> Barragenspt.Repo.insert!(m) end)
 
-    if cache_status == :cache_miss do
-      R2.upload(
-        file_path,
-        "/temperature/svg/daily/raw/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
-      )
+    if Enum.any?(rows_created) do
+      if cache_status == :cache_miss do
+        R2.upload(
+          file_path,
+          "/temperature/svg/daily/raw/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
+        )
 
-      ExOptimizer.optimize(file_path)
+        ExOptimizer.optimize(file_path)
 
-      R2.upload(
-        file_path,
-        "/temperature/svg/daily/minified/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
-      )
+        R2.upload(
+          file_path,
+          "/temperature/svg/daily/minified/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
+        )
+      end
+    else
+      Logger.info("Temperature information not available for #{inspect(args)}")
     end
 
     :ok
