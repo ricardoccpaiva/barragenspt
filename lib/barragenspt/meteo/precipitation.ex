@@ -18,8 +18,7 @@ defmodule Barragenspt.Meteo.Precipitation do
         on: p.color_hex == l.color_hex,
         where:
           fragment("EXTRACT(year FROM ?) <= ?", p.date, 2020) and
-            l.meteo_index == "precipitation" and
-            l.id <= 41,
+            l.meteo_index == "precipitation" and l.variant == "daily",
         group_by: fragment("EXTRACT(day FROM ?), EXTRACT(month FROM ?)", p.date, p.date),
         order_by: fragment("EXTRACT(day FROM ?), EXTRACT(month FROM ?)", p.date, p.date),
         select: %{
@@ -32,7 +31,7 @@ defmodule Barragenspt.Meteo.Precipitation do
       from(c in subquery(sub_query),
         join: l in LegendMapping,
         where:
-          c.value >= l.min_value and c.value <= l.max_value and l.id <= 41 and
+          c.value >= l.min_value and c.value <= l.max_value and l.variant == "daily" and
             l.meteo_index == "precipitation",
         group_by: [c.month, l.color_hex],
         select: %{
@@ -55,7 +54,7 @@ defmodule Barragenspt.Meteo.Precipitation do
       from p in PrecipitationMonthlyValue,
         join: l in LegendMapping,
         on: p.color_hex == l.color_hex,
-        where: p.year == ^year and l.meteo_index == "precipitation" and l.id >= 42,
+        where: p.year == ^year and l.meteo_index == "precipitation" and l.variant == "monthly",
         group_by: [p.month, p.year],
         order_by: p.month,
         select: %{
@@ -68,7 +67,7 @@ defmodule Barragenspt.Meteo.Precipitation do
       from(c in subquery(sub_query),
         join: l in LegendMapping,
         where:
-          c.value >= l.min_value and c.value <= l.max_value and l.id >= 42 and
+          c.value >= l.min_value and c.value <= l.max_value and l.variant == "monthly" and
             l.meteo_index == "precipitation",
         group_by: [c.year, c.month, l.color_hex],
         select: %{
@@ -94,8 +93,7 @@ defmodule Barragenspt.Meteo.Precipitation do
         on: p.color_hex == l.color_hex,
         where:
           fragment("EXTRACT(year FROM ?) = ?", p.date, ^year) and
-            l.meteo_index == "precipitation" and
-            l.id <= 41,
+            l.meteo_index == "precipitation" and l.variant == "daily",
         group_by: p.date,
         order_by: p.date,
         select: %{
@@ -107,7 +105,7 @@ defmodule Barragenspt.Meteo.Precipitation do
       from(c in subquery(sub_query),
         join: l in LegendMapping,
         where:
-          c.value >= l.min_value and c.value <= l.max_value and l.id <= 41 and
+          c.value >= l.min_value and c.value <= l.max_value and l.variant == "daily" and
             l.meteo_index == "precipitation",
         group_by: [c.date, l.color_hex],
         select: %{
@@ -133,8 +131,7 @@ defmodule Barragenspt.Meteo.Precipitation do
         where:
           fragment("EXTRACT(year FROM ?) = ?", p.date, ^year) and
             fragment("EXTRACT(month FROM ?) = ?", p.date, ^month) and
-            l.meteo_index == "precipitation" and
-            l.id <= 41,
+            l.meteo_index == "precipitation" and l.variant == "daily",
         group_by: p.date,
         order_by: p.date,
         select: %{
@@ -146,7 +143,7 @@ defmodule Barragenspt.Meteo.Precipitation do
       from(c in subquery(sub_query),
         join: l in LegendMapping,
         where:
-          c.value >= l.min_value and c.value <= l.max_value and l.id <= 41 and
+          c.value >= l.min_value and c.value <= l.max_value and l.variant == "daily" and
             l.meteo_index == "precipitation",
         group_by: [c.date, l.color_hex],
         select: %{
