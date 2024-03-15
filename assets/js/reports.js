@@ -16,10 +16,10 @@ if (window.location.pathname == "/reports") {
 
     window.onload = function () {
         const urlParams = new URLSearchParams(window.location.search);
-        const meteo_index = urlParams.get('meteo_index');
-        const time_frequency = urlParams.get('time_frequency');
-        const viz_type = urlParams.get('viz_type');
-        const viz_mode = urlParams.get('viz_mode');
+        const meteo_index = urlParams.get('meteo_index') || "basin_storage";
+        const time_frequency = urlParams.get('time_frequency') || "monthly";
+        const viz_type = urlParams.get('viz_type') || "map";
+        const viz_mode = urlParams.get('viz_mode') || "static";
         const correlate = urlParams.get('correlate');
         const compare_with_ref = urlParams.get('compare_with_ref');
         const startElem = document.getElementById('start');
@@ -72,7 +72,7 @@ if (window.location.pathname == "/reports") {
             });
         }
 
-        if (meteo_index == "pdsi" && viz_mode == "static") {
+        if ((meteo_index == "pdsi" || meteo_index == "basin_storage") && viz_mode == "static") {
             document.getElementById("chk_correlate_div").classList.remove("hidden");
         }
         else {
@@ -238,7 +238,7 @@ if (window.location.pathname == "/reports") {
 
     document.getElementById('viz_mode').addEventListener("change", e => {
         if (e.currentTarget.value == "static") {
-            if (document.getElementById('meteo_index').value == "pdsi") {
+            if (document.getElementById('meteo_index').value == "pdsi" || document.getElementById('meteo_index').value == "basin_storage") {
                 document.getElementById("chk_correlate_div").classList.remove("hidden");
             }
             else {
