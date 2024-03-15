@@ -8,6 +8,8 @@ defmodule Barragenspt.Services.R2 do
     |> ExAws.S3.Upload.stream_file()
     |> ExAws.S3.upload(@r2_assets_bucket, remote_path)
     |> ExAws.request!()
+
+    Logger.info("File uploaded to R2: #{remote_path}")
   end
 
   def download(path) do
