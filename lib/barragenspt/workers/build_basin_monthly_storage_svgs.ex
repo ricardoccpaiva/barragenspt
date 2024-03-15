@@ -65,7 +65,7 @@ defmodule Barragenspt.Workers.BuildBasinMonthlyStorageSvgs do
 
     R2.upload(
       file_path,
-      "/basin_storage/svg/monthly/#{date.year}_#{date.month}.svg"
+      "/basin_storage/svg/monthly/minified/#{date.year}_#{date.month}.svg"
     )
   end
 end
