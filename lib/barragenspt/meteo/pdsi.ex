@@ -1,7 +1,7 @@
 defmodule Barragenspt.Meteo.Pdsi do
   import Ecto.Query
   use Nebulex.Caching
-  alias Barragenspt.Cache
+  alias Barragenspt.MeteoDataCache, as: Cache
   alias Barragenspt.Repo
   alias Barragenspt.Hydrometrics.SvgArea
   alias Barragenspt.Hydrometrics.PdsiValue

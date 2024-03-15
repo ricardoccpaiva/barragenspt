@@ -23,7 +23,8 @@ defmodule Barragenspt.Application do
       # Start the Endpoint (http/https)
       BarragensptWeb.Endpoint,
       {Oban, oban_config()},
-      Barragenspt.Cache
+      Barragenspt.Cache,
+      Barragenspt.MeteoDataCache
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

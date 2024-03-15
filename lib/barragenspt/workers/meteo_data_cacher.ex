@@ -2,7 +2,9 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
   use Oban.Worker, queue: :stats_cacher
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"jcid" => _jcid}}) do
+  def perform(%Oban.Job{args: %{"spawn" => "true"}}) do
+    Barragenspt.MeteoDataCache.flush()
+
     spawn_workers()
   end
 

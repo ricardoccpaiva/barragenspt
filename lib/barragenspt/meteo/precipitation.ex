@@ -1,7 +1,7 @@
 defmodule Barragenspt.Meteo.Precipitation do
   import Ecto.Query
   use Nebulex.Caching
-  alias Barragenspt.Cache
+  alias Barragenspt.MeteoDataCache, as: Cache
   alias Barragenspt.Repo
   alias Barragenspt.Hydrometrics.{PrecipitationDailyValue, PrecipitationMonthlyValue}
   alias Barragenspt.Hydrometrics.LegendMapping
