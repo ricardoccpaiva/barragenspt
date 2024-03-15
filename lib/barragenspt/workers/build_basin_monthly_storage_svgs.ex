@@ -2,7 +2,7 @@ defmodule Barragenspt.Workers.BuildBasinMonthlyStorageSvgs do
   use Oban.Worker, queue: :dams_info
   require Logger
   alias Barragenspt.Hydrometrics.Basins
-  alias Barragenspt.Services.S3
+  alias Barragenspt.Services.R2
 
   @impl Oban.Worker
   def perform(_args) do
@@ -63,9 +63,8 @@ defmodule Barragenspt.Workers.BuildBasinMonthlyStorageSvgs do
 
     :ok = File.write!(file_path, templated_svg)
 
-    S3.upload(
+    R2.upload(
       file_path,
-      "assets-barragens-pt",
       "/basin_storage/svg/monthly/#{date.year}_#{date.month}.svg"
     )
   end
