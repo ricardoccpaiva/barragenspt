@@ -49,12 +49,11 @@ config :barragenspt, Oban,
        {"@reboot", Barragenspt.Workers.DataPointsUpdate,
         args: %{jcid: unique_id}, max_attempts: 50},
        {"0 5 * * *", Barragenspt.Workers.MeteoDataCacher,
-        args: %{jcid: unique_id}, max_attempts: 50},
-       {"@reboot", Barragenspt.Workers.MeteoDataCacher,
-        args: %{jcid: unique_id}, max_attempts: 50}
+        args: %{spawn: "true"}, max_attempts: 50},
+       {"@reboot", Barragenspt.Workers.MeteoDataCacher, args: %{spawn: "true"}, max_attempts: 50}
      ]}
   ],
-  queues: [dams_info: 10, dam_levels: 10, stats_cacher: 10, data_points_update: 1]
+  queues: [dams_info: 10, dam_levels: 10, stats_cacher: 2, data_points_update: 1]
 
 config :barragenspt, :snirh,
   csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php"
