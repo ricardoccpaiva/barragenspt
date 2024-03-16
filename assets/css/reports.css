@@ -117,7 +117,6 @@ td {
     padding: 4px;
     text-align: left;
     background-color: #fff;
-    box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, .1), 0 0 0 1px rgba(10, 10, 10, .02);
 }
 
 th {
@@ -130,13 +129,11 @@ th {
 .first-header {
     background-color: #fff;
     border-top-left-radius: 6px;
-    box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, .1), 0 0 0 1px rgba(10, 10, 10, .02);
 }
 
 .last-header {
     background-color: #fff;
     border-top-right-radius: 6px;
-    box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, .1), 0 0 0 1px rgba(10, 10, 10, .02);
 }
 
 tbody td {
