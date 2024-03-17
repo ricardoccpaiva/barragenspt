@@ -79,7 +79,7 @@ export function build_temperature_spec(year, month, meteo_index, width) {
         "encoding": {
             "x": {
                 "field": "date", "type": "ordinal", "timeUnit": "date",
-                "axis": { "title": "", "labelAngle": -45 }
+                "axis": { "title": "" }
             },
             "y": { "field": "value", "type": "quantitative", "axis": { "title": "" } },
             "color": {
