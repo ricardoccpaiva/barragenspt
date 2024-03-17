@@ -21,6 +21,9 @@ export function build_daily_precipitation_for_one_year_spec(year) {
         "width": "container",
         "height": 50,
         "mark": "bar",
+        "view": {
+            "stroke": null
+        },
         "config": {
             "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
         },
@@ -64,7 +67,13 @@ export function build_temperature_spec(year, month, meteo_index, width) {
         "width": width,
         "autosize": "fit-y",
         "mark": "bar",
+        "view": {
+            "stroke": null
+        },
         "config": {
+            "axis": {
+                "grid": false,
+            },
             "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
         },
         "encoding": {
@@ -116,7 +125,7 @@ export function build_pdsi_spec(meteo_index, year, width) {
             },
             "tooltip": [
                 { "field": "month", "type": "ordinal", "title": "Mês", "format": "%b", "timeUnit": "yearmonth" },
-                { "field": "value", "type": "quantitative", "title": "PDSI", "format": ".2f" }
+                { "field": "value", "type": "quantitative", "title": "% território nacional", "format": ".2f" }
             ]
         }
     }
@@ -138,7 +147,13 @@ export function build_monthly_precipitation_spec(meteo_index, year, width, compa
         "width": width,
         "height": "container",
         "mark": "bar",
+        "view": {
+            "stroke": null
+        },
         "config": {
+            "axis": {
+                "grid": false,
+            },
             "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
         },
         "encoding": {
@@ -177,7 +192,13 @@ export function build_daily_precipitation_spec(meteo_index, year, month, width) 
         "width": width,
         "height": "container",
         "mark": "bar",
+        "view": {
+            "stroke": null
+        },
         "config": {
+            "axis": {
+                "grid": false,
+            },
             "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
         },
         "encoding": {
