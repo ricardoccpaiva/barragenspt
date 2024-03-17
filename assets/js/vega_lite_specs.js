@@ -25,12 +25,15 @@ export function build_daily_precipitation_for_one_year_spec(year) {
             "stroke": null
         },
         "config": {
+            "axis": {
+                "grid": false,
+            },
             "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
         },
         "encoding": {
             "x": {
                 "field": "date", "type": "temporal",
-                "axis": { "title": "", "labelAngle": -45 }
+                "axis": { "title": "", "labelAngle": -15 }
             },
             "y": {
                 "title": "", "field": "value", "type": "quantitative", "axis": {
