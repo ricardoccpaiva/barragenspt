@@ -114,7 +114,7 @@ defmodule BarragensptWeb.ReportsController do
           dt_start: dt_start,
           dt_end: dt_end,
           errors: nil,
-          title: build_title(meteo_index, "daily", dt_start, dt_end)
+          title: build_title(meteo_index, "daily", dt_start, dt_end, variant)
         )
 
       {:error, error_type} ->
@@ -133,8 +133,12 @@ defmodule BarragensptWeb.ReportsController do
     render(conn, :index, maps: [], dt_start: nil, dt_end: nil, errors: nil)
   end
 
-  defp build_title("temperature", "daily", dt_start, dt_end) do
-    "Observação diária da temperatura 🌡️ entre #{dt_start} e #{dt_end}"
+  defp build_title("temperature", "daily", dt_start, dt_end, "min") do
+    "Observação diária da temperatura mínima ❄️ entre #{dt_start} e #{dt_end}"
+  end
+
+  defp build_title("temperature", "daily", dt_start, dt_end, "max") do
+    "Observação diária da temperatura máxima ☀️ entre #{dt_start} e #{dt_end}"
   end
 
   defp build_title("precipitation", "daily", dt_start, dt_end) do
