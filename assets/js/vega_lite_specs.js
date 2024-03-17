@@ -136,7 +136,7 @@ export function build_monthly_precipitation_spec(meteo_index, year, width, compa
             { "calculate": "month(datum.date) + 1", "as": "month" }
         ],
         "width": width,
-        "height": 150,
+        "height": "container",
         "mark": "bar",
         "config": {
             "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
@@ -144,7 +144,7 @@ export function build_monthly_precipitation_spec(meteo_index, year, width, compa
         "encoding": {
             "x": {
                 "field": "date", "type": "ordinal", "timeUnit": "yearmonth",
-                "axis": { "title": "", "labelAngle": -45, "format": "%b" }
+                "axis": { "title": "", "labelAngle": 0, "format": "%b" }
             },
             "xOffset": { "field": "type" },
             "color": {
@@ -175,7 +175,7 @@ export function build_daily_precipitation_spec(meteo_index, year, month, width) 
             "url": url
         },
         "width": width,
-        "height": 150,
+        "height": "container",
         "mark": "bar",
         "config": {
             "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
@@ -183,7 +183,7 @@ export function build_daily_precipitation_spec(meteo_index, year, month, width) 
         "encoding": {
             "x": {
                 "field": "date", "type": "ordinal", "timeUnit": "date",
-                "axis": { "title": "", "labelAngle": -45 }
+                "axis": { "title": "", "labelAngle": 0 }
             },
             "y": { "field": "value", "type": "quantitative", "axis": { "title": "" } },
             "color": {
