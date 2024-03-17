@@ -1,3 +1,35 @@
+.btn-close-tooltip {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 18px;
+}
+
+.info-reports {
+    margin-left: 10px;
+}
+
+.notification {
+    background-color: #f2f0f0;
+}
+
+.meteo-legend {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 190px;
+    z-index: 9999999;
+    font: 14px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+}
+
+.meteo-legend div span {
+    border-radius: 50%;
+    display: inline-block;
+    height: 10px;
+    margin-right: 5px;
+    width: 10px;
+}
+
 .bpt-datepicker {
     max-width: 100px;
 }

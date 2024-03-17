@@ -118,6 +118,14 @@ if (window.location.pathname == "/reports") {
         }
     };
 
+    document.getElementById('btnOpenLegendTooltip').addEventListener("click", e => {
+        document.getElementById("legendTooltipDiv").classList.remove("hidden");
+    });
+
+    document.getElementById('btnCloseLegendTooltip').addEventListener("click", e => {
+        document.getElementById("legendTooltipDiv").classList.add("hidden");
+    });
+
     document.getElementById('viz_type').addEventListener("change", e => {
         if (e.currentTarget.value == "chart") {
             document.getElementById("viz_mode_div").classList.add("hidden");
