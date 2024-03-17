@@ -5,6 +5,8 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
   def perform(%Oban.Job{args: %{"spawn" => "true"}}) do
     Barragenspt.MeteoDataCache.flush()
 
+    Barragenspt.Meteo.Precipitation.get_reference_monthly_precipitation()
+
     spawn_workers()
   end
 
@@ -44,8 +46,6 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
   end
 
   defp spawn_workers() do
-    Barragenspt.Cache.flush()
-
     sd = Date.new!(2000, 1, 1)
     ed = Date.utc_today()
     dates = Date.range(sd, ed)
