@@ -82,7 +82,7 @@ if (window.location.pathname == "/reports") {
         if (viz_type == 'chart') {
             var elements = document.getElementsByClassName("vega_chart");
             var chartContainer = document.getElementById("tbl_magic");
-            var containerWidth = chartContainer.offsetWidth * 0.92;
+            var containerWidth = chartContainer.offsetWidth - 65;
 
             if (meteo_index.includes("temperature")) {
                 Array.from(elements).forEach(function (element) {
