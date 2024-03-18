@@ -118,13 +118,17 @@ if (window.location.pathname == "/reports") {
         }
     };
 
-    document.getElementById('btnOpenLegendTooltip').addEventListener("click", e => {
-        document.getElementById("legendTooltipDiv").classList.remove("hidden");
-    });
+    let elem = document.getElementById('btnOpenLegendTooltip');
 
-    document.getElementById('btnCloseLegendTooltip').addEventListener("click", e => {
-        document.getElementById("legendTooltipDiv").classList.add("hidden");
-    });
+    if (elem != null) {
+        elem.addEventListener("click", e => {
+            document.getElementById("legendTooltipDiv").classList.remove("hidden");
+        });
+
+        document.getElementById('btnCloseLegendTooltip').addEventListener("click", e => {
+            document.getElementById("legendTooltipDiv").classList.add("hidden");
+        });
+    }
 
     document.getElementById('viz_type').addEventListener("change", e => {
         if (e.currentTarget.value == "chart") {
