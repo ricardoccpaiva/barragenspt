@@ -1,3 +1,29 @@
+@media only screen and (max-width: 46.875em) {
+    .reports-logo {
+        height: 32px;
+        margin-top: 10px;
+        margin-left: 50px;
+        background-repeat: no-repeat;
+        background-size: 38px;
+    }
+
+    .logo-text-reports {
+        padding-left: 10px;
+        margin-left: 35px;
+        margin-top: -5px;
+        font-size: 30px;
+        color: #8196a8;
+        font-family: orangeJuice;
+        display: inline-block;
+    }
+}
+
+@media only screen and (min-width: 46.875em) {
+    .reports-logo {
+        display: none;
+    }
+}
+
 .btn-close-tooltip {
     position: fixed;
     top: 20px;
@@ -60,8 +86,8 @@
 }
 
 .reports-header {
-    margin-top: 6px;
-    padding: 0.15rem;
+    margin-top: 15px;
+    padding: 0.35rem;
     margin-left: 15px;
     margin-right: 15px;
 }

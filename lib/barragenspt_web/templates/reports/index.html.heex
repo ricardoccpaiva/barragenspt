@@ -123,6 +123,9 @@
                </div>
             </div>
             <% end %>
+               <div class="reports-logo map-overlay-logo">
+                  <a href="/"><span class="logo-text-reports">METEO BARRAGENS</span></a>
+               </div>
                <%= if !Enum.any?(@maps) && !@errors do %>
                   <div class="reports-header box" style="margin-bottom: 6px;">
                      <label class="label">
@@ -130,6 +133,7 @@
                      </label>
                   </div>
                   <% end %>
+
                      <%= if Enum.any?(@maps) do %>
                         <div class="reports-header box" style="margin-bottom: 6px;">
                            <label class="label reports-header-text">
