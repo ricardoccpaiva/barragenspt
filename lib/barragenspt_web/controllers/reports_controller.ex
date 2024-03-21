@@ -32,6 +32,10 @@ defmodule BarragensptWeb.ReportsController do
     %{
       error_type: :invalid_date,
       error_message: "As datas selecionadas são inválidas."
+    },
+    %{
+      error_type: :missing_date,
+      error_message: "As datas são de preenchimento obrigatório."
     }
   ]
 
@@ -222,25 +226,29 @@ defmodule BarragensptWeb.ReportsController do
     regex_year_month = ~r/^(?'month'\d{2})\/(?'year'\d{4})$/
     regex_year = ~r/^(?'year'\d{4})$/
 
-    if(Regex.match?(regex_year_month, date)) do
-      %{"month" => m, "year" => y} = Regex.named_captures(regex_year_month, date)
-
-      y = String.to_integer(y)
-      m = String.to_integer(m)
-
-      {:ok, Date.new!(y, m, 1)}
-    else
-      if Regex.match?(regex_year, date) do
-        %{"year" => y} = Regex.named_captures(regex_year, date)
+    if date != "" do
+      if(Regex.match?(regex_year_month, date)) do
+        %{"month" => m, "year" => y} = Regex.named_captures(regex_year_month, date)
 
         y = String.to_integer(y)
+        m = String.to_integer(m)
 
-        date = if is_end_date, do: Date.new!(y, 12, 31), else: Date.new!(y, 1, 1)
-
-        {:ok, date}
+        {:ok, Date.new!(y, m, 1)}
       else
-        {:error, :invalid_date}
+        if Regex.match?(regex_year, date) do
+          %{"year" => y} = Regex.named_captures(regex_year, date)
+
+          y = String.to_integer(y)
+
+          date = if is_end_date, do: Date.new!(y, 12, 31), else: Date.new!(y, 1, 1)
+
+          {:ok, date}
+        else
+          {:error, :invalid_date}
+        end
       end
+    else
+      {:error, :missing_date}
     end
   end
 
