@@ -191,7 +191,7 @@ defmodule BarragensptWeb.ReportsController do
       if start_date.year > max || end_date.year > max do
         {:error, :invalid_max_date}
       else
-        if end_date < start_date do
+        if Date.compare(end_date, start_date) == :lt do
           {:error, :start_lt_end}
         else
           if time_frequency == :daily && Date.diff(end_date, start_date) > 365 do
