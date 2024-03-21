@@ -45,6 +45,13 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
     :ok
   end
 
+  def perform(%Oban.Job{
+        args: %{"year" => year, "meteo_index" => "basin_storage"}
+      }) do
+    Barragenspt.Hydrometrics.Basins.yearly_stats_for_basin(year)
+    :ok
+  end
+
   defp spawn_workers() do
     sd = Date.new!(2000, 1, 1)
     ed = Date.utc_today()
@@ -72,13 +79,23 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
 
     Oban.insert_all(jobs)
 
-    years = Enum.uniq(combinations_precipitation, fn {year, _month} -> year end)
+    years = Enum.uniq_by(combinations_precipitation, fn {year, _month} -> year end)
 
     jobs =
       Enum.map(years, fn {year, _month} ->
         Barragenspt.Workers.MeteoDataCacher.new(%{
           "year" => year,
           "meteo_index" => "pdsi"
+        })
+      end)
+
+    Oban.insert_all(jobs)
+
+    jobs =
+      Enum.map(years, fn {year, _month} ->
+        Barragenspt.Workers.MeteoDataCacher.new(%{
+          "year" => year,
+          "meteo_index" => "basin_storage"
         })
       end)
 

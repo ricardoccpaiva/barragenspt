@@ -4,6 +4,7 @@ import Datepicker from '../node_modules/vanillajs-datepicker/js/Datepicker.js';
 import {
     build_pdsi_spec,
     build_daily_precipitation_for_one_year_spec,
+    build_daily_basin_storage_for_one_year_spec,
     build_temperature_spec,
     build_monthly_precipitation_spec,
     build_daily_precipitation_spec,
@@ -114,7 +115,15 @@ if (window.location.pathname == "/reports") {
 
                     draw_spec(element, spec);
                 });
+            } else if (meteo_index == "basin_storage") {
+
+                Array.from(elements).forEach(function (element) {
+                    let spec = build_daily_basin_storage_for_one_year_spec(element.id, containerWidth - 40);
+
+                    draw_spec(element, spec);
+                });
             }
+
         }
     };
 

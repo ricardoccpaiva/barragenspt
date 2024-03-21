@@ -10,6 +10,98 @@ import {
     daily_precipitation_range
 } from './vega_lite_spec_constants';
 
+export function build_daily_basin_storage_for_one_year_spec(year, width) {
+    url = "meteo_data?meteo_index=basin_storage" + "&year=" + year + "&format.csv";
+
+    return {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": width,
+        "height": 200,
+        "encoding": {
+            "x": {
+                "field": "date", "type": "temporal",
+                "timeUnit": "yearmonth",
+                "axis": { "title": "Mês", "format": "%B" },
+            }
+        },
+        "layer": [
+            {
+                "data": {
+                    "url": url
+                },
+                "encoding": {
+                    "color": {
+                        "field": "basin",
+                        "type": "nominal",
+                        "legend": null
+                    },
+                    "y": {
+                        "field": "value",
+                        "scale": { "domain": [0, 100] },
+                        "type": "quantitative",
+                        "axis": { "title": "% Armazenamento" },
+                    }
+                },
+                "layer": [
+                    { "mark": { "interpolate": "natural", "type": "line" } },
+                    {
+                        "mark": "point",
+                        "transform": [
+                            { "filter": { "empty": false, "param": "hover" } }
+                        ]
+                    }
+                ]
+            },
+            {
+                "data": {
+                    "url": url
+                },
+                "encoding": {
+                    "opacity": {
+                        "condition": { "empty": false, "param": "hover", "value": 0.3 },
+                        "value": 0
+                    },
+                    "tooltip": [
+                        { "field": "date", "title": "Data", "type": "temporal" },
+                        { "field": "Ave", "type": "quantitative" },
+                        { "field": "Douro", "type": "quantitative" },
+                        { "field": "Tejo", "type": "quantitative" },
+                        { "field": "Sado", "type": "quantitative" },
+                        { "field": "Guadiana", "type": "quantitative" },
+                        { "field": "Mira", "type": "quantitative" },
+                        { "field": "Lima", "type": "quantitative" },
+                        { "field": "Mondego", "type": "quantitative" },
+                        { "field": "Cávado/ribeiras Costeiras", "type": "quantitative" },
+                        { "field": "Ribeiras Do Algarve", "type": "quantitative" },
+
+                    ]
+                },
+                "mark": "rule",
+                "params": [
+                    {
+                        "name": "hover",
+                        "select": {
+                            "clear": "mouseout",
+                            "empty": false,
+                            "fields": ["date"],
+                            "nearest": true,
+                            "on": "mouseover",
+                            "type": "point"
+                        }
+                    }
+                ],
+                "transform": [
+                    {
+                        "groupby": ["date"],
+                        "pivot": "basin",
+                        "value": "value"
+                    }
+                ]
+            }
+        ]
+    }
+}
+
 export function build_daily_precipitation_for_one_year_spec(year) {
     url = "meteo_data?meteo_index=precipitation" + "&year=" + year + "&format.csv";
 

@@ -19,6 +19,54 @@ defmodule Barragenspt.Hydrometrics.Basins do
 
   @decorate cacheable(
               cache: Cache,
+              key: "basins.yearly_stats_for_basin_#{year}",
+              ttl: @ttl
+            )
+  def yearly_stats_for_basin(year) do
+    query =
+      from(dp in DataPoint,
+        join: d in Dam,
+        on: d.basin_id == dp.basin_id and dp.site_id == d.site_id,
+        where:
+          dp.param_name == "volume_last_day_month" and
+            fragment("EXTRACT(year FROM ?) = ?", dp.colected_at, ^year),
+        group_by: [
+          d.basin_id,
+          d.basin,
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          )
+        ],
+        select: {
+          d.basin_id,
+          d.basin,
+          sum(dp.value) / sum(d.total_capacity),
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          )
+        }
+      )
+
+    query
+    |> Repo.all()
+    |> Stream.map(fn {basin_id, basin, value, date} ->
+      %{
+        basin_id: basin_id,
+        basin: basin,
+        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+        date: date
+      }
+    end)
+    |> Stream.reject(fn %{value: value} -> value > 100 end)
+    |> Enum.to_list()
+    |> List.flatten()
+    |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
+  end
+
+  @decorate cacheable(
+              cache: Cache,
               key: "basins.daily_stats_for_basin_#{id}_#{Enum.join(usage_types, "-")}_#{period}",
               ttl: @ttl
             )
@@ -264,6 +312,10 @@ defmodule Barragenspt.Hydrometrics.Basins do
   end
 
   def all do
+    Repo.all(from(b in Basin))
+  end
+
+  def all_ids do
     Repo.all(from(b in Basin))
   end
 

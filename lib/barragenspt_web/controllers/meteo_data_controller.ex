@@ -5,6 +5,7 @@ defmodule BarragensptWeb.MeteoDataController do
   alias Barragenspt.Meteo.Temperature
   alias Barragenspt.Meteo.Precipitation
   alias Barragenspt.Meteo.Pdsi
+  alias Barragenspt.Hydrometrics.Basins
 
   @daily_scale [
     %{color_hex: "#360e38", index: 0},
@@ -71,6 +72,18 @@ defmodule BarragensptWeb.MeteoDataController do
     |> send_resp(200, data)
   end
 
+  def index(conn, %{"year" => year, "meteo_index" => "basin_storage"}) do
+    data =
+      year
+      |> String.to_integer()
+      |> Basins.yearly_stats_for_basin()
+      |> build_basin_storage_csv(year)
+
+    conn
+    |> put_resp_content_type("text/csv")
+    |> send_resp(200, data)
+  end
+
   def index(conn, %{"year" => year, "meteo_index" => "precipitation"}) do
     data =
       year
@@ -111,11 +124,18 @@ defmodule BarragensptWeb.MeteoDataController do
     |> send_resp(200, data)
   end
 
-  defp build_csv(data, year) do
+  @decorate cacheable(
+              cache: Cache,
+              key: "build_basin_storage_csv_#{year}",
+              ttl: 9_999_999
+            )
+  defp build_basin_storage_csv(data, year) do
+    header = "basin,date,value"
+
     data
-    |> Enum.map(fn d -> "#{d.date},#{d.weighted_average}" end)
+    |> Enum.map(fn d -> "#{d.basin},#{d.date},#{d.value}" end)
     |> Enum.join("\n")
-    |> Kernel.then(fn v -> "date,value\n#{v}" end)
+    |> Kernel.then(fn v -> "#{header}\n#{v}" end)
   end
 
   @decorate cacheable(
