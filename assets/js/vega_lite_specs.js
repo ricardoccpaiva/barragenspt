@@ -21,7 +21,7 @@ export function build_daily_basin_storage_for_one_year_spec(year, width) {
             "x": {
                 "field": "date", "type": "temporal",
                 "timeUnit": "yearmonth",
-                "axis": { "title": "Mês", "format": "%B" },
+                "axis": { "title": "", "format": "%B" },
             }
         },
         "layer": [
