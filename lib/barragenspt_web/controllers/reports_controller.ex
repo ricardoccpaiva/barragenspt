@@ -141,7 +141,7 @@ defmodule BarragensptWeb.ReportsController do
     "Observação diária da temperatura máxima ☀️ entre #{dt_start} e #{dt_end}"
   end
 
-  defp build_title("precipitation", "daily", dt_start, dt_end) do
+  defp build_title("precipitation", "daily", dt_start, dt_end, _) do
     "Observação diária da precipitação acumulada 🌧️ entre #{dt_start} e #{dt_end}"
   end
 

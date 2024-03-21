@@ -313,7 +313,11 @@ export function build_daily_precipitation_spec(meteo_index, year, month, width) 
                 "field": "date", "type": "ordinal", "timeUnit": "date",
                 "axis": { "title": "", "labelAngle": 0 }
             },
-            "y": { "field": "value", "type": "quantitative", "axis": { "title": "" } },
+            "y": {
+                "field": "value",
+                "type": "quantitative",
+                "axis": { "title": `${getMonthName(year, month)}` },
+            },
             "color": {
                 "field": "index",
                 "type": "nominal",
