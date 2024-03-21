@@ -3,13 +3,7 @@
         <%= for map <- @maps do %>
             <tr>
                 <td>
-                    <label class="year-column">
-                        <%= map.month %>
-                    </label>
-                </td>
-                <td>
-                    <div style="width: 100%; height: 150px" id={"#{map.year}-#{map.month}"}
-                        class="vega_chart" />
+                    <div style="width: 100%; height: 150px" id={"#{map.year}-#{map.month}"} class="vega_chart" />
                 </td>
             </tr>
             <% end %>

@@ -39,7 +39,7 @@ export function build_daily_basin_storage_for_one_year_spec(year, width) {
                         "field": "value",
                         "scale": { "domain": [0, 100] },
                         "type": "quantitative",
-                        "axis": { "title": "% Armazenamento" },
+                        "axis": { "title": `% Armazenamento - ${year}` },
                     }
                 },
                 "layer": [
@@ -157,7 +157,7 @@ export function build_temperature_spec(year, month, meteo_index, width) {
             "url": url
         },
         "transform": [
-            { "calculate": "day(datum.date)", "as": "day_of_month" }
+            { "calculate": `timeFormat(${month}, '%B')`, "as": "month_name" }
         ],
         "width": width,
         "autosize": "fit-y",
@@ -176,7 +176,11 @@ export function build_temperature_spec(year, month, meteo_index, width) {
                 "field": "date", "type": "ordinal", "timeUnit": "date",
                 "axis": { "title": "" }
             },
-            "y": { "field": "value", "type": "quantitative", "axis": { "title": "" } },
+            "y": {
+                "field": "value",
+                "type": "quantitative",
+                "axis": { "title": `${getMonthName(year, month)}` },
+            },
             "color": {
                 "field": "index",
                 "type": "nominal",
@@ -209,7 +213,11 @@ export function build_pdsi_spec(meteo_index, year, width) {
         },
         "encoding": {
             "x": { "field": "month", "type": "ordinal", "axis": { "title": "", "labelAngle": 0 } },
-            "y": { "field": "value", "type": "quantitative", "axis": { "title": "" } },
+            "y": {
+                "field": "value",
+                "type": "quantitative",
+                "axis": { "title": `${year}` },
+            },
             "color": {
                 "field": "index",
                 "type": "nominal",
@@ -266,7 +274,11 @@ export function build_monthly_precipitation_spec(meteo_index, year, width, compa
                     "range": monthly_precipitation_range
                 },
             },
-            "y": { "field": "value", "type": "quantitative", "axis": { "title": "" } },
+            "y": {
+                "field": "value",
+                "type": "quantitative",
+                "axis": { "title": `${year}` },
+            },
             "tooltip": [
                 { "field": "date", "type": "ordinal", "title": "Mês", "format": "%b", "timeUnit": "yearmonth" },
                 { "field": "value", "type": "quantitative", "title": "Precipitação " + unit, "format": ".2f" }
@@ -322,4 +334,10 @@ export function draw_spec(element, spec) {
     vegaEmbed(element, spec, { actions: false })
         .then((result) => result.view)
         .catch((error) => console.error(error))
+}
+
+function getMonthName(year, monthNumber) {
+    const date = new Date(year, monthNumber - 1); // Assuming a fixed year (2000)
+    const month_name = date.toLocaleString('pt-PT', { month: 'long' });
+    return month_name.charAt(0).toUpperCase() + month_name.slice(1);
 }
