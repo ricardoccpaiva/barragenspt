@@ -212,7 +212,11 @@ export function build_pdsi_spec(meteo_index, year, width) {
             "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
         },
         "encoding": {
-            "x": { "field": "month", "type": "ordinal", "axis": { "title": "", "labelAngle": 0 } },
+            "x": {
+                "field": "date", "type": "ordinal",
+                "timeUnit": "month",
+                "axis": { "title": "", "labelAngle": 0 }
+            },
             "y": {
                 "field": "value",
                 "type": "quantitative",
@@ -227,7 +231,7 @@ export function build_pdsi_spec(meteo_index, year, width) {
                 },
             },
             "tooltip": [
-                { "field": "month", "type": "ordinal", "title": "Mês", "format": "%b", "timeUnit": "yearmonth" },
+                { "field": "date", "type": "ordinal", "title": "Mês", "format": "%b", "timeUnit": "month" },
                 { "field": "value", "type": "quantitative", "title": "% território nacional", "format": ".2f" }
             ]
         }
