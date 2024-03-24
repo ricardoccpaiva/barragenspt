@@ -62,7 +62,7 @@ defmodule Barragenspt.Workers.FetchSvgAreas do
   end
 
   defp calculate_area(svg_path) do
-    {pct, 0} = System.cmd("python3", ["svg_area.py", "#{svg_path}"])
+    {pct, 0} = System.cmd("python3", ["resources/svg/svg_area.py", "#{svg_path}"])
     {decimal, ""} = pct |> String.replace("\n", "") |> Decimal.parse()
 
     decimal
