@@ -32,7 +32,7 @@ defmodule Barragenspt.Meteo.Temperature do
           count: count(1),
           date: pdv.date,
           color_hex: pdv.color_hex,
-          weight: sum(sa.area) / 60541.204940844229249 * 100
+          weight: sum(sa.area) / 64867.01067 * 100
         }
 
     Repo.all(query)
