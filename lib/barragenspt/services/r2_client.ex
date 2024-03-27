@@ -3,6 +3,20 @@ defmodule Barragenspt.Services.R2 do
 
   @r2_assets_bucket "assets-barragens-pt"
 
+  def exists?(remote_path) do
+    try do
+      @r2_assets_bucket
+      |> ExAws.S3.head_object(remote_path)
+      |> ExAws.request!()
+
+      true
+    rescue
+      _e in ExAws.Error ->
+        Logger.info("File not found: #{remote_path}")
+        false
+    end
+  end
+
   def upload(local_path, remote_path) do
     local_path
     |> ExAws.S3.Upload.stream_file()
