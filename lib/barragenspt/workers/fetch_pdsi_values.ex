@@ -1,5 +1,5 @@
 defmodule Barragenspt.Workers.FetchPdsiValues do
-  use Oban.Worker, queue: :dams_info
+  use Oban.Worker, queue: :meteo_data
   require Logger
   alias Barragenspt.Hydrometrics.PdsiValue
   import Ecto.Query
@@ -16,7 +16,7 @@ defmodule Barragenspt.Workers.FetchPdsiValues do
 
     combinations =
       for date <- dates,
-          layer <- ["mpdsi.obsSup.monthly.vector.conc", "mpdsi.obsSup.monthly.vector.baciasHidro"],
+          layer <- ["mpdsi.obsSup.monthly.vector.conc"],
           img_format <- [:svg],
           do: {date.year, date.month, layer, img_format}
 
