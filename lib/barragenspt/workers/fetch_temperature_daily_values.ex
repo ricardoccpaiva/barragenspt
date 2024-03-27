@@ -1,10 +1,11 @@
 defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
-  use Oban.Worker, queue: :dams_info
+  use Oban.Worker, queue: :meteo_data
   require Logger
   alias Barragenspt.Hydrometrics.TemperatureDailyValue
   import Ecto.Query
   alias Barragenspt.Parsers.SvgXmlParser
   alias Barragenspt.Services.R2
+  import Mogrify
 
   def spawn_workers do
     from(_x in TemperatureDailyValue) |> Barragenspt.Repo.delete_all()
@@ -63,7 +64,7 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
 
     {:ok, path} = Briefly.create(directory: true)
 
-    file_path = Path.join(path, "#{UUID.uuid4()}.xls")
+    file_path = Path.join(path, "#{UUID.uuid4()}.svg")
 
     {:ok, cache_status, file_payload} = fetch_image(year, month, day, layer)
 
@@ -84,13 +85,35 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
           "/temperature/svg/daily/raw/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
         )
 
-        ExOptimizer.optimize(file_path)
+        # ExOptimizer.optimize(file_path)
 
-        R2.upload(
-          file_path,
-          "/temperature/svg/daily/minified/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
-        )
+        # R2.upload(
+        # file_path,
+        # "/temperature/svg/daily/minified/#{year}_#{month}_#{day}_#{translate_layer(layer)}.svg"
+        # )
       end
+
+      png_file_path = Path.join(path, "#{UUID.uuid4()}.png")
+
+      %Mogrify.Image{
+        path: _path,
+        ext: ".png",
+        format: "jpeg",
+        buffer: nil,
+        operations: [],
+        dirty: %{}
+      } =
+        file_path
+        |> open
+        |> format("jpeg")
+        |> quality("100")
+        |> resize_to_fill("202x387")
+        |> save(path: png_file_path)
+
+      R2.upload(
+        png_file_path,
+        "/temperature/jpg/daily/#{year}_#{month}_#{day}_#{translate_layer(layer)}.jpg"
+      )
     else
       Logger.info("Temperature information not available for #{inspect(args)}")
     end
