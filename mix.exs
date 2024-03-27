@@ -74,7 +74,8 @@ defmodule Barragenspt.MixProject do
       {:vega_lite, "~> 0.1.8"},
       {:ex_aws, "~> 2.1"},
       {:ex_aws_s3, "~> 2.0"},
-      {:sweet_xml, "~> 0.7.4"}
+      {:sweet_xml, "~> 0.7.4"},
+      {:mogrify, "~> 0.9.3"}
     ]
   end
 
