@@ -32,7 +32,7 @@ defmodule Barragenspt.Meteo.Pdsi do
           year: pdv.year,
           month: pdv.month,
           color_hex: pdv.color_hex,
-          weight: sum(sa.area) / 64867.01067 * 100
+          weight: sum(sa.area) / 150_488.279829928717369 * 100
         }
 
     Repo.all(query)
