@@ -1,5 +1,5 @@
 defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
-  use Oban.Worker, queue: :dams_info
+  use Oban.Worker, queue: :meteo_data
   require Logger
   alias Barragenspt.Hydrometrics.PrecipitationMonthlyValue
   import Ecto.Query
