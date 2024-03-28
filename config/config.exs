@@ -22,7 +22,7 @@ config :esbuild,
   version: "0.14.0",
   default: [
     args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+      ~w(js/app.js js/homepage.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
@@ -30,7 +30,7 @@ config :esbuild,
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
+  metadata: [:request_id, :trace_id]
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
@@ -56,7 +56,7 @@ config :barragenspt, Oban,
   queues: [
     dams_info: 10,
     dam_levels: 10,
-    stats_cacher: 2,
+    stats_cacher: 10,
     data_points_update: 1,
     meteo_data: 20
   ]
@@ -71,8 +71,8 @@ config :ex_aws, :s3,
 
 config :mogrify,
   convert_command: [
-    path: "magick",
-    args: ["convert"]
+    path: "convert",
+    args: []
   ]
 
 # Import environment specific config. This must remain at the bottom
