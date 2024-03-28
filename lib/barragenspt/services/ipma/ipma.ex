@@ -49,7 +49,7 @@ defmodule Barragenspt.Services.Ipma do
       "https://mapservices.ipma.pt/observations/climate/#{indicator}/wms"
 
     url =
-      "#{base_url}?service=WMS&request=GetMap&layers=#{layer}&styles&format=#{format}&transparent=true&version=1.1.1&time=#{year}-#{month}-01T00%3A00%3A00Z&width=270&height=500&srs=EPSG%3A3857&bbox=-1094009.7446,4438339.9340,-689199.2428,5212494.1564"
+      "#{base_url}?service=WMS&request=GetMap&layers=#{layer}&styles&format=#{format}&transparent=true&version=1.1.1&time=#{year}-#{month}-01T00%3A00%3A00Z&width=404&height=774&srs=EPSG%3A3857&bbox=-1094009.7446,4438339.9340,-689199.2428,5212494.1564"
 
     http_get(url)
   end
@@ -71,7 +71,7 @@ defmodule Barragenspt.Services.Ipma do
       "https://mapservices.ipma.pt/observations/climate/#{indicator}/wms"
 
     url =
-      "#{base_url}?service=WMS&request=GetMap&layers=#{layer}&styles&format=#{format}&transparent=true&version=1.1.1&time=#{year}-#{month}-#{day}T00%3A00%3A00Z&width=270&height=500&srs=EPSG%3A3857&bbox=-1094009.7446,4438339.9340,-689199.2428,5212494.1564"
+      "#{base_url}?service=WMS&request=GetMap&layers=#{layer}&styles&format=#{format}&transparent=true&version=1.1.1&time=#{year}-#{month}-#{day}T00%3A00%3A00Z&width=404&height=774&srs=EPSG%3A3857&bbox=-1094009.7446,4438339.9340,-689199.2428,5212494.1564"
 
     http_get(url)
   end
