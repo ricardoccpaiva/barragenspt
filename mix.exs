@@ -75,7 +75,8 @@ defmodule Barragenspt.MixProject do
       {:ex_aws, "~> 2.1"},
       {:ex_aws_s3, "~> 2.0"},
       {:sweet_xml, "~> 0.7.4"},
-      {:mogrify, "~> 0.9.3"}
+      {:mogrify, "~> 0.9.3"},
+      {:opentelemetry_logger_metadata, "~> 0.1.0"}
     ]
   end
 

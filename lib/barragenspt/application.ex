@@ -11,6 +11,7 @@ defmodule Barragenspt.Application do
     OpentelemetryEcto.setup([:barragenspt, :repo])
     OpentelemetryOban.setup()
     OpentelemetryLiveView.setup()
+    OpentelemetryLoggerMetadata.setup()
 
     children = [
       Barragenspt.PromEx,
