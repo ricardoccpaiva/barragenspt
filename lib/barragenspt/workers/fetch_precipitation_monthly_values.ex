@@ -5,6 +5,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
   import Ecto.Query
   alias Barragenspt.Parsers.SvgXmlParser
   alias Barragenspt.Services.R2
+  import Mogrify
 
   def spawn_workers do
     from(_x in PrecipitationMonthlyValue) |> Barragenspt.Repo.delete_all()
@@ -70,12 +71,36 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
           "/precipitation/svg/monthly/raw/#{year}_#{month}.svg"
         )
 
-        ExOptimizer.optimize(file_path)
+        # ExOptimizer.optimize(file_path)
 
-        R2.upload(
-          file_path,
-          "/precipitation/svg/monthly/minified/#{year}_#{month}.svg"
-        )
+        # R2.upload(
+        # file_path,
+        # "/precipitation/svg/monthly/minified/#{year}_#{month}.svg"
+        # )
+      end
+
+      jpg_remote_path =
+        "/precipitation/jpg/monthly/#{year}_#{month}.jpg"
+
+      if(!R2.exists?(jpg_remote_path)) do
+        jpg_local_file_path = Path.join(path, "#{UUID.uuid4()}.png")
+
+        %Mogrify.Image{
+          path: _path,
+          ext: ".png",
+          format: "jpeg",
+          buffer: nil,
+          operations: [],
+          dirty: %{}
+        } =
+          file_path
+          |> open
+          |> format("jpeg")
+          |> quality("100")
+          |> resize_to_fill("202x387")
+          |> save(path: jpg_local_file_path)
+
+        R2.upload(jpg_local_file_path, jpg_remote_path)
       end
     else
       Logger.info("Precipitation information not available for #{inspect(args)}")
