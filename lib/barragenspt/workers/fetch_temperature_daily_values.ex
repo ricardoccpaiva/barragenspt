@@ -93,27 +93,29 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
         # )
       end
 
-      png_file_path = Path.join(path, "#{UUID.uuid4()}.png")
-
-      %Mogrify.Image{
-        path: _path,
-        ext: ".png",
-        format: "jpeg",
-        buffer: nil,
-        operations: [],
-        dirty: %{}
-      } =
-        file_path
-        |> open
-        |> format("jpeg")
-        |> quality("100")
-        |> resize_to_fill("202x387")
-        |> save(path: png_file_path)
-
-      R2.upload(
-        png_file_path,
+      jpg_remote_path =
         "/temperature/jpg/daily/#{year}_#{month}_#{day}_#{translate_layer(layer)}.jpg"
-      )
+
+      if(!R2.exists?(jpg_remote_path)) do
+        jpg_local_file_path = Path.join(path, "#{UUID.uuid4()}.png")
+
+        %Mogrify.Image{
+          path: _path,
+          ext: ".png",
+          format: "jpeg",
+          buffer: nil,
+          operations: [],
+          dirty: %{}
+        } =
+          file_path
+          |> open
+          |> format("jpeg")
+          |> quality("100")
+          |> resize_to_fill("202x387")
+          |> save(path: jpg_local_file_path)
+
+        R2.upload(jpg_local_file_path, jpg_remote_path)
+      end
     else
       Logger.info("Temperature information not available for #{inspect(args)}")
     end
