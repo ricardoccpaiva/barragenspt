@@ -77,7 +77,7 @@ defmodule Barragenspt.PromEx do
   @impl true
   def dashboard_assigns do
     [
-      datasource_id: "grafanacloud-ricardoccpaiva-prom",
+      datasource_id: "Prometheus",
       default_selected_interval: "15s"
     ]
   end
