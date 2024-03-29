@@ -89,6 +89,7 @@ defmodule BarragensptWeb.MeteoDataController do
       year
       |> String.to_integer()
       |> Precipitation.get_precipitation_data()
+      |> backfill_precipitation_data()
       |> build_precipitation_csv(year, 0, @daily_scale)
 
     conn
@@ -143,7 +144,7 @@ defmodule BarragensptWeb.MeteoDataController do
               key: "temperature_csv_data_#{year}_#{month}_#{layer}",
               ttl: 999
             )
-  def build_temperature_csv(data, year, month, layer) do
+  defp build_temperature_csv(data, year, month, layer) do
     colors_index = [
       %{color_hex: "#49006a", index: 0},
       %{color_hex: "#ae027e", index: 1},
@@ -193,7 +194,7 @@ defmodule BarragensptWeb.MeteoDataController do
                 "precipitation_csv_data_#{year}_#{month}_#{:erlang.phash2(color_scale)}_#{:erlang.phash2(ref_data)}",
               ttl: 999
             )
-  def build_precipitation_csv(data, year, month, color_scale, ref_data \\ nil) do
+  defp build_precipitation_csv(data, year, month, color_scale, ref_data \\ nil) do
     header = "date,color_hex,value,index,type"
 
     data
@@ -232,7 +233,7 @@ defmodule BarragensptWeb.MeteoDataController do
               key: "pdsi_csv_data_#{year}",
               ttl: 99_999_999
             )
-  def build_pdsi_csv(data, year) do
+  defp build_pdsi_csv(data, year) do
     colors_index = [
       %{index: 0, color: "#9c551f"},
       %{index: 1, color: "#b5773e"},
@@ -266,5 +267,27 @@ defmodule BarragensptWeb.MeteoDataController do
     end)
     |> Enum.join("\n")
     |> Kernel.then(fn v -> "#{header}\n#{v}" end)
+  end
+
+  defp backfill_precipitation_data(data) do
+    latest = Enum.max_by(data, & &1.date)
+    end_date = Date.new!(latest.date.year, 12, 31)
+
+    if Date.diff(latest.date, end_date) == 0 do
+      data
+    else
+      dates = Date.range(latest.date, end_date)
+
+      values =
+        Enum.map(dates, fn dt ->
+          %{
+            color_hex: "#e0ecf4",
+            date: dt,
+            value: Decimal.new("0.00")
+          }
+        end)
+
+      values ++ data
+    end
   end
 end
