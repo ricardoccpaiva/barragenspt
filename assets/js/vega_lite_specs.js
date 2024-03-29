@@ -220,7 +220,7 @@ export function build_pdsi_spec(meteo_index, year, width) {
             "y": {
                 "field": "value",
                 "type": "quantitative",
-                "axis": { "title": `${year}` },
+                "axis": { "title": `% Território - ${year}` },
             },
             "color": {
                 "field": "index",
@@ -231,8 +231,7 @@ export function build_pdsi_spec(meteo_index, year, width) {
                 },
             },
             "tooltip": [
-                { "field": "date", "type": "ordinal", "title": "Mês", "format": "%b", "timeUnit": "month" },
-                { "field": "value", "type": "quantitative", "title": "% território nacional", "format": ".2f" }
+                { "field": "value", "type": "quantitative", "title": "%", "format": ".2f" }
             ]
         }
     }
@@ -281,7 +280,7 @@ export function build_monthly_precipitation_spec(meteo_index, year, width, compa
             "y": {
                 "field": "value",
                 "type": "quantitative",
-                "axis": { "title": `${year}` },
+                "axis": { "title": `Precipitação (mm) - ${year}` },
             },
             "tooltip": [
                 { "field": "date", "type": "ordinal", "title": "Mês", "format": "%b", "timeUnit": "yearmonth" },
