@@ -97,11 +97,11 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
         "/temperature/jpg/daily/#{year}_#{month}_#{day}_#{translate_layer(layer)}.jpg"
 
       if(!R2.exists?(jpg_remote_path)) do
-        jpg_local_file_path = Path.join(path, "#{UUID.uuid4()}.png")
+        jpg_local_file_path = Path.join(path, "#{UUID.uuid4()}.jpg")
 
         %Mogrify.Image{
           path: _path,
-          ext: ".png",
+          ext: ".jpg",
           format: "jpeg",
           buffer: nil,
           operations: [],

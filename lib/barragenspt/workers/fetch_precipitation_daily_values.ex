@@ -97,11 +97,11 @@ defmodule Barragenspt.Workers.FetchPrecipitationDailyValues do
         "/precipitation/jpg/daily/#{year}_#{month}_#{day}.jpg"
 
       if(!R2.exists?(jpg_remote_path)) do
-        jpg_local_file_path = Path.join(path, "#{UUID.uuid4()}.png")
+        jpg_local_file_path = Path.join(path, "#{UUID.uuid4()}.jpg")
 
         %Mogrify.Image{
           path: _path,
-          ext: ".png",
+          ext: ".jpg",
           format: "jpeg",
           buffer: nil,
           operations: [],

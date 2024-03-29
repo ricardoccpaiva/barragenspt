@@ -59,7 +59,7 @@ defmodule Barragenspt.Workers.BuildBasinMonthlyStorageSvgs do
 
     {:ok, path} = Briefly.create(directory: true)
 
-    file_path = Path.join(path, "#{UUID.uuid4()}.xls")
+    file_path = Path.join(path, "#{UUID.uuid4()}.svg")
 
     :ok = File.write!(file_path, templated_svg)
 
