@@ -256,8 +256,15 @@ defmodule BarragensptWeb.ReportsController do
     month_name = DateHelper.get_month_name({year, month, 1})
     abbreviated_year = String.slice("#{year}", -2, 2)
 
+    extension =
+      case meteo_index do
+        "basin_storage" -> "svg"
+        _ -> "jpg"
+      end
+
     %{
-      url: "https://assets.barragens.pt/#{meteo_index}/jpg/monthly/#{year}_#{month}.jpg",
+      url:
+        "https://assets.barragens.pt/#{meteo_index}/#{extension}/monthly/#{year}_#{month}.#{extension}",
       date: "#{month_name} '#{abbreviated_year}",
       year: year
     }
