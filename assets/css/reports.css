@@ -16,6 +16,15 @@
         font-family: orangeJuice;
         display: inline-block;
     }
+
+    .logo-text-sub-reports {
+        padding-left: 5px;
+        margin-top: -5px;
+        font-size: 20px;
+        color: #8196a8;
+        font-family: orangeJuice;
+        display: inline-block;
+    }
 }
 
 @media only screen and (min-width: 46.875em) {
@@ -239,6 +248,7 @@ tbody td {
 
 .map-container {
     position: relative;
+    margin-top: 20px;
 }
 
 .map-image {
@@ -246,7 +256,13 @@ tbody td {
     /* Adjust according to label height */
     left: 0;
     opacity: 0;
+    height: 65lvh;
     transition: opacity 1s ease-in-out;
+}
+
+.animated-map-columns {
+    margin-top: 0px;
+    margin-left: 0px;
 }
 
 .control-buttons {

@@ -5,39 +5,55 @@
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="Description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
-  <meta name="Keywords" content="barragens, albufeiras, água, seca, chuva">
-  <meta property="og:title" content="Barragens.pt - Início">
-  <meta property="og:site_name" content="Barragens.pt">
-  <meta property="og:url" content="https://barragens.pt/">
-  <meta property="og:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="https://barragens.pt/images/dam.png">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Barragens.pt - Início">
-  <meta name="twitter:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
-  <meta name="twitter:image" content="https://barragens.pt/images/dam_large.png">
-  <%= csrf_meta_tag() %>
-    <%= live_title_tag assigns[:page_title] || "barragens.pt" %>
-      <script src='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js'></script>
-      <link href='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css' rel='stylesheet' />
+  <%= if @maps !=nil do %>
+    <meta name="Description" content="Os indicadores meteorológicos que acompanham o barragens.pt">
+    <meta property="og:title" content="Meteo Barragens">
+    <meta property="og:site_name" content="meteo.barragens.pt">
+    <meta property="og:url" content="https://meteo.barragens.pt/">
+    <meta property="og:description" content="Os indicadores meteorológicos que acompanham o barragens.pt">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://barragens.pt/images/meteo_logo.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Meteo Barragens">
+    <meta name="twitter:description" content="Os indicadores meteorológicos que acompanham o barragens.pt">
+    <meta name="twitter:image" content="https://barragens.pt/images/meteo_logo.png">
+    <% else %>
+      <meta name="Description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
+      <meta name="Keywords" content="barragens, albufeiras, água, seca, chuva">
+      <meta property="og:title" content="Barragens.pt - Início">
+      <meta property="og:site_name" content="Barragens.pt">
+      <meta property="og:url" content="https://barragens.pt/">
+      <meta property="og:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
+      <meta property="og:type" content="website">
+      <meta property="og:image" content="https://barragens.pt/images/dam.png">
+      <meta name="twitter:card" content="summary">
+      <meta name="twitter:title" content="Barragens.pt - Início">
+      <meta name="twitter:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
+      <meta name="twitter:image" content="https://barragens.pt/images/dam_large.png">
+      <% end %>
+        <meta name="Keywords" content="barragens, albufeiras, água, seca, chuva">
+        <%= csrf_meta_tag() %>
+          <%= live_title_tag assigns[:page_title] || "barragens.pt" %>
+            <script src='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js'></script>
+            <link href='https://api.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css' rel='stylesheet' />
 
-      <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css" )} />
-      <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js" )}></script>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-      <script type="text/javascript"
-        src="https://cdn.jsdelivr.net/npm/bulma-quickview@2.0.0/dist/js/bulma-quickview.min.js"></script>
-      <!-- Global site tag (gtag.js) - Google Analytics -->
-      <!-- Google tag (gtag.js) -->
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ECR8CXBPZ"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/intro.min.js"></script>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/introjs.min.css" />
-      <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-5ECR8CXBPZ');
-      </script>
+            <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css" )} />
+            <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js"
+              )}></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+            <script type="text/javascript"
+              src="https://cdn.jsdelivr.net/npm/bulma-quickview@2.0.0/dist/js/bulma-quickview.min.js"></script>
+            <!-- Global site tag (gtag.js) - Google Analytics -->
+            <!-- Google tag (gtag.js) -->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ECR8CXBPZ"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/intro.min.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/introjs.min.css" />
+            <script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag() { dataLayer.push(arguments); }
+              gtag('js', new Date());
+              gtag('config', 'G-5ECR8CXBPZ');
+            </script>
 </head>
 
 <body>
@@ -46,13 +62,23 @@
       font-family: orangeJuice;
       src: url('../fonts/FredokaOne-Regular.ttf');
     }
-
-    .map-overlay-logo {
-      background-image: url("../images/dam.png");
-    }
   </style>
 
-  <%= @inner_content %>
+  <%= if @maps !=nil do %>
+    <style>
+      .map-overlay-logo {
+        background-image: url("../images/meteo_logo.png");
+      }
+    </style>
+    <% else %>
+      <style>
+        .map-overlay-logo {
+          background-image: url("../images/dam.png");
+        }
+      </style>
+      <% end %>
+
+        <%= @inner_content %>
 </body>
 
 </html>
