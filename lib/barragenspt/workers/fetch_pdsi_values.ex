@@ -1,4 +1,5 @@
 defmodule Barragenspt.Workers.FetchPdsiValues do
+  alias Barragenspt.Meteo.Pdsi
   use Oban.Worker, queue: :meteo_data
   require Logger
   alias Barragenspt.Hydrometrics.PdsiValue
@@ -41,6 +42,13 @@ defmodule Barragenspt.Workers.FetchPdsiValues do
   def perform(%Oban.Job{
         args: args = %{"year" => year, "month" => month, "format" => "svg", "layer" => layer}
       }) do
+    query =
+      from(pdv in PdsiValue,
+        where: pdv.year == ^year and pdv.month == ^month
+      )
+
+    Barragenspt.Repo.delete_all(query)
+
     {:ok, path} = Briefly.create(directory: true)
 
     file_path = Path.join(path, "#{UUID.uuid4()}.xls")
