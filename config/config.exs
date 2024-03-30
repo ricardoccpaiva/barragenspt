@@ -44,6 +44,12 @@ config :barragenspt, Oban,
     Oban.Plugins.Pruner,
     {Oban.Plugins.Cron,
      crontab: [
+       {"@weekly", Barragenspt.Workers.RefreshPdsiValues, args: %{}, max_attempts: 50},
+       {"@daily", Barragenspt.Workers.RefreshTemperatureValues, args: %{}, max_attempts: 50},
+       {"@daily", Barragenspt.Workers.RefreshPrecipitationDailyValues,
+        args: %{}, max_attempts: 50},
+       {"@daily", Barragenspt.Workers.RefreshPrecipitationMonthlyValues,
+        args: %{}, max_attempts: 50},
        {"0 5 * * *", Barragenspt.Workers.DataPointsUpdate,
         args: %{jcid: unique_id}, max_attempts: 50},
        {"@reboot", Barragenspt.Workers.DataPointsUpdate,
@@ -56,7 +62,7 @@ config :barragenspt, Oban,
   queues: [
     dams_info: 10,
     dam_levels: 10,
-    stats_cacher: 10,
+    stats_cacher: 5,
     data_points_update: 1,
     meteo_data: 20
   ]
