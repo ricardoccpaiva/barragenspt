@@ -1,4 +1,37 @@
+.credits-in-menu {
+    display: block;
+}
+
+.reports-logo-sidebar {
+    height: 32px;
+    margin-top: 10px;
+    background-repeat: no-repeat;
+    background-size: 38px;
+}
+
+.logo-text-reports {
+    padding-left: 5px;
+    margin-left: 35px;
+    margin-top: -2px;
+    font-size: 30px;
+    color: #8196a8;
+    font-family: orangeJuice;
+    display: inline-block;
+}
+
+.logo-text-sub-reports {
+    margin-top: -5px;
+    color: #8196a8;
+    font-family: orangeJuice;
+    display: inline-block;
+}
+
 @media only screen and (max-width: 46.875em) {
+    .reports-logo-sidebar {
+        height: 0px;
+        display: none;
+    }
+
     .reports-logo {
         height: 32px;
         margin-top: 10px;

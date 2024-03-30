@@ -7,13 +7,13 @@
          <div id="sidebar__close-icon" class="sidebar__close-icon">
             <i class="fas fa-times sidebar__brand-close"></i>
          </div>
-         <div style="margin-left: 20px; margin-top:10px;">
+         <div style="margin-left: 15px;">
             <div class="field" style="margin-top: 0px;">
-               <button class="js-modal-trigger credits-btn" data-target="credits-modal">
-                  <label class="label info-label">Acerca</label>
-                  <i id="info_credits" style="cursor: pointer" class="fa-solid fa-circle-info"></i>
-               </button>
-               <div class="credits-in-menu" style="margin-top: 5px">
+               <div class="reports-logo-sidebar map-overlay-logo">
+                  <a href="/"><span class="logo-text-reports">METEO</span><span
+                        class="logo-text-sub-reports">.BARRAGENS.PT</span></a>
+               </div>
+               <div class="credits-in-menu" style="margin-top: 10px">
                   <a href="https://www.buymeacoffee.com/barragenspt">
                      <img style="height: 30px"
                         src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
@@ -37,7 +37,7 @@
                </div>
             </div>
          </div>
-         <div style="margin-left: 20px; margin-top: 10px;">
+         <div style="margin-left: 15px; margin-top: 10px;">
             <div class="field">
                <label class="label">Tipo visualização 📊</label>
                <div class="control">
@@ -56,7 +56,7 @@
                Mostrar informação sobre precipitação
             </label>
          </div>
-         <div style="margin-left: 20px; margin-top: 10px;" id="viz_mode_div">
+         <div style="margin-left: 15px; margin-top: 10px;" id="viz_mode_div">
             <div class="field">
                <label class="label">Modo visualização 📹</label>
                <div class="control">
@@ -71,7 +71,7 @@
                </div>
             </div>
          </div>
-         <div style="margin-left: 20px; margin-top: 10px;">
+         <div style="margin-left: 15px; margin-top: 10px;">
             <div class="field">
                <label class="label">Frequência 🕖</label>
                <div class="control">
@@ -90,7 +90,7 @@
                </label>
             </div>
          </div>
-         <div style="margin-left: 20px; margin-top: 10px;">
+         <div style="margin-left: 15px; margin-top: 10px;">
             <div class="field">
                <label class="label">Periodo 📅</label>
                <div class="control">
@@ -104,8 +104,12 @@
                   </div>
                </div>
             </div>
+            <button class="js-modal-trigger credits-btn" data-target="credits-modal">
+               <label class="label info-label">Acerca</label>
+               <i id="info_credits" style="cursor: pointer" class="fa-solid fa-circle-info"></i>
+            </button>
          </div>
-         <div style="margin-left: 20px; margin-top: 25px;">
+         <div style="margin-left: 15px; margin-top: 10px;">
             <div class="field">
                <button type="button" onclick="window.location='/reports'" class="button is-link is-warning">Limpar
                   🗑️</button>
@@ -125,7 +129,7 @@
             <% end %>
                <div class="reports-logo map-overlay-logo">
                   <a href="/"><span class="logo-text-reports">METEO</span><span
-                        class="logo-text-sub-reports">BARRAGENS.PT</span></a>
+                        class="logo-text-sub-reports">.BARRAGENS.PT</span></a>
                </div>
                <%= if !Enum.any?(@maps) && !@errors do %>
                   <div class="reports-header box" style="margin-bottom: 6px;">
