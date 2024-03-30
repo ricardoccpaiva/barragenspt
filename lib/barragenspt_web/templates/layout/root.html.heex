@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <%= if @maps !=nil do %>
+  <%= if assigns[:maps] !=nil do %>
     <meta name="Description" content="Os indicadores meteorológicos que acompanham o barragens.pt">
     <meta property="og:title" content="Meteo Barragens">
     <meta property="og:site_name" content="meteo.barragens.pt">
@@ -64,7 +64,7 @@
     }
   </style>
 
-  <%= if @maps !=nil do %>
+  <%= if assigns[:maps] !=nil do %>
     <style>
       .map-overlay-logo {
         background-image: url("../images/meteo_logo.png");
