@@ -83,7 +83,7 @@ if (window.location.pathname == "/reports") {
         if (viz_type == 'chart') {
             var elements = document.getElementsByClassName("vega_chart");
             var chartContainer = document.getElementById("tbl_magic");
-            var containerWidth = chartContainer.offsetWidth - 65;
+            var containerWidth = chartContainer.offsetWidth - 60;
 
             if (meteo_index.includes("temperature")) {
                 Array.from(elements).forEach(function (element) {
@@ -118,7 +118,7 @@ if (window.location.pathname == "/reports") {
             } else if (meteo_index == "basin_storage") {
 
                 Array.from(elements).forEach(function (element) {
-                    let spec = build_daily_basin_storage_for_one_year_spec(element.id, containerWidth - 40);
+                    let spec = build_daily_basin_storage_for_one_year_spec(element.id, containerWidth);
 
                     draw_spec(element, spec);
                 });

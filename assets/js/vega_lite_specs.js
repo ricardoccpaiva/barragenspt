@@ -17,6 +17,9 @@ export function build_daily_basin_storage_for_one_year_spec(year, width) {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
         "width": width,
         "height": 200,
+        "config": {
+            "legend": { "disable": true }
+        },
         "encoding": {
             "x": {
                 "field": "date", "type": "temporal",
@@ -174,7 +177,7 @@ export function build_temperature_spec(year, month, meteo_index, width) {
             "axis": {
                 "grid": false,
             },
-            "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
+            "legend": { "disable": true }
         },
         "encoding": {
             "x": {
@@ -214,7 +217,7 @@ export function build_pdsi_spec(meteo_index, year, width) {
         "height": 150,
         "mark": "bar",
         "config": {
-            "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
+            "legend": { "disable": true }
         },
         "encoding": {
             "x": {
@@ -265,7 +268,7 @@ export function build_monthly_precipitation_spec(meteo_index, year, width, compa
             "axis": {
                 "grid": false,
             },
-            "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
+            "legend": { "disable": true }
         },
         "encoding": {
             "x": {
@@ -314,7 +317,7 @@ export function build_daily_precipitation_spec(meteo_index, year, month, width) 
             "axis": {
                 "grid": false,
             },
-            "legend": { "title": null, "labelPadding": 0, "labelFontSize": 0, "symbolOpacity": 0 }
+            "legend": { "disable": true }
         },
         "encoding": {
             "x": {
