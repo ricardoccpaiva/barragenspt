@@ -26,7 +26,7 @@
                 </td>
                 <%= for map <- map1 do %>
                     <td>
-                        <img src={map.url} />
+                        <img src={map.url} onerror="this.src='https://assets.barragens.pt/not_available_map.jpg';" />
                     </td>
                     <% end %>
             </tr>

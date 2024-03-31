@@ -6,7 +6,7 @@
                     <label class="daily-date">
                         <%= map.date %>
                     </label>
-                    <img src={map.url} />
+                    <img src={map.url} onerror="this.src='https://assets.barragens.pt/not_available_map.jpg';" />
                 </td>
                 <% end %>
         </tr>
