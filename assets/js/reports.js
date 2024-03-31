@@ -80,6 +80,10 @@ if (window.location.pathname == "/reports") {
             document.getElementById("chk_correlate_div").classList.add("hidden");
         }
 
+        if (viz_type == "chart") {
+            document.getElementById("chk_correlate_div").classList.add("hidden");
+        }
+
         if (viz_type == 'chart') {
             var elements = document.getElementsByClassName("vega_chart");
             var chartContainer = document.getElementById("tbl_magic");
@@ -168,47 +172,16 @@ if (window.location.pathname == "/reports") {
 
     document.getElementById('meteo_index').addEventListener("change", e => {
         if (document.getElementById('viz_type').value == "chart") {
-            if (document.getElementById('meteo_index').value == "precipitation") {
-                if (document.getElementById("time_frequency").value == "monthly")
-                    document.getElementById("chk_precipitation_ref_period_div").classList.remove("hidden");
-                else
-                    document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
-            }
-            else {
-                document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
-            }
-
-            if (document.getElementById('meteo_index').value != "precipitation") {
-                document.getElementById("viz_mode_div").classList.remove("hidden");
-                document.getElementById("chk_correlate_div").classList.remove("hidden");
-            }
-        }
-        else {
             document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
         }
-
-        if (e.currentTarget.value == "pdsi" || e.currentTarget.value == "basin_storage") {
-            document.getElementById("chk_correlate_div").classList.remove("hidden");
-
-            document.querySelectorAll("#time_frequency option").forEach(opt => {
-                if (opt.value == "daily") {
-                    opt.disabled = true;
-                    document.getElementById("time_frequency").value = "monthly";
-                    document.getElementById("time_frequency").dispatchEvent(new Event('change'));
-                }
-                else {
-                    opt.disabled = false;
-                }
-            });
-        }
         else {
-            document.getElementById("chk_correlate").checked = false;
-            document.getElementById("chk_correlate_div").classList.add("hidden");
-            if (e.currentTarget.value == "min_temperature" || e.currentTarget.value == "max_temperature") {
+            if ((e.currentTarget.value == "pdsi" || e.currentTarget.value == "basin_storage")) {
+                document.getElementById("chk_correlate_div").classList.remove("hidden");
+
                 document.querySelectorAll("#time_frequency option").forEach(opt => {
-                    if (opt.value == "monthly") {
+                    if (opt.value == "daily") {
                         opt.disabled = true;
-                        document.getElementById("time_frequency").value = "daily";
+                        document.getElementById("time_frequency").value = "monthly";
                         document.getElementById("time_frequency").dispatchEvent(new Event('change'));
                     }
                     else {
@@ -217,9 +190,25 @@ if (window.location.pathname == "/reports") {
                 });
             }
             else {
-                document.querySelectorAll("#time_frequency option").forEach(opt => {
-                    opt.disabled = false;
-                });
+                document.getElementById("chk_correlate").checked = false;
+                document.getElementById("chk_correlate_div").classList.add("hidden");
+                if (e.currentTarget.value == "min_temperature" || e.currentTarget.value == "max_temperature") {
+                    document.querySelectorAll("#time_frequency option").forEach(opt => {
+                        if (opt.value == "monthly") {
+                            opt.disabled = true;
+                            document.getElementById("time_frequency").value = "daily";
+                            document.getElementById("time_frequency").dispatchEvent(new Event('change'));
+                        }
+                        else {
+                            opt.disabled = false;
+                        }
+                    });
+                }
+                else {
+                    document.querySelectorAll("#time_frequency option").forEach(opt => {
+                        opt.disabled = false;
+                    });
+                }
             }
         }
     });
