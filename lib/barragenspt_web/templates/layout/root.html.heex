@@ -45,15 +45,27 @@
               src="https://cdn.jsdelivr.net/npm/bulma-quickview@2.0.0/dist/js/bulma-quickview.min.js"></script>
             <!-- Global site tag (gtag.js) - Google Analytics -->
             <!-- Google tag (gtag.js) -->
-            <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ECR8CXBPZ"></script>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/intro.min.js"></script>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/introjs.min.css" />
-            <script>
-              window.dataLayer = window.dataLayer || [];
-              function gtag() { dataLayer.push(arguments); }
-              gtag('js', new Date());
-              gtag('config', 'G-5ECR8CXBPZ');
-            </script>
+            <%= if assigns[:maps] !=nil do %>
+              <!-- Google tag (gtag.js) -->
+              <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LZ6X0F43Z"></script>
+              <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag() { dataLayer.push(arguments); }
+                gtag('js', new Date());
+
+                gtag('config', 'G-2LZ6X0F43Z');
+              </script>
+              <% else %>
+                <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ECR8CXBPZ"></script>
+                <script>
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag() { dataLayer.push(arguments); }
+                  gtag('js', new Date());
+                  gtag('config', 'G-5ECR8CXBPZ');
+                </script>
+                <% end %>
 </head>
 
 <body>
