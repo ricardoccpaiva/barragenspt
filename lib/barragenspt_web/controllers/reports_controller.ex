@@ -5,6 +5,7 @@ defmodule BarragensptWeb.ReportsController do
     %{meteo_index: "temperature", limits: %{min: 2000, max: 2024}},
     %{meteo_index: "precipitation", limits: %{min: 2000, max: 2024}},
     %{meteo_index: "pdsi", limits: %{min: 1981, max: 2024}},
+    %{meteo_index: "smi", limits: %{min: 2023, max: 2024}},
     %{meteo_index: "basin_storage", limits: %{min: 1981, max: 2024}}
   ]
 
@@ -165,6 +166,10 @@ defmodule BarragensptWeb.ReportsController do
     "Observação mensal do índice de seca (PDSI) 🌱 entre #{dt_start} e #{dt_end}"
   end
 
+  defp build_title("smi", "daily", dt_start, dt_end, _) do
+    "Observação diária da humidade no solo entre #{dt_start} e #{dt_end}"
+  end
+
   defp build_title("basin_storage", "monthly", dt_start, dt_end) do
     "Observação mensal da água armazenada 💦 entre #{dt_start} e #{dt_end}"
   end
@@ -259,6 +264,7 @@ defmodule BarragensptWeb.ReportsController do
     extension =
       case meteo_index do
         "basin_storage" -> "svg"
+        "smi" -> "png"
         _ -> "jpg"
       end
 
@@ -278,11 +284,18 @@ defmodule BarragensptWeb.ReportsController do
     mx = String.replace_leading(m, "0", "")
     dx = String.replace_leading(d, "0", "")
 
+    extension =
+      case meteo_index do
+        "basin_storage" -> "svg"
+        "smi" -> "png"
+        _ -> "jpg"
+      end
+
     url =
       if variant in ["min", "max"] do
-        "https://assets.barragens.pt/#{meteo_index}/jpg/daily/#{y}_#{mx}_#{dx}_#{variant}.jpg"
+        "https://assets.barragens.pt/#{meteo_index}/#{extension}/daily/#{y}_#{mx}_#{dx}_#{variant}.#{extension}"
       else
-        "https://assets.barragens.pt/#{meteo_index}/jpg/daily/#{y}_#{mx}_#{dx}.jpg"
+        "https://assets.barragens.pt/#{meteo_index}/#{extension}/daily/#{y}_#{mx}_#{dx}.#{extension}"
       end
 
     %{

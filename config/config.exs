@@ -44,6 +44,7 @@ config :barragenspt, Oban,
     Oban.Plugins.Pruner,
     {Oban.Plugins.Cron,
      crontab: [
+       {"@weekly", Barragenspt.Workers.RefreshSmiDailyValues, args: %{}, max_attempts: 50},
        {"@weekly", Barragenspt.Workers.RefreshPdsiValues, args: %{}, max_attempts: 50},
        {"@daily", Barragenspt.Workers.RefreshTemperatureValues, args: %{}, max_attempts: 50},
        {"@daily", Barragenspt.Workers.RefreshPrecipitationDailyValues,
