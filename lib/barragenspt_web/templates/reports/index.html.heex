@@ -26,8 +26,9 @@
                   <div class="select is-small">
                      <p>
                         <select id="meteo_index" name="meteo_index">
-                           <option value="basin_storage">Água armazenada 💦</option>
+                           <option value="basin_storage">Água armazenada 🪣</option>
                            <option value="pdsi">Índice de seca (PDSI) 🌱</option>
+                           <option value="smi">Humidade no solo (SMI) 💦</option>
                            <option value="precipitation">Precipitação acumulada 🌧️</option>
                            <option value="min_temperature">Temperatura mínima ❄️</option>
                            <option value="max_temperature">Temperatura máxima ☀️</option>
@@ -111,9 +112,9 @@
          </div>
          <div style="margin-left: 15px; margin-top: 10px;">
             <div class="field">
-               <button type="button" onclick="window.location='/reports'" class="button is-link is-warning">Limpar
+               <button type="button" onclick="window.location='/reports'" class="button is-danger">Limpar
                   🗑️</button>
-               <button type="submit" class="button is-link is-normal">Analisar 🛠️</button>
+               <button type="submit" class="button is-link is-success">Analisar 🛠️</button>
             </div>
          </div>
       </aside>
@@ -149,7 +150,9 @@
                         <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
                         <!--<div id='map' style="height: 100%;" phx-update="ignore"></div>-->
                         <%= render "_viz_type_#{@viz_type}.html" , assigns %>
-                           <% end %>
+                           <% else %>
+                              <%= render "_landing_page.html" , assigns %>
+                                 <% end %>
       </div>
    </div>
    <%end %>
