@@ -275,8 +275,8 @@ defmodule BarragensptWeb.ReportsController do
     regex = ~r/^(?'year'\d{4})-(?'month'\d{2})-(?'day'\d{2})$/
     %{"day" => d, "month" => m, "year" => y} = Regex.named_captures(regex, date)
 
-    mx = String.replace(m, "0", "")
-    dx = String.replace(d, "0", "")
+    mx = String.replace_leading(m, "0", "")
+    dx = String.replace_leading(d, "0", "")
 
     url =
       if variant in ["min", "max"] do
