@@ -120,6 +120,43 @@ defmodule Barragenspt.Meteo.Precipitation do
 
   @decorate cacheable(
               cache: Cache,
+              key: "bounded_precipitation_data_#{start_date}_#{end_date}",
+              ttl: 99_999_999
+            )
+  def get_bounded_precipitation_data(start_date, end_date) do
+    sub_query =
+      from p in PrecipitationDailyValue,
+        join: l in LegendMapping,
+        on: p.color_hex == l.color_hex,
+        where:
+          p.date >= ^start_date and p.date <= ^end_date and
+            l.meteo_index == "precipitation" and l.variant == "daily",
+        group_by: p.date,
+        order_by: p.date,
+        select: %{
+          date: p.date,
+          value: fragment("(avg(?) + avg(?)) / 2", l.max_value, l.min_value)
+        }
+
+    query =
+      from(c in subquery(sub_query),
+        join: l in LegendMapping,
+        where:
+          c.value >= l.min_value and c.value <= l.max_value and l.variant == "daily" and
+            l.meteo_index == "precipitation",
+        group_by: [c.date, l.color_hex],
+        select: %{
+          color_hex: l.color_hex,
+          date: c.date,
+          value: avg(c.value)
+        }
+      )
+
+    Repo.all(query)
+  end
+
+  @decorate cacheable(
+              cache: Cache,
               key: "precipitation_data_#{year}_#{month}",
               ttl: 99_999_999
             )

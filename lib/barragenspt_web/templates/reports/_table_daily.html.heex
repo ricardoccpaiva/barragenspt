@@ -1,7 +1,7 @@
 <table>
-    <%= for map_url <- @maps do %>
+    <%= for {start_date, end_date, data} <- @maps do %>
         <tr>
-            <%= for map <- map_url do %>
+            <%= for map <- data do %>
                 <td>
                     <label class="daily-date">
                         <%= map.date %>
@@ -9,6 +9,11 @@
                     <img src={map.url} onerror="this.src='https://assets.barragens.pt/not_available_map.jpg';" />
                 </td>
                 <% end %>
+        </tr>
+        <tr>
+            <td colspan="12" style="display:none;">
+                <div style="width: 100%; height: 100px" id={"#{start_date}-#{end_date}"} class="vega_chart" />
+            </td>
         </tr>
         <% end %>
 </table>

@@ -97,6 +97,24 @@ defmodule BarragensptWeb.MeteoDataController do
     |> send_resp(200, data)
   end
 
+  def index(conn, %{
+        "start_date" => start_date,
+        "end_date" => end_date,
+        "meteo_index" => "precipitation"
+      }) do
+    start_date = start_date |> Timex.parse!("{D}/{0M}/{YYYY}") |> Timex.to_date()
+    end_date = end_date |> Timex.parse!("{D}/{0M}/{YYYY}") |> Timex.to_date()
+
+    data =
+      start_date
+      |> Precipitation.get_bounded_precipitation_data(end_date)
+      |> build_precipitation_csv(@daily_scale)
+
+    conn
+    |> put_resp_content_type("text/csv")
+    |> send_resp(200, data)
+  end
+
   def index(conn, %{"year" => year, "month" => month, "meteo_index" => meto_index}) do
     year = String.to_integer(year)
     month = String.to_integer(month)
@@ -222,6 +240,37 @@ defmodule BarragensptWeb.MeteoDataController do
       else
         [x]
       end
+    end)
+    |> List.flatten()
+    |> Enum.join("\n")
+    |> Kernel.then(fn v -> "#{header}\n#{v}" end)
+  end
+
+  @decorate cacheable(
+              cache: Cache,
+              key:
+                "precipitation_csv_data_#{:erlang.phash2(data)}_#{:erlang.phash2(color_scale)}",
+              ttl: 9_999_999
+            )
+  defp build_precipitation_csv(data, color_scale) do
+    header = "date,color_hex,value,index"
+
+    data
+    |> Enum.map(fn d ->
+      if !Map.has_key?(d, :date) do
+        dt = Date.new!(d.year, d.month, 1)
+        Map.put(d, :date, dt)
+      else
+        d
+      end
+    end)
+    |> Enum.map(fn d ->
+      index =
+        color_scale
+        |> Enum.find(fn c -> c.color_hex == d.color_hex end)
+        |> Map.get(:index)
+
+      "#{d.date},#{d.color_hex},#{d.value},#{index}"
     end)
     |> List.flatten()
     |> Enum.join("\n")

@@ -107,7 +107,14 @@ defmodule BarragensptWeb.ReportsController do
           else
             range = get_range(start_date, end_date, meteo_index, :daily, variant)
 
-            Enum.chunk_every(range, 12)
+            range
+            |> Enum.chunk_every(12)
+            |> Enum.map(fn e ->
+              first = List.first(e)
+              last = List.last(e)
+
+              {first.date, last.date, e}
+            end)
           end
 
         render(conn, :index,
@@ -146,6 +153,10 @@ defmodule BarragensptWeb.ReportsController do
     "Observação diária da temperatura máxima ☀️ entre #{dt_start} e #{dt_end}"
   end
 
+  defp build_title("smi", "daily", dt_start, dt_end, _) do
+    "Observação diária da humidade no solo entre #{dt_start} e #{dt_end}"
+  end
+
   defp build_title("precipitation", "daily", dt_start, dt_end, _) do
     "Observação diária da precipitação acumulada 🌧️ entre #{dt_start} e #{dt_end}"
   end
@@ -164,10 +175,6 @@ defmodule BarragensptWeb.ReportsController do
 
   defp build_title("pdsi", "monthly", dt_start, dt_end) do
     "Observação mensal do índice de seca (PDSI) 🌱 entre #{dt_start} e #{dt_end}"
-  end
-
-  defp build_title("smi", "daily", dt_start, dt_end, _) do
-    "Observação diária da humidade no solo entre #{dt_start} e #{dt_end}"
   end
 
   defp build_title("basin_storage", "monthly", dt_start, dt_end) do

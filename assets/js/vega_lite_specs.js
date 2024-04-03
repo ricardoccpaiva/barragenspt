@@ -245,6 +245,53 @@ export function build_pdsi_spec(meteo_index, year, width) {
     }
 }
 
+export function build_bounded_daily_precipitation_spec(start_date, end_date, width) {
+    url = "meteo_data?meteo_index=precipitation&start_date=" + start_date + "&end_date=" + end_date + "&format.csv";
+
+    var unit = "(mm)";
+    return {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "data": {
+            "url": url
+        },
+        "width": "container",
+        "height": "container",
+        "mark": "bar",
+        "view": {
+            "stroke": null
+        },
+        "config": {
+            "axis": {
+                "grid": false,
+            },
+            "legend": { "disable": true }
+        },
+        "encoding": {
+            "x": {
+                "field": "date", "type": "ordinal", "timeUnit": "date",
+                "axis": { "title": "", "labelAngle": 0 }
+            },
+            "y": {
+                "field": "value",
+                "type": "quantitative",
+                "axis": { "title": "XOTA" },
+            },
+            "color": {
+                "field": "index",
+                "type": "nominal",
+                "scale": {
+                    "domain": daily_precipitation_domain,
+                    "range": daily_precipitation_range
+                },
+            },
+            "tooltip": [
+                { "field": "date", "type": "ordinal", "title": "Dia", "timeUnit": "date" },
+                { "field": "value", "type": "quantitative", "title": "Precipitação " + unit, "format": ".2f" }
+            ]
+        },
+    }
+}
+
 export function build_monthly_precipitation_spec(meteo_index, year, width, compare_with_ref) {
     url = "meteo_data?meteo_index=" + meteo_index + "&year=" + year + "&compare_with_ref=" + compare_with_ref + "&month=0&format.csv";
 
