@@ -54,10 +54,11 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
           }
       }) do
     dt = Date.new!(year, month, day)
+    translated_layer = translate_layer(layer)
 
     query =
       from(pdv in TemperatureDailyValue,
-        where: pdv.date == ^dt and pdv.layer == ^layer
+        where: pdv.date == ^dt and pdv.layer == ^translated_layer
       )
 
     Barragenspt.Repo.delete_all(query)
