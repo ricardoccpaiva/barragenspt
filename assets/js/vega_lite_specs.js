@@ -197,7 +197,10 @@ export function build_temperature_spec(year, month, meteo_index, width) {
                     "range": temperature_range
 
                 },
-            }
+            },
+            "tooltip": [
+                { "field": "value", "type": "quantitative", "title": "%", "format": ".2f" }
+            ]
         }
     }
 }
