@@ -6,7 +6,7 @@ defmodule Barragenspt.Workers.RefreshTemperatureValues do
   def perform(%Oban.Job{args: %{}}) do
     layers = ["mtnmn.obsSup.daily.vector.conc", "mtxmx.obsSup.daily.vector.conc"]
     current_date = Date.utc_today()
-    one_week_before = Timex.shift(current_date, days: -7)
+    one_week_before = Timex.shift(current_date, days: -14)
 
     dates = Date.range(one_week_before, current_date)
 
