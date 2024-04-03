@@ -33,14 +33,13 @@ defmodule Barragenspt.Workers.BackfillSmiMaps do
 
   @impl Oban.Worker
   def perform(%Oban.Job{
-        args:
-          args = %{
-            "year" => year,
-            "month" => month,
-            "day" => day,
-            "format" => "png",
-            "layer" => layer
-          }
+        args: %{
+          "year" => year,
+          "month" => month,
+          "day" => day,
+          "format" => "png",
+          "layer" => layer
+        }
       }) do
     {:ok, path} = Briefly.create(directory: true)
 
@@ -54,10 +53,16 @@ defmodule Barragenspt.Workers.BackfillSmiMaps do
         %{animated: false, format: "png", frame_count: 1, height: 774, width: 404} =
           Mogrify.identify(file_path)
 
-        R2.upload(
-          file_path,
-          "/smi/png/daily/#{year}_#{month}_#{day}.png"
-        )
+        {:ok, %{size: size}} = File.stat(file_path)
+
+        if(size > 3000) do
+          R2.upload(
+            file_path,
+            "/smi/png/daily/#{year}_#{month}_#{day}.png"
+          )
+        else
+          Logger.info("Skipping PNG R2 upload as it's less than 3kb.")
+        end
       rescue
         _e in MatchError ->
           Logger.info("Invalid PNG file: /smi/png/daily/#{year}_#{month}_#{day}.png")
