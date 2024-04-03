@@ -175,7 +175,7 @@ if (window.location.pathname == "/reports") {
             document.getElementById("chk_precipitation_ref_period_div").classList.add("hidden");
         }
         else {
-            if ((e.currentTarget.value == "pdsi" || e.currentTarget.value == "basin_storage")) {
+            if (e.currentTarget.value == "pdsi" || e.currentTarget.value == "basin_storage") {
                 document.getElementById("chk_correlate_div").classList.remove("hidden");
 
                 document.querySelectorAll("#time_frequency option").forEach(opt => {
@@ -192,7 +192,8 @@ if (window.location.pathname == "/reports") {
             else {
                 document.getElementById("chk_correlate").checked = false;
                 document.getElementById("chk_correlate_div").classList.add("hidden");
-                if (e.currentTarget.value == "min_temperature" || e.currentTarget.value == "max_temperature") {
+
+                if (e.currentTarget.value == "min_temperature" || e.currentTarget.value == "max_temperature" || e.currentTarget.value == "smi") {
                     document.querySelectorAll("#time_frequency option").forEach(opt => {
                         if (opt.value == "monthly") {
                             opt.disabled = true;
