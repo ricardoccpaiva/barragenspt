@@ -61,11 +61,11 @@ config :barragenspt, Oban,
      ]}
   ],
   queues: [
-    dams_info: 10,
-    dam_levels: 10,
+    dams_info: 5,
+    dam_levels: 5,
     stats_cacher: 5,
     data_points_update: 1,
-    meteo_data: 20
+    meteo_data: 5
   ]
 
 config :barragenspt, :snirh,
