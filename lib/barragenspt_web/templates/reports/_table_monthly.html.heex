@@ -20,9 +20,13 @@
         <%= for {year, map1} <- @maps do %>
             <tr>
                 <td>
-                    <label class="year-column">
-                        <%= year %>
-                    </label>
+
+                    <div class="wrapper">
+                        <p class="orientation-initial year-column">
+                            <%= year %>
+                        </p>
+                    </div>
+
                 </td>
                 <%= for map <- map1 do %>
                     <td>

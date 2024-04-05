@@ -1,3 +1,25 @@
+.wrapper {
+    width: 12px;
+}
+
+.wrapper p {
+    writing-mode: vertical-lr;
+    transform: rotate(180deg);
+    text-orientation: upright;
+}
+
+.wrapper p.orientation-initial {
+    text-orientation: unset;
+}
+
+/* quick fix with non-breaking whitespace characters within span elements */
+
+.wrapper p>span {
+    display: inline-block;
+    height: 2ex;
+    /* use a value that fits the design and font in use */
+}
+
 .credits-in-menu {
     display: block;
 }
@@ -169,9 +191,6 @@
 }
 
 .year-column {
-    writing-mode: vertical-lr;
-    transform: rotate(180deg);
-    flex-grow: unset;
     font-weight: bold;
     margin-top: 20px;
 }
