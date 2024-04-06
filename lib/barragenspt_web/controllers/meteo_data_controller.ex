@@ -7,6 +7,33 @@ defmodule BarragensptWeb.MeteoDataController do
   alias Barragenspt.Meteo.Pdsi
   alias Barragenspt.Hydrometrics.Basins
 
+  @temperature_intervals [
+    "]-6]",
+    "]-6, -4]",
+    "]-4 -2]",
+    "]-2 -0]",
+    "]0, -2]",
+    "]2, 4]",
+    "]4, 6]",
+    "]6, 8]",
+    "]8, 10]",
+    "]10, 12]",
+    "]12, 14]",
+    "]14, 16]",
+    "]16, 18]",
+    "]18, 20]",
+    "]20, 22]",
+    "]22, 24]",
+    "]24, 26]",
+    "]26, 28]",
+    "]30, 32]",
+    "]32, 34]",
+    "]34, 36]",
+    "]36, 38]",
+    "]38, 40]",
+    "]40]"
+  ]
+
   @daily_scale [
     %{color_hex: "#360e38", index: 0},
     %{color_hex: "#88218c", index: 1},
@@ -115,6 +142,17 @@ defmodule BarragensptWeb.MeteoDataController do
     |> send_resp(200, data)
   end
 
+  def index(conn, %{"year" => year, "meteo_index" => "pdsi"}) do
+    year = String.to_integer(year)
+
+    raw_data = Pdsi.get_pdsi_data_by_scale(year)
+    data = build_pdsi_csv(raw_data, year)
+
+    conn
+    |> put_resp_content_type("text/csv")
+    |> send_resp(200, data)
+  end
+
   def index(conn, %{"year" => year, "month" => month, "meteo_index" => meto_index}) do
     year = String.to_integer(year)
     month = String.to_integer(month)
@@ -126,17 +164,6 @@ defmodule BarragensptWeb.MeteoDataController do
 
     raw_data = Temperature.get_data_by_scale(year, month, meteo_index_layer)
     data = build_temperature_csv(raw_data, year, month, meteo_index_layer)
-
-    conn
-    |> put_resp_content_type("text/csv")
-    |> send_resp(200, data)
-  end
-
-  def index(conn, %{"year" => year, "meteo_index" => "pdsi"}) do
-    year = String.to_integer(year)
-
-    raw_data = Pdsi.get_pdsi_data_by_scale(year)
-    data = build_pdsi_csv(raw_data, year)
 
     conn
     |> put_resp_content_type("text/csv")
@@ -191,7 +218,7 @@ defmodule BarragensptWeb.MeteoDataController do
       %{color_hex: "#6a0000", index: 24}
     ]
 
-    header = "date,color_hex,value,index"
+    header = "date,color_hex,value,index,index_legend"
 
     data
     |> Enum.map(fn d ->
@@ -200,7 +227,9 @@ defmodule BarragensptWeb.MeteoDataController do
         |> Enum.find(fn c -> c.color_hex == d.color_hex end)
         |> Map.get(:index)
 
-      "#{d.date},#{d.color_hex},#{d.weight},#{index}"
+      index_legend = Enum.at(@temperature_intervals, index, "")
+
+      "#{d.date},#{d.color_hex},#{d.weight},#{index},\"#{index_legend}\""
     end)
     |> Enum.join("\n")
     |> Kernel.then(fn v -> "#{header}\n#{v}" end)
