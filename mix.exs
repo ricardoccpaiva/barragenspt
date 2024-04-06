@@ -20,7 +20,7 @@ defmodule Barragenspt.MixProject do
   def application do
     [
       mod: {Barragenspt.Application, []},
-      extra_applications: [:logger, :runtime_tools, :httpoison, :scrivener, :xmerl]
+      extra_applications: [:logger, :runtime_tools, :httpoison, :scrivener, :xmerl, :bugsnag]
     ]
   end
 
@@ -76,7 +76,8 @@ defmodule Barragenspt.MixProject do
       {:ex_aws_s3, "~> 2.0"},
       {:sweet_xml, "~> 0.7.4"},
       {:mogrify, "~> 0.9.3"},
-      {:opentelemetry_logger_metadata, "~> 0.1.0"}
+      {:opentelemetry_logger_metadata, "~> 0.1.0"},
+      {:bugsnag, "~> 3.0.2"}
     ]
   end
 
