@@ -10,7 +10,7 @@ defmodule Barragenspt.Meteo.Precipitation do
     PrecipitationMonthlyValue
   }
 
-  @ttl :timer.hours(1)
+  @ttl :timer.hours(24)
 
   @decorate cacheable(
               cache: Cache,
