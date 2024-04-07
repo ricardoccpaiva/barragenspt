@@ -72,7 +72,6 @@ if config_env() == :prod do
   config :bugsnag,
     api_key: System.get_env("BUGSNAG_API_KEY"),
     app_type: "elixir",
-    app_version: Mix.Project.config()[:version],
     json_library: Jason,
     notify_release_stages: ["dev", "staging", "prod"],
     release_stage: System.get_env("MIX_ENV"),
