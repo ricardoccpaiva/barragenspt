@@ -25,7 +25,7 @@ defmodule Barragenspt.Workers.RefreshSmiDailyValues do
   end
 
   defp build_worker(year, month, day, layer, img_format) do
-    Barragenspt.Workers.FetchPrecipitationDailyValues.new(%{
+    Barragenspt.Workers.RefreshSmiDailyValues.new(%{
       "year" => year,
       "month" => month,
       "day" => day,
