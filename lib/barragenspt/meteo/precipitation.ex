@@ -1,17 +1,23 @@
 defmodule Barragenspt.Meteo.Precipitation do
   import Ecto.Query
   use Nebulex.Caching
-  alias Barragenspt.MeteoDataCache, as: Cache
   alias Barragenspt.Repo
-  alias Barragenspt.Hydrometrics.{PrecipitationDailyValue, PrecipitationMonthlyValue}
-  alias Barragenspt.Hydrometrics.LegendMapping
+  alias Barragenspt.MeteoDataCache, as: Cache
+
+  alias Barragenspt.Hydrometrics.{
+    LegendMapping,
+    PrecipitationDailyValue,
+    PrecipitationMonthlyValue
+  }
+
+  @ttl :timer.hours(1)
 
   @decorate cacheable(
               cache: Cache,
-              key: "reference_monthly_precipitation",
-              ttl: 99_999_999
+              key: "reference_monthly",
+              ttl: @ttl
             )
-  def get_reference_monthly_precipitation() do
+  def get_reference_monthly() do
     sub_query =
       from p in PrecipitationDailyValue,
         join: l in LegendMapping,
@@ -46,10 +52,10 @@ defmodule Barragenspt.Meteo.Precipitation do
 
   @decorate cacheable(
               cache: Cache,
-              key: "monthly_precipitation_data_by_scale_#{year}",
-              ttl: 99_999_999
+              key: "monthly_#{year}",
+              ttl: @ttl
             )
-  def get_monthly_precipitation_data_by_scale(year) do
+  def get_monthly(year) do
     sub_query =
       from p in PrecipitationMonthlyValue,
         join: l in LegendMapping,
@@ -83,10 +89,10 @@ defmodule Barragenspt.Meteo.Precipitation do
 
   @decorate cacheable(
               cache: Cache,
-              key: "precipitation_data_#{year}",
-              ttl: 99_999_999
+              key: "get_#{year}",
+              ttl: @ttl
             )
-  def get_precipitation_data(year) do
+  def get(year) do
     sub_query =
       from p in PrecipitationDailyValue,
         join: l in LegendMapping,
@@ -120,10 +126,10 @@ defmodule Barragenspt.Meteo.Precipitation do
 
   @decorate cacheable(
               cache: Cache,
-              key: "bounded_precipitation_data_#{start_date}_#{end_date}",
-              ttl: 99_999_999
+              key: "bounded_#{start_date}_#{end_date}",
+              ttl: @ttl
             )
-  def get_bounded_precipitation_data(start_date, end_date) do
+  def get_bounded(start_date, end_date) do
     sub_query =
       from p in PrecipitationDailyValue,
         join: l in LegendMapping,
@@ -157,10 +163,10 @@ defmodule Barragenspt.Meteo.Precipitation do
 
   @decorate cacheable(
               cache: Cache,
-              key: "precipitation_data_#{year}_#{month}",
-              ttl: 99_999_999
+              key: "get_#{year}_#{month}",
+              ttl: @ttl
             )
-  def get_precipitation_data(year, month) do
+  def get(year, month) do
     sub_query =
       from p in PrecipitationDailyValue,
         join: l in LegendMapping,

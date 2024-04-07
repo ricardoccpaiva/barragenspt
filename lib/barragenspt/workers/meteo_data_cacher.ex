@@ -5,7 +5,7 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
   def perform(%Oban.Job{args: %{"spawn" => "true"}}) do
     Barragenspt.MeteoDataCache.flush()
 
-    Barragenspt.Meteo.Precipitation.get_reference_monthly_precipitation()
+    Barragenspt.Meteo.Precipitation.get_reference_monthly()
 
     spawn_workers()
   end
@@ -26,15 +26,15 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
   def perform(%Oban.Job{
         args: %{"year" => year, "month" => month, "meteo_index" => "precipitation"}
       }) do
-    Barragenspt.Meteo.Precipitation.get_precipitation_data(year, month)
+    Barragenspt.Meteo.Precipitation.get(year, month)
     :ok
   end
 
   def perform(%Oban.Job{
         args: %{"year" => year, "meteo_index" => "precipitation"}
       }) do
-    Barragenspt.Meteo.Precipitation.get_monthly_precipitation_data_by_scale(year)
-    Barragenspt.Meteo.Precipitation.get_precipitation_data(year)
+    Barragenspt.Meteo.Precipitation.get_monthly(year)
+    Barragenspt.Meteo.Precipitation.get(year)
     :ok
   end
 

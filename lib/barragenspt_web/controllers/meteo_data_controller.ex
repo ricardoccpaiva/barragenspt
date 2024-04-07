@@ -81,16 +81,16 @@ defmodule BarragensptWeb.MeteoDataController do
 
     data =
       if month == 0 do
-        raw_data = Precipitation.get_monthly_precipitation_data_by_scale(year)
+        raw_data = Precipitation.get_monthly(year)
 
         raw_ref_data =
           if compare == "on",
-            do: Precipitation.get_reference_monthly_precipitation(),
+            do: Precipitation.get_reference_monthly(),
             else: nil
 
         build_precipitation_csv(raw_data, year, month, @monthly_scale, raw_ref_data)
       else
-        raw_data = Precipitation.get_precipitation_data(year, month)
+        raw_data = Precipitation.get(year, month)
         build_precipitation_csv(raw_data, year, month, @daily_scale)
       end
 
@@ -115,7 +115,7 @@ defmodule BarragensptWeb.MeteoDataController do
     data =
       year
       |> String.to_integer()
-      |> Precipitation.get_precipitation_data()
+      |> Precipitation.get()
       |> backfill_precipitation_data()
       |> build_precipitation_csv(year, 0, @daily_scale)
 
@@ -134,7 +134,7 @@ defmodule BarragensptWeb.MeteoDataController do
 
     data =
       start_date
-      |> Precipitation.get_bounded_precipitation_data(end_date)
+      |> Precipitation.get_bounded(end_date)
       |> build_precipitation_csv(@daily_scale)
 
     conn
