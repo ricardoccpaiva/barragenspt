@@ -53,7 +53,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
     end)
     |> List.flatten()
     |> Enum.reject(fn row -> row == [] end)
-    |> Oban.insert_all()
+    |> OpentelemetryOban.insert_all()
   end
 
   @impl Oban.Worker

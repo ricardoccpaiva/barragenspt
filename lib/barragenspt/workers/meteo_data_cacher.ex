@@ -79,7 +79,7 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
         })
       end)
 
-    Oban.insert_all(jobs)
+    OpentelemetryOban.insert_all(jobs)
 
     years = Enum.uniq_by(combinations_precipitation, fn {year, _month} -> year end)
 
@@ -91,7 +91,7 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
         })
       end)
 
-    Oban.insert_all(jobs)
+    OpentelemetryOban.insert_all(jobs)
 
     jobs =
       Enum.map(years, fn {year, _month} ->
@@ -101,7 +101,7 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
         })
       end)
 
-    Oban.insert_all(jobs)
+    OpentelemetryOban.insert_all(jobs)
 
     jobs =
       Enum.map(years, fn {year, _month} ->
@@ -111,7 +111,7 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
         })
       end)
 
-    Oban.insert_all(jobs)
+    OpentelemetryOban.insert_all(jobs)
 
     jobs =
       Enum.map(combinations_precipitation, fn {year, month} ->
@@ -122,6 +122,6 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
         })
       end)
 
-    Oban.insert_all(jobs)
+    OpentelemetryOban.insert_all(jobs)
   end
 end

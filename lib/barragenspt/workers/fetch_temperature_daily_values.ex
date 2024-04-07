@@ -24,7 +24,7 @@ defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
     Enum.each(combinations, fn {year, month, layer, img_format} ->
       jobs = build_worker(year, month, layer, img_format)
 
-      Oban.insert_all(jobs)
+      OpentelemetryOban.insert_all(jobs)
     end)
   end
 

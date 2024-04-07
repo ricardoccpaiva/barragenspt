@@ -19,7 +19,7 @@ defmodule Barragenspt.Workers.RefreshSmiDailyValues do
     |> Enum.map(fn {year, month, day, layer, img_format} ->
       build_worker(year, month, day, layer, img_format)
     end)
-    |> Oban.insert_all()
+    |> OpentelemetryOban.insert_all()
 
     :ok
   end

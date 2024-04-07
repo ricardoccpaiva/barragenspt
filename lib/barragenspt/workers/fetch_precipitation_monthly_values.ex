@@ -25,7 +25,7 @@ defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
     |> Enum.map(fn {year, month, layer, img_format} ->
       build_worker(year, month, layer, img_format)
     end)
-    |> Oban.insert_all()
+    |> OpentelemetryOban.insert_all()
   end
 
   defp build_worker(year, month, layer, img_format) do

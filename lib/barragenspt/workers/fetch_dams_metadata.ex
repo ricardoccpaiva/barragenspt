@@ -19,7 +19,7 @@ defmodule Barragenspt.Workers.FetchDamsMetadata do
       })
     end)
     |> List.flatten()
-    |> Oban.insert_all()
+    |> OpentelemetryOban.insert_all()
   end
 
   @impl Oban.Worker

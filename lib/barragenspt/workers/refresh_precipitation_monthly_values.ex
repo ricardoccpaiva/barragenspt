@@ -14,7 +14,7 @@ defmodule Barragenspt.Workers.RefreshPrecipitationMonthlyValues do
     dt_range
     |> Enum.reject(fn dt -> dt.day != 1 end)
     |> Enum.map(fn dt -> build_worker(dt.year, dt.month, layer, :svg) end)
-    |> Oban.insert_all()
+    |> OpentelemetryOban.insert_all()
 
     :ok
   end
