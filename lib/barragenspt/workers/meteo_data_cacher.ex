@@ -8,6 +8,8 @@ defmodule Barragenspt.Workers.MeteoDataCacher do
     Barragenspt.Meteo.Precipitation.get_reference_monthly()
 
     spawn_workers()
+
+    :ok
   end
 
   @impl Oban.Worker
