@@ -1,14 +1,15 @@
 defmodule Barragenspt.Hydrometrics.Basins do
   import Ecto.Query
 
-  alias Barragenspt.Hydrometrics.{
+  alias Barragenspt.Models.Hydrometrics.{
     DataPoint,
     BasinStorage,
     Basin,
     Dam,
-    DamUsage,
-    Dams
+    DamUsage
   }
+
+  alias Barragenspt.Hydrometrics.Dams
 
   use Nebulex.Caching
   alias Barragenspt.Cache

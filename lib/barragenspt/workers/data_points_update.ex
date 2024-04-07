@@ -2,6 +2,7 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
   use Oban.Worker, queue: :data_points_update
   import Ecto.Query
   require Logger
+  alias Barragenspt.Models.Hydrometrics.Dam
 
   @impl Oban.Worker
   def perform(%Oban.Job{attempt: 1, args: %{"jcid" => jcid}}) do
@@ -26,7 +27,7 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
     # data_params = [{354_895_398, "volume_last_hour"}]
     # data_params = [{1_629_599_798, "volume"}]
 
-    from(d in Barragenspt.Hydrometrics.Dam, where: not is_nil(d.metadata))
+    from(d in Dam, where: not is_nil(d.metadata))
     |> Barragenspt.Repo.all()
     |> Enum.map(fn dam ->
       try do

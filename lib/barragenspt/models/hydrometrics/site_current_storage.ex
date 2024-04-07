@@ -1,4 +1,4 @@
-defmodule Barragenspt.Hydrometrics.SiteCurrentStorage do
+defmodule Barragenspt.Models.Hydrometrics.SiteCurrentStorage do
   use Ecto.Schema
 
   @primary_key false

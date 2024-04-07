@@ -2,14 +2,14 @@ defmodule Barragenspt.Workers.BackFillExtraDamInfo do
   import Ecto.Query
   use Oban.Worker, queue: :dams_info
   require Logger
-  alias Barragenspt.Hydrometrics.DamUsage
+  alias Barragenspt.Models.Hydrometrics.{DamUsage, Dam}
   alias Barragenspt.Repo, as: Repo
 
   @impl Oban.Worker
   def perform(_args) do
-    from(_x in Barragenspt.Hydrometrics.DamUsage) |> Barragenspt.Repo.delete_all()
+    from(_x in DamUsage) |> Barragenspt.Repo.delete_all()
 
-    Barragenspt.Hydrometrics.Dam
+    Dam
     |> from()
     |> Repo.all()
     |> Enum.map(fn dam ->
@@ -24,7 +24,7 @@ defmodule Barragenspt.Workers.BackFillExtraDamInfo do
       try do
         {max_value, ""} = Integer.parse(dam.metadata["Albufeira"]["Capacidade total (dam3)"])
 
-        query = from(d in Barragenspt.Hydrometrics.Dam, where: like(d.code, ^dam.code))
+        query = from(d in Dam, where: like(d.code, ^dam.code))
 
         dam = Barragenspt.Repo.one(query)
 

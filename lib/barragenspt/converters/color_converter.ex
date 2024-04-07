@@ -1,6 +1,6 @@
 defmodule Barragenspt.Converters.ColorConverter do
   use Nebulex.Caching
-  alias Barragenspt.Hydrometrics.LegendMapping
+  alias Barragenspt.Models.Meteo.LegendMapping
   alias Barragenspt.Repo
   alias Barragenspt.Cache
   import Ecto.Query

@@ -3,9 +3,7 @@ defmodule Barragenspt.Meteo.Temperature do
   use Nebulex.Caching
   alias Barragenspt.MeteoDataCache, as: Cache
   alias Barragenspt.Repo
-  alias Barragenspt.Hydrometrics.SvgArea
-  alias Barragenspt.Hydrometrics.TemperatureDailyValue
-  alias Barragenspt.Hydrometrics.LegendMapping
+  alias Barragenspt.Models.Meteo.{SvgArea, TemperatureDailyValue, LegendMapping}
 
   @decorate cacheable(
               cache: Cache,

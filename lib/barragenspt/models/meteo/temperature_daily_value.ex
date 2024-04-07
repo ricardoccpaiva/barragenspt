@@ -1,4 +1,4 @@
-defmodule Barragenspt.Hydrometrics.TemperatureDailyValue do
+defmodule Barragenspt.Models.Meteo.TemperatureDailyValue do
   use Ecto.Schema
   import Ecto.Changeset
 

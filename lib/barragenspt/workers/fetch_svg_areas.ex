@@ -1,7 +1,7 @@
 defmodule Barragenspt.Workers.FetchSvgAreas do
   use Oban.Worker, queue: :meteo_data
   require Logger
-  alias Barragenspt.Hydrometrics.SvgArea
+  alias Barragenspt.Models.Meteo.SvgArea
   import Ecto.Query
 
   @impl Oban.Worker

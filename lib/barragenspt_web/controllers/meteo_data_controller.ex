@@ -2,9 +2,7 @@ defmodule BarragensptWeb.MeteoDataController do
   use BarragensptWeb, :controller
   use Nebulex.Caching
   alias Barragenspt.MeteoDataCache, as: Cache
-  alias Barragenspt.Meteo.Temperature
-  alias Barragenspt.Meteo.Precipitation
-  alias Barragenspt.Meteo.Pdsi
+  alias Barragenspt.Meteo.{Temperature, Precipitation, Pdsi}
   alias Barragenspt.Hydrometrics.Basins
 
   @temperature_intervals [

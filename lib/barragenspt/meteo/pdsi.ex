@@ -3,9 +3,7 @@ defmodule Barragenspt.Meteo.Pdsi do
   use Nebulex.Caching
   alias Barragenspt.MeteoDataCache, as: Cache
   alias Barragenspt.Repo
-  alias Barragenspt.Hydrometrics.SvgArea
-  alias Barragenspt.Hydrometrics.PdsiValue
-  alias Barragenspt.Hydrometrics.LegendMapping
+  alias Barragenspt.Models.Meteo.{SvgArea, PdsiValue, LegendMapping}
 
   @decorate cacheable(
               cache: Cache,

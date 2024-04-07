@@ -1,4 +1,4 @@
-defmodule Barragenspt.Hydrometrics.MonthlyAverageStorageBySite do
+defmodule Barragenspt.Models.Hydrometrics.MonthlyAverageStorageBySite do
   use Ecto.Schema
 
   @primary_key false

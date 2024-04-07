@@ -1,7 +1,7 @@
 defmodule Barragenspt.Workers.FetchTemperatureDailyValues do
   use Oban.Worker, queue: :meteo_data
   require Logger
-  alias Barragenspt.Hydrometrics.TemperatureDailyValue
+  alias Barragenspt.Models.Meteo.TemperatureDailyValue
   import Ecto.Query
   alias Barragenspt.Parsers.SvgXmlParser
   alias Barragenspt.Services.R2

@@ -1,4 +1,4 @@
-defmodule Barragenspt.Hydrometrics.PdsiValue do
+defmodule Barragenspt.Models.Meteo.PdsiValue do
   use Ecto.Schema
   import Ecto.Changeset
 

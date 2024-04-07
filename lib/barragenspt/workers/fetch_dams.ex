@@ -2,10 +2,11 @@ defmodule Barragenspt.Workers.FetchDams do
   use Oban.Worker, queue: :dams_info
   import Ecto.Query
   alias Barragenspt.Services.Snirh, as: Snirh
+  alias Barragenspt.Models.Hydrometrics.Dam
 
   @impl Oban.Worker
   def perform(_args) do
-    from(_x in Barragenspt.Hydrometrics.Dam) |> Barragenspt.Repo.delete_all()
+    from(_x in Dam) |> Barragenspt.Repo.delete_all()
 
     Snirh.dam_data()
     |> Floki.parse_document!()
@@ -66,7 +67,7 @@ defmodule Barragenspt.Workers.FetchDams do
       |> String.downcase()
       |> Recase.to_title()
 
-    dam = %Barragenspt.Hydrometrics.Dam{
+    dam = %Dam{
       basin_id: basin_id,
       basin: formatted_basin_name,
       code: dam_code,

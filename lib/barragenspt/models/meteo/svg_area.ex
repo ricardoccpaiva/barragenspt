@@ -1,4 +1,4 @@
-defmodule Barragenspt.Hydrometrics.SvgArea do
+defmodule Barragenspt.Models.Meteo.SvgArea do
   use Ecto.Schema
   import Ecto.Changeset
 

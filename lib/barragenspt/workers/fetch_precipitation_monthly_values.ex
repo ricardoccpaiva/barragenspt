@@ -1,7 +1,7 @@
 defmodule Barragenspt.Workers.FetchPrecipitationMonthlyValues do
   use Oban.Worker, queue: :meteo_data
   require Logger
-  alias Barragenspt.Hydrometrics.PrecipitationMonthlyValue
+  alias Barragenspt.Models.Meteo.PrecipitationMonthlyValue
   import Ecto.Query
   alias Barragenspt.Parsers.SvgXmlParser
   alias Barragenspt.Services.R2

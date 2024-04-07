@@ -1,8 +1,7 @@
 defmodule Barragenspt.Workers.FetchPdsiValues do
-  alias Barragenspt.Meteo.Pdsi
   use Oban.Worker, queue: :meteo_data
   require Logger
-  alias Barragenspt.Hydrometrics.PdsiValue
+  alias Barragenspt.Models.Meteo.PdsiValue
   import Ecto.Query
   alias Barragenspt.Parsers.SvgXmlParser
   alias Barragenspt.Services.R2

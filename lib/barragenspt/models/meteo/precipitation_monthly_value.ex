@@ -1,4 +1,4 @@
-defmodule Barragenspt.Hydrometrics.PrecipitationMonthlyValue do
+defmodule Barragenspt.Models.Meteo.PrecipitationMonthlyValue do
   use Ecto.Schema
   import Ecto.Changeset
 

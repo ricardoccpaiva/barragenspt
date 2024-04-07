@@ -1,4 +1,4 @@
-defmodule Barragenspt.Hydrometrics.Dam do
+defmodule Barragenspt.Models.Hydrometrics.Dam do
   use Ecto.Schema
   import Ecto.Changeset
 

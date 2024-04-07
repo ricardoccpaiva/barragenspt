@@ -2,7 +2,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
   use Oban.Worker, queue: :dams_info
   import Ecto.Query
   require Logger
-  alias Barragenspt.Hydrometrics.DataPoint
+  alias Barragenspt.Models.Hydrometrics.{DataPoint, Dam}
   alias Barragenspt.Services.Snirh
 
   def spawn_workers do
@@ -26,7 +26,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
       {2011, 2023}
     ]
 
-    from(d in Barragenspt.Hydrometrics.Dam, where: not is_nil(d.metadata))
+    from(d in Dam, where: not is_nil(d.metadata))
     |> Barragenspt.Repo.all()
     |> Enum.map(fn dam ->
       try do

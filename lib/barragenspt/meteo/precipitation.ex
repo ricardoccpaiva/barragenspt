@@ -4,7 +4,7 @@ defmodule Barragenspt.Meteo.Precipitation do
   alias Barragenspt.Repo
   alias Barragenspt.MeteoDataCache, as: Cache
 
-  alias Barragenspt.Hydrometrics.{
+  alias Barragenspt.Models.Meteo.{
     LegendMapping,
     PrecipitationDailyValue,
     PrecipitationMonthlyValue

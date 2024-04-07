@@ -4,7 +4,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   alias Barragenspt.Geo.Coordinates
 
-  alias Barragenspt.Hydrometrics.{
+  alias Barragenspt.Models.Hydrometrics.{
     MonthlyAverageStorageBySite,
     DailyAverageStorageBySite,
     SiteCurrentStorage,

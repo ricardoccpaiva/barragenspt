@@ -1,4 +1,4 @@
-defmodule Barragenspt.Hydrometrics.Basin do
+defmodule Barragenspt.Models.Hydrometrics.Basin do
   use Ecto.Schema
 
   @primary_key false

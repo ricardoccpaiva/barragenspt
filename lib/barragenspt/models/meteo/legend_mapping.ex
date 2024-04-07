@@ -1,4 +1,4 @@
-defmodule Barragenspt.Hydrometrics.LegendMapping do
+defmodule Barragenspt.Models.Meteo.LegendMapping do
   use Ecto.Schema
   import Ecto.Changeset
 
