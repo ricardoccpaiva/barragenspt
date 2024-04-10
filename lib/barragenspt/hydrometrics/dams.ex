@@ -416,6 +416,20 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
+  @decorate cacheable(cache: Cache, key: "last_elevation#{site_id}", ttl: @ttl)
+  def last_elevation(site_id) do
+    Repo.one(
+      from(dp in DataPoint,
+        where: dp.site_id == ^site_id and dp.param_name == "elevation",
+        order_by: [desc: dp.colected_at],
+        limit: 1,
+        select: %{
+          value: dp.value
+        }
+      )
+    )
+  end
+
   @decorate cacheable(cache: Cache, key: "dam_last_data_point_#{site_id}", ttl: @ttl)
   def last_data_point(site_id) do
     Repo.one(
