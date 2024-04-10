@@ -1,4 +1,5 @@
-<script defer phx-track-static type="text/javascript" src={Routes.static_path(@socket, "/assets/homepage.js" )}></script>
+<script defer phx-track-static type="text/javascript" src={Routes.static_path(@socket, "/assets/homepage.js"
+  )}></script>
 
 <div class="grid-container">
   <div id="menu-icon" class="menu-icon" data-position='top'>
@@ -196,8 +197,9 @@
           <% end %>
             <%= if Map.has_key?(assigns, :dam) do %>
               <.live_component module={DamDetailComponent} id="dam_detail" dam={@dam}
-                current_capacity={@current_capacity} last_data_point={@last_data_point}
-                dam_usage_types={@dam_usage_types} class={@dam_detail_class} />
+                current_capacity={@current_capacity} last_data_point={@last_data_point} last_elevation={@last_elevation}
+                last_elevation_date={@last_elevation_date} dam_usage_types={@dam_usage_types}
+                class={@dam_detail_class} />
               <% end %>
                 <%= if Map.has_key?(assigns, :river) do %>
                   <.live_component module={RiverDetailComponent} id="river_detail" river={@river}

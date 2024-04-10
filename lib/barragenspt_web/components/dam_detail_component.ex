@@ -24,6 +24,8 @@ defmodule DamDetailComponent do
 
     <div class="field" style="margin-top: 10px;">
       <span class="is-size-7 has-text-weight-bold">Armazenamento a <%= @last_data_point %>: <%= @current_capacity %>%</span>
+      <br/>
+      <span class="is-size-7 has-text-weight-bold">Cota a <%= @last_elevation_date %>: <%= @last_elevation %>m</span>
       <i id="show_last_updated_at_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"></i>
       <div class="control" style="margin-top: 5px;">
         <progress class="progress is-link is-small" value={@current_capacity} max="100"></progress>

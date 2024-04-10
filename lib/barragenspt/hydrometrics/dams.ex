@@ -420,11 +420,12 @@ defmodule Barragenspt.Hydrometrics.Dams do
   def last_elevation(site_id) do
     Repo.one(
       from(dp in DataPoint,
-        where: dp.site_id == ^site_id and dp.param_name == "elevation",
+        where: dp.site_id == ^site_id and dp.param_name == "elevation_last_hour",
         order_by: [desc: dp.colected_at],
         limit: 1,
         select: %{
-          value: dp.value
+          value: dp.value,
+          colected_at: dp.colected_at
         }
       )
     )

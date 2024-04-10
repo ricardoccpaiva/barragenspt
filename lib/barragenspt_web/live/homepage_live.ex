@@ -85,6 +85,15 @@ defmodule BarragensptWeb.HomepageLive do
       |> then(fn %{last_data_point: last_data_point} -> last_data_point end)
       |> Timex.format!("{D}/{M}/{YYYY}")
 
+    %{value: last_elevation, colected_at: elevation_date} =
+      case Dams.last_elevation(id) do
+        %{value: last_elevation, colected_at: elevation_date} ->
+          %{value: last_elevation, colected_at: Timex.format!(elevation_date, "{D}/{M}/{YYYY}")}
+
+        _ ->
+          %{value: 0, colected_at: "n/a"}
+      end
+
     dam = prepare_dam_metadata(dam)
 
     usage_types = Dams.usage_types(dam.site_id)
@@ -100,6 +109,8 @@ defmodule BarragensptWeb.HomepageLive do
       |> assign(search_results_class: "dropdown-content detail_class_invisible")
       |> assign(dam_usage_types: usage_types)
       |> assign(last_data_point: last_data_point)
+      |> assign(last_elevation: last_elevation)
+      |> assign(last_elevation_date: elevation_date)
       |> push_event("draw", %{"spec" => spec})
 
     if(params["nz"]) do
