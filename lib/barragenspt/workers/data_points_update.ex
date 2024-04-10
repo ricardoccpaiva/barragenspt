@@ -15,7 +15,9 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
     data_params = [
       {1_629_599_798, "volume"},
       {354_895_398, "volume_last_hour"},
-      {304_545_050, "volume_last_day_month"}
+      {304_545_050, "volume_last_day_month"},
+      {2284, "ouput_flow_rate_daily"},
+      {1_629_599_726, "elevation"}
     ]
 
     current_date = Timex.now()
