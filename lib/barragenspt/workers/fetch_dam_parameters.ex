@@ -14,7 +14,10 @@ defmodule Barragenspt.Workers.FetchDamParameters do
       {1_629_599_798, "volume"},
       {354_895_398, "volume_last_hour"},
       {304_545_050, "volume_last_day_month"},
-      {2284, "ouput_flow_rate_daily"}
+      {2284, "ouput_flow_rate_daily"},
+      {2279, "tributary_daily_flow"},
+      {212_296_818, "effluent_daily_flow"},
+      {2282, "turbocharged_daily_flow"}
     ]
 
     # data_params = [{354_895_398, "volume_last_hour"}]
