@@ -2,11 +2,11 @@ defmodule BarragensptWeb.ReportsController do
   use BarragensptWeb, :controller
 
   @meteo_index_limits_mapping [
-    %{meteo_index: "temperature", limits: %{min: 2000, max: 2024}},
-    %{meteo_index: "precipitation", limits: %{min: 2000, max: 2024}},
-    %{meteo_index: "pdsi", limits: %{min: 1981, max: 2024}},
-    %{meteo_index: "smi", limits: %{min: 2023, max: 2024}},
-    %{meteo_index: "basin_storage", limits: %{min: 1981, max: 2024}}
+    %{meteo_index: "temperature", limits: %{min: 2000, max: 2025}},
+    %{meteo_index: "precipitation", limits: %{min: 2000, max: 2025}},
+    %{meteo_index: "pdsi", limits: %{min: 1981, max: 2025}},
+    %{meteo_index: "smi", limits: %{min: 2023, max: 2025}},
+    %{meteo_index: "basin_storage", limits: %{min: 1981, max: 2025}}
   ]
 
   @error_types_mapping [
