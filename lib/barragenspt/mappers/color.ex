@@ -5,13 +5,13 @@ defmodule Barragenspt.Mappers.Colors do
 
   def lookup_capacity(pct) do
     cond do
-      0 < pct and pct < 21 -> "#ff675c"
-      21 <= pct and pct <= 41 -> "#ffc34a"
-      41 <= pct and pct <= 51 -> "#ffe99c"
-      51 <= pct and pct <= 61 -> "#c2faaa"
-      61 <= pct and pct <= 81 -> "#a6d8ff"
-      81 <= pct and pct <= 100 -> "#1c9dff"
-      true -> "grey"
+      0 < pct and pct < 21 -> "#FFADAD"
+      21 <= pct and pct <= 41 -> "#FFD6A5"
+      41 <= pct and pct <= 51 -> "#FDFFB6"
+      51 <= pct and pct <= 61 -> "#CAFFBF"
+      61 <= pct and pct <= 81 -> "#A6D8FF"
+      81 <= pct and pct <= 100 -> "#72B6F9"
+      true -> "#D3D3D3"
     end
   end
 
