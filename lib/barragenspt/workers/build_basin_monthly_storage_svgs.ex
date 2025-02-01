@@ -28,17 +28,23 @@ defmodule Barragenspt.Workers.BuildBasinMonthlyStorageSvgs do
 
     all_basins_info_grouped_by_date =
       basin_ids
-      |> Enum.map(fn bid -> Basins.monthly_stats_for_basin(bid, [], 60) end)
+      |> Enum.map(fn bid -> Basins.monthly_stats_for_basin(bid, [], 200) end)
       |> List.flatten()
       |> Enum.group_by(fn b -> b.date end)
 
     all_dates = Map.keys(all_basins_info_grouped_by_date)
 
-    Enum.each(all_dates, fn d ->
-      all_basins_info_grouped_by_date
-      |> Map.get(d)
-      |> build_svg(d, basins_svg_template)
-    end)
+    Task.async_stream(
+      all_dates,
+      fn d ->
+        all_basins_info_grouped_by_date
+        |> Map.get(d)
+        |> build_svg(d, basins_svg_template)
+      end,
+      max_concurrency: System.schedulers_online(),
+      timeout: :infinity
+    )
+    |> Stream.run()
 
     :ok
   end
