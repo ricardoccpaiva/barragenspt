@@ -222,7 +222,6 @@ window.addEventListener('phx:update_dams_visibility', (e) => {
     topbar.hide();
 })
 
-//mapboxgl.accessToken = document.getElementById("mapbox_token").value;
 const map = new maplibregl.Map({
     container: 'map',
     style: 'https://mapas.barragens.pt/styles/klokantech-basic/style.json',

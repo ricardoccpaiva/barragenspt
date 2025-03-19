@@ -146,7 +146,6 @@
                                     class="fa-solid fa-circle-info info-reports"></i>
                            </label>
                         </div>
-                        <input id="mapbox_token" type="hidden" value={System.get_env("MAPBOX_API_TOKEN")} />
                         <!--<div id='map' style="height: 100%;" phx-update="ignore"></div>-->
                         <%= render "_viz_type_#{@viz_type}.html" , assigns %>
                            <% else %>
