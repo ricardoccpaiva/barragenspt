@@ -222,18 +222,18 @@ window.addEventListener('phx:update_dams_visibility', (e) => {
     topbar.hide();
 })
 
-mapboxgl.accessToken = document.getElementById("mapbox_token").value;
-const map = new mapboxgl.Map({
+//mapboxgl.accessToken = document.getElementById("mapbox_token").value;
+const map = new maplibregl.Map({
     container: 'map',
-    style: 'mapbox://styles/ricardoccpaiva/ckzcpwm4h001114mn112tg6fr',
+    style: 'https://mapas.barragens.pt/styles/klokantech-basic/style.json',
     center: [-8, 39.69],
     zoom: 5
 });
 
-map.addControl(new mapboxgl.NavigationControl());
+map.addControl(new maplibregl.NavigationControl());
 
 map.addControl(
-    new mapboxgl.GeolocateControl({
+    new maplibregl.GeolocateControl({
         positionOptions: {
             enableHighAccuracy: true
         },
@@ -544,16 +544,23 @@ export const loadDams = () => {
         .then(response => response.json())
         .then(function (response) {
             response.data.forEach(function (element) {
-                el = document.createElement('div');
-                innerHTML = "<a id='marker_" + element.site_id + "' class='fa-solid fa-location-dot fa-lg marker' data-phx-link='patch' ";
-                innerHTML = innerHTML + " data-phx-link-state='push' href='?dam_id=" + element.site_id + "&nz" + "'</a>";
-                el.innerHTML = innerHTML;
+                var parentDiv = document.createElement('div');
 
-                let marker = new mapboxgl
-                    .Marker(el)
-                    .setLngLat([element.lon, element.lat]);
+                var childLink = document.createElement('a');
+                childLink.id = 'marker_' + element.site_id;
+                childLink.classList.add("fa-solid");
+                childLink.classList.add("fa-location-dot");
+                childLink.classList.add("marker");
+                childLink.setAttribute('data-phx-link', 'patch');
+                childLink.setAttribute('data-phx-link-state', 'push');
+                childLink.setAttribute('href', '?dam_id=' + element.site_id + '&nz');
 
-                marker.addTo(map);
+                parentDiv.appendChild(childLink);
+
+                let marker = new maplibregl
+                    .Marker({ element: parentDiv })
+                    .setLngLat([element.lon, element.lat])
+                    .addTo(map)
             });
         });
 }
