@@ -173,6 +173,10 @@ a.dropdown-item {
     display: none;
   }
 
+  .legend {
+    bottom: 40px;
+  }
+
   .map-overlay {
     width: 300px;
     height: 32px;
@@ -202,6 +206,7 @@ a.dropdown-item {
   }
 
   .legend {
+    bottom: 5px;
     margin-left: 280px;
   }
 
@@ -287,7 +292,6 @@ a.dropdown-item {
 .legend {
   background-color: #fff;
   border-radius: 3px;
-  bottom: 5px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
   padding: 10px;
