@@ -549,6 +549,7 @@ export const loadDams = () => {
                 childLink.id = 'marker_' + element.site_id;
                 childLink.classList.add("fa-solid");
                 childLink.classList.add("fa-location-dot");
+                childLink.classList.add("fa-lg");
                 childLink.classList.add("marker");
                 childLink.setAttribute('data-phx-link', 'patch');
                 childLink.setAttribute('data-phx-link-state', 'push');
