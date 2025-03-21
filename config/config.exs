@@ -19,7 +19,7 @@ config :barragenspt, BarragensptWeb.Endpoint,
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.14.0",
+  version: "0.25.0",
   default: [
     args:
       ~w(js/app.js js/homepage.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
@@ -44,8 +44,8 @@ config :barragenspt, Oban,
     Oban.Plugins.Pruner,
     {Oban.Plugins.Cron,
      crontab: [
-       {"@weekly", Barragenspt.Workers.RefreshSmiDailyValues, args: %{}, max_attempts: 50},
-       {"@weekly", Barragenspt.Workers.RefreshPdsiValues, args: %{}, max_attempts: 50},
+       {"@reboot", Barragenspt.Workers.RefreshSmiDailyValues, args: %{}, max_attempts: 50},
+       {"@reboot", Barragenspt.Workers.RefreshPdsiValues, args: %{}, max_attempts: 50},
        {"0 1 * * *", Barragenspt.Workers.RefreshTemperatureValues, args: %{}, max_attempts: 50},
        {"0 2 * * *", Barragenspt.Workers.RefreshPrecipitationDailyValues,
         args: %{}, max_attempts: 50},
