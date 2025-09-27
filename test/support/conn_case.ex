@@ -28,6 +28,8 @@ defmodule BarragensptWeb.ConnCase do
 
       # The default endpoint for testing
       @endpoint BarragensptWeb.Endpoint
+
+      use BarragensptWeb, :verified_routes
     end
   end
 

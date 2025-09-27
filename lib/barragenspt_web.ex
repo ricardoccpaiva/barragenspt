@@ -1,4 +1,6 @@
 defmodule BarragensptWeb do
+  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt geojson)
+
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, views, channels and so on.
@@ -24,6 +26,8 @@ defmodule BarragensptWeb do
       import Plug.Conn
       import BarragensptWeb.Gettext
       alias BarragensptWeb.Router.Helpers, as: Routes
+
+      unquote(verified_routes())
     end
   end
 
@@ -102,6 +106,17 @@ defmodule BarragensptWeb do
       import BarragensptWeb.ErrorHelpers
       import BarragensptWeb.Gettext
       alias BarragensptWeb.Router.Helpers, as: Routes
+
+      unquote(verified_routes())
+    end
+  end
+
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: BarragensptWeb.Endpoint,
+        router: BarragensptWeb.Router,
+        statics: BarragensptWeb.static_paths()
     end
   end
 

@@ -20,7 +20,7 @@ defmodule BarragensptWeb.Endpoint do
     at: "/",
     from: :barragenspt,
     gzip: false,
-    only: ~w(assets fonts images favicon.ico robots.txt geojson)
+    only: BarragensptWeb.static_paths()
   )
 
   # Code reloading can be explicitly enabled under the
