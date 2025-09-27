@@ -1,6 +1,5 @@
 defmodule DamDetailComponent do
   use Phoenix.LiveComponent
-  alias BarragensptWeb.Router.Helpers, as: Routes
 
   def render(assigns) do
     ~H"""
@@ -8,7 +7,7 @@ defmodule DamDetailComponent do
     <div class="is-pulled-right">
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
-        <%= live_patch "" , to: Routes.homepage_path(@socket, :index, %{"basin_id" => @dam.basin_id}), class: "fa fa-xmark" %>
+        <%= live_patch "" , to: "/?basin_id=#{@dam.basin_id}", class: "fa fa-xmark" %>
       </span>
     </button>
     </div>

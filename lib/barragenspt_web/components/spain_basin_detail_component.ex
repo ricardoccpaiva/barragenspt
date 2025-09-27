@@ -1,6 +1,5 @@
 defmodule SpainBasinDetailComponent do
   use Phoenix.LiveComponent
-  alias BarragensptWeb.Router.Helpers, as: Routes
 
   @spec render(any()) :: Phoenix.LiveView.Rendered.t()
   def render(assigns) do
@@ -9,7 +8,7 @@ defmodule SpainBasinDetailComponent do
     <div class="is-pulled-right">
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
-        <%= live_patch "" , to: Routes.homepage_path(@socket, :index), class: "fa fa-xmark" %>
+        <%= live_patch "" , to: "/", class: "fa fa-xmark" %>
       </span>
     </button>
     </div>

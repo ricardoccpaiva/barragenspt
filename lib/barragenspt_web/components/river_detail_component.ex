@@ -1,6 +1,5 @@
 defmodule RiverDetailComponent do
   use Phoenix.LiveComponent
-  alias BarragensptWeb.Router.Helpers, as: Routes
 
   def render(assigns) do
     ~H"""
@@ -8,7 +7,7 @@ defmodule RiverDetailComponent do
     <div class="is-pulled-right">
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
-        <%= live_patch "" , to: Routes.homepage_path(@socket, :index), class: "fa fa-xmark" %>
+        <%= live_patch "" , to: "/", class: "fa fa-xmark" %>
       </span>
     </button>
     </div>
@@ -31,7 +30,7 @@ defmodule RiverDetailComponent do
             average_storage, capacity_color: capacity_color} <- @basin_summary do %>
             <tr id={"row_#{id}"} class="row">
               <td style="padding-right: 30px">
-                <%= live_patch to: Routes.homepage_path(@socket, :index, %{"dam_id" => id}), replace: true do %>
+                <%= live_patch to: "/?dam_id=#{id}", replace: true do %>
                   <%= name %>
                 <% end %>
               </td>
