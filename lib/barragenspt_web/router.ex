@@ -1,5 +1,7 @@
 defmodule BarragensptWeb.Router do
   use BarragensptWeb, :router
+  import Oban.Web.Router
+  import Plug.BasicAuth
 
   pipeline :browser do
     plug(:accepts, ["html"])
@@ -10,8 +12,21 @@ defmodule BarragensptWeb.Router do
     plug(:put_secure_browser_headers)
   end
 
+  pipeline :private do
+    plug :basic_auth,
+      username: System.get_env("OBAN_USERNAME"),
+      password: System.get_env("OBAN_PASSWORD")
+  end
+
   pipeline :api do
     plug(:accepts, ["json"])
+  end
+
+  scope "/oban", BarragensptWeb do
+    pipe_through(:browser)
+    pipe_through(:private)
+
+    oban_dashboard("/")
   end
 
   scope "/", BarragensptWeb do
