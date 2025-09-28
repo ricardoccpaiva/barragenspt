@@ -80,7 +80,7 @@ defmodule Barragenspt.Hydrometrics.EmbalsesNet do
       capacity_color:
         current_pct_fixed
         |> Decimal.parse()
-        |> then(fn {dc, ""} -> dc end)
+        |> then(fn {dc, _} -> dc end)
         |> Decimal.to_float()
         |> Colors.lookup_capacity()
     }
