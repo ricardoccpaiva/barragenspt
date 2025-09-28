@@ -7,10 +7,11 @@ defmodule Barragenspt.Application do
 
   @impl true
   def start(_type, _args) do
+    :opentelemetry.set_default_tracer({:opentelemetry, :barragenspt})
+
     OpentelemetryPhoenix.setup()
     OpentelemetryEcto.setup([:barragenspt, :repo])
     OpentelemetryOban.setup()
-    OpentelemetryLiveView.setup()
     OpentelemetryLoggerMetadata.setup()
 
     children = [
