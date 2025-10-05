@@ -32,8 +32,6 @@ defmodule BarragensptWeb.Router do
   scope "/", BarragensptWeb do
     pipe_through(:browser)
 
-    get("/dams", DamController, :index)
-    get("/basins", BasinController, :index)
     get("/reports", ReportsController, :index)
     get("/meteo_data", MeteoDataController, :index)
 
@@ -42,10 +40,13 @@ defmodule BarragensptWeb.Router do
     end
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", BarragensptWeb do
-  #   pipe_through :api
-  # end
+  # API scope
+  scope "/api", BarragensptWeb do
+    pipe_through :api
+
+    get("/dams", DamController, :index)
+    get("/basins", BasinController, :index)
+  end
 
   # Enables LiveDashboard only for development
   #

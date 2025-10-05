@@ -488,7 +488,7 @@ document.getElementById('switchSpainBasins').addEventListener("click", e => {
 document.getElementById('switchDams').addEventListener("click", e => {
     document.getElementById('sidebar').classList.remove('active');
 
-    fetch('/dams')
+    fetch('/api/dams')
         .then(response => response.json())
         .then(function (response) {
             response.data.forEach(function (element) {
@@ -539,7 +539,7 @@ export const enableTabs = () => {
 }
 
 export const loadDams = () => {
-    fetch('/dams')
+    fetch('/api/dams')
         .then(response => response.json())
         .then(function (response) {
             response.data.forEach(function (element) {
@@ -598,7 +598,7 @@ const loadReservoir = (site_id, current_storage_color) => {
 
 export const loadPtBasins = () => {
 
-    fetch('/basins?country=pt')
+    fetch('/api/basins?country=pt')
         .then(response => response.json())
         .then(function (response) {
             response.data.forEach(function (item) {
@@ -657,7 +657,7 @@ const removeEsBasinLayers = () => {
 }
 
 async function loadEsBasins() {
-    await fetch('/basins?country=es')
+    await fetch('/api/basins?country=es')
         .then(response => response.json())
         .then(function (response) {
             response.data.forEach(function (item) {
