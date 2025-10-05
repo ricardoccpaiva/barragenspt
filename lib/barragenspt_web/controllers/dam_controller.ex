@@ -21,6 +21,8 @@ defmodule BarragensptWeb.DamController do
       id: dam.site_id,
       basin_id: dam.basin_id,
       site_id: dam.site_id,
+      dam_name: dam.site_name,
+      basin_name: dam.basin_name,
       current_storage: dam.current_storage,
       current_storage_color: Colors.lookup_capacity(dam.current_storage)
     }

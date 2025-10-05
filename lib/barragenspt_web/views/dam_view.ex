@@ -14,6 +14,8 @@ defmodule BarragensptWeb.DamView do
     %{
       basin_id: dam.basin_id,
       site_id: dam.site_id,
+      dam_name: dam.dam_name,
+      basin_name: dam.basin_name,
       current_storage: dam.current_storage,
       current_storage_color: dam.current_storage_color,
       lat: dam.lat,
