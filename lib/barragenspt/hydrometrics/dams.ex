@@ -553,7 +553,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
           basin_name: b.basin_name,
           site_id: b.site_id,
           site_name: b.site_name,
-          current_storage: fragment("round(?, 1)", b.current_storage)
+          current_storage: fragment("round(?, 1)", b.current_storage),
+          colected_at: b.colected_at
         }
       )
     )
@@ -572,7 +573,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
           basin_name: b.basin_name,
           site_id: b.site_id,
           site_name: b.site_name,
-          current_storage: fragment("round(?, 1)", b.current_storage)
+          current_storage: fragment("round(?, 1)", b.current_storage),
+          colected_at: b.colected_at
         }
       )
     )

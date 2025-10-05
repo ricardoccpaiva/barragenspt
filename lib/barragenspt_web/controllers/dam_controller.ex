@@ -24,7 +24,8 @@ defmodule BarragensptWeb.DamController do
       dam_name: dam.site_name,
       basin_name: dam.basin_name,
       current_storage: dam.current_storage,
-      current_storage_color: Colors.lookup_capacity(dam.current_storage)
+      current_storage_color: Colors.lookup_capacity(dam.current_storage),
+      colected_at: dam.colected_at
     }
 
     coordinates = Coordinates.from_dam(dam.site_id)

@@ -8,5 +8,6 @@ defmodule Barragenspt.Models.Hydrometrics.SiteCurrentStorage do
     field :site_name, :string
     field :basin_name, :string
     field :current_storage, :decimal
+    field :colected_at, :naive_datetime
   end
 end
