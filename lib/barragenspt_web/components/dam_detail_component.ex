@@ -7,7 +7,7 @@ defmodule DamDetailComponent do
     <div class="is-pulled-right">
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
-        <%= live_patch "" , to: "/?basin_id=#{@dam.basin_id}", class: "fa fa-xmark" %>
+        <.link patch={"/?basin_id=#{@dam.basin_id}"} class="fa fa-xmark"></.link>
       </span>
     </button>
     </div>

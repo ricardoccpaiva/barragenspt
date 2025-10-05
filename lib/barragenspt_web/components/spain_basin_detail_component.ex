@@ -8,7 +8,7 @@ defmodule SpainBasinDetailComponent do
     <div class="is-pulled-right">
     <button class="card-header-icon" aria-label="more options">
       <span class="icon">
-        <%= live_patch "" , to: "/", class: "fa fa-xmark" %>
+        <.link patch="/" class="fa fa-xmark"></.link>
       </span>
     </button>
     </div>
