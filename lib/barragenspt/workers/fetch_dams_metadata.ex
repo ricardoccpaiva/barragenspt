@@ -7,7 +7,7 @@ defmodule Barragenspt.Workers.FetchDamsMetadata do
   alias Barragenspt.Repo, as: Repo
 
   def spawn_workers do
-    Barragenspt.Hydrometrics.Dam
+    Barragenspt.Models.Hydrometrics.Dam
     |> from()
     |> Repo.all()
     |> Enum.map(fn dam ->
@@ -74,7 +74,7 @@ defmodule Barragenspt.Workers.FetchDamsMetadata do
 
       Logger.info("Updating metadata for dam with code #{code}")
     else
-      dam = Repo.get(Barragenspt.Hydrometrics.Dam, id)
+      dam = Repo.get(Barragenspt.Models.Hydrometrics.Dam, id)
       Repo.delete!(dam)
     end
 
@@ -82,7 +82,7 @@ defmodule Barragenspt.Workers.FetchDamsMetadata do
   end
 
   defp update_dam(meta, id) do
-    dam = Repo.get(Barragenspt.Hydrometrics.Dam, id)
+    dam = Repo.get(Barragenspt.Models.Hydrometrics.Dam, id)
     dam = Ecto.Changeset.change(dam, metadata: meta)
 
     Repo.update!(dam)
