@@ -20,7 +20,10 @@ defmodule BarragensptWeb.DamView do
       current_storage_color: dam.current_storage_color,
       colected_at: dam.colected_at,
       lat: dam.lat,
-      lon: dam.lon
+      lon: dam.lon,
+      elevation: dam.elevation,
+      useful_capacity: dam.useful_capacity,
+      total_capacity: dam.total_capacity
     }
   end
 end

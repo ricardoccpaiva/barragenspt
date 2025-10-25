@@ -78,7 +78,8 @@ defmodule Barragenspt.MixProject do
       {:ex_aws_s3, "~> 2.0"},
       {:sweet_xml, "~> 0.7.4"},
       {:mogrify, "~> 0.9.3"},
-      {:bugsnag, "~> 3.0.2"}
+      {:bugsnag, "~> 3.0.2"},
+      {:swoosh, "~> 1.6"}
     ]
   end
 

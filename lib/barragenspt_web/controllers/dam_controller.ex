@@ -25,11 +25,38 @@ defmodule BarragensptWeb.DamController do
       basin_name: dam.basin_name,
       current_storage: dam.current_storage,
       current_storage_color: Colors.lookup_capacity(dam.current_storage),
-      colected_at: dam.colected_at
+      colected_at: dam.colected_at,
+      metadata: dam.metadata
     }
 
     coordinates = Coordinates.from_dam(dam.site_id)
+    metadata_fields = extract_metadata_fields(dam)
 
-    Map.merge(elementary_Data, coordinates)
+    elementary_Data
+    |> Map.merge(coordinates)
+    |> Map.merge(metadata_fields)
+  end
+
+  defp extract_metadata_fields(dam) do
+    metadata = dam.metadata || %{}
+    albufeira_data = metadata["Albufeira"] || %{}
+
+    %{
+      elevation: get_metadata_value(albufeira_data, "Cota (m)"),
+      useful_capacity: get_metadata_value(albufeira_data, "Capacidade útil (dam3)"),
+      total_capacity: get_metadata_value(albufeira_data, "Capacidade total (dam3)")
+    }
+  end
+
+  defp get_metadata_value(data, key) do
+    case data[key] do
+      nil -> nil
+      value when is_binary(value) ->
+        case Float.parse(value) do
+          {float_value, ""} -> float_value
+          _ -> value
+        end
+      value -> value
+    end
   end
 end

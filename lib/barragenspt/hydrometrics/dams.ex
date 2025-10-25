@@ -547,14 +547,17 @@ defmodule Barragenspt.Hydrometrics.Dams do
   defp current_storage_filtered([]) do
     Repo.all(
       from(b in SiteCurrentStorage,
+        join: d in Dam,
+        on: b.site_id == d.site_id,
         where: b.current_storage <= 100,
         select: %{
-          basin_id: b.basin_id,
-          basin_name: b.basin_name,
+          basin_id: d.basin_id,
+          basin_name: d.basin,
           site_id: b.site_id,
-          site_name: b.site_name,
+          site_name: d.name,
           current_storage: fragment("round(?, 1)", b.current_storage),
-          colected_at: b.colected_at
+          colected_at: b.colected_at,
+          metadata: d.metadata
         }
       )
     )
@@ -565,16 +568,19 @@ defmodule Barragenspt.Hydrometrics.Dams do
       from(b in SiteCurrentStorage,
         join: du in DamUsage,
         on: b.site_id == du.site_id,
+        join: d in Dam,
+        on: b.site_id == d.site_id,
         where:
           b.current_storage <= 100 and
             du.usage_name in ^usage_types,
         select: %{
-          basin_id: b.basin_id,
-          basin_name: b.basin_name,
+          basin_id: d.basin_id,
+          basin_name: d.basin,
           site_id: b.site_id,
-          site_name: b.site_name,
+          site_name: d.name,
           current_storage: fragment("round(?, 1)", b.current_storage),
-          colected_at: b.colected_at
+          colected_at: b.colected_at,
+          metadata: d.metadata
         }
       )
     )
