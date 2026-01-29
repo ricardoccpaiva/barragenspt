@@ -313,7 +313,7 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
         document.getElementById('pdsiLevelsLegend').style.display = "inline";
 
         const date = new Date();
-        date.setMonth(date.getMonth());
+        date.setMonth(date.getMonth() - 1);
         const fmtDate = date.getFullYear() + "-" + date.getMonth().toString().padStart(2, "0") + "-01";
 
         document.getElementById("pdsiLegendDate").innerHTML = "01/" + (date.getMonth() + 1).toString().padStart(2, "0") + "/" + date.getFullYear();
@@ -321,7 +321,7 @@ document.getElementById('switchPDSI').addEventListener("click", e => {
         map.addSource('wms-pdsi-source', {
             'type': 'raster',
             'tiles': [
-                "https://mapservices.ipma.pt/observations/climate/PalmerDroughtSeverityIndex/wms?service=WMS&request=GetMap&layers=mpdsi.obsSup.monthly.vector.conc&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=" + fmtDate + "T00%3A00%3A00Z&srs=EPSG%3A3857&bbox={bbox-epsg-3857}&width=256&height=256"
+                "https://cs2.ipma.pt/wms?DATASET=pdsi-p1m-continental-apuraobssup-idw&service=WMS&request=GetMap&layers=PT:IPMA:CDG:LAYER:pdsi-p1m-continental-apuraobssup-idw&styles=&format=image%2Fpng&transparent=true&version=1.1.1&time=" + fmtDate + "T00%3A00%3A00Z&srs=EPSG%3A3857&bbox={bbox-epsg-3857}&width=256&height=256"
             ],
             'tileSize': 256
         });
