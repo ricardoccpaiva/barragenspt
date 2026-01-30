@@ -45,10 +45,7 @@ config :barragenspt, Oban,
     {Oban.Plugins.Cron,
      crontab: [
        {"0 4 * * *", Barragenspt.Workers.DataPointsUpdate,
-        args: %{jcid: unique_id}, max_attempts: 50},
-       {"0 5 * * *", Barragenspt.Workers.MeteoDataCacher,
-        args: %{spawn: "true"}, max_attempts: 50},
-       {"@reboot", Barragenspt.Workers.MeteoDataCacher, args: %{spawn: "true"}, max_attempts: 50}
+        args: %{jcid: unique_id}, max_attempts: 50}
      ]}
   ],
   queues: [
