@@ -296,13 +296,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
           )
         ],
         select: {
-          sum(dp.value) /
-            fragment(
-              "sum((? -> ? ->> ?)::decimal)",
-              d.metadata,
-              "Albufeira",
-              "Capacidade total (dam3)"
-            ),
+          sum(dp.value) / sum(d.total_capacity),
           fragment(
             "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
             dp.colected_at
@@ -390,13 +384,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
           :colected_at
         ],
         select: {
-          sum(dp.value) /
-            fragment(
-              "sum((? -> ? ->> ?)::decimal)",
-              d.metadata,
-              "Albufeira",
-              "Capacidade total (dam3)"
-            ),
+          sum(dp.value) / sum(d.total_capacity),
           dp.colected_at
         }
       )
