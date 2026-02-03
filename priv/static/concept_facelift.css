@@ -69,6 +69,121 @@ body {
   font-weight: 800;
 }
 
+.search-results {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.search-wrapper {
+  position: relative;
+}
+
+.search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.search-item:last-child {
+  border-bottom: none;
+}
+
+.search-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.search-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.search-basin {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.search-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  padding: 4px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+html {
+  --viewport-gutter: 8px;
+  --sidebar-offset: calc(360px + 8px);
+}
+
+.legend-card {
+  position: fixed;
+  left: calc(var(--sidebar-offset) + var(--viewport-gutter));
+  bottom: var(--viewport-gutter);
+  z-index: 30;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: #0f172a;
+  min-width: 160px;
+}
+
+.legend-title {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.legend-0-20 { background: #f87171; }
+.legend-21-40 { background: #fb923c; }
+.legend-41-50 { background: #fbbf24; }
+.legend-51-60 { background: #a3e635; }
+.legend-61-80 { background: #60a5fa; }
+.legend-81-100 { background: #1d4ed8; }
+
+@media (max-width: 768px) {
+  html {
+    --viewport-gutter: 12px;
+  }
+  .legend-card {
+    left: 12px;
+    bottom: 12px;
+  }
+}
+
 .dam-modal {
   position: fixed;
   right: 12px;

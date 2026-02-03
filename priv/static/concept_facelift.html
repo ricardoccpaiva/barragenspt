@@ -97,10 +97,11 @@
       </a>
     </div>
 
-    <div class="space-y-2">
+    <div class="space-y-2 search-wrapper">
       <label class="text-xs font-medium text-slate-500">Pesquisar barragens</label>
-      <input type="search" placeholder="Nome da barragem..."
+      <input id="damSearchInput" type="search" placeholder="Nome da barragem..."
         class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+      <div id="damSearchResults" class="search-results hidden"></div>
     </div>
 
     <div class="space-y-2">
@@ -202,6 +203,17 @@
     </div>
   </section>
 
+  <!-- Legenda (% Armazenamento) -->
+  <div class="legend-card">
+    <p class="legend-title">% Armazenamento</p>
+    <div class="legend-row"><span class="legend-dot legend-0-20"></span><span>0 - 20</span></div>
+    <div class="legend-row"><span class="legend-dot legend-21-40"></span><span>21 - 40</span></div>
+    <div class="legend-row"><span class="legend-dot legend-41-50"></span><span>41 - 50</span></div>
+    <div class="legend-row"><span class="legend-dot legend-51-60"></span><span>51 - 60</span></div>
+    <div class="legend-row"><span class="legend-dot legend-61-80"></span><span>61 - 80</span></div>
+    <div class="legend-row"><span class="legend-dot legend-81-100"></span><span>81 - 100</span></div>
+  </div>
+
   <script>
     function toggleSidebar(open) {
       var sidebar = document.getElementById('sidebar');
@@ -286,6 +298,59 @@
         map.on('mouseenter', 'dams-circles', function () { map.getCanvas().style.cursor = 'pointer'; });
         map.on('mouseleave', 'dams-circles', function () { map.getCanvas().style.cursor = ''; });
       });
+
+      // Dummy search: filter dams list and show badges
+      var searchInput = document.getElementById('damSearchInput');
+      var resultsEl = document.getElementById('damSearchResults');
+      var allDams = damsGeoJSON.features.map(function (feature) {
+        return {
+          name: feature.properties.name,
+          basin: feature.properties.basin,
+          pct: feature.properties.pct
+        };
+      });
+
+      function renderResults(items) {
+        if (!resultsEl) return;
+        if (!items.length) {
+          resultsEl.classList.add('hidden');
+          resultsEl.innerHTML = '';
+          return;
+        }
+        resultsEl.classList.remove('hidden');
+        resultsEl.innerHTML = items.map(function (item) {
+          return (
+            '<div class="search-item">' +
+              '<div class="search-text">' +
+                '<div class="search-name">' + item.name + '</div>' +
+                '<div class="search-basin">' + item.basin + '</div>' +
+              '</div>' +
+              '<span class="search-badge">' + item.pct + '%</span>' +
+            '</div>'
+          );
+        }).join('');
+      }
+
+      function filterResults(value) {
+        var q = value.trim().toLowerCase();
+        if (!q) {
+          renderResults([]);
+          return;
+        }
+        var matches = allDams.filter(function (item) {
+          return item.name.toLowerCase().includes(q);
+        }).slice(0, 6);
+        renderResults(matches);
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener('input', function (e) {
+          filterResults(e.target.value);
+        });
+        searchInput.addEventListener('focus', function (e) {
+          filterResults(e.target.value);
+        });
+      }
     })();
 
     // Chart.js — 3 séries + selector temporal
