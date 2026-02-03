@@ -324,7 +324,7 @@
           datasets: [
             { label: 'Observado', data: data.observed, borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.08)', tension: 0.35, pointRadius: 0, borderWidth: 2, fill: true },
             { label: 'Média', data: data.average, borderColor: '#f59e0b', tension: 0.35, pointRadius: 0, borderWidth: 2, borderDash: [4, 4] },
-            { label: 'Descarga', data: data.discharge, borderColor: '#10b981', tension: 0.35, pointRadius: 0, borderWidth: 2 }
+            { label: 'Descarga', type: 'bar', data: data.discharge, backgroundColor: 'rgba(16,185,129,0.35)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 }
           ]
         },
         options: {
