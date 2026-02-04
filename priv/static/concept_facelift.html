@@ -97,15 +97,17 @@
       </a>
     </div>
 
-    <div class="space-y-2 search-wrapper">
-      <label class="text-xs font-medium text-slate-500">Pesquisar barragens</label>
-      <input id="damSearchInput" type="search" placeholder="Nome da barragem..."
-        class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
-      <div id="damSearchResults" class="search-results hidden"></div>
+    <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white">
+      <h3 class="text-sm font-semibold text-slate-800">Pesquisar barragens</h3>
+      <div class="search-wrapper">
+        <input id="damSearchInput" type="search" placeholder="Nome da barragem..."
+          class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
+        <div id="damSearchResults" class="search-results hidden"></div>
+      </div>
     </div>
 
-    <div class="space-y-2 sidebar-section river-section">
-      <label class="text-xs font-medium text-slate-500">Rios</label>
+    <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section river-section">
+      <h3 class="text-sm font-semibold text-slate-800">Rios</h3>
       <select id="riverSelect" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white">
         <option value="">Selecionar rio...</option>
         <option>Douro</option>
@@ -116,7 +118,7 @@
       </select>
     </div>
 
-    <div class="rounded-2xl border border-slate-100 p-4 space-y-3 shadow-card bg-white sidebar-section">
+    <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
       <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
       <label class="flex items-center justify-between text-sm">
         <span>Bacias</span>
@@ -132,7 +134,7 @@
       </label>
     </div>
 
-    <div class="rounded-2xl border border-slate-100 p-4 space-y-3 shadow-card bg-white sidebar-section">
+    <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
       <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
       <label class="flex items-center justify-between text-sm">
         <span>PDSI</span>
