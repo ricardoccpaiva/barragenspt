@@ -80,7 +80,7 @@
 
   <!-- Sidebar -->
   <aside id="sidebar"
-    class="sidebar-mobile md:translate-x-0 fixed z-40 w-[85%] max-w-[320px] md:max-w-none md:w-[360px] h-full md:h-[calc(100%-1rem)] bg-white/95 border border-slate-200/70 shadow-float px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-2 space-y-4 md:rounded-2xl md:backdrop-blur inset-y-0 left-0 md:inset-y-2 md:left-2">
+    class="sidebar-mobile md:translate-x-0 fixed z-40 w-[85%] max-w-[320px] md:max-w-none md:w-[360px] h-full md:h-[calc(100%-1rem)] bg-slate-100/95 border border-slate-200/70 shadow-float px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-2 space-y-4 md:rounded-2xl md:backdrop-blur inset-y-0 left-0 md:inset-y-2 md:left-2">
 
 
     <div class="flex items-center gap-3 px-1 py-1">
@@ -104,9 +104,9 @@
       <div id="damSearchResults" class="search-results hidden"></div>
     </div>
 
-    <div class="space-y-2">
+    <div class="space-y-2 sidebar-section river-section">
       <label class="text-xs font-medium text-slate-500">Rios</label>
-      <select class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white">
+      <select id="riverSelect" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white">
         <option value="">Selecionar rio...</option>
         <option>Douro</option>
         <option>Tejo</option>
@@ -116,7 +116,7 @@
       </select>
     </div>
 
-    <div class="rounded-2xl border border-slate-100 p-4 space-y-3 shadow-card bg-white">
+    <div class="rounded-2xl border border-slate-100 p-4 space-y-3 shadow-card bg-white sidebar-section">
       <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
       <label class="flex items-center justify-between text-sm">
         <span>Bacias</span>
@@ -132,7 +132,7 @@
       </label>
     </div>
 
-    <div class="rounded-2xl border border-slate-100 p-4 space-y-3 shadow-card bg-white">
+    <div class="rounded-2xl border border-slate-100 p-4 space-y-3 shadow-card bg-white sidebar-section">
       <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
       <label class="flex items-center justify-between text-sm">
         <span>PDSI</span>
@@ -153,7 +153,7 @@
 
   <!-- Modal barragem -->
   <section id="damModal" class="dam-modal hidden">
-    <div class="bg-white rounded-2xl md:rounded-2xl shadow-float border border-slate-200 overflow-hidden">
+    <div class="bg-slate-50 rounded-2xl md:rounded-2xl shadow-float border border-slate-200 overflow-hidden">
       <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
         <div>
           <p id="damName" class="text-sm font-semibold text-slate-900">Alqueva</p>
@@ -333,10 +333,13 @@
 
       function filterResults(value) {
         var q = value.trim().toLowerCase();
+        var sidebar = document.getElementById('sidebar');
         if (!q) {
+          if (sidebar) sidebar.classList.remove('search-active');
           renderResults([]);
           return;
         }
+        if (sidebar) sidebar.classList.add('search-active');
         var matches = allDams.filter(function (item) {
           return item.name.toLowerCase().includes(q);
         }).slice(0, 6);
@@ -349,6 +352,22 @@
         });
         searchInput.addEventListener('focus', function (e) {
           filterResults(e.target.value);
+        });
+      }
+
+      var riverSelect = document.getElementById('riverSelect');
+      if (riverSelect) {
+        riverSelect.addEventListener('focus', function () {
+          var sidebar = document.getElementById('sidebar');
+          if (sidebar) sidebar.classList.add('river-active');
+        });
+        riverSelect.addEventListener('change', function () {
+          var sidebar = document.getElementById('sidebar');
+          if (sidebar) sidebar.classList.remove('river-active');
+        });
+        riverSelect.addEventListener('blur', function () {
+          var sidebar = document.getElementById('sidebar');
+          if (sidebar) sidebar.classList.remove('river-active');
         });
       }
     })();
@@ -395,7 +414,10 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true, mode: 'index', intersect: false }
+          },
           scales: {
             x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } },
             y: { grid: { color: 'rgba(148,163,184,0.2)' } }

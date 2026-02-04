@@ -128,6 +128,23 @@ body {
   white-space: nowrap;
 }
 
+.sidebar-section {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+#sidebar.search-active .sidebar-section {
+  opacity: 0.4;
+}
+
+#sidebar.river-active .sidebar-section {
+  opacity: 0.4;
+}
+
+#sidebar.river-active .river-section {
+  opacity: 1;
+}
+
 html {
   --viewport-gutter: 8px;
   --sidebar-offset: calc(360px + 8px);
