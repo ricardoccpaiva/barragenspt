@@ -6,8 +6,6 @@ defmodule Barragenspt.Workers.InfoaguaAlertsRefresh do
   alias Barragenspt.Models.Infoagua.Alert
   alias Barragenspt.Services.InfoAgua
 
-  @basins_csv_path Path.expand("../../../resources/basins_pt.csv", __DIR__)
-
   @impl Oban.Worker
   @spec perform(Oban.Job.t()) :: :ok | {:error, any()}
   def perform(%Oban.Job{}) do
@@ -71,7 +69,7 @@ defmodule Barragenspt.Workers.InfoaguaAlertsRefresh do
   end
 
   defp load_basins_map do
-    case File.read(@basins_csv_path) do
+    case File.read("resources/basins_pt.csv") do
       {:ok, contents} ->
         contents
         |> NimbleCSV.RFC4180.parse_string()
