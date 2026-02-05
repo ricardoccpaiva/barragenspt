@@ -46,6 +46,7 @@ config :barragenspt, Oban,
      crontab: [
        {"0 4 * * *", Barragenspt.Workers.DataPointsUpdate,
         args: %{jcid: unique_id}, max_attempts: 50},
+       {"*/15 * * * *", Barragenspt.Workers.InfoaguaAlertsRefresh, args: %{}, max_attempts: 1},
        {"0 5 * * *", Barragenspt.Workers.RefreshMaterializedViews, args: %{}, max_attempts: 3}
      ]}
   ],

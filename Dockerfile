@@ -104,6 +104,7 @@ COPY --from=builder --chown=nobody:root /app/resources/svg/basins_pdsi.svg ./bin
 COPY --from=builder --chown=nobody:root /app/resources/dams.csv ./bin/resources
 COPY --from=builder --chown=nobody:root /app/resources/albufs.csv ./bin/resources
 COPY --from=builder --chown=nobody:root /app/resources/rivers_mapping.csv ./bin/resources
+COPY --from=builder --chown=nobody:root /app/resources/basins_pt.csv ./bin/resources
 
 USER nobody
 
