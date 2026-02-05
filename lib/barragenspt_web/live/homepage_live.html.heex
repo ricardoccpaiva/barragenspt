@@ -94,6 +94,25 @@
           </div>
         </div>
       </div>
+      <div class="field">
+        <label class="label">Alertas</label>
+        <div class="control">
+          <div class="field">
+            <input id="switchBasinsAlerts" type="checkbox" name="switchBasinsAlerts" class="switch is-small">
+            <label for="switchBasinsAlerts">Alerta de cheias</label>
+            <i id="flood_alerts_info_btn" style="cursor: pointer" class="fa-solid fa-circle-info"
+              onclick="showFloodAlertsInfo()">
+            </i>
+          </div>
+          <div id="flood_alerts_info" class="notification is-warning is-light"
+            style="line-height: 1em; max-width: 240px; display: none;">
+            <button class="delete" onclick="hideFloodAlertsInfo()"></button>
+            <span class="is-size-7">
+              Informação capturada a partir do portal InfoAgua da APA. Informação actualizada a cada 15 minutos.
+            </span>
+          </div>
+        </div>
+      </div>
       <div class="field" style="margin-top: 20px;">
         <label class="label">Índices Meteorológicos</label>
         <div class="control">
@@ -244,6 +263,12 @@
                       <div><span style="background-color: #a6d8ff"></span>61 - 80</div>
                       <div><span style="background-color: #1c9dff"></span>81 - 100</div>
                     </div>
+                    <div id="basinFloodAlertsLegend" class="legend" style="display:none">
+                      <p><b>Alerta de cheias</b></p>
+                      <div><span style="background-color: #2eb1d3"></span>Sem alertas ativos</div>
+                      <div><span style="background-color: #ffcf44"></span>Situação de alerta</div>
+                      <div><span style="background-color: #fd4351"></span>Situação de risco</div>
+                    </div>
 
                     <div id="pdsiLevelsLegend" class="legend" style="display:none">
                       <span class="tag is-warning"><b>Dados relativos a <label id="pdsiLegendDate"></label></b></span>
@@ -333,6 +358,14 @@
 
   function hidesageTypesInfo() {
     document.getElementById("usage_types_info").style.display = 'none';
+  }
+
+  function showFloodAlertsInfo() {
+    document.getElementById("flood_alerts_info").style.display = 'block';
+  }
+
+  function hideFloodAlertsInfo() {
+    document.getElementById("flood_alerts_info").style.display = 'none';
   }
 
   function showPdsiInfo() {

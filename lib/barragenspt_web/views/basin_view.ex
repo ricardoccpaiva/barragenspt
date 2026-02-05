@@ -16,7 +16,8 @@ defmodule BarragensptWeb.BasinView do
       name: basin.name,
       current_storage: basin.current_storage,
       capacity_color: basin.capacity_color,
-      country: basin.country
+      country: basin.country,
+      alert: Map.get(basin, :alert)
     }
   end
 end

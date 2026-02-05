@@ -10,6 +10,7 @@ let isPdsiVisible = false;
 let isSmiVisible = false;
 let isRainVisible = false;
 let areSpainBasinsVisible = false;
+let areFloodAlertsVisible = false;
 let intervalId = 0;
 let yearIndex = 0;
 let monthIndex = 0;
@@ -253,6 +254,40 @@ map.on('idle', (e) => {
     topbar.hide();
 });
 
+document.getElementById('switchBasinsAlerts').addEventListener("click", e => {
+    areFloodAlertsVisible = !areFloodAlertsVisible;
+
+    if (isSmiVisible) {
+        document.getElementById('switchSMI').click();
+    }
+    if (isPdsiVisible) {
+        document.getElementById('switchPDSI').click();
+    }
+    if (isRainVisible) {
+        document.getElementById('switchRain').click();
+    }
+    if (areBasinsVisible) {
+        document.getElementById('switchBasins').click();
+    }
+
+    document.getElementById('sidebar').classList.remove('active');
+
+    loadPtBasinsFloodAlerts();
+
+    if (areFloodAlertsVisible) {
+        gtag('event', 'toggle_flood_alerts', {
+            'app_name': 'barragens.pt',
+            'screen_name': 'Home'
+        });
+        document.getElementById('basinFloodAlertsLegend').style.display = "inline";
+        document.getElementById('damsLevelLegend').style.display = "none";
+    }
+    else {
+        document.getElementById('basinFloodAlertsLegend').style.display = "none";
+        document.getElementById('damsLevelLegend').style.display = "inline";
+    }
+});
+
 document.getElementById('switchBasins').addEventListener("click", e => {
     if (isSmiVisible) {
         document.getElementById('switchSMI').click();
@@ -263,18 +298,25 @@ document.getElementById('switchBasins').addEventListener("click", e => {
     if (isRainVisible) {
         document.getElementById('switchRain').click();
     }
+    if (areFloodAlertsVisible) {
+        document.getElementById('switchBasinsAlerts').click();
+    }
+
+    refreshBasinsCapacityColors();
 
     document.getElementById('sidebar').classList.remove('active');
 
     const allLayers = map.getStyle().layers;
     const opacity = areBasinsVisible ? 0 : 0.7;
 
-    allLayers.forEach(function (item) {
-        if ((item.id.includes('_fill') && !item.id.includes('_fill_es')) || (item.id.includes('_fill_es') && areSpainBasinsVisible)) {
-            map.setPaintProperty(item.id, 'fill-opacity', opacity);
-        }
-    });
-
+    //alert('areFloodAlertsVisible: ' + areFloodAlertsVisible);
+    if (!areFloodAlertsVisible) {
+        allLayers.forEach(function (item) {
+            if ((item.id.includes('_fill') && !item.id.includes('_fill_es')) || (item.id.includes('_fill_es') && areSpainBasinsVisible)) {
+                map.setPaintProperty(item.id, 'fill-opacity', opacity);
+            }
+        });
+    }
     areBasinsVisible = !areBasinsVisible;
 
     if (areBasinsVisible) {
@@ -642,6 +684,38 @@ export const loadPtBasins = () => {
                 map.on("mouseenter", fill_layer_id, () => {
                     map.getCanvas().style.cursor = "pointer";
                 });
+            });
+        });
+}
+
+export const refreshBasinsCapacityColors = () => {
+
+    fetch('/api/basins?country=pt')
+        .then(response => response.json())
+        .then(function (response) {
+            response.data.forEach(function (item) {
+                map.setPaintProperty(
+                    item.id + '_fill',          // layer id
+                    'fill-color',
+                    item.capacity_color
+                );
+
+            });
+        });
+}
+
+export const loadPtBasinsFloodAlerts = () => {
+
+    fetch('/api/basins?country=pt')
+        .then(response => response.json())
+        .then(function (response) {
+            response.data.forEach(function (item) {
+                map.setPaintProperty(
+                    item.id + '_fill',          // layer id
+                    'fill-color',
+                    item.alert.color
+                );
+
             });
         });
 }
