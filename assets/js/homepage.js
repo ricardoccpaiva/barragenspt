@@ -377,7 +377,7 @@ document.getElementById('switchSMI').addEventListener("click", e => {
         map.addSource('wms-smi-source', {
             'type': 'raster',
             'tiles': [
-                "https://mapservices.ipma.pt/observations/climate/SoilMoistureIndex/wms?service=WMS&request=GetMap&layers=smi.obsRem.daily.grid.continental.timeDimension&styles=&format=image/png&transparent=true&version=1.1.1&time=" + fmtDate + "T00:00:00Z&width=256&height=256&srs=EPSG:3857&bbox={bbox-epsg-3857}"
+                "https://cs2.ipma.pt/wms?dataset=smi-forecast_10p1d-continental-ecmwf&service=WMS&request=GetMap&layers=PT%3AIPMA%3ACDG%3ALAYER%3Asmi-forecast_10p1d-continental-ecmwf_latest&styles=&format=image%2Fpng&transparent=true&version=1.1.1&dim_layer=100&time=2026-02-03T00%3A00%3A00.000Z&width=256&height=256&srs=EPSG:3857&bbox={bbox-epsg-3857}"
             ],
             'tileSize': 256
         });
