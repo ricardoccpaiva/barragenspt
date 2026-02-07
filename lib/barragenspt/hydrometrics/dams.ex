@@ -31,10 +31,6 @@ defmodule Barragenspt.Hydrometrics.Dams do
     Repo.all(from(b in Dam))
   end
 
-  def all_usage_types do
-    Repo.all(from(b in DamUsage))
-  end
-
   def usage_types do
     from(b in DamUsage,
       select: {b.usage_name}
@@ -152,6 +148,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
         )
       )
 
+    discharge_stats = discharge_stats(id, period, :month)
+
     query =
       from(dp in DataPoint,
         join: d in Dam,
@@ -173,37 +171,30 @@ defmodule Barragenspt.Hydrometrics.Dams do
     query
     |> Repo.all()
     |> Stream.map(fn {value, date} ->
-      %{
-        basin_id: id,
-        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
-        date: date,
-        basin: "Observado"
-      }
-    end)
-    |> Stream.reject(fn %{value: value} -> value > 100 end)
-    |> Stream.map(fn m ->
-      hdata =
-        build_average_data(
-          historic_values,
-          :site_id,
-          id,
-          m.date,
-          "#{m.date.day}-#{m.date.month}"
-        )
-
-      [m, hdata]
+      build_daily_stats_map(value, date, historic_values, discharge_stats)
     end)
     |> Enum.to_list()
-    |> List.flatten()
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
-  @decorate cacheable(
-              cache: Cache,
-              key: "discharge_daily_stats_#{id}_#{period}_#{unit}",
-              ttl: @ttl
-            )
-  def discharge_stats(id, period \\ 2, unit) do
+  defp build_daily_stats_map(value, date, historic_values, discharge_stats) do
+    %{
+      date: date,
+      observed_value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+      historical_average:
+        historic_values
+        |> Enum.find(fn h -> h.period == "#{date.day}-#{date.month}" end)
+        |> Map.get(:value)
+        |> Decimal.round(2)
+        |> Decimal.to_float(),
+      discharge_value:
+        discharge_stats
+        |> Enum.find(fn h -> h.date == date end)
+        |> Map.get(:value)
+    }
+  end
+
+  defp discharge_stats(id, period \\ 2, unit) do
     query =
       from(dp in DataPoint,
         join: d in Dam,
@@ -222,48 +213,6 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Repo.all()
     |> Stream.map(fn {value, date} ->
       %{
-        basin_id: id,
-        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
-        date: date
-      }
-    end)
-    |> Enum.to_list()
-  end
-
-  @decorate cacheable(
-              cache: Cache,
-              key: "discharge_monthly_stats_#{id}_#{period}",
-              ttl: @ttl
-            )
-  def discharge_monthly_stats(id, period \\ 2) do
-    query =
-      from(dp in DataPoint,
-        join: d in Dam,
-        on: d.site_id == dp.site_id,
-        where:
-          dp.param_name == "ouput_flow_rate_daily" and
-            dp.site_id == ^id and
-            dp.colected_at >= ^query_limit(period),
-        group_by: [
-          fragment(
-            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
-            dp.colected_at
-          )
-        ],
-        select: {
-          sum(dp.value),
-          fragment(
-            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
-            dp.colected_at
-          )
-        }
-      )
-
-    query
-    |> Repo.all()
-    |> Stream.map(fn {value, date} ->
-      %{
-        basin_id: id,
         value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
         date: date
       }
@@ -279,6 +228,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
           where: b.site_id == ^id
         )
       )
+
+    discharge_stats = discharge_monthly_stats(id, period)
 
     query =
       from(dp in DataPoint,
@@ -307,22 +258,66 @@ defmodule Barragenspt.Hydrometrics.Dams do
     query
     |> Repo.all()
     |> Stream.map(fn {value, date} ->
-      %{
-        basin_id: id,
-        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
-        date: date,
-        basin: "Observado"
-      }
+      build_monthly_stats_map(value, date, historic_values, discharge_stats)
     end)
-    |> Stream.reject(fn %{value: value} -> value > 100 end)
-    |> Stream.map(fn m ->
-      hdata = build_average_data(historic_values, :site_id, id, m.date, m.date.month)
-
-      [m, hdata]
-    end)
+    |> Stream.reject(fn %{observed_value: value} -> value > 100 end)
+    |> Stream.reject(fn %{historical_average: value} -> value > 100 end)
     |> Enum.to_list()
-    |> List.flatten()
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
+  end
+
+  defp build_monthly_stats_map(value, date, historic_values, discharge_stats) do
+    %{
+      observed_value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+      date: date,
+      historical_average:
+        historic_values
+        |> Enum.find(fn h -> h.period == date.month end)
+        |> Map.get(:value)
+        |> Decimal.round(2)
+        |> Decimal.to_float(),
+      discharge_value:
+        discharge_stats
+        |> Enum.find(fn h -> h.date == date end)
+        |> Map.get(:value)
+    }
+  end
+
+  defp discharge_monthly_stats(id, period \\ 2) do
+    query =
+      from(dp in DataPoint,
+        join: d in Dam,
+        on: d.site_id == dp.site_id,
+        where:
+          dp.param_name == "ouput_flow_rate_daily" and
+            dp.site_id == ^id and
+            dp.colected_at >= ^query_limit(period),
+        group_by: [
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          )
+        ],
+        select: {
+          sum(dp.value),
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          )
+        }
+      )
+
+    query
+    |> Repo.all()
+    |> Stream.map(fn {value, date} -> build_discharge_monthly_stats_map(value, date) end)
+    |> Enum.to_list()
+  end
+
+  defp build_discharge_monthly_stats_map(value, date) do
+    %{
+      value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+      date: date
+    }
   end
 
   @decorate cacheable(
