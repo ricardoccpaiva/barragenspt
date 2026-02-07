@@ -344,12 +344,4 @@ defmodule Barragenspt.Hydrometrics.Basins do
     |> Timex.beginning_of_month()
     |> Timex.to_naive_datetime()
   end
-
-  defp query_limit_all_basins do
-    Timex.now()
-    |> Timex.end_of_month()
-    |> Timex.shift(years: -2)
-    |> Timex.beginning_of_month()
-    |> Timex.to_naive_datetime()
-  end
 end
