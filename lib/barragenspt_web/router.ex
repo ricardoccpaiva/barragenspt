@@ -45,6 +45,8 @@ defmodule BarragensptWeb.Router do
     pipe_through :api
 
     get("/dams", DamController, :index)
+    get("/dams/:site_id", DamController, :show)
+    get("/dams/:site_id/stats", DamController, :stats)
     get("/dams/:site_id/data", DamDataController, :show)
     get("/basins", BasinController, :index)
   end
