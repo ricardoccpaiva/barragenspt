@@ -14,8 +14,8 @@ defmodule BarragensptWeb.Router do
 
   pipeline :private do
     plug :basic_auth,
-      username: System.get_env("OBAN_USERNAME"),
-      password: System.get_env("OBAN_PASSWORD")
+      username: "paiva",
+      password: "nodar"
   end
 
   pipeline :api do
@@ -37,6 +37,7 @@ defmodule BarragensptWeb.Router do
 
     live_session :default do
       live("/", HomepageLive, :index)
+      live("/v2", HomepageV2Live, :index)
     end
   end
 

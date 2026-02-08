@@ -1,5 +1,7 @@
 defmodule BarragensptWeb do
-  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt geojson)
+  def static_paths,
+    do:
+      ~w(assets fonts images favicon.ico robots.txt geojson dashboard_semanal_demo.html concept_facelift.html concept_facelift_v2.html concept_facelift.css)
 
   @moduledoc """
   The entrypoint for defining your web interface, such

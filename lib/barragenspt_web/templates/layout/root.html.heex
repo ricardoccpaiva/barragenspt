@@ -5,93 +5,87 @@
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <%= if assigns[:maps] !=nil do %>
-    <meta name="Description" content="Os indicadores meteorológicos que acompanham o barragens.pt">
-    <meta property="og:title" content="Meteo Barragens">
-    <meta property="og:site_name" content="meteo.barragens.pt">
-    <meta property="og:url" content="https://meteo.barragens.pt/">
-    <meta property="og:description" content="Os indicadores meteorológicos que acompanham o barragens.pt">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://barragens.pt/images/meteo_logo.svg">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Meteo Barragens">
-    <meta name="twitter:description" content="Os indicadores meteorológicos que acompanham o barragens.pt">
-    <meta name="twitter:image" content="https://barragens.pt/images/meteo_logo.svg">
-    <% else %>
-      <meta name="Description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
-      <meta name="Keywords" content="barragens, albufeiras, água, seca, chuva">
-      <meta property="og:title" content="Barragens.pt - Início">
-      <meta property="og:site_name" content="Barragens.pt">
-      <meta property="og:url" content="https://barragens.pt/">
-      <meta property="og:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
-      <meta property="og:type" content="website">
-      <meta property="og:image" content="https://barragens.pt/images/dam.png">
-      <meta name="twitter:card" content="summary">
-      <meta name="twitter:title" content="Barragens.pt - Início">
-      <meta name="twitter:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
-      <meta name="twitter:image" content="https://barragens.pt/images/dam_large.png">
-      <% end %>
-        <meta name="Keywords" content="barragens, albufeiras, água, seca, chuva">
-        <%= csrf_meta_tag() %>
-          <%= live_title_tag assigns[:page_title] || "barragens.pt" %>
-            <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
-            <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet">
+  <meta name="Description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
+  <meta name="Keywords" content="barragens, albufeiras, água, seca, chuva">
+  <meta property="og:title" content="Barragens.pt - Início">
+  <meta property="og:site_name" content="Barragens.pt">
+  <meta property="og:url" content="https://barragens.pt/">
+  <meta property="og:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://barragens.pt/images/dam.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Barragens.pt - Início">
+  <meta name="twitter:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
+  <meta name="twitter:image" content="https://barragens.pt/images/dam_large.png">
 
-            <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css" )} />
-            <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js"
-              )}></script>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-            <script type="text/javascript"
-              src="https://cdn.jsdelivr.net/npm/bulma-quickview@2.0.0/dist/js/bulma-quickview.min.js"></script>
-            <!-- Global site tag (gtag.js) - Google Analytics -->
-            <!-- Google tag (gtag.js) -->
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/intro.min.js"></script>
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/6.0.0/introjs.min.css" />
-            <%= if assigns[:maps] !=nil do %>
-              <!-- Google tag (gtag.js) -->
-              <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LZ6X0F43Z"></script>
-              <script>
-                window.dataLayer = window.dataLayer || [];
-                function gtag() { dataLayer.push(arguments); }
-                gtag('js', new Date());
+  <meta name="Keywords" content="barragens, albufeiras, água, seca, chuva">
+  <%= csrf_meta_tag() %>
+    <%= live_title_tag assigns[:page_title] || "barragens.pt" %>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@800&display=swap" rel="stylesheet">
+      <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+      <link rel="stylesheet" href="http://localhost:4000/assets/app.css">
+      <script src="https://cdn.tailwindcss.com"></script>
+      <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+      <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
+              colors: {
+                brand: {
+                  50: '#f0f9ff',
+                  100: '#e0f2fe',
+                  200: '#bae6fd',
+                  300: '#7dd3fc',
+                  400: '#38bdf8',
+                  500: '#0ea5e9',
+                  600: '#0284c7',
+                  700: '#0369a1',
+                  800: '#075985',
+                  900: '#0c4a6e'
+                }
+              },
+              boxShadow: {
+                'card': '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
+                'float': '0 25px 50px -12px rgb(0 0 0 / 0.12)'
+              }
+            }
+          }
+        }
+      </script>
 
-                gtag('config', 'G-2LZ6X0F43Z');
-              </script>
-              <% else %>
-                <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ECR8CXBPZ"></script>
-                <script>
-                  window.dataLayer = window.dataLayer || [];
-                  function gtag() { dataLayer.push(arguments); }
-                  gtag('js', new Date());
-                  gtag('config', 'G-5ECR8CXBPZ');
-                </script>
-                <% end %>
+      <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css" )} />
+      <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js" )}></script>
+      <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/homepage_v2.js"
+        )}></script>
+      <%= if assigns[:maps] !=nil do %>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LZ6X0F43Z"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { dataLayer.push(arguments); }
+          gtag('js', new Date());
+
+          gtag('config', 'G-2LZ6X0F43Z');
+        </script>
+        <% else %>
+          <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ECR8CXBPZ"></script>
+          <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', 'G-5ECR8CXBPZ');
+          </script>
+          <% end %>
 </head>
 
-<body>
-  <style>
-    @font-face {
-      font-family: orangeJuice;
-      src: url('../fonts/FredokaOne-Regular.woff2') format('woff2'),
-        url('../fonts/FredokaOne-Regular.woff') format('woff');
-    }
-  </style>
-
-  <%= if assigns[:maps] !=nil do %>
-    <style>
-      .map-overlay-logo {
-        background-image: url("../images/meteo_logo.png");
-      }
-    </style>
-    <% else %>
-      <style>
-        .map-overlay-logo {
-          background-image: url("../images/dam.png");
-        }
-      </style>
-      <% end %>
-
-        <%= @inner_content %>
+<body class="bg-slate-50 text-slate-800">
+  <%= @inner_content %>
 </body>
 
 </html>

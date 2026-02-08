@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>barragens.pt — Concept Facelift v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"]
+          },
+          colors: {
+            brand: {
+              50: "#f0f9ff",
+              100: "#e0f2fe",
+              200: "#bae6fd",
+              300: "#7dd3fc",
+              400: "#38bdf8",
+              500: "#0ea5e9",
+              600: "#0284c7",
+              700: "#0369a1",
+              800: "#075985",
+              900: "#0c4a6e"
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    #map {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen text-slate-900 antialiased">
+  <div id="map"></div>
+
+
+  <div class="relative min-h-screen pointer-events-none">
+    <aside
+      class="pointer-events-auto fixed left-6 top-6 bottom-6 z-10 w-[320px] rounded-[28px] border border-white/60 bg-white/90 p-5 shadow-sm backdrop-blur">
+
+      <div class="mt-6 rounded-3xl border border-white/60 bg-white/95 p-4 shadow-sm">
+        <label class="text-xs uppercase tracking-[0.2em] text-slate-500">Pesquisar barragens</label>
+        <input type="text" placeholder="Nome ou bacia..."
+          class="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30" />
+        <div class="mt-4 grid grid-cols-2 gap-2 text-xs text-slate-600">
+          <span class="rounded-full bg-slate-100 px-3 py-1">Douro</span>
+          <span class="rounded-full bg-slate-100 px-3 py-1">Tejo</span>
+          <span class="rounded-full bg-slate-100 px-3 py-1">Mondego</span>
+          <span class="rounded-full bg-slate-100 px-3 py-1">Guadiana</span>
+        </div>
+      </div>
+
+      <div class="mt-5 space-y-4">
+        <div class="rounded-3xl border border-white/60 bg-white/95 p-4 shadow-sm">
+          <p class="text-sm font-semibold">Camadas</p>
+          <div class="mt-3 space-y-3 text-sm text-slate-600">
+            <label class="flex items-center justify-between">
+              <span>Bacias Hidrograficas</span>
+              <span class="h-5 w-10 rounded-full bg-brand-300"></span>
+            </label>
+            <label class="flex items-center justify-between">
+              <span>Reservas Ativas</span>
+              <span class="h-5 w-10 rounded-full bg-emerald-300"></span>
+            </label>
+            <label class="flex items-center justify-between">
+              <span>Alertas</span>
+              <span class="h-5 w-10 rounded-full bg-amber-300"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="rounded-3xl border border-white/60 bg-white/95 p-4 shadow-sm">
+          <p class="text-sm font-semibold">Resumo diario</p>
+          <div class="mt-3 space-y-3 text-sm text-slate-600">
+            <div class="flex items-center justify-between">
+              <span>Volume medio</span>
+              <span class="text-brand-600">63%</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Descarga ativa</span>
+              <span class="text-emerald-600">12 barragens</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Alertas</span>
+              <span class="text-amber-600">3</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="relative min-h-screen">
+      <div id="infoPanel"
+        class="pointer-events-auto fixed bottom-6 right-6 hidden w-[320px] rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm backdrop-blur">
+        <div class="flex items-start justify-between">
+          <div>
+            <p id="panelName" class="text-lg font-semibold text-slate-900">
+              Alqueva
+            </p>
+            <p id="panelBasin" class="text-xs text-slate-500">
+              Bacia do Guadiana
+            </p>
+          </div>
+          <button class="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600" onclick="closeInfoPanel()">
+            fechar
+          </button>
+        </div>
+        <div class="mt-4 space-y-2 text-sm text-slate-600">
+          <div class="flex items-center justify-between">
+            <span>Cota atual</span>
+            <span id="panelLevel" class="text-brand-600">152,4 m</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>Capacidade</span>
+            <span id="panelPct" class="text-emerald-600">74%</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>Tendencia</span>
+            <span id="panelTrend" class="text-amber-600">Estavel</span>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p class="text-xs uppercase tracking-[0.2em] text-slate-500">
+            Evolucao 7 dias
+          </p>
+          <div class="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+            <canvas id="panelChart" class="h-28 w-full"></canvas>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function initMap() {
+      if (!document.getElementById("map") || typeof maplibregl === "undefined") return;
+      var map = new maplibregl.Map({
+        container: "map",
+        style: "https://mapas.barragens.pt/styles/klokantech-basic/style.json",
+        center: [-8.0, 39.3],
+        zoom: 6
+      });
+      map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+      var dams = [
+        { name: "Alqueva", basin: "Guadiana", level: "152,4", pct: "74%", trend: "Estavel", coords: [-7.47, 38.21] },
+        { name: "Castelo do Bode", basin: "Tejo", level: "121,9", pct: "52%", trend: "Subida", coords: [-8.27, 39.82] },
+        { name: "Aguieira", basin: "Mondego", level: "109,8", pct: "67%", trend: "Subida", coords: [-8.19, 40.38] }
+      ];
+
+      map.on("load", function () {
+        map.addSource("dams", {
+          type: "geojson",
+          data: {
+            type: "FeatureCollection",
+            features: dams.map(function (dam) {
+              return {
+                type: "Feature",
+                properties: dam,
+                geometry: { type: "Point", coordinates: dam.coords }
+              };
+            })
+          }
+        });
+        map.addLayer({
+          id: "dams-circles",
+          type: "circle",
+          source: "dams",
+          paint: {
+            "circle-radius": 7,
+            "circle-color": "#0ea5e9",
+            "circle-stroke-width": 2,
+            "circle-stroke-color": "#ffffff"
+          }
+        });
+
+        map.on("click", "dams-circles", function (e) {
+          var props = e.features[0].properties;
+          openInfoPanel({
+            name: props.name,
+            basin: props.basin,
+            level: props.level,
+            pct: props.pct,
+            trend: props.trend
+          });
+        });
+        map.on("mouseenter", "dams-circles", function () {
+          map.getCanvas().style.cursor = "pointer";
+        });
+        map.on("mouseleave", "dams-circles", function () {
+          map.getCanvas().style.cursor = "";
+        });
+      });
+    })();
+
+    var panelChart = null;
+    function openInfoPanel(data) {
+      var panel = document.getElementById("infoPanel");
+      if (!panel) return;
+      document.getElementById("panelName").textContent = data.name;
+      document.getElementById("panelBasin").textContent = "Bacia do " + data.basin;
+      document.getElementById("panelLevel").textContent = data.level + " m";
+      document.getElementById("panelPct").textContent = data.pct;
+      document.getElementById("panelTrend").textContent = data.trend;
+      panel.classList.remove("hidden");
+      renderPanelChart();
+    }
+
+    function renderPanelChart() {
+      var canvas = document.getElementById("panelChart");
+      if (!canvas || typeof Chart === "undefined") return;
+      var labels = ["D-6", "D-5", "D-4", "D-3", "D-2", "D-1", "Hoje"];
+      var observed = [48, 49, 51, 50, 52, 54, 55];
+      var average = [47, 47, 48, 48, 49, 49, 50];
+      if (panelChart) panelChart.destroy();
+      panelChart = new Chart(canvas, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Observado",
+              data: observed,
+              borderColor: "#0ea5e9",
+              backgroundColor: "rgba(14,165,233,0.18)",
+              tension: 0.35,
+              fill: true,
+              pointRadius: 3,
+              pointBackgroundColor: "#0ea5e9",
+              borderWidth: 2
+            },
+            {
+              label: "Media",
+              data: average,
+              borderColor: "#94a3b8",
+              borderDash: [4, 4],
+              tension: 0.35,
+              pointRadius: 0,
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              enabled: true,
+              mode: "index",
+              intersect: false,
+              backgroundColor: "rgba(15, 23, 42, 0.9)",
+              titleColor: "#e2e8f0",
+              bodyColor: "#e2e8f0",
+              padding: 10,
+              borderColor: "rgba(148,163,184,0.3)",
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: "#94a3b8" } },
+            y: { grid: { color: "rgba(148,163,184,0.2)" }, ticks: { color: "#94a3b8" } }
+          }
+        }
+      });
+    }
+
+    function closeInfoPanel() {
+      var panel = document.getElementById("infoPanel");
+      if (panel) panel.classList.add("hidden");
+    }
+  </script>
+</body>
+
+</html>

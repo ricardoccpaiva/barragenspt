@@ -1,0 +1,244 @@
+<div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 z-30 hidden" onclick="toggleSidebar(false)"></div>
+
+<!-- Mapa full-screen (sempre por trás da sidebar) -->
+<main class="fixed inset-0">
+  <div id="map" phx-update="ignore"></div>
+  <div
+    class="absolute top-4 left-4 right-4 flex items-center justify-between md:justify-start md:gap-3 z-10 pointer-events-none">
+    <div class="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-white/90 shadow-card">
+      <svg class="w-5 h-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z" />
+      </svg>
+      <span class="text-sm font-semibold">barragens.pt</span>
+    </div>
+    <button class="pointer-events-auto md:hidden p-2.5 rounded-xl bg-white/90 shadow-card" aria-label="Abrir menu"
+      onclick="toggleSidebar(true)">
+      <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  </div>
+</main>
+
+<!-- Sidebar -->
+<aside id="sidebar"
+  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[85%] max-w-[320px] md:max-w-none md:w-[360px] h-full md:h-[calc(100%-1rem)] bg-slate-100/95 border border-slate-200/70 shadow-float px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-2 space-y-4 md:rounded-2xl md:backdrop-blur inset-y-0 left-0 md:inset-y-2 md:left-2">
+
+
+  <div class="flex items-center gap-3 px-1 py-1">
+    <img src="https://barragens.pt/images/dam.png" alt="Barragens.pt" class="w-10 h-10 rounded-xl object-cover" />
+    <div class="leading-none">
+      <p class="logo-type text-[34px] text-brand-300 font-semibold">BARRAGENS.PT</p>
+    </div>
+  </div>
+
+  <div class="mt-1">
+    <a href="https://www.buymeacoffee.com/barragenspt">
+      <img style="height: 30px"
+        src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+    </a>
+  </div>
+
+  <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white">
+    <h3 class="text-sm font-semibold text-slate-800">Pesquisar barragens</h3>
+    <div class="search-wrapper">
+      <input id="damSearchInput" type="search" placeholder="Nome da barragem..."
+        class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
+      <div id="damSearchResults" class="search-results hidden"></div>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section river-section">
+    <h3 class="text-sm font-semibold text-slate-800">Rios</h3>
+    <select id="riverSelect" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white">
+      <option value="">Selecionar rio...</option>
+      <option>Douro</option>
+      <option>Tejo</option>
+      <option>Mondego</option>
+      <option>Guadiana</option>
+      <option>Sado</option>
+    </select>
+  </div>
+
+  <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
+    <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
+    <label class="flex items-center justify-between text-sm">
+      <span>Bacias</span>
+      <input type="checkbox" class="toggle" checked>
+    </label>
+    <label class="flex items-center justify-between text-sm">
+      <span>Barragens</span>
+      <input type="checkbox" class="toggle" checked>
+    </label>
+    <label class="flex items-center justify-between text-sm">
+      <span>Espanha</span>
+      <input type="checkbox" class="toggle">
+    </label>
+  </div>
+
+  <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
+    <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
+    <label class="flex items-center justify-between text-sm">
+      <span>PDSI</span>
+      <input type="checkbox" class="toggle">
+    </label>
+    <label class="flex items-center justify-between text-sm">
+      <span>SMI</span>
+      <input type="checkbox" class="toggle">
+    </label>
+    <label class="flex items-center justify-between text-sm">
+      <span>Chuva</span>
+      <input type="checkbox" class="toggle">
+    </label>
+  </div>
+</aside>
+
+<!-- Modal barragem -->
+<section id="damModal" class="dam-modal hidden">
+  <div class="bg-slate-50 rounded-2xl md:rounded-2xl shadow-float border border-slate-200 overflow-hidden">
+    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+      <div>
+        <p id="damName" class="text-sm font-semibold text-slate-900">Alqueva</p>
+        <p id="damBasin" class="text-xs text-slate-500">Bacia do Guadiana</p>
+      </div>
+      <button class="p-2 rounded-lg" onclick="closeDamModal()" aria-label="Fechar">
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body p-4 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-500">Cota atual</p>
+          <p id="damLevel" class="text-xl font-bold text-slate-900">152,4 m</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-slate-500">% enchimento</p>
+          <p id="damPct" class="text-lg font-semibold text-brand-600">45%</p>
+        </div>
+      </div>
+      <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+        <div id="damPctBar" class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-semibold text-slate-800">Evolução</p>
+        <select id="timeWindow" class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+          <option value="7">7 dias</option>
+          <option value="30" selected>30 dias</option>
+          <option value="90">90 dias</option>
+        </select>
+      </div>
+      <div class="h-48">
+        <canvas id="damChart"></canvas>
+      </div>
+      <div class="flex items-center gap-3 text-xs text-slate-500">
+        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-brand-500"></span>
+          Observado</span>
+        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          Média</span>
+        <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          Descarga</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Legenda (% Armazenamento) -->
+<div class="legend-card">
+  <p class="legend-title">% Armazenamento</p>
+  <div class="legend-row"><span class="legend-dot legend-0-20"></span><span>0 - 20</span></div>
+  <div class="legend-row"><span class="legend-dot legend-21-40"></span><span>21 - 40</span></div>
+  <div class="legend-row"><span class="legend-dot legend-41-50"></span><span>41 - 50</span></div>
+  <div class="legend-row"><span class="legend-dot legend-51-60"></span><span>51 - 60</span></div>
+  <div class="legend-row"><span class="legend-dot legend-61-80"></span><span>61 - 80</span></div>
+  <div class="legend-row"><span class="legend-dot legend-81-100"></span><span>81 - 100</span></div>
+</div>
+
+<script>
+  function toggleSidebar(open) {
+    var sidebar = document.getElementById('sidebar');
+    var backdrop = document.getElementById('sidebarBackdrop');
+    if (open) {
+      sidebar.classList.add('open');
+      backdrop.classList.remove('hidden');
+    } else {
+      sidebar.classList.remove('open');
+      backdrop.classList.add('hidden');
+    }
+  }
+
+  function closeDamModal() {
+    document.getElementById('damModal').classList.add('hidden');
+  }
+
+  function openDamModal(data) {
+    document.getElementById('damModal').classList.remove('hidden');
+    document.getElementById('damName').textContent = data.name;
+    document.getElementById('damBasin').textContent = 'Bacia do ' + data.basin;
+    document.getElementById('damLevel').textContent = data.level + ' m';
+    document.getElementById('damPct').textContent = data.pct + '%';
+    document.getElementById('damPctBar').style.width = data.pct + '%';
+    document.getElementById('timeWindow').value = '30';
+    updateDamChart(data.series);
+  }
+
+  // Chart.js — 3 séries + selector temporal
+  var chartSeries = {
+    '7': {
+      labels: ['D-6', 'D-5', 'D-4', 'D-3', 'D-2', 'D-1', 'Hoje'],
+      observed: [42, 43, 44, 45, 44, 45, 45],
+      average: [40, 40, 41, 41, 41, 42, 42],
+      discharge: [8, 10, 9, 11, 10, 9, 8]
+    },
+    '30': {
+      labels: Array.from({ length: 30 }, (_, i) => 'D-' + (29 - i)),
+      observed: Array.from({ length: 30 }, (_, i) => 40 + (i * 0.2)),
+      average: Array.from({ length: 30 }, () => 42),
+      discharge: Array.from({ length: 30 }, (_, i) => 6 + (i % 5))
+    },
+    '90': {
+      labels: Array.from({ length: 12 }, (_, i) => 'S' + (i + 1)),
+      observed: [34, 36, 38, 39, 40, 42, 43, 44, 45, 46, 46, 45],
+      average: [38, 38, 39, 39, 40, 40, 41, 41, 42, 42, 42, 42],
+      discharge: [7, 8, 9, 8, 7, 6, 7, 8, 7, 6, 7, 6]
+    }
+  };
+
+  var damChart = null;
+  function updateDamChart(series) {
+    var windowKey = document.getElementById('timeWindow').value;
+    var data = series[windowKey];
+    if (!data || typeof Chart === 'undefined') return;
+
+    if (damChart) { damChart.destroy(); }
+    damChart = new Chart(document.getElementById('damChart'), {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: [
+          { label: 'Observado', data: data.observed, borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.08)', tension: 0.35, pointRadius: 0, borderWidth: 2, fill: true },
+          { label: 'Média', data: data.average, borderColor: '#f59e0b', tension: 0.35, pointRadius: 0, borderWidth: 2, borderDash: [4, 4] },
+          { label: 'Descarga', type: 'bar', data: data.discharge, backgroundColor: 'rgba(16,185,129,0.35)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: true, mode: 'index', intersect: false }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } },
+          y: { grid: { color: 'rgba(148,163,184,0.2)' } }
+        }
+      }
+    });
+  }
+
+  document.getElementById('timeWindow').addEventListener('change', function () {
+    updateDamChart(chartSeries);
+  });
+</script>

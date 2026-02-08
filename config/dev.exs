@@ -3,8 +3,9 @@ import Config
 # Configure your database
 config :barragenspt, Barragenspt.Repo,
   username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
+  password: "password",
+  hostname: "ubuntu-proxmox.home.lab",
+  port: 5432,
   database: "barragenspt_dev",
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -64,7 +65,9 @@ config :barragenspt, BarragensptWeb.Endpoint,
   ]
 
 # Do not include metadata nor timestamps in development logs
-config :logger, :console, format: "[$level] $message\n"
+config :logger, :console,
+  format: "[$level] $time $metadata $message\n",
+  metadata: [:request_id, :trace_id]
 
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
@@ -72,3 +75,10 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+config :phoenix_live_view,
+  debug_heex_annotations: true,
+  debug_attributes: true
+
+config :opentelemetry,
+  traces_exporter: :none
