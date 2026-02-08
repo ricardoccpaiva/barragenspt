@@ -138,17 +138,16 @@ window.addEventListener('phx:draw_basins', (e) => {
         });
 
         map.on('click', fill_layer_id, (e) => {
-            if (!e.originalEvent.target.id.includes('marker')) {
-                let basin_id = e.features[0].source;
-                var a = document.getElementById('basin_detail_btn');
-                a.href = "?basin_id=" + basin_id;
-
-                document.getElementById('basin_detail_btn').click();
-            }
+            let basin_id = e.features[0].source;
+            console.log('basin clicked', { basin_id: basin_id, layer_id: fill_layer_id });
         });
 
         map.on("mouseenter", fill_layer_id, () => {
             map.getCanvas().style.cursor = "pointer";
+        });
+
+        map.on("mouseleave", fill_layer_id, () => {
+            map.getCanvas().style.cursor = "";
         });
     })
 
