@@ -1,6 +1,5 @@
 defmodule BarragensptWeb.BasinController do
   use BarragensptWeb, :controller
-  alias Barragenspt.Mappers.Colors
   alias Barragenspt.Hydrometrics.Basins
   alias Barragenspt.Models.Infoagua.Alert
   alias Barragenspt.Repo
@@ -15,16 +14,10 @@ defmodule BarragensptWeb.BasinController do
       |> Map.new()
 
     basins =
-      Enum.map(basins_raw, fn {basin_id, name, current_storage, value} ->
-        %{
-          id: basin_id,
-          name: String.downcase(name),
-          current_storage: current_storage,
-          average_historic_value: value,
-          capacity_color: current_storage |> Decimal.to_float() |> Colors.lookup_capacity(),
-          country: "pt",
-          alert: Map.get(alerts, to_string(basin_id), default_alert())
-        }
+      Enum.map(basins_raw, fn basin ->
+        basin
+        |> Map.put(:alert, Map.get(alerts, to_string(basin.id), default_alert()))
+        |> Map.put(:country, "pt")
       end)
 
     render(conn, "index.json", basins: basins)

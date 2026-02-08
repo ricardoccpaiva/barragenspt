@@ -2,7 +2,12 @@ defmodule BarragensptWeb.DamController do
   use BarragensptWeb, :controller
   alias Barragenspt.Geo.Coordinates
   alias Barragenspt.Hydrometrics.Dams
-  alias Barragenspt.Mappers.Colors
+  require Logger
+
+  def index(conn, %{"search" => value}) do
+    dams = Dams.search(value, [])
+    render(conn, "dam_minified.json", dams: dams)
+  end
 
   def index(conn, params) do
     dams =
@@ -16,6 +21,30 @@ defmodule BarragensptWeb.DamController do
     render(conn, "index.json", dams: dams)
   end
 
+  def show(conn, %{"site_id" => site_id}) do
+    dam =
+      site_id
+      |> Dams.get()
+      |> build_dam_data()
+
+    render(conn, "show.json", dam: dam)
+  end
+
+  def stats(conn, %{"site_id" => site_id, "period" => period, "period_unit" => period_unit}) do
+    period = String.to_integer(period)
+
+    stats =
+      case period_unit do
+        "year" ->
+          Dams.monthly_stats(site_id, period)
+
+        "month" ->
+          Dams.daily_stats(site_id, period)
+      end
+
+    render(conn, "stats.json", stats: stats)
+  end
+
   defp build_dam_data(dam) do
     elementary_Data = %{
       id: dam.site_id,
@@ -24,7 +53,6 @@ defmodule BarragensptWeb.DamController do
       dam_name: dam.site_name,
       basin_name: dam.basin_name,
       current_storage: dam.current_storage,
-      current_storage_color: Colors.lookup_capacity(dam.current_storage),
       colected_at: dam.colected_at,
       metadata: dam.metadata
     }
@@ -50,13 +78,17 @@ defmodule BarragensptWeb.DamController do
 
   defp get_metadata_value(data, key) do
     case data[key] do
-      nil -> nil
+      nil ->
+        nil
+
       value when is_binary(value) ->
         case Float.parse(value) do
           {float_value, ""} -> float_value
           _ -> value
         end
-      value -> value
+
+      value ->
+        value
     end
   end
 end

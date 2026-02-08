@@ -144,8 +144,8 @@ defmodule Barragenspt.Hydrometrics.Basins do
           d.period == ^"#{Timex.now().day}-#{Timex.now().month}" and b.current_storage <= 100 and
             d.value <= 100,
         select: %{
-          basin_id: d.basin_id,
-          basin_name: b.name,
+          id: d.basin_id,
+          name: b.name,
           observed_value: fragment("round(?, 1)", b.current_storage),
           historical_average: fragment("round(?, 1)", d.value)
         }

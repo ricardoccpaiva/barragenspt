@@ -20,11 +20,26 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   @decorate cacheable(
               cache: Cache,
-              key: "dam_#{id}",
+              key: "adam_#{id}",
               ttl: @ttl
             )
   def get(id) do
-    Barragenspt.Repo.one!(from(d in Dam, where: d.site_id == ^id))
+    Repo.one!(
+      from(b in SiteCurrentStorage,
+        join: d in Dam,
+        on: b.site_id == d.site_id,
+        where: b.current_storage <= 100 and b.site_id == ^id,
+        select: %{
+          basin_id: d.basin_id,
+          basin_name: d.basin,
+          site_id: b.site_id,
+          site_name: d.name,
+          current_storage: fragment("round(?, 1)", b.current_storage),
+          colected_at: b.colected_at,
+          metadata: d.metadata
+        }
+      )
+    )
   end
 
   def all do
@@ -63,9 +78,11 @@ defmodule Barragenspt.Hydrometrics.Dams do
     query =
       from(d in Dam,
         join: du in DamUsage,
+        join: b in SiteCurrentStorage,
+        on: d.site_id == b.site_id,
         on: d.site_id == du.site_id,
         where: ^filter,
-        select: %{id: d.site_id, name: d.name}
+        select: %{id: d.site_id, name: d.name, current_storage: b.current_storage}
       )
 
     query
@@ -188,9 +205,10 @@ defmodule Barragenspt.Hydrometrics.Dams do
         |> Decimal.round(2)
         |> Decimal.to_float(),
       discharge_value:
-        discharge_stats
-        |> Enum.find(fn h -> h.date == date end)
-        |> Map.get(:value)
+        case Enum.find(discharge_stats, &(&1.date == date)) do
+          %{value: value} -> value
+          _ -> 0
+        end
     }
   end
 
@@ -277,9 +295,10 @@ defmodule Barragenspt.Hydrometrics.Dams do
         |> Decimal.round(2)
         |> Decimal.to_float(),
       discharge_value:
-        discharge_stats
-        |> Enum.find(fn h -> h.date == date end)
-        |> Map.get(:value)
+        case Enum.find(discharge_stats, &(&1.date == date)) do
+          %{value: value} -> value
+          _ -> 0
+        end
     }
   end
 
