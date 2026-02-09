@@ -20,7 +20,8 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(
         rivers: rivers,
         usage_types: usage_types,
-        dams: dams
+        dams: dams,
+        basin_card: nil
       )
       |> push_event("zoom_map", %{})
       |> push_event("draw_dams", %{dams: dams})
@@ -54,6 +55,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(basin: basin_name)
       |> assign(current_pct: current_pct)
       |> assign(capacity_color: capacity_color)
+      |> assign(basin_card: build_basin_card_spain(basin_name, current_pct, capacity_color))
       |> assign(basin_detail_class: "sidenav sidenav-short detail_class_visible")
       |> assign(dam_detail_class: "sidenav sidenav-short detail_class_invisible")
 
@@ -61,31 +63,19 @@ defmodule BarragensptWeb.HomepageV2Live do
   end
 
   def handle_params(%{"basin_id" => id}, _url, socket) do
+    Logger.info("------> handle_params basin_id: #{id}")
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
 
-    stats = Basins.monthly_stats_for_basin(id, usage_types)
+    basin_summary = Basins.summary_stats(id, [])
     bounding_box = Dams.bounding_box(id)
-    basin_summary = get_basin_summary(id, usage_types)
-
-    spec =
-      stats
-      |> Enum.map(fn d ->
-        %{Data: Calendar.strftime(d.date, "%b %d %Y"), "% Armazenamento": d.value, Tipo: d.basin}
-      end)
-      |> get_vega_spec_for_basin()
-
     %{name: basin_name} = Basins.get(id)
 
     socket =
       socket
       |> assign(basin_id: id)
-      |> assign(basin_summary: basin_summary, basin: basin_name, usage_types: Dams.usage_types())
-      |> assign(spain: false)
-      |> assign(basin_detail_class: "sidenav detail_class_visible")
-      |> assign(dam_detail_class: "sidenav detail_class_invisible")
+      |> assign(basin_summary: basin_summary, usage_types: Dams.usage_types())
+      |> assign(basin_card: build_basin_card(basin_name, basin_summary))
       |> push_event("zoom_map", %{basin_id: id, bounding_box: bounding_box})
-      |> push_event("enable_tabs", %{})
-      |> push_event("draw", %{"spec" => spec})
 
     {:noreply, socket}
   end
@@ -129,6 +119,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       socket
       |> assign(dam: dam)
       |> assign(current_capacity: current_storage)
+      |> assign(basin_card: nil)
       |> assign(basin_detail_class: "sidenav detail_class_invisible")
       |> assign(dam_detail_class: "sidenav detail_class_visible")
       |> assign(search_results_class: "dropdown-content detail_class_invisible")
@@ -164,6 +155,7 @@ defmodule BarragensptWeb.HomepageV2Live do
     socket =
       socket
       |> push_event("zoom_map", %{})
+      |> assign(basin_card: nil)
       |> assign(basin_detail_class: "sidenav detail_class_invisible")
       |> assign(dam_detail_class: "sidenav detail_class_invisible")
       |> assign(river_detail_class: "sidenav detail_class_invisible")
@@ -183,6 +175,94 @@ defmodule BarragensptWeb.HomepageV2Live do
       )
     end)
   end
+
+  defp build_basin_card(basin_name, basin_summary) do
+    dams =
+      basin_summary
+      |> Enum.map(fn item ->
+        %{
+          id: item.site_id,
+          name: normalize_dam_name(item.site_name),
+          observed: item.observed_value,
+          average: item.historical_average,
+          observed_class: badge_class(item.observed_value),
+          average_class: badge_class(item.historical_average)
+        }
+      end)
+
+    observed_values =
+      basin_summary
+      |> Enum.map(& &1.observed_value)
+      |> Enum.filter(&is_number/1)
+
+    historical_values =
+      basin_summary
+      |> Enum.map(& &1.historical_average)
+      |> Enum.filter(&is_number/1)
+
+    avg_observed = average(observed_values)
+    avg_historical = average(historical_values)
+
+    %{
+      name: basin_name,
+      dams_count: length(basin_summary),
+      avg_observed: 83.2,
+      avg_historical: 75.4,
+      trend: trend_label(avg_observed, avg_historical),
+      color: if(avg_observed, do: Colors.lookup_capacity(avg_observed), else: "#94a3b8"),
+      dams: dams
+    }
+  end
+
+  defp build_basin_card_spain(basin_name, current_pct, capacity_color) do
+    %{
+      name: basin_name,
+      dams_count: nil,
+      avg_observed: round_or_nil(current_pct),
+      avg_historical: nil,
+      trend: "n/a",
+      color: capacity_color || "#94a3b8",
+      dams: []
+    }
+  end
+
+  defp badge_class(nil), do: "bg-slate-100 text-slate-600"
+
+  defp badge_class(%Decimal{} = value) do
+    value
+    |> Decimal.to_float()
+    |> badge_class()
+  end
+
+  defp badge_class(value) when is_number(value) do
+    cond do
+      value <= 20 -> "bg-red-100 text-red-700"
+      value <= 40 -> "bg-orange-100 text-orange-700"
+      value <= 50 -> "bg-amber-100 text-amber-700"
+      value <= 60 -> "bg-lime-100 text-lime-700"
+      value <= 80 -> "bg-green-100 text-green-700"
+      true -> "bg-emerald-100 text-emerald-700"
+    end
+  end
+
+  defp normalize_dam_name(nil), do: nil
+
+  defp normalize_dam_name(name) when is_binary(name) do
+    name
+    |> String.trim()
+    |> String.replace(~r/^albufeira\s+(de|da|do|das|dos)\s+/i, "")
+  end
+
+  defp average([]), do: nil
+  defp average(values), do: Enum.sum(values) / length(values)
+
+  defp round_or_nil(nil), do: nil
+  defp round_or_nil(value), do: Float.round(value, 1)
+
+  defp trend_label(nil, _), do: "n/a"
+  defp trend_label(_, nil), do: "n/a"
+  defp trend_label(observed, historical) when observed >= historical, do: "Subida"
+  defp trend_label(_observed, _historical), do: "Descida"
 
   defp get_data(basin_id \\ nil, usage_types \\ []) do
     Basins.summary_stats(usage_types)

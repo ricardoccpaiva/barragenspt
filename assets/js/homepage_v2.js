@@ -21,6 +21,17 @@ function getStorageColor(percentage) {
     return "#16a34a";
 }
 
+function navigateToBasin(basinId) {
+    const link = document.getElementById("basinDetailLink");
+    const target = `/v2/basins/${basinId}`;
+    if (link) {
+        link.setAttribute("href", target);
+        link.click();
+        return;
+    }
+    window.location.href = target;
+}
+
 Hooks.BasinChartTimeWindow = {
     mounted() {
         this.el.addEventListener("click", e => {
@@ -140,6 +151,7 @@ window.addEventListener('phx:draw_basins', (e) => {
         map.on('click', fill_layer_id, (e) => {
             let basin_id = e.features[0].source;
             console.log('basin clicked', { basin_id: basin_id, layer_id: fill_layer_id });
+            navigateToBasin(basin_id);
         });
 
         map.on("mouseenter", fill_layer_id, () => {

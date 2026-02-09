@@ -145,6 +145,101 @@
   </div>
 </section>
 
+<a id="basinDetailLink" data-phx-link="patch" data-phx-link-state="push" href="/v2" class="hidden"></a>
+
+<section :if={@basin_card} id="basinInfoPanel" class="fixed bottom-4 right-4 z-40 w-[360px]">
+  <div class="bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+    <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+      <div>
+        <p class="text-sm font-semibold text-slate-900"><%= @basin_card.name %></p>
+      </div>
+      <a href="/v2" data-phx-link="patch" data-phx-link-state="push"
+        class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+    </div>
+    <div class="p-4 space-y-3 text-sm text-slate-600">
+      <div class="grid grid-cols-3 gap-3">
+        <div class="flex flex-col items-center gap-1">
+          <div class="relative h-12 w-12">
+            <svg viewBox="0 0 36 36" class="h-12 w-12 -rotate-90">
+              <path class="text-slate-100" stroke="currentColor" stroke-width="4" fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+              <path class="text-brand-500" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"
+                stroke-dasharray={"#{@basin_card.avg_observed || 0}, 100"}
+                d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-slate-700">
+              <%= if @basin_card.avg_observed, do: "#{@basin_card.avg_observed}%", else: "n/a" %>
+            </div>
+          </div>
+          <span class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Atual</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+          <div class="relative h-12 w-12">
+            <svg viewBox="0 0 36 36" class="h-12 w-12 -rotate-90">
+              <path class="text-slate-100" stroke="currentColor" stroke-width="4" fill="none"
+                d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+              <path class="text-amber-400" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"
+                stroke-dasharray={"#{@basin_card.avg_historical || 0}, 100"}
+                d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-slate-700">
+              <%= if @basin_card.avg_historical, do: "#{@basin_card.avg_historical}%", else: "n/a" %>
+            </div>
+          </div>
+          <span class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Média</span>
+        </div>
+        <div :if={@basin_card.dams_count} class="flex flex-col items-center gap-1">
+          <div class="flex h-12 items-center justify-center text-2xl font-semibold text-slate-700">
+            <%= @basin_card.dams_count %>
+          </div>
+          <span class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Barragens</span>
+        </div>
+      </div>
+
+      <div :if={@basin_card.dams != []} class="pt-2 flex flex-col">
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Barragens</p>
+        <div class="mt-2 max-h-[42vh] overflow-y-auto rounded-xl border border-slate-200">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-slate-500">
+              <tr>
+                <th class="px-3 py-2 text-left font-medium">Nome</th>
+                <th class="pl-3 pr-2 py-2 text-right font-medium">Atual</th>
+                <th class="px-3 py-2 text-right font-medium">Histórico</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <%= for dam <- @basin_card.dams do %>
+                <tr class="hover:bg-slate-50">
+                  <td class="px-3 py-2">
+                    <a
+                      href={~p"/v2?dam_id=#{dam.id}"}
+                      data-phx-link="patch"
+                      data-phx-link-state="push"
+                      class="text-brand-600 hover:text-brand-700"
+                    >
+                      <%= dam.name %>
+                    </a>
+                  </td>
+                  <td class="pl-3 pr-2 py-2 text-right">
+                    <span class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium #{dam.observed_class}"}>
+                      <%= if dam.observed, do: "#{dam.observed}%", else: "n/a" %>
+                    </span>
+                  </td>
+                  <td class="px-3 py-2 text-right">
+                    <span class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium #{dam.average_class}"}>
+                      <%= if dam.average, do: "#{dam.average}%", else: "n/a" %>
+                    </span>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Legenda (% Armazenamento) -->
 <div class="legend-card">
   <p class="legend-title">% Armazenamento</p>
