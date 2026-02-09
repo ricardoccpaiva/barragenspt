@@ -2,6 +2,7 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import MetricsEvolution from './hooks/metrics_evolution'
+import "./basin_chart"
 
 let Hooks = { MetricsEvolution }
 
@@ -202,7 +203,7 @@ window.addEventListener('phx:draw_dams', (e) => {
 })
 
 window.addEventListener('phx:zoom_map', (e) => {
-    console.log('phx:zoom_map', e);
+    var areBasinsVisible = true;
     var allLayers = map.getStyle().layers;
 
     if (e.detail.bounding_box && e.detail.site_id == null) {

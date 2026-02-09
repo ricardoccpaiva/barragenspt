@@ -218,6 +218,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       year_trend_arrow: trend_arrow(year_display_change),
       year_trend_class: trend_class(year_display_change),
       color: if(avg_observed, do: Colors.lookup_capacity(avg_observed), else: "#94a3b8"),
+      basin_chart_series: monthly_stats,
       dams: dams
     }
   end
@@ -242,6 +243,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       year_trend_arrow: "→",
       year_trend_class: "text-slate-500",
       color: capacity_color || "#94a3b8",
+      basin_chart_series: [],
       dams: []
     }
   end

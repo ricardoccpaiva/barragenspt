@@ -251,11 +251,11 @@
       </div>
 
       <div id="basinTabChart" class="pt-2 hidden">
-        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Evolução (dummy)</p>
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Evolução</p>
         <div class="mt-2 h-[42vh] rounded-xl border border-slate-200 bg-white p-2 flex flex-col">
           <div class="mt-auto">
             <div class="h-48">
-              <canvas id="basinChart"></canvas>
+              <canvas id="basinChart" data-series={Jason.encode!(@basin_card.basin_chart_series || [])}></canvas>
             </div>
             <div class="mt-2 flex items-center gap-3 text-xs text-slate-500">
               <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-brand-500"></span>
@@ -367,47 +367,4 @@
     updateDamChart(chartSeries);
   });
 
-  var basinChart = null;
-  function renderBasinChart() {
-    var canvas = document.getElementById('basinChart');
-    if (!canvas || typeof Chart === 'undefined') return;
-    if (basinChart) { return; }
-    basinChart = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago'],
-        datasets: [
-          { label: 'Observado', data: [48, 49, 52, 51, 53, 55, 57, 56], borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.12)', tension: 0.35, pointRadius: 2, borderWidth: 2, fill: true },
-          { label: 'Média', data: [45, 46, 47, 48, 49, 49, 50, 50], borderColor: '#f59e0b', borderDash: [4, 4], tension: 0.35, pointRadius: 0, borderWidth: 2 }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { enabled: true, mode: 'index', intersect: false } },
-        scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(148,163,184,0.2)' } } }
-      }
-    });
-  }
-
-  function selectBasinTab(tab) {
-    var table = document.getElementById('basinTabTable');
-    var chart = document.getElementById('basinTabChart');
-    var buttons = document.querySelectorAll('[data-basin-tab]');
-    buttons.forEach(function (btn) {
-      var active = btn.getAttribute('data-basin-tab') === tab;
-      btn.classList.toggle('bg-white', active);
-      btn.classList.toggle('text-slate-700', active);
-      btn.classList.toggle('shadow-sm', active);
-      btn.classList.toggle('text-slate-600', !active);
-    });
-    if (tab === 'chart') {
-      if (table) table.classList.add('hidden');
-      if (chart) chart.classList.remove('hidden');
-      renderBasinChart();
-    } else {
-      if (chart) chart.classList.add('hidden');
-      if (table) table.classList.remove('hidden');
-    }
-  }
 </script>
