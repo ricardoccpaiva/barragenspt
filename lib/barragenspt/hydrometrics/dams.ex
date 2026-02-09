@@ -130,6 +130,11 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.map(fn r -> %{basin_id: r.basin_id, site_id: r.site_id} end)
   end
 
+  @decorate cacheable(
+              cache: Cache,
+              key: "bounding_box-#{Enum.join(site_ids, "-")}",
+              ttl: @ttl
+            )
   def bounding_box(site_ids) when is_list(site_ids) do
     query = from(d in Dam, where: d.site_id in ^site_ids)
 
@@ -141,6 +146,11 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Geocalc.bounding_box_for_points()
   end
 
+  @decorate cacheable(
+              cache: Cache,
+              key: "bounding_box-#{basin_id}",
+              ttl: @ttl
+            )
   def bounding_box(basin_id) do
     query = from(d in Dam, where: d.basin_id == ^basin_id)
 
