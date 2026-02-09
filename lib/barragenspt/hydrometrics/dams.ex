@@ -525,6 +525,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
           site_id: dp.site_id,
           basin_id: dp.basin_id,
           value: dp.value,
+          colected_at: dp.colected_at,
           rn:
             fragment(
               "row_number() OVER (PARTITION BY ? ORDER BY ? DESC)",
@@ -541,7 +542,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
       select: %{
         site_id: dp.site_id,
         basin_id: dp.basin_id,
-        value: dp.value
+        value: dp.value,
+        colected_at: dp.colected_at
       }
     )
   end
