@@ -189,7 +189,8 @@ defmodule Barragenspt.Hydrometrics.Basins do
           basin_name: dd.basin,
           observed_value: fragment("round((?/?)*100, 1)", b.value, dd.total_capacity),
           historical_average: fragment("round(?, 1)", d.value),
-          colected_at: b.colected_at
+          colected_at: b.colected_at,
+          total_capacity: dd.total_capacity
         }
       )
 

@@ -50,7 +50,6 @@ defmodule BarragensptWeb.HomepageV2Live do
     summary = Basins.summary_stats(id, usage_types)
     daily_stats = Basins.daily_stats_for_basin(id, usage_types, 12)
     monthly_stats = Basins.monthly_stats_for_basin(id, usage_types, 2)
-    monthly_stats |> IO.inspect(label: "MONTHLY STATS ------>")
     bounding_box = Dams.bounding_box(id)
 
     %{name: basin_name} = Basins.get(id)
@@ -188,7 +187,8 @@ defmodule BarragensptWeb.HomepageV2Live do
           observed: item.observed_value,
           average: item.historical_average,
           observed_class: badge_class(item.observed_value),
-          average_class: badge_class(item.historical_average)
+          average_class: badge_class(item.historical_average),
+          observed_date_label: format_reference_date(Map.get(item, :colected_at))
         }
       end)
 
@@ -212,15 +212,25 @@ defmodule BarragensptWeb.HomepageV2Live do
       month_reference_label: format_reference_date(month_point && month_point.date),
       month_trend_arrow: trend_arrow(month_display_change),
       month_trend_class: trend_class(month_display_change),
+      month_trend_badge_class: trend_badge_class(month_display_change),
       year_value: round_or_nil(year_value),
       year_change_label: format_period_change(year_display_change),
       year_reference_label: format_reference_date(year_point && year_point.date),
       year_trend_arrow: trend_arrow(year_display_change),
       year_trend_class: trend_class(year_display_change),
-      color: if(avg_observed, do: Colors.lookup_capacity(avg_observed), else: "#94a3b8"),
+      year_trend_badge_class: trend_badge_class(year_display_change),
       basin_chart_series: monthly_stats,
+      total_storage_label: build_total_storage_label(summary, avg_observed),
       dams: dams
     }
+  end
+
+  defp build_total_storage_label(summary, avg_observed) do
+    sum = Enum.reduce(summary, 0, fn item, acc -> item.total_capacity + acc end)
+
+    current_storage = (sum * avg_observed / 100) |> Float.round(2)
+
+    "#{current_storage} hm³"
   end
 
   defp build_basin_card_spain(basin_name, current_pct, capacity_color) do
@@ -242,8 +252,11 @@ defmodule BarragensptWeb.HomepageV2Live do
       year_reference_label: "n/a",
       year_trend_arrow: "→",
       year_trend_class: "text-slate-500",
+      month_trend_badge_class: "bg-slate-100 text-slate-600",
+      year_trend_badge_class: "bg-slate-100 text-slate-600",
       color: capacity_color || "#94a3b8",
       basin_chart_series: [],
+      total_storage_label: "—",
       dams: []
     }
   end
@@ -355,6 +368,11 @@ defmodule BarragensptWeb.HomepageV2Live do
   defp trend_class(change) when change > 0, do: "text-emerald-600"
   defp trend_class(change) when change < 0, do: "text-rose-600"
   defp trend_class(_change), do: "text-slate-500"
+
+  defp trend_badge_class(nil), do: "bg-slate-100 text-slate-600"
+  defp trend_badge_class(change) when change > 0, do: "bg-emerald-50 text-emerald-700"
+  defp trend_badge_class(change) when change < 0, do: "bg-rose-50 text-rose-700"
+  defp trend_badge_class(_change), do: "bg-slate-100 text-slate-600"
 
   defp get_data(basin_id \\ nil, usage_types \\ []) do
     Basins.summary_stats(usage_types)

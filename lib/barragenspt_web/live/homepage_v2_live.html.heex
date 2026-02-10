@@ -159,43 +159,31 @@
         class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
     </div>
     <div class="p-4 space-y-3 text-sm text-slate-600">
-      <div class="grid grid-cols-3 gap-3">
-        <div class="flex flex-col items-center gap-1">
-          <div class="relative h-12 w-12">
-            <svg viewBox="0 0 36 36" class="h-12 w-12 -rotate-90">
-              <path class="text-slate-100" stroke="currentColor" stroke-width="4" fill="none"
-                d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
-              <path class="text-brand-500" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"
-                stroke-dasharray={"#{@basin_card.avg_observed || 0}, 100"}
-                d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
-            </svg>
-            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-slate-700">
-              <%= if @basin_card.avg_observed, do: "#{@basin_card.avg_observed}%" , else: "n/a" %>
-            </div>
+      <div class="flex flex-col gap-1.5">
+        <div class="flex items-start gap-2">
+          <p class="text-3xl font-bold text-slate-900 tabular-nums">
+            <%= if @basin_card.avg_observed, do: "#{@basin_card.avg_observed}%", else: "n/a" %>
+          </p>
+          <span class="text-[10px] uppercase tracking-[0.15em] text-slate-500">Atual</span>
+        </div>
+        <p class="text-xs text-slate-500">
+          Volume armazenado: <span class="font-medium text-slate-700 tabular-nums"><%= @basin_card.total_storage_label %></span>
+        </p>
+        <div class="h-2 rounded-full bg-slate-100 overflow-hidden" role="progressbar" aria-valuenow={@basin_card.avg_observed} aria-valuemin="0" aria-valuemax="100" aria-label="Enchimento atual">
+          <div class="h-full bg-brand-500 rounded-full transition-[width] duration-300" style={"width: #{@basin_card.avg_observed || 0}%"}>
           </div>
-          <span class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Atual</span>
         </div>
-        <div class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-center">
-          <p class="text-[10px] text-slate-500">
-            <%= @basin_card.month_reference_label %>
-          </p>
-          <p class="text-xs font-semibold text-slate-700">
-            <%= if @basin_card.month_value, do: "#{@basin_card.month_value}%" , else: "n/a" %>
-          </p>
-          <p class={"text-[10px] font-semibold #{@basin_card.month_trend_class}"}>
-            <%= "#{@basin_card.month_trend_arrow} #{@basin_card.month_change_label}" %>
-          </p>
-        </div>
-        <div class="rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-center">
-          <p class="text-[10px] text-slate-500">
-            <%= @basin_card.year_reference_label %>
-          </p>
-          <p class="text-xs font-semibold text-slate-700">
-            <%= if @basin_card.year_value, do: "#{@basin_card.year_value}%" , else: "n/a" %>
-          </p>
-          <p class={"text-[10px] font-semibold #{@basin_card.year_trend_class}"}>
-            <%= "#{@basin_card.year_trend_arrow} #{@basin_card.year_change_label}" %>
-          </p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class={"inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium #{@basin_card.month_trend_badge_class}"}
+            aria-label={"1 mês: #{@basin_card.month_trend_arrow} #{@basin_card.month_change_label}"}>
+            <span aria-hidden="true"><%= @basin_card.month_trend_arrow %></span>
+            <%= @basin_card.month_change_label %> há 1 mês
+          </span>
+          <span class={"inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium #{@basin_card.year_trend_badge_class}"}
+            aria-label={"1 ano: #{@basin_card.year_trend_arrow} #{@basin_card.year_change_label}"}>
+            <span aria-hidden="true"><%= @basin_card.year_trend_arrow %></span>
+            <%= @basin_card.year_change_label %> há 1 ano
+          </span>
         </div>
       </div>
 
@@ -217,28 +205,28 @@
           <table class="w-full text-sm">
             <thead class="bg-slate-50 text-slate-500">
               <tr>
-                <th class="px-3 py-2 text-left font-medium">Nome</th>
-                <th class="pl-3 pr-2 py-2 text-right font-medium">Atual</th>
-                <th class="px-3 py-2 text-right font-medium">Histórico</th>
+                <th class="px-2 py-1.5 text-left font-medium">Nome</th>
+                <th class="px-2 py-1.5 text-right font-medium">Atual</th>
+                <th class="px-2 py-1.5 text-right font-medium">Histórico</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
               <%= for dam <- @basin_card.dams do %>
                 <tr class="hover:bg-slate-50">
-                  <td class="px-3 py-2">
+                  <td class="align-top px-2 py-1.5">
                     <a href={~p"/v2?dam_id=#{dam.id}"} data-phx-link="patch" data-phx-link-state="push"
                       class="text-brand-600 hover:text-brand-700">
                       <%= dam.name %>
                     </a>
                   </td>
-                  <td class="pl-3 pr-2 py-2 text-right">
-                    <span class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                  <td class="align-top px-2 py-1.5 text-right">
+                    <span class={"inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium
                       #{dam.observed_class}"}>
                       <%= if dam.observed, do: "#{dam.observed}%" , else: "n/a" %>
                     </span>
                   </td>
-                  <td class="px-3 py-2 text-right">
-                    <span class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                  <td class="align-top px-2 py-1.5 text-right">
+                    <span class={"inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium
                       #{dam.average_class}"}>
                       <%= if dam.average, do: "#{dam.average}%" , else: "n/a" %>
                     </span>
