@@ -21,7 +21,8 @@ defmodule BarragensptWeb.HomepageV2Live do
         rivers: rivers,
         usage_types: usage_types,
         dams: dams,
-        basin_card: nil
+        basin_card: nil,
+        dam: nil
       )
       |> push_event("zoom_map", %{})
       |> push_event("draw_dams", %{dams: dams})
@@ -44,57 +45,18 @@ defmodule BarragensptWeb.HomepageV2Live do
     }
   end
 
-  def handle_params(%{"basin_id" => id}, _url, socket) do
+  def handle_params(%{"basin_id" => basin_id, "dam_id" => id} = params, _url, socket) do
+    Logger.info("-------------> handle_params basin_id: #{basin_id}, dam_id: #{id}")
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
+    summary = Basins.summary_stats(basin_id, usage_types)
+    daily_stats = Basins.daily_stats_for_basin(basin_id, usage_types, 12)
+    monthly_stats = Basins.monthly_stats_for_basin(basin_id, usage_types, 2)
+    %{name: basin_name} = Basins.get(basin_id)
 
-    summary = Basins.summary_stats(id, usage_types)
-    daily_stats = Basins.daily_stats_for_basin(id, usage_types, 12)
-    monthly_stats = Basins.monthly_stats_for_basin(id, usage_types, 2)
-    bounding_box = Dams.bounding_box(id)
-
-    %{name: basin_name} = Basins.get(id)
-
-    socket =
-      socket
-      |> assign(basin_id: id)
-      |> assign(basin_summary: summary)
-      |> assign(basin_card: build_basin_card(basin_name, summary, daily_stats, monthly_stats))
-      |> push_event("zoom_map", %{basin_id: id, bounding_box: bounding_box})
-
-    {:noreply, socket}
-  end
-
-  def handle_params(%{"basin_id" => id, "country" => "es"}, _url, socket) do
-    %{id: _id, basin_name: basin_name, current_pct: current_pct, capacity_color: capacity_color} =
-      Barragenspt.Hydrometrics.EmbalsesNet.basin_info(id)
-
-    socket =
-      socket
-      |> assign(basin_id: id)
-      |> assign(spain: true)
-      |> assign(basin: basin_name)
-      |> assign(current_pct: current_pct)
-      |> assign(capacity_color: capacity_color)
-      |> assign(basin_card: build_basin_card_spain(basin_name, current_pct, capacity_color))
-      |> assign(basin_detail_class: "sidenav sidenav-short detail_class_visible")
-      |> assign(dam_detail_class: "sidenav sidenav-short detail_class_invisible")
-
-    {:noreply, socket}
-  end
-
-  def handle_params(%{"dam_id" => id} = params, _url, socket) do
     dam = Dams.get(id)
 
     %{current_storage: current_storage} = Dams.current_storage(id)
     current_storage_color = Colors.lookup_capacity(current_storage)
-
-    spec =
-      id
-      |> get_data_for_period("y2")
-      |> Enum.map(fn d ->
-        %{Data: Calendar.strftime(d.date, "%b %d %Y"), "% Armazenamento": d.value, Tipo: d.basin}
-      end)
-      |> get_vega_spec()
 
     last_data_point =
       id
@@ -113,25 +75,36 @@ defmodule BarragensptWeb.HomepageV2Live do
 
     dam = prepare_dam_metadata(dam)
 
-    usage_types = Dams.usage_types(dam.site_id)
+    usage_types_dam = Dams.usage_types(dam.site_id)
 
     bounding_box = Coordinates.bounding_box(id)
 
+    dam_storage_hm3 =
+      case Enum.find(summary, fn s -> s.site_id == id end) do
+        nil ->
+          nil
+
+        s ->
+          pct = s.observed_value |> Decimal.new() |> Decimal.to_float()
+          cap = s.total_capacity |> Decimal.new() |> Decimal.to_float()
+          (cap * pct / 100) |> round() |> Integer.to_string()
+      end
+
     socket =
       socket
-      |> assign(dam: dam)
-      |> assign(current_capacity: current_storage)
+      |> assign(basin_id: basin_id)
+      |> assign(basin_summary: summary)
       |> assign(basin_card: nil)
-      |> assign(basin_detail_class: "sidenav detail_class_invisible")
-      |> assign(dam_detail_class: "sidenav detail_class_visible")
-      |> assign(search_results_class: "dropdown-content detail_class_invisible")
-      |> assign(dam_usage_types: usage_types)
+      |> assign(dam: dam)
+      |> assign(dam_card_tab: "chart")
+      |> assign(current_capacity: current_storage)
+      |> assign(dam_storage_hm3: dam_storage_hm3)
+      |> assign(dam_usage_types: usage_types_dam)
       |> assign(last_data_point: last_data_point)
       |> assign(last_elevation: last_elevation)
       |> assign(last_elevation_date: elevation_date)
-      |> push_event("draw", %{"spec" => spec})
 
-    if(params["nz"]) do
+    if params["nz"] do
       {:noreply, socket}
     else
       {:noreply,
@@ -143,10 +116,49 @@ defmodule BarragensptWeb.HomepageV2Live do
     end
   end
 
+  def handle_params(%{"basin_id" => id}, _url, socket) do
+    Logger.info("-------------> handle_params basin_id: #{id}")
+    usage_types = Map.get(socket.assigns, :selected_usage_types, [])
+
+    summary = Basins.summary_stats(id, usage_types)
+    daily_stats = Basins.daily_stats_for_basin(id, usage_types, 12)
+    monthly_stats = Basins.monthly_stats_for_basin(id, usage_types, 2)
+    bounding_box = Dams.bounding_box(id)
+
+    %{name: basin_name} = Basins.get(id)
+
+    socket =
+      socket
+      |> assign(basin_id: id)
+      |> assign(basin_summary: summary)
+      |> assign(basin_card: build_basin_card(basin_name, summary, daily_stats, monthly_stats))
+      |> assign(dam: nil)
+      |> push_event("zoom_map", %{basin_id: id, bounding_box: bounding_box})
+
+    {:noreply, socket}
+  end
+
+  def handle_params(%{"basin_id" => id, "country" => "es"}, _url, socket) do
+    %{id: _id, basin_name: basin_name, current_pct: current_pct, capacity_color: capacity_color} =
+      Barragenspt.Hydrometrics.EmbalsesNet.basin_info(id)
+
+    socket =
+      socket
+      |> assign(basin_id: id)
+      |> assign(spain: true)
+      |> assign(basin: basin_name)
+      |> assign(current_pct: current_pct)
+      |> assign(capacity_color: capacity_color)
+      |> assign(basin_card: build_basin_card_spain(basin_name, current_pct, capacity_color))
+      |> then(&%{&1 | assigns: Map.delete(&1.assigns, :dam)})
+      |> assign(basin_detail_class: "sidenav sidenav-short detail_class_visible")
+      |> assign(dam_detail_class: "sidenav sidenav-short detail_class_invisible")
+
+    {:noreply, socket}
+  end
+
   def handle_params(_params, _url, socket) do
     Logger.info("------> handle_params")
-    socket = %{socket | assigns: Map.delete(socket.assigns, :basin)}
-    socket = %{socket | assigns: Map.delete(socket.assigns, :basin_id)}
 
     visible_site_ids =
       socket.assigns
@@ -158,6 +170,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       socket
       |> push_event("zoom_map", %{})
       |> assign(basin_card: nil)
+      |> assign(dam: nil)
       |> assign(basin_detail_class: "sidenav detail_class_invisible")
       |> assign(dam_detail_class: "sidenav detail_class_invisible")
       |> assign(river_detail_class: "sidenav detail_class_invisible")
@@ -628,6 +641,10 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> push_event("draw", %{"spec" => spec})
 
     {:noreply, socket}
+  end
+
+  def handle_event("dam_card_tab", %{"tab" => tab}, socket) do
+    {:noreply, assign(socket, :dam_card_tab, tab)}
   end
 
   defp get_vega_spec(data) do

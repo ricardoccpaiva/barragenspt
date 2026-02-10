@@ -39,6 +39,7 @@ defmodule BarragensptWeb.Router do
       live("/", HomepageLive, :index)
       live("/v2", HomepageV2Live, :index)
       live("/v2/basins/:basin_id", HomepageV2Live, :index)
+      live("/v2/basins/:basin_id/dams/:dam_id", HomepageV2Live, :index)
     end
   end
 
