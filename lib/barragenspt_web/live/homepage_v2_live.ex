@@ -49,9 +49,6 @@ defmodule BarragensptWeb.HomepageV2Live do
     Logger.info("-------------> handle_params basin_id: #{basin_id}, dam_id: #{id}")
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
     summary = Basins.summary_stats(basin_id, usage_types)
-    daily_stats = Basins.daily_stats_for_basin(basin_id, usage_types, 12)
-    monthly_stats = Basins.monthly_stats_for_basin(basin_id, usage_types, 2)
-    %{name: basin_name} = Basins.get(basin_id)
 
     dam = Dams.get(id)
 
