@@ -166,11 +166,39 @@ window.addEventListener('phx:draw_basins', (e) => {
 
 })
 
+var DAM_ICON_ID = 'dam-icon';
+var DAM_ICON_LIGHT_GRAY = '#9ca3af';
+//var DAM_ICON_SVG_URL = '/images/water-svgrepo-com.svg';
+var DAM_ICON_SVG_URL = '/images/pin-svgrepo-com.svg';
+
+
+function ensureDamIconImage(callback) {
+    if (!map.getStyle()) {
+        map.once('load', function () { ensureDamIconImage(callback); });
+        return;
+    }
+    if (map.hasImage(DAM_ICON_ID)) {
+        callback(true);
+        return;
+    }
+    // Load SVG over HTTP and register it directly as an image.
+    var img = new Image();
+    img.onload = function () {
+        try {
+            map.addImage(DAM_ICON_ID, img);
+            callback(true);
+        } catch (e) {
+            callback(false);
+        }
+    };
+    img.onerror = function () { callback(false); };
+    img.src = DAM_ICON_SVG_URL;
+}
+
 window.addEventListener('phx:draw_dams', (e) => {
     topbar.hide();
 
     var dams = e.detail.dams;
-
     var damsGeoJSON = {
         type: 'FeatureCollection',
         features: []
@@ -186,19 +214,28 @@ window.addEventListener('phx:draw_dams', (e) => {
             },
             geometry: { type: 'Point', coordinates: [dam.coordinates.lon, dam.coordinates.lat] }
         });
-    })
+    });
 
-    map.addSource('dams', { type: 'geojson', data: damsGeoJSON });
-    map.addLayer({
-        id: 'dams-circles',
-        type: 'circle',
-        source: 'dams',
-        paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 6, 6, 10, 12],
-            'circle-color': ['get', 'color'],
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#fff'
-        }
+    // Remove existing dams layers/source so we can re-add (e.g. on re-run)
+    ['dams-ring-inner', 'dams-ring-outer', 'dams-symbol'].forEach(function (id) {
+        if (map.getLayer(id)) map.removeLayer(id);
+    });
+    if (map.getSource('dams')) map.removeSource('dams');
+
+    ensureDamIconImage(function (imageReady) {
+        if (!imageReady) return;
+        map.addSource('dams', { type: 'geojson', data: damsGeoJSON });
+        map.addLayer({
+            id: 'dams-symbol',
+            type: 'symbol',
+            source: 'dams',
+            layout: {
+                'icon-image': DAM_ICON_ID,
+                'icon-size': 24 / 800,
+                'icon-allow-overlap': true,
+                'icon-ignore-placement': true
+            }
+        });
     });
 })
 
