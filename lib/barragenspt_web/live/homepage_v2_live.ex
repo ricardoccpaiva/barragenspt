@@ -25,8 +25,8 @@ defmodule BarragensptWeb.HomepageV2Live do
         dam: nil
       )
       |> push_event("zoom_map", %{})
-      |> push_event("draw_dams", %{dams: dams})
       |> push_event("draw_basins", %{basins: basins})
+      |> push_event("draw_dams", %{dams: dams})
 
     {:ok, socket}
   end
