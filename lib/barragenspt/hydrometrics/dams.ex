@@ -82,7 +82,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         on: d.site_id == b.site_id,
         on: d.site_id == du.site_id,
         where: ^filter,
-        select: %{id: d.site_id, name: d.name, current_storage: b.current_storage}
+        select: %{id: d.site_id, name: d.name, basin_id: d.basin_id, current_storage: b.current_storage}
       )
 
     query

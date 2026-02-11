@@ -15,6 +15,18 @@ defmodule Barragenspt.Mappers.Colors do
     end
   end
 
+  def lookup_index(pct) do
+    cond do
+      0 < pct and pct < 21 -> 1
+      21 <= pct and pct <= 41 -> 2
+      41 <= pct and pct <= 51 -> 3
+      51 <= pct and pct <= 61 -> 4
+      61 <= pct and pct <= 81 -> 5
+      81 <= pct and pct <= 100 -> 6
+      true -> 0
+    end
+  end
+
   def lookup(basin_id) when is_binary(basin_id) do
     {id, ""} = Integer.parse(basin_id)
     lookup(id)

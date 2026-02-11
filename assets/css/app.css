@@ -244,3 +244,49 @@ html {
     overflow-y: auto;
   }
 }
+
+.badge-capacity {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.375rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  border-width: 1px;
+}
+
+.badge-capacity-p1 {
+  background-color: #FFADAD;
+  border-color: color-mix(in srgb, #FFADAD 88%, black);
+  color: color-mix(in srgb, #FFADAD 50%, black);
+}
+
+.badge-capacity-p2 {
+  background-color: #FFD6A5;
+  border-color: color-mix(in srgb, #FFD6A5 88%, black);
+  color: color-mix(in srgb, #FFD6A5 50%, black);
+}
+
+.badge-capacity-p3 {
+  background-color: #FDFFB6;
+  border-color: color-mix(in srgb, #FDFFB6 88%, black);
+  color: color-mix(in srgb, #FDFFB6 50%, black);
+}
+
+.badge-capacity-p4 {
+  background-color: #CAFFBF;
+  border-color: color-mix(in srgb, #CAFFBF 88%, black);
+  color: color-mix(in srgb, #CAFFBF 50%, black);
+}
+
+.badge-capacity-p5 {
+  background-color: #A6D8FF;
+  border-color: color-mix(in srgb, #A6D8FF 88%, black);
+  color: color-mix(in srgb, #A6D8FF 50%, black);
+}
+
+.badge-capacity-p6 {
+  background-color: #72B6F9;
+  border-color: color-mix(in srgb, #72B6F9 88%, black);
+  color: color-mix(in srgb, #72B6F9 50%, black);
+}

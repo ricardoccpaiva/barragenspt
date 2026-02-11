@@ -41,55 +41,80 @@
 
   <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white">
     <h3 class="text-sm font-semibold text-slate-800">Pesquisar barragens</h3>
-    <div class="search-wrapper">
-      <input id="damSearchInput" type="search" placeholder="Nome da barragem..."
+    <div class="search-wrapper relative">
+      <input id="damSearchInput" type="search" placeholder="Nome da barragem..." phx-hook="SearchDam"
         class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
-      <div id="damSearchResults" class="search-results hidden"></div>
+      <div id="damSearchResults" class={"absolute left-0 right-0 top-full mt-1 z-50 max-h-60 overflow-y-auto rounded-xl
+        border border-slate-200 bg-white shadow-lg py-1 #{if @search_term=="" , do: "hidden" , else: "" }"}>
+        <%= if @dam_names !=nil && @dam_names !=[] do %>
+          <ul class="py-0 list-none m-0">
+            <%= for d <- @dam_names do %>
+              <li>
+                <a href={~p"/v2/basins/#{d.basin_id}/dams/#{d.id}"} data-phx-link="patch" data-phx-link-state="push"
+                  class="flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-slate-800 hover:bg-slate-50 no-underline">
+                  <span>
+                    <%= d.name %>
+                  </span>
+                  <span class={"badge-capacity badge-capacity-p#{d.colors_index}"}>
+                    <%= if is_number(d.current_storage), do: "#{round(d.current_storage)}%" , else: "—" %>
+                  </span> </a>
+              </li>
+              <% end %>
+          </ul>
+          <% else %>
+            <%= if @dams !=nil && @dams==[] do %>
+              <p class=" px-3 py-2.5 text-sm text-slate-500 m-0">Nenhum resultado.</p>
+              <% end %>
+                <% end %>
+      </div>
     </div>
   </div>
 
-  <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section river-section">
-    <h3 class="text-sm font-semibold text-slate-800">Rios</h3>
-    <select id="riverSelect" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white">
-      <option value="">Selecionar rio...</option>
-      <option>Douro</option>
-      <option>Tejo</option>
-      <option>Mondego</option>
-      <option>Guadiana</option>
-      <option>Sado</option>
-    </select>
-  </div>
+  <div class={"transition-all duration-200 space-y-4 #{if @search_term !="" ,
+    do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
+    <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section river-section">
+      <h3 class="text-sm font-semibold text-slate-800">Rios</h3>
+      <select id="riverSelect" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white">
+        <option value="">Selecionar rio...</option>
+        <option>Douro</option>
+        <option>Tejo</option>
+        <option>Mondego</option>
+        <option>Guadiana</option>
+        <option>Sado</option>
+      </select>
+    </div>
 
-  <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
-    <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
-    <label class="flex items-center justify-between text-sm">
-      <span>Bacias</span>
-      <input type="checkbox" class="toggle" checked>
-    </label>
-    <label class="flex items-center justify-between text-sm">
-      <span>Barragens</span>
-      <input type="checkbox" class="toggle" checked>
-    </label>
-    <label class="flex items-center justify-between text-sm">
-      <span>Espanha</span>
-      <input type="checkbox" class="toggle">
-    </label>
-  </div>
+    <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
+      <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
+      <label class="flex items-center justify-between text-sm">
+        <span>Bacias</span>
+        <input type="checkbox" class="toggle" checked>
+      </label>
+      <label class="flex items-center justify-between text-sm">
+        <span>Barragens</span>
+        <input type="checkbox" class="toggle" checked>
+      </label>
+      <label class="flex items-center justify-between text-sm">
+        <span>Espanha</span>
+        <input type="checkbox" class="toggle">
+      </label>
+    </div>
 
-  <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
-    <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
-    <label class="flex items-center justify-between text-sm">
-      <span>PDSI</span>
-      <input type="checkbox" class="toggle">
-    </label>
-    <label class="flex items-center justify-between text-sm">
-      <span>SMI</span>
-      <input type="checkbox" class="toggle">
-    </label>
-    <label class="flex items-center justify-between text-sm">
-      <span>Chuva</span>
-      <input type="checkbox" class="toggle">
-    </label>
+    <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
+      <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
+      <label class="flex items-center justify-between text-sm">
+        <span>PDSI</span>
+        <input type="checkbox" class="toggle">
+      </label>
+      <label class="flex items-center justify-between text-sm">
+        <span>SMI</span>
+        <input type="checkbox" class="toggle">
+      </label>
+      <label class="flex items-center justify-between text-sm">
+        <span>Chuva</span>
+        <input type="checkbox" class="toggle">
+      </label>
+    </div>
   </div>
 </aside>
 
@@ -150,18 +175,18 @@
 
         <div class="pt-1">
           <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">
-            <button type="button" phx-click="dam_card_tab" phx-value-tab="chart"
-              class={"rounded-full px-3 py-1 #{if @dam_card_tab == "chart", do: "bg-white text-slate-700 shadow-sm", else: ""}"}>
+            <button type="button" phx-click="dam_card_tab" phx-value-tab="chart" class={[ "rounded-full px-3 py-1" ,
+              @dam_card_tab=="chart" && "bg-white text-slate-700 shadow-sm" ]}>
               Gráfico
             </button>
-            <button type="button" phx-click="dam_card_tab" phx-value-tab="metadata"
-              class={"rounded-full px-3 py-1 #{if @dam_card_tab == "metadata", do: "bg-white text-slate-700 shadow-sm", else: ""}"}>
+            <button type="button" phx-click="dam_card_tab" phx-value-tab="metadata" class={[ "rounded-full px-3 py-1" ,
+              @dam_card_tab=="metadata" && "bg-white text-slate-700 shadow-sm" ]}>
               Metadados
             </button>
           </div>
         </div>
 
-        <div :if={@dam_card_tab == "chart"} class="pt-2 space-y-2">
+        <div :if={@dam_card_tab=="chart" } class="pt-2 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-xs font-medium text-slate-600">Evolução</span>
             <select id="timeWindow" class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
@@ -174,28 +199,38 @@
             <canvas id="damChart"></canvas>
           </div>
           <div class="flex gap-2 text-[10px] text-slate-500">
-            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
-            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
-            <span class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
+            <span class="inline-flex items-center gap-1"><span
+                class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
+            <span class="inline-flex items-center gap-1"><span
+                class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
+            <span class="inline-flex items-center gap-1"><span
+                class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
           </div>
         </div>
 
-        <div :if={@dam_card_tab == "metadata"} class="pt-2">
+        <div :if={@dam_card_tab=="metadata" } class="pt-2">
           <div class="max-h-[42vh] overflow-y-auto rounded-xl bg-white border border-slate-100 text-[13px]">
             <%= for {section_name, fields} <- Map.get(@dam, :metadata, %{}) || %{}, is_map(fields) do %>
               <div class="px-4 py-3 border-b border-slate-100 last:border-b-0">
-                <p class="text-sm font-bold text-slate-900 mb-2"><%= section_name %></p>
+                <p class="text-sm font-bold text-slate-900 mb-2">
+                  <%= section_name %>
+                </p>
                 <dl class="space-y-1.5 text-slate-600">
                   <%= for {k, v} <- fields do %>
-                    <% val = if is_binary(v), do: v |> String.trim("\"") |> String.trim(",") |> String.trim(), else: inspect(v) %>
-                    <div>
-                      <span class="font-semibold text-slate-800"><%= k %>:</span>
-                      <span class="text-slate-600"><%= val %></span>
-                    </div>
-                  <% end %>
+                    <% val=if is_binary(v), do: v |> String.trim("\"") |> String.trim(",") |> String.trim(), else:
+                      inspect(v) %>
+                      <div>
+                        <span class="font-semibold text-slate-800">
+                          <%= k %>:
+                        </span>
+                        <span class="text-slate-600">
+                          <%= val %>
+                        </span>
+                      </div>
+                      <% end %>
                 </dl>
               </div>
-            <% end %>
+              <% end %>
           </div>
         </div>
     </div>

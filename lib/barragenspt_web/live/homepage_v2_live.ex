@@ -22,7 +22,9 @@ defmodule BarragensptWeb.HomepageV2Live do
         usage_types: usage_types,
         dams: dams,
         basin_card: nil,
-        dam: nil
+        dam: nil,
+        dam_names: [],
+        search_term: ""
       )
       |> push_event("zoom_map", %{})
       |> push_event("draw_basins", %{basins: basins})
@@ -93,6 +95,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(basin_summary: summary)
       |> assign(basin_card: nil)
       |> assign(dam: dam)
+      |> assign(dam_names: nil)
       |> assign(dam_card_tab: "chart")
       |> assign(current_capacity: current_storage)
       |> assign(dam_storage_hm3: dam_storage_hm3)
@@ -548,32 +551,30 @@ defmodule BarragensptWeb.HomepageV2Live do
   def handle_event("search_dam", %{"search_term" => search_term}, socket) do
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
 
-    dam_names =
+    dams =
       case search_term do
         "" -> []
         _ -> Barragenspt.Hydrometrics.Dams.search(search_term, usage_types)
       end
 
-    site_ids = Enum.map(dam_names, fn %{id: id, name: _name} -> id end)
-    dams_current_storage = Dams.current_storage_for_sites(site_ids)
+    dams =
+      Enum.map(dams, fn dam = %{current_storage: current_storage} ->
+        storage_float =
+          case current_storage do
+            %Decimal{} -> current_storage |> Decimal.to_float()
+            n when is_number(n) -> n
+            _ -> 0
+          end
 
-    dam_names =
-      Enum.map(dam_names, fn %{id: id, name: name} ->
-        site_storage_info =
-          Enum.find(dams_current_storage, %{current_storage: 0}, fn dcs -> dcs.site_id == id end)
-
-        %{
-          id: id,
-          name: name,
-          current_storage: site_storage_info.current_storage,
-          current_storage_color: Colors.lookup_capacity(site_storage_info.current_storage)
-        }
+        dam
+        |> Map.put(:colors_index, Colors.lookup_index(storage_float))
+        |> Map.put(:current_storage, storage_float)
       end)
 
     socket =
       socket
-      |> assign(dam_names: dam_names)
-      |> assign(search_results_class: "dropdown-content")
+      |> assign(dam_names: dams)
+      |> assign(search_term: String.trim(search_term))
 
     {:noreply, socket}
   end
