@@ -251,7 +251,7 @@ window.addEventListener('phx:zoom_map', (e) => {
                 map.setPaintProperty(item.id, 'fill-opacity', areBasinsVisible ? 0.7 : 0);
             }
             else if (item.id.includes('_fill')) {
-                map.setPaintProperty(item.id, 'fill-opacity', 0);
+                map.setPaintProperty(item.id, 'fill-opacity', 0.2);
             }
         })
     }
