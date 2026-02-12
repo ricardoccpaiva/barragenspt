@@ -3,11 +3,9 @@ defmodule Barragenspt.Models.Hydrometrics.SiteCurrentStorage do
 
   @primary_key false
   schema "site_current_storage" do
-    field :basin_id, :string
     field :site_id, :string
-    field :site_name, :string
-    field :basin_name, :string
-    field :current_storage, :decimal
+    field :current_storage_value, :decimal
+    field :current_storage_pct, :decimal
     field :colected_at, :naive_datetime
   end
 end

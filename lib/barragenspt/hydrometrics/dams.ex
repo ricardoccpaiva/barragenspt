@@ -28,15 +28,17 @@ defmodule Barragenspt.Hydrometrics.Dams do
       from(b in SiteCurrentStorage,
         join: d in Dam,
         on: b.site_id == d.site_id,
-        where: b.current_storage <= 100 and b.site_id == ^id,
+        where: b.current_storage_pct <= 100 and b.site_id == ^id,
         select: %{
           basin_id: d.basin_id,
           basin_name: d.basin,
           site_id: b.site_id,
           site_name: d.name,
-          current_storage: fragment("round(?, 1)", b.current_storage),
+          current_storage_pct: fragment("round(?, 1)", b.current_storage_pct),
+          current_storage_value: fragment("round(?, 1)", b.current_storage_value),
           colected_at: b.colected_at,
-          metadata: d.metadata
+          metadata: d.metadata,
+          total_capacity: d.total_capacity
         }
       )
     )
@@ -82,7 +84,12 @@ defmodule Barragenspt.Hydrometrics.Dams do
         on: d.site_id == b.site_id,
         on: d.site_id == du.site_id,
         where: ^filter,
-        select: %{id: d.site_id, name: d.name, basin_id: d.basin_id, current_storage: b.current_storage}
+        select: %{
+          id: d.site_id,
+          name: d.name,
+          basin_id: d.basin_id,
+          current_storage: b.current_storage_pct
+        }
       )
 
     query
@@ -357,10 +364,10 @@ defmodule Barragenspt.Hydrometrics.Dams do
   def current_storage_for_sites(site_ids) when is_list(site_ids) do
     Repo.all(
       from(b in SiteCurrentStorage,
-        where: b.site_id in ^site_ids and b.current_storage <= 100,
+        where: b.site_id in ^site_ids and b.current_storage_pct <= 100,
         select: %{
           site_id: b.site_id,
-          current_storage: fragment("round(?, 1)", b.current_storage)
+          current_storage: fragment("round(?, 1)", b.current_storage_pct)
         }
       )
     )
@@ -370,9 +377,9 @@ defmodule Barragenspt.Hydrometrics.Dams do
   def current_storage(site_id) when is_binary(site_id) do
     Repo.one(
       from(b in SiteCurrentStorage,
-        where: b.site_id == ^site_id and b.current_storage <= 100,
+        where: b.site_id == ^site_id and b.current_storage_pct <= 100,
         select: %{
-          current_storage: fragment("round(?, 1)", b.current_storage)
+          current_storage: fragment("round(?, 1)", b.current_storage_pct)
         }
       )
     )
@@ -563,13 +570,13 @@ defmodule Barragenspt.Hydrometrics.Dams do
       from(b in SiteCurrentStorage,
         join: d in Dam,
         on: b.site_id == d.site_id,
-        where: b.current_storage <= 100,
+        where: b.current_storage_pct <= 100,
         select: %{
           basin_id: d.basin_id,
           basin_name: d.basin,
           site_id: b.site_id,
           site_name: d.name,
-          current_storage: fragment("round(?, 1)", b.current_storage),
+          current_storage: fragment("round(?, 1)", b.current_storage_pct),
           colected_at: b.colected_at,
           metadata: d.metadata
         }
@@ -585,14 +592,14 @@ defmodule Barragenspt.Hydrometrics.Dams do
         join: d in Dam,
         on: b.site_id == d.site_id,
         where:
-          b.current_storage <= 100 and
+          b.current_storage_pct <= 100 and
             du.usage_name in ^usage_types,
         select: %{
           basin_id: d.basin_id,
           basin_name: d.basin,
           site_id: b.site_id,
           site_name: d.name,
-          current_storage: fragment("round(?, 1)", b.current_storage),
+          current_storage: fragment("round(?, 1)", b.current_storage_pct),
           colected_at: b.colected_at,
           metadata: d.metadata
         }
