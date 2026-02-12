@@ -47,19 +47,9 @@ defmodule BarragensptWeb.HomepageV2Live do
   end
 
   def handle_params(%{"basin_id" => basin_id, "dam_id" => id} = params, _url, socket) do
-    usage_types = Map.get(socket.assigns, :selected_usage_types, [])
-    summary = Basins.summary_stats(basin_id, usage_types)
-
     dam = Dams.get(id)
-
-    %{current_storage: current_storage} = Dams.current_storage(id)
-    current_storage_color = Colors.lookup_capacity(current_storage)
-
-    last_data_point =
-      id
-      |> Dams.last_data_point()
-      |> then(fn %{last_data_point: last_data_point} -> last_data_point end)
-      |> Timex.format!("{D}/{M}/{YYYY}")
+    current_storage_color = Colors.lookup_capacity(dam.current_storage_pct)
+    last_data_point = Timex.format!(dam.colected_at, "{D}/{M}/{YYYY}")
 
     %{value: last_elevation, colected_at: elevation_date} =
       case Dams.last_elevation(id) do
@@ -76,32 +66,21 @@ defmodule BarragensptWeb.HomepageV2Live do
 
     bounding_box = Coordinates.bounding_box(id)
 
-    dam_storage_hm3 =
-      case Enum.find(summary, fn s -> s.site_id == id end) do
-        nil ->
-          nil
-
-        s ->
-          pct = s.observed_value |> Decimal.new() |> Decimal.to_float()
-          cap = s.total_capacity |> Decimal.new() |> Decimal.to_float()
-          (cap * pct / 100) |> round() |> Integer.to_string()
-      end
-
     socket =
       socket
       |> assign(basin_id: basin_id)
-      |> assign(basin_summary: summary)
       |> assign(basin_card: nil)
       |> assign(dam: dam)
       |> assign(dam_names: [])
       |> assign(search_term: "")
       |> assign(dam_card_tab: "chart")
-      |> assign(current_capacity: current_storage)
-      |> assign(dam_storage_hm3: dam_storage_hm3)
+      |> assign(current_capacity: dam.current_storage_pct)
+      |> assign(dam_storage_hm3: dam.current_storage_value)
       |> assign(dam_usage_types: usage_types_dam)
       |> assign(last_data_point: last_data_point)
       |> assign(last_elevation: last_elevation)
       |> assign(last_elevation_date: elevation_date)
+      |> assign(current_storage_color: current_storage_color)
 
     if params["nz"] do
       {:noreply, socket}
@@ -109,8 +88,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       {:noreply,
        push_event(socket, "zoom_map", %{
          site_id: id,
-         bounding_box: bounding_box,
-         current_storage_color: current_storage_color
+         bounding_box: bounding_box
        })}
     end
   end
