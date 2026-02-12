@@ -3,7 +3,6 @@ defmodule BarragensptWeb.HomepageV2Live do
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Geo.Coordinates
   alias Barragenspt.Hydrometrics.{Dams, Basins}
-  require Logger
 
   def mount(_, _session, socket) do
     dams =
@@ -48,7 +47,6 @@ defmodule BarragensptWeb.HomepageV2Live do
   end
 
   def handle_params(%{"basin_id" => basin_id, "dam_id" => id} = params, _url, socket) do
-    Logger.info("-------------> handle_params basin_id: #{basin_id}, dam_id: #{id}")
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
     summary = Basins.summary_stats(basin_id, usage_types)
 
@@ -118,7 +116,6 @@ defmodule BarragensptWeb.HomepageV2Live do
   end
 
   def handle_params(%{"basin_id" => id}, _url, socket) do
-    Logger.info("-------------> handle_params basin_id: #{id}")
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
 
     summary = Basins.summary_stats(id, usage_types)
@@ -163,8 +160,6 @@ defmodule BarragensptWeb.HomepageV2Live do
   end
 
   def handle_params(_params, _url, socket) do
-    Logger.info("------> handle_params")
-
     visible_site_ids =
       socket.assigns
       |> Map.get(:selected_usage_types, [])
