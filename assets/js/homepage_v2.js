@@ -7,11 +7,9 @@ import "./basin_chart"
 let Hooks = { MetricsEvolution }
 
 function getStorageColor(percentage) {
-    console.log('getStorageColor', percentage);
     let value = Number(percentage);
     if (Number.isNaN(value)) return "#94a3b8";
     value = Math.max(0, Math.min(100, value));
-    console.log('value', value);
     if (value <= 100) return "#1c9dff";
     if (value <= 80) return "#a6d8ff";
     if (value <= 50) return "#c2faaa";
@@ -118,8 +116,6 @@ window.liveSocket = liveSocket
 window.addEventListener('phx:draw_basins', (e) => {
     topbar.hide();
 
-    console.log('phx:draw_basins', e.detail.basins);
-
     var basins = e.detail.basins;
 
     basins.forEach(function (item) {
@@ -151,7 +147,7 @@ window.addEventListener('phx:draw_basins', (e) => {
 
         map.on('click', fill_layer_id, (e) => {
             let basin_id = e.features[0].source;
-            console.log('basin clicked', { basin_id: basin_id, layer_id: fill_layer_id });
+
             navigateToBasin(basin_id);
         });
 
@@ -367,6 +363,37 @@ const map = new maplibregl.Map({
     zoom: 5
 });
 
+const loadReservoir = (site_id, current_storage_color) => {
+    var fill_layer_id = site_id + '_reservoir_fill'
+    var source_id = site_id + '_reservoir_source';
+
+    if (map.getSource(source_id) == null) {
+        map.addSource(source_id, { type: 'geojson', data: '/geojson/reservoirs/' + site_id + '.geojson' });
+    }
+
+    map.addLayer({
+        'id': fill_layer_id,
+        'type': 'fill',
+        'source': source_id,
+        'layout': {},
+        'paint': {
+            'fill-color': current_storage_color,
+            'fill-opacity': 0.8
+        }
+    });
+
+    map.addLayer({
+        'id': site_id + '_reservoir_outline',
+        'type': 'line',
+        'source': source_id,
+        'layout': {},
+        'paint': {
+            'line-color': '#000',
+            'line-width': 1
+        }
+    });
+}
+
 map.addControl(new maplibregl.NavigationControl());
 
 map.addControl(
@@ -378,7 +405,6 @@ map.addControl(
         showUserHeading: true
     })
 );
-
 
 map.on('idle', (e) => {
     topbar.hide();
