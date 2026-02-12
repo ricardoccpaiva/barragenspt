@@ -248,7 +248,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Repo.all()
     |> Stream.map(fn {value, date} ->
       %{
-        value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
+        value: value |> Decimal.round(1) |> Decimal.to_float(),
         date: date
       }
     end)

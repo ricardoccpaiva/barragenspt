@@ -65,6 +65,7 @@ defmodule BarragensptWeb.HomepageV2Live do
     usage_types_dam = Dams.usage_types(dam.site_id)
 
     bounding_box = Coordinates.bounding_box(id)
+    chart_series = build_dam_chart_series_for_period(id, "d60")
 
     socket =
       socket
@@ -81,6 +82,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(last_elevation: last_elevation)
       |> assign(last_elevation_date: elevation_date)
       |> assign(current_storage_color: current_storage_color)
+      |> push_event("dam_chart_series", %{series: chart_series})
 
     if params["nz"] do
       {:noreply, socket}
@@ -409,6 +411,65 @@ defmodule BarragensptWeb.HomepageV2Live do
     end
   end
 
+  # Fetch only the data needed for the given period (limits DB query by time window).
+  @dam_chart_period_config %{
+    "d7" => {:daily, 1, 7, "%d/%m"},
+    "d14" => {:daily, 1, 14, "%d/%m"},
+    "d30" => {:daily, 1, 30, "%d/%m"},
+    "d60" => {:daily, 2, 60, "%d/%m"},
+    "d180" => {:daily, 6, 180, "%d/%m"},
+    "y2" => {:monthly, 2, 24, "%m/%Y"},
+    "y5" => {:monthly, 5, 60, "%m/%Y"},
+    "y10" => {:monthly, 10, 120, "%m/%Y"},
+    "ymax" => {:monthly, 50, nil, "%m/%Y"}
+  }
+
+  defp build_dam_chart_series_for_period(dam_id, period) do
+    {points, date_format} = fetch_points_for_period(dam_id, period)
+    series = build_series_from_points(points, date_format)
+    %{period => series}
+  end
+
+  defp fetch_points_for_period(dam_id, period)
+       when is_map_key(@dam_chart_period_config, period) do
+    {stats_type, fetch_arg, take_n, date_format} = @dam_chart_period_config[period]
+
+    points =
+      case stats_type do
+        :daily -> dam_id |> Dams.daily_stats(fetch_arg) |> Enum.map(&normalize_stat/1)
+        :monthly -> dam_id |> Dams.monthly_stats(fetch_arg) |> Enum.map(&normalize_stat/1)
+      end
+
+    points = if take_n, do: Enum.take(points, -take_n), else: points
+    {points, date_format}
+  end
+
+  defp normalize_stat(%{
+         date: date,
+         observed_value: obs,
+         historical_average: avg,
+         discharge_value: d
+       }) do
+    %{
+      date: date,
+      observed_value: to_float(obs),
+      historical_average: to_float(avg),
+      discharge_value: to_float(d)
+    }
+  end
+
+  defp build_series_from_points(points, date_format) do
+    labels = Enum.map(points, fn %{date: date} -> Calendar.strftime(date, date_format) end)
+    observed = Enum.map(points, & &1.observed_value)
+    average = Enum.map(points, & &1.historical_average)
+    discharge = Enum.map(points, & &1.discharge_value)
+    %{"labels" => labels, "observed" => observed, "average" => average, "discharge" => discharge}
+  end
+
+  defp to_float(nil), do: 0.0
+  defp to_float(%Decimal{} = d), do: d |> Decimal.to_float()
+  defp to_float(n) when is_number(n), do: n * 1.0
+
   defp prepare_dam_metadata(dam) do
     allowed_keys = [
       "Barragem",
@@ -559,191 +620,21 @@ defmodule BarragensptWeb.HomepageV2Live do
     {:noreply, socket}
   end
 
-  def handle_event("basin_change_window", %{"value" => value}, socket) do
-    id = socket.assigns.basin_id
-    usage_types = Map.get(socket.assigns, :selected_usage_types, [])
-
-    spec =
-      case value do
-        "y" <> val ->
-          {int_value, ""} = Integer.parse(val)
-
-          id
-          |> Basins.monthly_stats_for_basin(usage_types, int_value)
-          |> Enum.map(fn d ->
-            %{
-              Data: Calendar.strftime(d.date, "%b %d %Y"),
-              "% Armazenamento": d.value,
-              Tipo: d.basin
-            }
-          end)
-          |> get_vega_spec_for_basin()
-
-        "m" <> val ->
-          {int_value, ""} = Integer.parse(val)
-
-          id
-          |> Basins.daily_stats_for_basin(usage_types, int_value)
-          |> Enum.map(fn d ->
-            %{
-              Data: Calendar.strftime(d.date, "%b %d %Y"),
-              "% Armazenamento": d.value,
-              Tipo: d.basin
-            }
-          end)
-          |> get_vega_spec_for_basin()
-      end
-
-    socket =
-      socket
-      |> assign(chart_window_value: value)
-      |> push_event("draw", %{"spec" => spec})
-
-    {:noreply, socket}
-  end
-
   def handle_event("dam_change_window", %{"value" => value}, socket) do
     id = socket.assigns.dam.site_id
 
-    spec =
-      id
-      |> get_data_for_period(value)
-      |> Enum.map(fn d ->
-        %{Data: Calendar.strftime(d.date, "%b %d %Y"), "% Armazenamento": d.value, Tipo: d.basin}
-      end)
-      |> get_vega_spec()
-
     socket =
       socket
       |> assign(chart_window_value: value)
-      |> push_event("draw", %{"spec" => spec})
+      |> push_event("dam_chart_series", %{
+        series: build_dam_chart_series_for_period(id, value),
+        merge: true
+      })
 
     {:noreply, socket}
   end
 
   def handle_event("dam_card_tab", %{"tab" => tab}, socket) do
     {:noreply, assign(socket, :dam_card_tab, tab)}
-  end
-
-  defp get_vega_spec(data) do
-    VegaLite.new(width: :container, height: :container)
-    |> VegaLite.encode_field(:x, "Data", type: :temporal, title: "")
-    |> VegaLite.layers([
-      VegaLite.new()
-      |> VegaLite.data_from_values(data)
-      |> VegaLite.transform(filter: "datum.Tipo == 'Descarga'")
-      |> VegaLite.layers([
-        VegaLite.new()
-        |> VegaLite.mark(:bar),
-        VegaLite.new()
-        |> VegaLite.mark(:point)
-        |> VegaLite.transform(filter: [param: "hover", empty: false])
-      ])
-      |> VegaLite.encode_field(:y, "% Armazenamento",
-        title: "Descarga (㎥/s)",
-        type: :quantitative,
-        scale: %{zero: false}
-      )
-      |> VegaLite.encode(:color,
-        field: "Tipo",
-        type: :nominal,
-        legend: %{orient: "bottom", title: ""}
-      ),
-      VegaLite.new()
-      |> VegaLite.data_from_values(data)
-      |> VegaLite.transform(filter: "datum.Tipo != 'Descarga'")
-      |> VegaLite.layers([
-        VegaLite.new()
-        |> VegaLite.mark(:line, interpolate: :natural),
-        VegaLite.new()
-        |> VegaLite.mark(:point)
-        |> VegaLite.transform(filter: [param: "hover", empty: false])
-      ])
-      |> VegaLite.encode_field(:y, "% Armazenamento",
-        type: :quantitative,
-        scale: %{zero: false},
-        scale: %{domain: [0, 100]}
-      )
-      |> VegaLite.encode(:color,
-        field: "Tipo",
-        type: :nominal,
-        legend: %{orient: "bottom", title: ""}
-      ),
-      VegaLite.new()
-      |> VegaLite.data_from_values(data)
-      |> VegaLite.transform(pivot: "Tipo", value: "% Armazenamento", groupby: ["Data"])
-      |> VegaLite.mark(:rule)
-      |> VegaLite.encode(:opacity,
-        condition: %{value: 0.3, param: "hover", empty: false},
-        value: 0
-      )
-      |> VegaLite.encode(:tooltip, [
-        [field: "Data", type: :temporal],
-        [field: "Média", type: :quantitative],
-        [field: "Observado", type: :quantitative],
-        [field: "Descarga", type: :quantitative]
-      ])
-      |> VegaLite.param("hover",
-        select: [
-          type: :point,
-          fields: ["Data"],
-          nearest: true,
-          empty: false,
-          on: :mouseover,
-          clear: :mouseout
-        ]
-      )
-    ])
-    |> VegaLite.resolve(:scale, y: :independent)
-    |> VegaLite.to_spec()
-  end
-
-  defp get_vega_spec_for_basin(data) do
-    VegaLite.new(width: :container, height: :container)
-    |> VegaLite.encode_field(:x, "Data", type: :temporal, title: "")
-    |> VegaLite.layers([
-      VegaLite.new()
-      |> VegaLite.data_from_values(data)
-      |> VegaLite.layers([
-        VegaLite.new()
-        |> VegaLite.mark(:line, interpolate: :natural),
-        VegaLite.new()
-        |> VegaLite.mark(:point)
-        |> VegaLite.transform(filter: [param: "hover", empty: false])
-      ])
-      |> VegaLite.encode_field(:y, "% Armazenamento",
-        type: :quantitative,
-        scale: %{zero: false},
-        scale: %{domain: [0, 100]}
-      )
-      |> VegaLite.encode(:color,
-        field: "Tipo",
-        type: :nominal,
-        legend: %{orient: "bottom", title: ""}
-      ),
-      VegaLite.new()
-      |> VegaLite.data_from_values(data)
-      |> VegaLite.transform(pivot: "Tipo", value: "% Armazenamento", groupby: ["Data"])
-      |> VegaLite.mark(:rule)
-      |> VegaLite.encode(:opacity,
-        condition: %{value: 0.3, param: "hover", empty: false},
-        value: 0
-      )
-      |> VegaLite.encode(:tooltip, [
-        [field: "Data", type: :temporal],
-        [field: "Média", type: :quantitative],
-        [field: "Observado", type: :quantitative]
-      ])
-      |> VegaLite.param("hover",
-        select: [
-          type: :point,
-          fields: ["Data"],
-          nearest: true,
-          on: :mouseover,
-          clear: :mouseout
-        ]
-      )
-    ])
-    |> VegaLite.to_spec()
   end
 end

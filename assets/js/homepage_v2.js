@@ -45,7 +45,7 @@ Hooks.BasinChartTimeWindow = {
 
 Hooks.DamChartTimeWindow = {
     mounted() {
-        this.el.addEventListener("input", e => {
+        this.el.addEventListener("change", e => {
             this.pushEvent("dam_change_window", { value: this.el.value });
         })
     }
