@@ -175,6 +175,10 @@
 
         <div class="pt-1">
           <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">
+            <button type="button" phx-click="dam_card_tab" phx-value-tab="realtime" class={[ "rounded-full px-3 py-1" ,
+              @dam_card_tab=="realtime" && "bg-white text-slate-700 shadow-sm" ]}>
+              Realtime
+            </button>
             <button type="button" phx-click="dam_card_tab" phx-value-tab="chart" class={[ "rounded-full px-3 py-1" ,
               @dam_card_tab=="chart" && "bg-white text-slate-700 shadow-sm" ]}>
               Armazenamento
@@ -185,7 +189,7 @@
             </button>
             <button type="button" phx-click="dam_card_tab" phx-value-tab="metadata" class={[ "rounded-full px-3 py-1" ,
               @dam_card_tab=="metadata" && "bg-white text-slate-700 shadow-sm" ]}>
-              Metadados
+              Info
             </button>
           </div>
         </div>
@@ -247,6 +251,24 @@
             <li class="inline-flex items-center gap-1"><span
                 class="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0"></span>Caudal turbinado médio diário</li>
           </ul>
+        </div>
+
+        <div id="dam-realtime-tab" :if={@dam_card_tab=="realtime" } class="pt-2 space-y-2"
+          phx-hook="DamRealtimeChartMount">
+          <span class="text-xs font-medium text-slate-600">Dados em tempo real</span>
+          <div phx-update="ignore" id="dam-realtime-chart-container">
+            <div class="rounded-xl bg-white border border-slate-100 overflow-hidden" style="height: 240px;">
+              <canvas id="damRealtimeChart"></canvas>
+            </div>
+            <ul class="text-[10px] text-slate-500 mt-1 list-none space-y-0.5">
+            <li class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full shrink-0"
+                style="background-color: #0ea5e9"></span>Volume armazenado (%)</li>
+            <li class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full shrink-0"
+                style="background-color: #10b981"></span>Caudal efluente</li>
+            <li class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full shrink-0"
+                style="background-color: #8b5cf6"></span>Caudal afluente</li>
+            </ul>
+          </div>
         </div>
 
         <div :if={@dam_card_tab=="metadata" } class="pt-2">
@@ -458,6 +480,82 @@
     window.dischargeSeries = dischargeSeries;
   });
 
+  // Gráfico tempo real (linhas: 4 séries, eixo X = tempo)
+  var realtimeChartPayload = null;
+  var realtimeChartConfig = [
+    { key: 'volume_armazenado', label: 'Volume armazenado (%)', color: '#0ea5e9', yAxisID: 'y' },
+    { key: 'caudal_efluente', label: 'Caudal efluente', color: '#10b981', yAxisID: 'y1' },
+    { key: 'caudal_afluente', label: 'Caudal afluente', color: '#8b5cf6', yAxisID: 'y1' }
+  ];
+  window.addEventListener('phx:dam_realtime_chart', function (e) {
+    realtimeChartPayload = e.detail && e.detail.rows ? e.detail.rows : null;
+    window.realtimeChartPayload = realtimeChartPayload;
+    var payload = realtimeChartPayload;
+    setTimeout(function () {
+      if (typeof updateRealtimeChart === 'function') updateRealtimeChart(payload);
+    }, 0);
+  });
+
+  var damRealtimeChart = null;
+  function updateRealtimeChart(rows) {
+    var canvas = document.getElementById('damRealtimeChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+
+    if (damRealtimeChart) { damRealtimeChart.destroy(); damRealtimeChart = null; }
+    if (!Array.isArray(rows) || rows.length === 0) return;
+
+    var labels = rows.map(function (r) { return r.data || r['data']; });
+    var datasets = realtimeChartConfig.map(function (c) {
+      var key = c.key;
+      return {
+        label: c.label,
+        data: rows.map(function (r) { return r[key]; }),
+        borderColor: c.color,
+        backgroundColor: c.color + '20',
+        tension: 0.35,
+        pointRadius: 0,
+        borderWidth: 2,
+        fill: false,
+        yAxisID: c.yAxisID || 'y1'
+      };
+    });
+    damRealtimeChart = new Chart(canvas, {
+      type: 'line',
+      data: { labels: labels, datasets: datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: true, mode: 'index', intersect: false, backgroundColor: '#fff', titleColor: '#334155', bodyColor: '#475569', borderColor: '#e2e8f0', borderWidth: 1 }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 6, font: { size: 8 } } },
+          y: {
+            type: 'linear',
+            position: 'left',
+            min: 0,
+            max: 100,
+            grid: { color: 'rgba(148,163,184,0.2)' },
+            ticks: { font: { size: 8 }, color: '#64748b' }
+          },
+          y1: {
+            type: 'linear',
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: {
+              font: { size: 8 }, color: '#64748b', callback: function (v) {
+                if (v >= 1e6) return (v / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+                if (v >= 1e3) return (v / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+                return v;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
   var damChart = null;
   function updateDamChart(series) {
     var tw = document.getElementById('timeWindow');
@@ -560,10 +658,14 @@
     if (el && chartSeries && typeof updateDamChart === 'function') updateDamChart(chartSeries);
     var elD = document.getElementById('damDischargeChart');
     if (elD && dischargeSeries && typeof updateDischargeChart === 'function') updateDischargeChart(dischargeSeries);
+    var elR = document.getElementById('damRealtimeChart');
+    if (elR && realtimeChartPayload && typeof updateRealtimeChart === 'function') updateRealtimeChart(realtimeChartPayload);
   });
   window.updateDamChart = updateDamChart;
   window.updateDischargeChart = updateDischargeChart;
+  window.updateRealtimeChart = updateRealtimeChart;
   window.chartSeries = chartSeries;
   window.dischargeSeries = dischargeSeries;
+  window.realtimeChartPayload = realtimeChartPayload;
 
 </script>

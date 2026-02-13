@@ -75,7 +75,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(dam: dam)
       |> assign(dam_names: [])
       |> assign(search_term: "")
-      |> assign(dam_card_tab: "chart")
+      |> assign(dam_card_tab: "realtime")
       |> assign(current_capacity: dam.current_storage_pct)
       |> assign(dam_storage_hm3: dam.current_storage_value)
       |> assign(dam_usage_types: usage_types_dam)
@@ -85,6 +85,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(current_storage_color: current_storage_color)
       |> push_event("dam_chart_series", %{series: chart_series})
       |> push_event("dam_discharge_series", %{series: discharge_series})
+      |> push_event("dam_realtime_chart", %{rows: Dams.realtime_series(id)})
 
     if params["nz"] do
       {:noreply, socket}
@@ -459,7 +460,12 @@ defmodule BarragensptWeb.HomepageV2Live do
         labels
       end
 
-    param_keys = ["ouput_flow_rate_daily", "tributary_daily_flow", "effluent_daily_flow", "turbocharged_daily_flow"]
+    param_keys = [
+      "ouput_flow_rate_daily",
+      "tributary_daily_flow",
+      "effluent_daily_flow",
+      "turbocharged_daily_flow"
+    ]
 
     series =
       for key <- param_keys, reduce: %{} do
@@ -670,8 +676,14 @@ defmodule BarragensptWeb.HomepageV2Live do
       if Map.has_key?(@dam_chart_period_config, value) do
         socket
         |> assign(chart_window_value: value)
-        |> push_event("dam_chart_series", %{series: build_dam_chart_series_for_period(id, value), merge: true})
-        |> push_event("dam_discharge_series", %{series: build_discharge_chart_series_for_period(id, value), merge: true})
+        |> push_event("dam_chart_series", %{
+          series: build_dam_chart_series_for_period(id, value),
+          merge: true
+        })
+        |> push_event("dam_discharge_series", %{
+          series: build_discharge_chart_series_for_period(id, value),
+          merge: true
+        })
       else
         assign(socket, :chart_window_value, value)
       end
@@ -680,6 +692,44 @@ defmodule BarragensptWeb.HomepageV2Live do
   end
 
   def handle_event("dam_card_tab", %{"tab" => tab}, socket) do
-    {:noreply, assign(socket, :dam_card_tab, tab)}
+    socket = assign(socket, :dam_card_tab, tab)
+
+    socket =
+      if tab == "realtime" do
+        series = Dams.realtime_series(socket.assigns.dam.site_id)
+
+        socket
+        |> push_event("dam_realtime_chart", %{rows: series})
+      else
+        socket
+      end
+
+    {:noreply, socket}
+  end
+
+  def format_param_name(param_name) when is_binary(param_name) do
+    param_name
+    |> String.replace("_", " ")
+    |> then(fn s -> String.capitalize(s, :default) end)
+  end
+
+  def format_param_name(_), do: "—"
+
+  def format_realtime_value(%{value: value, param_name: name}) do
+    v =
+      case value do
+        %Decimal{} -> Decimal.to_string(value)
+        n when is_number(n) -> to_string(n)
+        _ -> "—"
+      end
+
+    suffix = if String.contains?(name, "volume"), do: " %", else: ""
+    v <> suffix
+  end
+
+  def format_naive_datetime(nil), do: "—"
+
+  def format_naive_datetime(dt) do
+    Calendar.strftime(dt, "%d/%m/%Y %H:%M")
   end
 end

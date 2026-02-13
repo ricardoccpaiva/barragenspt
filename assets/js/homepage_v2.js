@@ -67,6 +67,16 @@ Hooks.DischargeChartMount = {
     }
 }
 
+Hooks.DamRealtimeChartMount = {
+    mounted() {
+        setTimeout(function () {
+            if (typeof window.updateRealtimeChart === 'function' && window.realtimeChartPayload) {
+                window.updateRealtimeChart(window.realtimeChartPayload);
+            }
+        }, 50);
+    }
+}
+
 Hooks.RiverChanged = {
     mounted() {
         this.el.addEventListener("input", e => {
