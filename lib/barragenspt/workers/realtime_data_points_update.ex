@@ -7,6 +7,8 @@ defmodule Barragenspt.Workers.RealtimeDataPointsUpdate do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: _args}) do
+    Barragenspt.RealtimeDataPointsCache.flush()
+
     from(DataPointRealtime) |> Repo.delete_all()
     site_ids = Enum.map(Dams.all(), & &1.site_id)
 

@@ -26,7 +26,8 @@ defmodule Barragenspt.Application do
       BarragensptWeb.Endpoint,
       {Oban, oban_config()},
       Barragenspt.Cache,
-      Barragenspt.MeteoDataCache
+      Barragenspt.MeteoDataCache,
+      Barragenspt.RealtimeDataPointsCache
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

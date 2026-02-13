@@ -16,6 +16,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   alias Barragenspt.Repo
   alias Barragenspt.Cache
+  alias Barragenspt.RealtimeDataPointsCache
 
   @ttl :timer.hours(1)
 
@@ -57,7 +58,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   end
 
   @decorate cacheable(
-              cache: Cache,
+              cache: RealtimeDataPointsCache,
               key: "realtime_series_#{site_id}",
               ttl: @ttl
             )
