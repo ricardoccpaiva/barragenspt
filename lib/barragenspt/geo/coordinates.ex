@@ -46,6 +46,6 @@ defmodule Barragenspt.Geo.Coordinates do
     |> then(fn [d, m, {s, ""}] -> [d, m, s] end)
     |> then(fn [d, m, s] -> [abs(d), m, s] end)
     |> then(fn [d, m, s] -> %Geocalc.DMS{hours: d, minutes: m, seconds: s, direction: dir} end)
-    |> Geocalc.DMS.to_decimal()
+    |> Geocalc.DMS.to_degrees()
   end
 end

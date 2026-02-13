@@ -3,6 +3,8 @@ defmodule Barragenspt.Workers.MapRiverToDam do
   use Oban.Worker, queue: :dams_info
   require Logger
 
+  alias Barragenspt.Models.Hydrometrics.Dam
+
   @impl Oban.Worker
   def perform(_args) do
     "resources/rivers_mapping.csv"
@@ -18,7 +20,7 @@ defmodule Barragenspt.Workers.MapRiverToDam do
 
   defp search_and_update(code, river) do
     if(river != "") do
-      query = from(d in Barragenspt.Hydrometrics.Dam, where: like(d.code, ^code))
+      query = from(d in Dam, where: like(d.code, ^code))
       dam = Barragenspt.Repo.one(query)
 
       if(dam != nil) do

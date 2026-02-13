@@ -372,7 +372,7 @@ defmodule BarragensptWeb.HomepageV2Live do
   defp trend_badge_class(change) when change < 0, do: "bg-rose-50 text-rose-700"
   defp trend_badge_class(_change), do: "bg-slate-100 text-slate-600"
 
-  defp get_data(basin_id \\ nil, usage_types \\ []) do
+  defp get_data(basin_id, usage_types) do
     Basins.summary_stats(usage_types)
     |> Enum.reject(fn {bid, _n, _cs, _v} -> basin_id && bid != basin_id end)
     |> Enum.map(fn {basin_id, name, current_storage, value} ->
@@ -386,35 +386,6 @@ defmodule BarragensptWeb.HomepageV2Live do
     end)
   end
 
-  defp get_data_for_period(id, value) do
-    case value do
-      "y" <> val ->
-        {int_value, ""} = Integer.parse(val)
-
-        id
-        |> Dams.discharge_monthly_stats(int_value)
-        |> Enum.map(fn dd -> %{value: dd.value, date: dd.date, basin: "Descarga"} end)
-        |> Kernel.++(Dams.monthly_stats(id, int_value))
-
-      "m" <> val ->
-        {int_value, ""} = Integer.parse(val)
-
-        id
-        |> Dams.discharge_stats(int_value, :month)
-        |> Enum.map(fn dd -> %{value: dd.value, date: dd.date, basin: "Descarga"} end)
-        |> Kernel.++(Dams.daily_stats(id, int_value))
-
-      "s" <> val ->
-        {int_value, ""} = Integer.parse(val)
-
-        id
-        |> Dams.discharge_stats(int_value, :week)
-        |> Enum.map(fn dd -> %{value: dd.value, date: dd.date, basin: "Descarga"} end)
-        |> Kernel.++(Dams.hourly_stats(id, int_value))
-    end
-  end
-
-  # Fetch only the data needed for the given period (limits DB query by time window).
   @dam_chart_period_config %{
     "d7" => {:daily, 1, 7, "%d/%m"},
     "d14" => {:daily, 1, 14, "%d/%m"},

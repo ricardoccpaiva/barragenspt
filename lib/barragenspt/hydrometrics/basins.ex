@@ -16,12 +16,10 @@ defmodule Barragenspt.Hydrometrics.Basins do
   alias Barragenspt.Repo
   require Logger
 
-  @ttl :timer.hours(1)
-
   @decorate cacheable(
               cache: Cache,
               key: "basins.daily_stats_for_basin_#{id}_#{Enum.join(usage_types, "-")}_#{period}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def daily_stats_for_basin(id, usage_types, period \\ 1) do
     historic_values =
@@ -82,7 +80,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
               cache: Cache,
               key:
                 "basins.monthly_stats_for_basin_#{id}_#{Enum.join(usage_types, "-")}_#{period}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def monthly_stats_for_basin(id, usage_types, period \\ 2) do
     historic_values =
@@ -133,7 +131,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
   @decorate cacheable(
               cache: Cache,
               key: "basins.summary_stats_#{Enum.join(usage_types, "-")}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def summary_stats(usage_types) do
     query =
@@ -157,7 +155,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
   @decorate cacheable(
               cache: Cache,
               key: "basins.summary_stats_#{id}_#{Enum.join(usage_types, "-")}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def summary_stats(id, usage_types) do
     filter =

@@ -130,7 +130,7 @@ defmodule Barragenspt.Services.RealtimeDataExtractor do
     row_count
   end
 
-  defp store([], site_id), do: 0
+  defp store([], _site_id), do: 0
 
   defp parse_moment(moment) when is_binary(moment) do
     # "2026-02-13 13:00:00" -> "2026-02-13T13:00:00" for ISO8601

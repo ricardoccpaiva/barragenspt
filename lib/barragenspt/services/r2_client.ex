@@ -37,8 +37,8 @@ defmodule Barragenspt.Services.R2 do
 
       {:ok, payload}
     rescue
-      e in ExAws.Error ->
-        Logger.warn("File not found: #{path}")
+      _e in ExAws.Error ->
+        Logger.warning("File not found: #{path}")
         {:error, :not_found}
     end
   end

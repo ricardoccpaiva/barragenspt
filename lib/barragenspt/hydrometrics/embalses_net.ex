@@ -3,9 +3,7 @@ defmodule Barragenspt.Hydrometrics.EmbalsesNet do
   alias Barragenspt.Cache
   alias Barragenspt.Mappers.Colors
 
-  @ttl :timer.hours(1)
-
-  @decorate cacheable(cache: Cache, key: "spain_basins", ttl: @ttl)
+  @decorate cacheable(cache: Cache, key: "spain_basins", ttl: :timer.hours(1))
   def basins_info() do
     tbl =
       Barragenspt.Services.EmbalsesNet.basins_info()

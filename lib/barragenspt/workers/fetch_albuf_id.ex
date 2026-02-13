@@ -3,6 +3,8 @@ defmodule Barragenspt.Workers.FetchAlbufIds do
   use Oban.Worker, queue: :dams_info
   require Logger
 
+  alias Barragenspt.Models.Hydrometrics.Dam
+
   @impl Oban.Worker
   def perform(_args) do
     "resources/albufs.csv"
@@ -20,7 +22,7 @@ defmodule Barragenspt.Workers.FetchAlbufIds do
     uppercase_name = name |> String.downcase() |> Recase.to_title()
     like = "%#{uppercase_name}%"
 
-    query = from(d in Barragenspt.Hydrometrics.Dam, where: like(d.name, ^like))
+    query = from(d in Dam, where: like(d.name, ^like))
     how_many_dams = query |> Barragenspt.Repo.all() |> Enum.count()
 
     case how_many_dams do

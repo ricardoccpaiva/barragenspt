@@ -18,8 +18,6 @@ defmodule Barragenspt.Hydrometrics.Dams do
   alias Barragenspt.Cache
   alias Barragenspt.RealtimeDataPointsCache
 
-  @ttl :timer.hours(1)
-
   @discharge_flow_params [
     "ouput_flow_rate_daily",
     "tributary_daily_flow",
@@ -30,7 +28,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: Cache,
               key: "adam_#{id}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def get(id) do
     Repo.one!(
@@ -60,7 +58,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: RealtimeDataPointsCache,
               key: "realtime_series_#{site_id}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def realtime_series(site_id) do
     from(d in DataPointRealtime,
@@ -117,9 +115,9 @@ defmodule Barragenspt.Hydrometrics.Dams do
     query =
       from(d in Dam,
         join: du in DamUsage,
+        on: d.site_id == du.site_id,
         join: b in SiteCurrentStorage,
         on: d.site_id == b.site_id,
-        on: d.site_id == du.site_id,
         where: ^filter,
         select: %{
           id: d.site_id,
@@ -137,7 +135,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: Cache,
               key: "river_names",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def get_river_names() do
     all()
@@ -157,7 +155,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: Cache,
               key: "dams_by_river#{river_name}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def get_dams_by_river(river_name) do
     all()
@@ -177,7 +175,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: Cache,
               key: "bounding_box-#{Enum.join(site_ids, "-")}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def bounding_box(site_ids) when is_list(site_ids) do
     query = from(d in Dam, where: d.site_id in ^site_ids)
@@ -193,7 +191,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: Cache,
               key: "bounding_box-#{basin_id}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def bounding_box(basin_id) do
     query = from(d in Dam, where: d.basin_id == ^basin_id)
@@ -209,7 +207,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: Cache,
               key: "daily_stats_for_site_#{id}-#{period}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def daily_stats(id, period \\ 2) do
     historic_values =
@@ -266,7 +264,9 @@ defmodule Barragenspt.Hydrometrics.Dams do
     }
   end
 
-  defp discharge_stats(id, period \\ 2, unit) do
+  def discharge_stats(id, period \\ 2, unit)
+
+  def discharge_stats(id, period, unit) do
     query =
       from(dp in DataPoint,
         join: d in Dam,
@@ -292,8 +292,10 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.to_list()
   end
 
-  @decorate cacheable(cache: Cache, key: "for_site_#{id}-#{period}", ttl: @ttl)
-  def monthly_stats(id, period \\ 2) do
+  def monthly_stats(id, period \\ 2)
+
+  @decorate cacheable(cache: Cache, key: "for_site_#{id}-#{period}", ttl: :timer.hours(1))
+  def monthly_stats(id, period) do
     historic_values =
       Repo.all(
         from(b in MonthlyAverageStorageBySite,
@@ -356,7 +358,9 @@ defmodule Barragenspt.Hydrometrics.Dams do
     }
   end
 
-  defp discharge_monthly_stats(id, period \\ 2) do
+  def discharge_monthly_stats(id, period \\ 2)
+
+  def discharge_monthly_stats(id, period) do
     query =
       from(dp in DataPoint,
         join: d in Dam,
@@ -475,7 +479,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: Cache,
               key: "dam_current_storage_for_sites_#{Enum.join(site_ids)}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def current_storage_for_sites(site_ids) when is_list(site_ids) do
     Repo.all(
@@ -489,7 +493,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
     )
   end
 
-  @decorate cacheable(cache: Cache, key: "dam_current_storage_#{site_id}", ttl: @ttl)
+  @decorate cacheable(cache: Cache, key: "dam_current_storage_#{site_id}", ttl: :timer.hours(1))
   def current_storage(site_id) when is_binary(site_id) do
     Repo.one(
       from(b in SiteCurrentStorage,
@@ -504,7 +508,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: Cache,
               key: "dams_current_storage_#{Enum.join(usage_types, "-")}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def current_storage(usage_types) when is_list(usage_types) do
     current_storage_filtered(usage_types)
@@ -513,7 +517,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: Cache,
               key: "hourly_stats_for_site_#{id}-#{period}",
-              ttl: @ttl
+              ttl: :timer.hours(1)
             )
   def hourly_stats(id, period \\ 1) do
     %{last_data_point: ldp} = last_data_point(id)
@@ -551,7 +555,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
-  @decorate cacheable(cache: Cache, key: "last_elevation#{site_id}", ttl: @ttl)
+  @decorate cacheable(cache: Cache, key: "last_elevation#{site_id}", ttl: :timer.hours(1))
   def last_elevation(site_id) do
     Repo.one(
       from(dp in DataPoint,
@@ -566,7 +570,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
     )
   end
 
-  @decorate cacheable(cache: Cache, key: "dam_last_data_point_#{site_id}", ttl: @ttl)
+  @decorate cacheable(cache: Cache, key: "dam_last_data_point_#{site_id}", ttl: :timer.hours(1))
   def last_data_point(site_id) do
     Repo.one(
       from(dp in DataPoint,
@@ -721,22 +725,6 @@ defmodule Barragenspt.Hydrometrics.Dams do
         }
       )
     )
-  end
-
-  defp build_average_data(historic_values, field, id, date, period) do
-    hval =
-      Enum.find(historic_values, fn h ->
-        Map.get(h, field) == id and h.period == period
-      end)
-
-    hval = hval || %{value: Decimal.new("0.0")}
-
-    %{
-      basin_id: "Média",
-      value: hval.value |> Decimal.round(1) |> Decimal.to_float(),
-      date: date,
-      basin: "Média"
-    }
   end
 
   defp query_limit(period) do
