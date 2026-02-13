@@ -218,6 +218,22 @@ function ensureDamIconImage(callback) {
     img.src = DAM_ICON_SVG_URL;
 }
 
+var damsSymbolClickBound = false;
+
+function navigateToDam(basinId, damId) {
+    const link = document.getElementById('damCardPatchLink') || (function () {
+        const a = document.createElement('a');
+        a.id = 'damCardPatchLink';
+        a.setAttribute('data-phx-link', 'patch');
+        a.setAttribute('data-phx-link-state', 'push');
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        return a;
+    })();
+    link.href = '/v2/basins/' + basinId + '/dams/' + damId;
+    link.click();
+}
+
 window.addEventListener('phx:draw_dams', (e) => {
     topbar.hide();
 
@@ -231,9 +247,11 @@ window.addEventListener('phx:draw_dams', (e) => {
         damsGeoJSON.features.push({
             type: 'Feature',
             properties: {
-                name: dam.name,
+                name: dam.dam_name || dam.name,
                 pct: dam.current_storage,
-                basin: dam.basin_name
+                basin: dam.basin_name,
+                id: dam.id,
+                basin_id: dam.basin_id
             },
             geometry: { type: 'Point', coordinates: [dam.coordinates.lon, dam.coordinates.lat] }
         });
@@ -259,6 +277,19 @@ window.addEventListener('phx:draw_dams', (e) => {
                 'icon-ignore-placement': true
             }
         });
+
+        if (!damsSymbolClickBound) {
+            damsSymbolClickBound = true;
+            map.on('click', 'dams-symbol', (ev) => {
+                const props = ev.features[0].properties;
+                const damId = props.id;
+                const basinId = props.basin_id;
+                if (damId && basinId != null) navigateToDam(basinId, damId);
+            });
+            map.on('mouseenter', 'dams-symbol', () => { map.getCanvas().style.cursor = 'pointer'; });
+            map.on('mouseleave', 'dams-symbol', () => { map.getCanvas().style.cursor = ''; });
+        }
+        map.getCanvas().style.cursor = '';
     });
 })
 
