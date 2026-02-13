@@ -9,6 +9,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
     DailyAverageStorageBySite,
     SiteCurrentStorage,
     DataPoint,
+    DataPointRealtime,
     Dam,
     DamUsage
   }
@@ -54,6 +55,34 @@ defmodule Barragenspt.Hydrometrics.Dams do
   def all do
     Repo.all(from(b in Dam))
   end
+
+  @decorate cacheable(
+              cache: Cache,
+              key: "realtime_series_#{site_id}",
+              ttl: @ttl
+            )
+  def realtime_series(site_id) do
+    from(d in DataPointRealtime,
+      where: d.site_id == ^site_id,
+      order_by: [asc: d.colected_at]
+    )
+    |> Repo.all()
+    |> Enum.group_by(& &1.colected_at)
+    |> Enum.sort_by(fn {t, _} -> t end)
+    |> Enum.map(fn {t, rows_at_time} ->
+      base = %{
+        data: Calendar.strftime(t, "%d/%m %H:%M")
+      }
+
+      Enum.reduce(rows_at_time, base, fn row, acc ->
+        Map.put(acc, String.to_atom(row.param_name), decimal_to_float(row.value))
+      end)
+    end)
+  end
+
+  defp decimal_to_float(%Decimal{} = d), do: Decimal.to_float(d)
+  defp decimal_to_float(n) when is_number(n), do: n * 1.0
+  defp decimal_to_float(_), do: nil
 
   def usage_types do
     from(b in DamUsage,
@@ -371,6 +400,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   """
   def discharge_flows_daily(site_id, period_months) do
     limit = query_limit(period_months, :month)
+
     rows =
       from(dp in DataPoint,
         where:
@@ -391,6 +421,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   """
   def discharge_flows_monthly(site_id, period_years) do
     limit = query_limit(period_years)
+
     rows =
       from(dp in DataPoint,
         where:
