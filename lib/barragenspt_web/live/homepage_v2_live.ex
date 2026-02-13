@@ -67,6 +67,9 @@ defmodule BarragensptWeb.HomepageV2Live do
     bounding_box = Coordinates.bounding_box(id)
     chart_series = build_dam_chart_series_for_period(id, "d60")
     discharge_series = build_discharge_chart_series_for_period(id, "d60")
+    realtime_rows = Dams.realtime_series(id)
+    has_realtime_data = realtime_rows != []
+    default_dam_card_tab = if has_realtime_data, do: "realtime", else: "chart"
 
     socket =
       socket
@@ -75,7 +78,8 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(dam: dam)
       |> assign(dam_names: [])
       |> assign(search_term: "")
-      |> assign(dam_card_tab: "realtime")
+      |> assign(dam_card_tab: default_dam_card_tab)
+      |> assign(has_realtime_data: has_realtime_data)
       |> assign(current_capacity: dam.current_storage_pct)
       |> assign(dam_storage_hm3: dam.current_storage_value)
       |> assign(dam_usage_types: usage_types_dam)
@@ -85,7 +89,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(current_storage_color: current_storage_color)
       |> push_event("dam_chart_series", %{series: chart_series})
       |> push_event("dam_discharge_series", %{series: discharge_series})
-      |> push_event("dam_realtime_chart", %{rows: Dams.realtime_series(id)})
+      |> push_event("dam_realtime_chart", %{rows: realtime_rows})
 
     if params["nz"] do
       {:noreply, socket}

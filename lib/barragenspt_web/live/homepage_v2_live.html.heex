@@ -175,10 +175,12 @@
 
         <div class="pt-1">
           <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">
-            <button type="button" phx-click="dam_card_tab" phx-value-tab="realtime" class={[ "rounded-full px-3 py-1" ,
-              @dam_card_tab=="realtime" && "bg-white text-slate-700 shadow-sm" ]}>
-              Realtime
-            </button>
+            <%= if @has_realtime_data do %>
+              <button type="button" phx-click="dam_card_tab" phx-value-tab="realtime" class={[ "rounded-full px-3 py-1" ,
+                @dam_card_tab=="realtime" && "bg-white text-slate-700 shadow-sm" ]}>
+                Realtime
+              </button>
+            <% end %>
             <button type="button" phx-click="dam_card_tab" phx-value-tab="chart" class={[ "rounded-full px-3 py-1" ,
               @dam_card_tab=="chart" && "bg-white text-slate-700 shadow-sm" ]}>
               Armazenamento
@@ -253,7 +255,7 @@
           </ul>
         </div>
 
-        <div id="dam-realtime-tab" :if={@dam_card_tab=="realtime" } class="pt-2 space-y-2"
+        <div id="dam-realtime-tab" :if={@has_realtime_data && @dam_card_tab=="realtime" } class="pt-2 space-y-2"
           phx-hook="DamRealtimeChartMount">
           <span class="text-xs font-medium text-slate-600">Dados em tempo real</span>
           <div phx-update="ignore" id="dam-realtime-chart-container">
