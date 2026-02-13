@@ -177,7 +177,11 @@
           <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">
             <button type="button" phx-click="dam_card_tab" phx-value-tab="chart" class={[ "rounded-full px-3 py-1" ,
               @dam_card_tab=="chart" && "bg-white text-slate-700 shadow-sm" ]}>
-              Gráfico
+              Armazenamento
+            </button>
+            <button type="button" phx-click="dam_card_tab" phx-value-tab="discharge" class={[ "rounded-full px-3 py-1" ,
+              @dam_card_tab=="discharge" && "bg-white text-slate-700 shadow-sm" ]}>
+              Caudais
             </button>
             <button type="button" phx-click="dam_card_tab" phx-value-tab="metadata" class={[ "rounded-full px-3 py-1" ,
               @dam_card_tab=="metadata" && "bg-white text-slate-700 shadow-sm" ]}>
@@ -186,9 +190,9 @@
           </div>
         </div>
 
-        <div :if={@dam_card_tab=="chart" } class="pt-2 space-y-2">
+        <div id="dam-chart-tab" :if={@dam_card_tab=="chart" } class="pt-2 space-y-2" phx-hook="DamChartMount">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-medium text-slate-600">Evolução</span>
+            <span class="text-xs font-medium text-slate-600">Armazenamento</span>
             <select id="timeWindow" phx-hook="DamChartTimeWindow"
               class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
               <option value="d7">1 semana</option>
@@ -210,8 +214,38 @@
                 class="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0"></span>Valores observados (%)</li>
             <li class="inline-flex items-center gap-1"><span
                 class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>Média histórica (%)</li>
+          </ul>
+        </div>
+
+        <div id="dam-discharge-tab" :if={@dam_card_tab=="discharge" } class="pt-2 space-y-2"
+          phx-hook="DischargeChartMount">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-medium text-slate-600">Caudais</span>
+            <select id="dischargeTimeWindow" phx-hook="DamChartTimeWindow"
+              class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+              <option value="d7">1 semana</option>
+              <option value="d14">2 semanas</option>
+              <option value="d30">1 mês</option>
+              <option value="d60" selected>2 meses</option>
+              <option value="d180">6 meses</option>
+              <option value="y2">2 anos</option>
+              <option value="y5">5 anos</option>
+              <option value="y10">10 anos</option>
+              <option value="ymax">Sem limite</option>
+            </select>
+          </div>
+          <div class="h-48 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden">
+            <canvas id="damDischargeChart"></canvas>
+          </div>
+          <ul class="text-[10px] text-slate-500 mt-1 list-none space-y-0.5">
             <li class="inline-flex items-center gap-1"><span
-                class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>Descarga observada (m³/s)</li>
+                class="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0"></span>Caudal descarregado médio diário</li>
+            <li class="inline-flex items-center gap-1"><span
+                class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>Caudal afluente médio diário</li>
+            <li class="inline-flex items-center gap-1"><span
+                class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>Caudal efluente médio diário</li>
+            <li class="inline-flex items-center gap-1"><span
+                class="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0"></span>Caudal turbinado médio diário</li>
           </ul>
         </div>
 
@@ -402,6 +436,26 @@
       chartSeries = payload.series || null;
     }
     if (chartSeries && typeof updateDamChart === 'function') updateDamChart(chartSeries);
+    window.chartSeries = chartSeries;
+  });
+
+  // Gráfico de descargas (4 séries)
+  var dischargeSeries = null;
+  var dischargeChartConfig = [
+    { key: 'ouput_flow_rate_daily', label: 'Caudal descarregado médio diário', color: '#0ea5e9' },
+    { key: 'tributary_daily_flow', label: 'Caudal afluente médio diário', color: '#f59e0b' },
+    { key: 'effluent_daily_flow', label: 'Caudal efluente médio diário', color: '#10b981' },
+    { key: 'turbocharged_daily_flow', label: 'Caudal turbinado médio diário', color: '#8b5cf6' }
+  ];
+  window.addEventListener('phx:dam_discharge_series', function (e) {
+    var payload = e.detail;
+    if (payload.merge && payload.series) {
+      dischargeSeries = Object.assign({}, dischargeSeries || {}, payload.series);
+    } else {
+      dischargeSeries = payload.series || null;
+    }
+    if (dischargeSeries && typeof updateDischargeChart === 'function') updateDischargeChart(dischargeSeries);
+    window.dischargeSeries = dischargeSeries;
   });
 
   var damChart = null;
@@ -419,9 +473,8 @@
       data: {
         labels: data.labels,
         datasets: [
-          { label: 'Observado (%)', data: data.observed, yAxisID: 'y', borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.08)', tension: 0.35, pointRadius: 0, borderWidth: 2, fill: true },
-          { label: 'Média (%)', data: data.average, yAxisID: 'y', borderColor: '#f59e0b', tension: 0.35, pointRadius: 0, borderWidth: 2, borderDash: [4, 4] },
-          { label: 'Descarga', type: 'bar', data: data.discharge, yAxisID: 'y1', backgroundColor: 'rgba(16,185,129,0.35)', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 }
+          { label: 'Observado (%)', data: data.observed, borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.08)', tension: 0.35, pointRadius: 0, borderWidth: 2, fill: true },
+          { label: 'Média (%)', data: data.average, borderColor: '#f59e0b', tension: 0.35, pointRadius: 0, borderWidth: 2, borderDash: [4, 4] }
         ]
       },
       options: {
@@ -441,18 +494,54 @@
             grid: { color: 'rgba(148,163,184,0.2)' },
             title: { display: false },
             ticks: { maxRotation: 45, minRotation: 45, padding: 2, font: { size: 8 }, color: '#64748b' }
-          },
-          y1: {
-            type: 'linear',
-            position: 'right',
-            grid: { drawOnChartArea: false },
-            title: { display: false },
+          }
+        }
+      }
+    });
+  }
+
+  var damDischargeChart = null;
+  function updateDischargeChart(series) {
+    var tw = document.getElementById('dischargeTimeWindow') || document.getElementById('timeWindow');
+    var canvas = document.getElementById('damDischargeChart');
+    if (!tw || !canvas || typeof Chart === 'undefined') return;
+    var windowKey = tw.value;
+    var data = series && series[windowKey];
+    if (!data || !data.labels) return;
+
+    if (damDischargeChart) { damDischargeChart.destroy(); damDischargeChart = null; }
+    var datasets = dischargeChartConfig.map(function (c) {
+      return {
+        label: c.label,
+        data: data[c.key] || [],
+        borderColor: c.color,
+        backgroundColor: c.color + '20',
+        tension: 0.35,
+        pointRadius: 0,
+        borderWidth: 2,
+        fill: false
+      };
+    });
+    damDischargeChart = new Chart(canvas, {
+      type: 'line',
+      data: { labels: data.labels, datasets: datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: true, mode: 'index', intersect: false, backgroundColor: '#fff', titleColor: '#334155', bodyColor: '#475569', borderColor: '#e2e8f0', borderWidth: 1 }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 6, font: { size: 8 } } },
+          y: {
+            grid: { color: 'rgba(148,163,184,0.2)' },
             ticks: {
-              maxRotation: 45,
-              minRotation: 45,
-              padding: 2,
-              font: { size: 8 },
-              color: '#64748b'
+              font: { size: 8 }, color: '#64748b', callback: function (v) {
+                if (v >= 1e6) return (v / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+                if (v >= 1e3) return (v / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+                return v;
+              }
             }
           }
         }
@@ -462,12 +551,19 @@
 
   document.body.addEventListener('change', function (e) {
     if (e.target.id === 'timeWindow') updateDamChart(chartSeries);
+    if (e.target.id === 'dischargeTimeWindow') updateDischargeChart(dischargeSeries);
   });
 
-  // Inicializar/atualizar gráfico quando o card da barragem está visível (chartSeries já foi enviado pelo servidor)
+  // Inicializar/atualizar gráficos quando o card da barragem está visível
   window.addEventListener('phx:page-loading-stop', function () {
     var el = document.getElementById('damChart');
     if (el && chartSeries && typeof updateDamChart === 'function') updateDamChart(chartSeries);
+    var elD = document.getElementById('damDischargeChart');
+    if (elD && dischargeSeries && typeof updateDischargeChart === 'function') updateDischargeChart(dischargeSeries);
   });
+  window.updateDamChart = updateDamChart;
+  window.updateDischargeChart = updateDischargeChart;
+  window.chartSeries = chartSeries;
+  window.dischargeSeries = dischargeSeries;
 
 </script>

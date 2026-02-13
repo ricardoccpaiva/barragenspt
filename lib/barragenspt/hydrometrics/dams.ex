@@ -18,6 +18,13 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   @ttl :timer.hours(1)
 
+  @discharge_flow_params [
+    "ouput_flow_rate_daily",
+    "tributary_daily_flow",
+    "effluent_daily_flow",
+    "turbocharged_daily_flow"
+  ]
+
   @decorate cacheable(
               cache: Cache,
               key: "adam_#{id}",
@@ -354,6 +361,83 @@ defmodule Barragenspt.Hydrometrics.Dams do
       value: value |> Decimal.mult(100) |> Decimal.round(1) |> Decimal.to_float(),
       date: date
     }
+  end
+
+  @doc """
+  Returns daily discharge flow series for all flow params (ouput_flow_rate_daily,
+  tributary_daily_flow, effluent_daily_flow, turbocharged_daily_flow).
+  `period_months` limits how many months back to fetch.
+  Returns %{labels: ["d/m", ...], "param_name" => [values], ...}.
+  """
+  def discharge_flows_daily(site_id, period_months) do
+    limit = query_limit(period_months, :month)
+    rows =
+      from(dp in DataPoint,
+        where:
+          dp.site_id == ^site_id and
+            dp.param_name in ^@discharge_flow_params and
+            dp.colected_at >= ^limit,
+        group_by: [fragment("DATE(?)", dp.colected_at), dp.param_name],
+        select: {fragment("DATE(?)", dp.colected_at), dp.param_name, sum(dp.value)}
+      )
+      |> Repo.all()
+
+    build_flows_series(rows, "%d/%m")
+  end
+
+  @doc """
+  Returns monthly aggregated discharge flow series. `period_years` limits years back.
+  Returns %{labels: ["m/yyyy", ...], "param_name" => [values], ...}.
+  """
+  def discharge_flows_monthly(site_id, period_years) do
+    limit = query_limit(period_years)
+    rows =
+      from(dp in DataPoint,
+        where:
+          dp.site_id == ^site_id and
+            dp.param_name in ^@discharge_flow_params and
+            dp.colected_at >= ^limit,
+        group_by: [
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          ),
+          dp.param_name
+        ],
+        select: {
+          fragment(
+            "DATE( date_trunc( 'month', ?) + interval '1 month' - interval '1 day')",
+            dp.colected_at
+          ),
+          dp.param_name,
+          sum(dp.value)
+        }
+      )
+      |> Repo.all()
+      |> Enum.map(fn {date, param, sum_val} -> {date, param, sum_val} end)
+
+    build_flows_series(rows, "%m/%Y")
+  end
+
+  defp build_flows_series(rows, date_format) do
+    # Group by date -> %{param => value}
+    by_date =
+      Enum.reduce(rows, %{}, fn {date, param, value}, acc ->
+        val_float = value |> Decimal.round(1) |> Decimal.to_float()
+        Map.update(acc, date, %{param => val_float}, &Map.put(&1, param, val_float))
+      end)
+
+    dates = by_date |> Map.keys() |> Enum.sort(Date)
+    labels = Enum.map(dates, &Calendar.strftime(&1, date_format))
+
+    series =
+      for param <- @discharge_flow_params do
+        values = Enum.map(dates, &Map.get(Map.get(by_date, &1, %{}), param, 0))
+        {param, values}
+      end
+      |> Map.new()
+
+    Map.put(series, "labels", labels)
   end
 
   @decorate cacheable(

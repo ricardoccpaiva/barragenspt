@@ -66,6 +66,7 @@ defmodule BarragensptWeb.HomepageV2Live do
 
     bounding_box = Coordinates.bounding_box(id)
     chart_series = build_dam_chart_series_for_period(id, "d60")
+    discharge_series = build_discharge_chart_series_for_period(id, "d60")
 
     socket =
       socket
@@ -83,6 +84,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(last_elevation_date: elevation_date)
       |> assign(current_storage_color: current_storage_color)
       |> push_event("dam_chart_series", %{series: chart_series})
+      |> push_event("dam_discharge_series", %{series: discharge_series})
 
     if params["nz"] do
       {:noreply, socket}
@@ -430,6 +432,47 @@ defmodule BarragensptWeb.HomepageV2Live do
     %{period => series}
   end
 
+  defp build_discharge_chart_series_for_period(dam_id, period) do
+    raw = fetch_discharge_flows_for_period(dam_id, period)
+    data = slice_discharge_series(raw, period)
+    %{period => data}
+  end
+
+  defp fetch_discharge_flows_for_period(dam_id, period)
+       when is_map_key(@dam_chart_period_config, period) do
+    {stats_type, fetch_arg, _take_n, _date_format} = @dam_chart_period_config[period]
+
+    case stats_type do
+      :daily -> Dams.discharge_flows_daily(dam_id, fetch_arg)
+      :monthly -> Dams.discharge_flows_monthly(dam_id, fetch_arg)
+    end
+  end
+
+  defp slice_discharge_series(raw, period) do
+    {_stats_type, _fetch_arg, take_n, _date_format} = @dam_chart_period_config[period]
+    labels = raw["labels"] || []
+
+    labels =
+      if take_n && length(labels) > take_n do
+        labels |> Enum.take(-take_n)
+      else
+        labels
+      end
+
+    param_keys = ["ouput_flow_rate_daily", "tributary_daily_flow", "effluent_daily_flow", "turbocharged_daily_flow"]
+
+    series =
+      for key <- param_keys, reduce: %{} do
+        acc -> Map.put(acc, key, raw[key] |> take_tail_or_all(take_n))
+      end
+
+    Map.put(series, "labels", labels)
+  end
+
+  defp take_tail_or_all(list, nil), do: list || []
+  defp take_tail_or_all(list, n) when is_list(list) and is_integer(n), do: Enum.take(list, -n)
+  defp take_tail_or_all(list, _), do: list || []
+
   defp fetch_points_for_period(dam_id, period)
        when is_map_key(@dam_chart_period_config, period) do
     {stats_type, fetch_arg, take_n, date_format} = @dam_chart_period_config[period]
@@ -624,12 +667,14 @@ defmodule BarragensptWeb.HomepageV2Live do
     id = socket.assigns.dam.site_id
 
     socket =
-      socket
-      |> assign(chart_window_value: value)
-      |> push_event("dam_chart_series", %{
-        series: build_dam_chart_series_for_period(id, value),
-        merge: true
-      })
+      if Map.has_key?(@dam_chart_period_config, value) do
+        socket
+        |> assign(chart_window_value: value)
+        |> push_event("dam_chart_series", %{series: build_dam_chart_series_for_period(id, value), merge: true})
+        |> push_event("dam_discharge_series", %{series: build_discharge_chart_series_for_period(id, value), merge: true})
+      else
+        assign(socket, :chart_window_value, value)
+      end
 
     {:noreply, socket}
   end

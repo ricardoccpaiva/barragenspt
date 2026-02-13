@@ -51,6 +51,22 @@ Hooks.DamChartTimeWindow = {
     }
 }
 
+Hooks.DamChartMount = {
+    mounted() {
+        if (typeof window.updateDamChart === 'function' && window.chartSeries) {
+            window.updateDamChart(window.chartSeries);
+        }
+    }
+}
+
+Hooks.DischargeChartMount = {
+    mounted() {
+        if (typeof window.updateDischargeChart === 'function' && window.dischargeSeries) {
+            window.updateDischargeChart(window.dischargeSeries);
+        }
+    }
+}
+
 Hooks.RiverChanged = {
     mounted() {
         this.el.addEventListener("input", e => {
