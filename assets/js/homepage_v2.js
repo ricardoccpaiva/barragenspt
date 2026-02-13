@@ -3,6 +3,7 @@ import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import MetricsEvolution from './hooks/metrics_evolution'
 import "./basin_chart"
+import "./dam_card_charts"
 
 let Hooks = { MetricsEvolution }
 
