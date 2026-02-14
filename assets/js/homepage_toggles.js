@@ -44,7 +44,17 @@ export const LayerToggleHooks = {
       const el = this.el
       if (!el._basinsListenerAdded) {
         el._basinsListenerAdded = true
-        el.addEventListener("change", () => applyBasinsLayerActive(el.checked))
+        el.addEventListener("change", () => {
+          const active = el.checked
+          if (active) {
+            const pdsiToggle = document.getElementById("togglePdsi")
+            if (pdsiToggle?.checked) {
+              pdsiToggle.checked = false
+              removePdsiLayer(getMap())
+            }
+          }
+          applyBasinsLayerActive(active)
+        })
       }
       applyBasinsLayerActive(el.checked)
     }
@@ -81,14 +91,17 @@ export const LayerToggleHooks = {
             applyBasinsLayerActive(false)
           }
           el.disabled = true
+          topbar.show()
           findAvailableDate()
             .then((fmtDateStr) => {
               addPdsiLayer(map, fmtDateStr)
               el.disabled = false
+              topbar.hide()
             })
             .catch(() => {
               el.checked = false
               el.disabled = false
+              topbar.hide()
             })
         } else {
           removePdsiLayer(map)
