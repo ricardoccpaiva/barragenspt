@@ -74,13 +74,11 @@
     do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
     <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section river-section">
       <h3 class="text-sm font-semibold text-slate-800">Rios</h3>
-      <select id="riverSelect" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white">
+      <select id="riverSelect" phx-hook="RiverChanged" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white">
         <option value="">Selecionar rio...</option>
-        <option>Douro</option>
-        <option>Tejo</option>
-        <option>Mondego</option>
-        <option>Guadiana</option>
-        <option>Sado</option>
+        <%= for river <- @rivers || [] do %>
+          <option value={"#{river.river_name}_#{river.basin_id}"}><%= river.river_display_name || river.river_name %></option>
+        <% end %>
       </select>
     </div>
 

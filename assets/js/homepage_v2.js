@@ -431,19 +431,9 @@ window.addEventListener('phx:update_basins_summary', (e) => {
 })
 
 window.addEventListener('phx:update_dams_visibility', (e) => {
-    const allMarkers = Array.from(document.getElementsByClassName("fa-lg marker"));
-
-    allMarkers.forEach(function (item) {
-        var idParts = item.id.split('_');
-
-        if (!e.detail.visible_site_ids.includes(idParts[1])) {
-            document.getElementById(item.id).style.display = "none";
-        }
-        else {
-            document.getElementById(item.id).style.display = "inline";
-        }
-    });
-
+    if (!map.getLayer('dams-circles')) return;
+    var visible = e.detail.visible_site_ids || [];
+    map.setFilter('dams-circles', ['in', ['get', 'id'], ['literal', visible]]);
     topbar.hide();
 })
 

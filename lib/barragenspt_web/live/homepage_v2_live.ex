@@ -522,19 +522,8 @@ defmodule BarragensptWeb.HomepageV2Live do
 
     bounding_box = Dams.bounding_box(visible_site_ids)
 
-    basin_summary =
-      basin_id
-      |> get_basin_summary([])
-      |> Enum.filter(fn %{site_id: site_id} ->
-        Enum.any?(visible_site_ids, fn vsid -> vsid == site_id end)
-      end)
-
     socket =
       socket
-      |> assign(basin_detail_class: "sidenav detail_class_invisible")
-      |> assign(dam_detail_class: "sidenav detail_class_invisible")
-      |> assign(river_detail_class: "sidenav detail_class_visible")
-      |> assign(river: river_name, basin_summary: basin_summary)
       |> push_event("zoom_map", %{basin_id: basin_id, bounding_box: bounding_box})
       |> push_event("focus_river", %{basin_id: basin_id, river_name: river_name})
       |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
