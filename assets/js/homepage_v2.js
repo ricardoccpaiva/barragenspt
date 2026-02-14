@@ -45,6 +45,27 @@ Hooks.BasinsLayerToggle = {
     }
 }
 
+var DAMS_CIRCLE_COLOR_GRAY = '#94a3b8';
+var DAMS_CIRCLE_COLOR_BY_CAPACITY = ['step', ['get', 'pct'], '#94a3b8', 20, '#ff675c', 40, '#ffc34a', 50, '#c2faaa', 60, '#ffe99c', 80, '#a6d8ff', 100, '#1c9dff'];
+
+function applyDamsLayerActive(active) {
+    if (!map.getLayer('dams-circles')) return;
+    map.setPaintProperty('dams-circles', 'circle-color', active ? DAMS_CIRCLE_COLOR_BY_CAPACITY : DAMS_CIRCLE_COLOR_GRAY);
+}
+
+Hooks.DamsLayerToggle = {
+    mounted() {
+        var el = this.el;
+        if (!el._damsListenerAdded) {
+            el._damsListenerAdded = true;
+            el.addEventListener('change', function () {
+                applyDamsLayerActive(el.checked);
+            });
+        }
+        applyDamsLayerActive(el.checked);
+    }
+}
+
 Hooks.BasinChartTimeWindow = {
     mounted() {
         this.el.addEventListener("click", e => {
@@ -223,35 +244,6 @@ window.addEventListener('phx:draw_basins', (e) => {
     }
 })
 
-var DAM_ICON_ID = 'dam-icon';
-var DAM_ICON_LIGHT_GRAY = '#9ca3af';
-//var DAM_ICON_SVG_URL = '/images/water-svgrepo-com.svg';
-var DAM_ICON_SVG_URL = '/images/pin-svgrepo-com.svg';
-
-
-function ensureDamIconImage(callback) {
-    if (!map.getStyle()) {
-        map.once('load', function () { ensureDamIconImage(callback); });
-        return;
-    }
-    if (map.hasImage(DAM_ICON_ID)) {
-        callback(true);
-        return;
-    }
-    // Load SVG over HTTP and register it directly as an image.
-    var img = new Image();
-    img.onload = function () {
-        try {
-            map.addImage(DAM_ICON_ID, img);
-            callback(true);
-        } catch (e) {
-            callback(false);
-        }
-    };
-    img.onerror = function () { callback(false); };
-    img.src = DAM_ICON_SVG_URL;
-}
-
 var damsSymbolClickBound = false;
 
 function navigateToDam(basinId, damId) {
@@ -292,39 +284,46 @@ window.addEventListener('phx:draw_dams', (e) => {
     });
 
     // Remove existing dams layers/source so we can re-add (e.g. on re-run)
-    ['dams-ring-inner', 'dams-ring-outer', 'dams-symbol'].forEach(function (id) {
+    ['dams-ring-inner', 'dams-ring-outer', 'dams-circles'].forEach(function (id) {
         if (map.getLayer(id)) map.removeLayer(id);
     });
     if (map.getSource('dams')) map.removeSource('dams');
 
-    ensureDamIconImage(function (imageReady) {
-        if (!imageReady) return;
-        map.addSource('dams', { type: 'geojson', data: damsGeoJSON });
-        map.addLayer({
-            id: 'dams-symbol',
-            type: 'symbol',
-            source: 'dams',
-            layout: {
-                'icon-image': DAM_ICON_ID,
-                'icon-size': 24 / 800,
-                'icon-allow-overlap': true,
-                'icon-ignore-placement': true
-            }
-        });
-
-        if (!damsSymbolClickBound) {
-            damsSymbolClickBound = true;
-            map.on('click', 'dams-symbol', (ev) => {
-                const props = ev.features[0].properties;
-                const damId = props.id;
-                const basinId = props.basin_id;
-                if (damId && basinId != null) navigateToDam(basinId, damId);
-            });
-            map.on('mouseenter', 'dams-symbol', () => { map.getCanvas().style.cursor = 'pointer'; });
-            map.on('mouseleave', 'dams-symbol', () => { map.getCanvas().style.cursor = ''; });
+    map.addSource('dams', { type: 'geojson', data: damsGeoJSON });
+    map.addLayer({
+        id: 'dams-circles',
+        type: 'circle',
+        source: 'dams',
+        paint: {
+            'circle-radius': 6,
+            'circle-color': DAMS_CIRCLE_COLOR_GRAY,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#fff'
         }
-        map.getCanvas().style.cursor = '';
     });
+
+    var toggle = document.getElementById('toggleDams');
+    if (toggle) {
+        applyDamsLayerActive(toggle.checked);
+        if (!toggle._damsListenerAdded) {
+            toggle._damsListenerAdded = true;
+            toggle.addEventListener('change', function () {
+                applyDamsLayerActive(toggle.checked);
+            });
+        }
+    }
+
+    if (!damsSymbolClickBound) {
+        damsSymbolClickBound = true;
+        map.on('click', 'dams-circles', (ev) => {
+            const props = ev.features[0].properties;
+            const damId = props.id;
+            const basinId = props.basin_id;
+            if (damId && basinId != null) navigateToDam(basinId, damId);
+        });
+        map.on('mouseenter', 'dams-circles', () => { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', 'dams-circles', () => { map.getCanvas().style.cursor = ''; });
+    }
 })
 
 window.addEventListener('phx:zoom_map', (e) => {
