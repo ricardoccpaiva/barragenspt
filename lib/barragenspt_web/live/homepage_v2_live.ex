@@ -681,30 +681,4 @@ defmodule BarragensptWeb.HomepageV2Live do
 
     {:noreply, socket}
   end
-
-  def format_param_name(param_name) when is_binary(param_name) do
-    param_name
-    |> String.replace("_", " ")
-    |> then(fn s -> String.capitalize(s, :default) end)
-  end
-
-  def format_param_name(_), do: "—"
-
-  def format_realtime_value(%{value: value, param_name: name}) do
-    v =
-      case value do
-        %Decimal{} -> Decimal.to_string(value)
-        n when is_number(n) -> to_string(n)
-        _ -> "—"
-      end
-
-    suffix = if String.contains?(name, "volume"), do: " %", else: ""
-    v <> suffix
-  end
-
-  def format_naive_datetime(nil), do: "—"
-
-  def format_naive_datetime(dt) do
-    Calendar.strftime(dt, "%d/%m/%Y %H:%M")
-  end
 end
