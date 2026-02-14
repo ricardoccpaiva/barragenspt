@@ -134,15 +134,10 @@ defmodule BarragensptWeb.HomepageV2Live do
       socket
       |> assign(basin_id: id)
       |> assign(spain: true)
-      |> assign(basin: basin_name)
-      |> assign(current_pct: current_pct)
-      |> assign(capacity_color: capacity_color)
       |> assign(basin_card: build_basin_card_spain(basin_name, current_pct, capacity_color))
       |> assign(dam_names: [])
       |> assign(search_term: "")
       |> then(&%{&1 | assigns: Map.delete(&1.assigns, :dam)})
-      |> assign(basin_detail_class: "sidenav sidenav-short detail_class_visible")
-      |> assign(dam_detail_class: "sidenav sidenav-short detail_class_invisible")
 
     {:noreply, socket}
   end
@@ -161,9 +156,6 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(dam: nil)
       |> assign(dam_names: [])
       |> assign(search_term: "")
-      |> assign(basin_detail_class: "sidenav detail_class_invisible")
-      |> assign(dam_detail_class: "sidenav detail_class_invisible")
-      |> assign(river_detail_class: "sidenav detail_class_invisible")
       |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
 
     {:noreply, socket}
@@ -358,14 +350,14 @@ defmodule BarragensptWeb.HomepageV2Live do
 
   defp get_data(basin_id, usage_types) do
     Basins.summary_stats(usage_types)
-    |> Enum.reject(fn {bid, _n, _cs, _v} -> basin_id && bid != basin_id end)
-    |> Enum.map(fn {basin_id, name, current_storage, value} ->
+    |> Enum.reject(fn %{id: bid} -> basin_id && bid != basin_id end)
+    |> Enum.map(fn %{id: bid, name: name, observed_value: observed, historical_average: avg} ->
       %{
-        id: basin_id,
+        id: bid,
         name: name,
-        current_storage: current_storage,
-        average_historic_value: value,
-        capacity_color: current_storage |> Decimal.to_float() |> Colors.lookup_capacity()
+        current_storage: observed,
+        average_historic_value: avg,
+        capacity_color: Colors.lookup_capacity(to_float(observed))
       }
     end)
   end
@@ -516,7 +508,6 @@ defmodule BarragensptWeb.HomepageV2Live do
 
     socket =
       socket
-      |> assign(river_detail_class: "sidenav detail_class_invisible")
       |> push_event("zoom_map", %{})
       |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
 
@@ -618,7 +609,6 @@ defmodule BarragensptWeb.HomepageV2Live do
     socket =
       if Map.has_key?(@dam_chart_period_config, value) do
         socket
-        |> assign(chart_window_value: value)
         |> push_event("dam_chart_series", %{
           series: build_dam_chart_series_for_period(id, value),
           merge: true
@@ -628,7 +618,7 @@ defmodule BarragensptWeb.HomepageV2Live do
           merge: true
         })
       else
-        assign(socket, :chart_window_value, value)
+        socket
       end
 
     {:noreply, socket}
@@ -662,20 +652,12 @@ defmodule BarragensptWeb.HomepageV2Live do
         }
       end)
 
-    socket =
-      socket
-      |> assign(:spain_basins, basins)
-      |> push_event("draw_spain_basins", %{basins: basins})
-
+    socket = push_event(socket, "draw_spain_basins", %{basins: basins})
     {:noreply, socket}
   end
 
   def handle_event("toggle_spain", %{"checked" => _}, socket) do
-    socket =
-      socket
-      |> assign(:spain_basins, nil)
-      |> push_event("remove_spain_basins", %{})
-
+    socket = push_event(socket, "remove_spain_basins", %{})
     {:noreply, socket}
   end
 end
