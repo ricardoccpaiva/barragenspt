@@ -185,27 +185,27 @@ html {
 }
 
 .legend-0-20 {
-  background: #f87171;
+  background: #ff675c;
 }
 
 .legend-21-40 {
-  background: #fb923c;
+  background: #ffc34a;
 }
 
 .legend-41-50 {
-  background: #fbbf24;
+  background: #ffe99c;
 }
 
 .legend-51-60 {
-  background: #a3e635;
+  background: #c2faaa;
 }
 
 .legend-61-80 {
-  background: #60a5fa;
+  background: #a6d8ff;
 }
 
 .legend-81-100 {
-  background: #1d4ed8;
+  background: #1c9dff;
 }
 
 @media (max-width: 768px) {
