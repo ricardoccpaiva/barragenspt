@@ -672,7 +672,8 @@ defmodule BarragensptWeb.HomepageV2Live do
     {:noreply, socket}
   end
 
-  def handle_event("toggle_spain", %{"checked" => checked}, socket) when checked in [true, "true"] do
+  def handle_event("toggle_spain", %{"checked" => checked}, socket)
+      when checked in [true, "true"] do
     basins =
       EmbalsesNet.basins_info()
       |> Enum.map(fn b ->
