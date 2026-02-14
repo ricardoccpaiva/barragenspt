@@ -23,8 +23,7 @@ defmodule BarragensptWeb.HomepageV2Live do
         basin_card: nil,
         dam: nil,
         dam_names: [],
-        search_term: "",
-        spain_basins: nil
+        search_term: ""
       )
       |> push_event("zoom_map", %{})
       |> push_event("draw_basins", %{basins: basins})
@@ -440,17 +439,11 @@ defmodule BarragensptWeb.HomepageV2Live do
     {points, date_format}
   end
 
-  defp normalize_stat(%{
-         date: date,
-         observed_value: obs,
-         historical_average: avg,
-         discharge_value: d
-       }) do
+  defp normalize_stat(%{date: date, observed_value: obs, historical_average: avg}) do
     %{
       date: date,
       observed_value: to_float(obs),
-      historical_average: to_float(avg),
-      discharge_value: to_float(d)
+      historical_average: to_float(avg)
     }
   end
 
@@ -458,8 +451,7 @@ defmodule BarragensptWeb.HomepageV2Live do
     labels = Enum.map(points, fn %{date: date} -> Calendar.strftime(date, date_format) end)
     observed = Enum.map(points, & &1.observed_value)
     average = Enum.map(points, & &1.historical_average)
-    discharge = Enum.map(points, & &1.discharge_value)
-    %{"labels" => labels, "observed" => observed, "average" => average, "discharge" => discharge}
+    %{"labels" => labels, "observed" => observed, "average" => average}
   end
 
   defp to_float(nil), do: 0.0
