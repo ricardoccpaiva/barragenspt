@@ -3,6 +3,7 @@ defmodule BarragensptWeb.HomepageV2Live do
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Geo.Coordinates
   alias Barragenspt.Hydrometrics.{Dams, Basins, EmbalsesNet}
+  require Logger
 
   def mount(_, _session, socket) do
     dams =
@@ -48,7 +49,6 @@ defmodule BarragensptWeb.HomepageV2Live do
 
   def handle_params(%{"basin_id" => basin_id, "dam_id" => id} = params, _url, socket) do
     dam = Dams.get(id)
-    current_storage_color = Colors.lookup_capacity(dam.current_storage_pct)
     last_data_point = Timex.format!(dam.colected_at, "{D}/{M}/{YYYY}")
 
     %{value: last_elevation, colected_at: elevation_date} =
@@ -69,7 +69,50 @@ defmodule BarragensptWeb.HomepageV2Live do
     discharge_series = build_discharge_chart_series_for_period(id, "d60")
     realtime_rows = Dams.realtime_series(id)
     has_realtime_data = realtime_rows != []
+
+    {current_capacity, dam_storage_hm3, last_elevation_assign, last_data_point_assign,
+     last_elevation_date_assign} =
+      if has_realtime_data and realtime_rows != [] do
+        latest = List.last(realtime_rows)
+
+        cap_decimal =
+          case latest[:volume_armazenado] do
+            cap when is_number(cap) -> Decimal.from_float(cap)
+            _ -> dam.current_storage_pct
+          end
+
+        collected = latest[:colected_at]
+
+        {date_str, data_point_str} =
+          case collected do
+            nil ->
+              {last_data_point, last_data_point}
+
+            dt ->
+              date = Timex.format!(dt, "{D}/{M}/{YYYY}")
+              time = Timex.format!(dt, "{h24}:{m}")
+              {date, "#{date} #{time}"}
+          end
+
+        {
+          cap_decimal,
+          dam.current_storage_value,
+          latest[:cota],
+          data_point_str,
+          date_str
+        }
+      else
+        {
+          dam.current_storage_pct,
+          dam.current_storage_value,
+          last_elevation,
+          last_data_point,
+          elevation_date
+        }
+      end
+
     default_dam_card_tab = if has_realtime_data, do: "realtime", else: "chart"
+    current_storage_color = Colors.lookup_capacity(current_capacity)
 
     socket =
       socket
@@ -80,12 +123,12 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(search_term: "")
       |> assign(dam_card_tab: default_dam_card_tab)
       |> assign(has_realtime_data: has_realtime_data)
-      |> assign(current_capacity: dam.current_storage_pct)
-      |> assign(dam_storage_hm3: dam.current_storage_value)
+      |> assign(current_capacity: current_capacity)
+      |> assign(dam_storage_hm3: dam_storage_hm3)
       |> assign(dam_usage_types: usage_types_dam)
-      |> assign(last_data_point: last_data_point)
-      |> assign(last_elevation: last_elevation)
-      |> assign(last_elevation_date: elevation_date)
+      |> assign(last_data_point: last_data_point_assign)
+      |> assign(last_elevation: last_elevation_assign)
+      |> assign(last_elevation_date: last_elevation_date_assign)
       |> assign(current_storage_color: current_storage_color)
       |> push_event("dam_chart_series", %{series: chart_series})
       |> push_event("dam_discharge_series", %{series: discharge_series})

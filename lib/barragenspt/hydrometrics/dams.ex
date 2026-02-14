@@ -70,7 +70,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Enum.sort_by(fn {t, _} -> t end)
     |> Enum.map(fn {t, rows_at_time} ->
       base = %{
-        data: Calendar.strftime(t, "%d/%m %H:%M")
+        data: Calendar.strftime(t, "%d/%m %H:%M"),
+        colected_at: t
       }
 
       Enum.reduce(rows_at_time, base, fn row, acc ->
