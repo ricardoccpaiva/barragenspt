@@ -8,19 +8,30 @@ import "./dam_card_charts"
 
 let Hooks = { MetricsEvolution, ...LayerToggleHooks }
 
+// Escala alinhada com app.css (.legend-0-20 … .legend-81-100); exposta para hooks/template
 function getStorageColor(percentage) {
-    let value = Number(percentage);
+    var value = Number(percentage);
     if (Number.isNaN(value)) return "#94a3b8";
     value = Math.max(0, Math.min(100, value));
-    if (value <= 100) return "#1c9dff";
-    if (value <= 80) return "#a6d8ff";
-    if (value <= 50) return "#c2faaa";
-    if (value <= 60) return "#ffe99c";
-    if (value <= 40) return "#ffc34a";
     if (value <= 20) return "#ff675c";
-
-    return "#16a34a";
+    if (value <= 40) return "#ffc34a";
+    if (value <= 50) return "#ffe99c";
+    if (value <= 60) return "#c2faaa";
+    if (value <= 80) return "#a6d8ff";
+    return "#1c9dff";
 }
+
+function applyCapacityColor(el) {
+    var pct = el.dataset.observed;
+    el.style.backgroundColor = (pct !== "" && pct !== undefined && !Number.isNaN(Number(pct)))
+        ? getStorageColor(Number(pct))
+        : "#94a3b8";
+}
+
+Hooks.CapacityColor = {
+    mounted() { applyCapacityColor(this.el); },
+    updated() { applyCapacityColor(this.el); }
+};
 
 function navigateToBasin(basinId) {
     const link = document.getElementById("basinDetailLink");

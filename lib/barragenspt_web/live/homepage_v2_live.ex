@@ -189,8 +189,6 @@ defmodule BarragensptWeb.HomepageV2Live do
           name: normalize_dam_name(item.site_name),
           observed: item.observed_value,
           average: item.historical_average,
-          observed_class: badge_class(item.observed_value),
-          average_class: badge_class(item.historical_average),
           observed_date_label: format_reference_date(Map.get(item, :colected_at))
         }
       end)
@@ -262,25 +260,6 @@ defmodule BarragensptWeb.HomepageV2Live do
       total_storage_label: "—",
       dams: []
     }
-  end
-
-  defp badge_class(nil), do: "bg-slate-100 text-slate-600"
-
-  defp badge_class(%Decimal{} = value) do
-    value
-    |> Decimal.to_float()
-    |> badge_class()
-  end
-
-  defp badge_class(value) when is_number(value) do
-    cond do
-      value <= 20 -> "bg-red-100 text-red-700"
-      value <= 40 -> "bg-orange-100 text-orange-700"
-      value <= 50 -> "bg-amber-100 text-amber-700"
-      value <= 60 -> "bg-lime-100 text-lime-700"
-      value <= 80 -> "bg-green-100 text-green-700"
-      true -> "bg-emerald-100 text-emerald-700"
-    end
   end
 
   defp normalize_dam_name(nil), do: nil
@@ -622,7 +601,6 @@ defmodule BarragensptWeb.HomepageV2Live do
           end
 
         dam
-        |> Map.put(:colors_index, Colors.lookup_index(storage_float))
         |> Map.put(:current_storage, storage_float)
       end)
 

@@ -17,15 +17,15 @@ export function applyBasinsLayerActive(active) {
 
 var DAMS_CIRCLE_COLOR_GRAY = '#94a3b8';
 
+// Escala alinhada com app.css (.legend-0-20 … .legend-81-100); step = valor >= threshold
 var CAPACITY_COLOR_STOPS = {
-    default: '#94a3b8',
+    default: '#ff675c',
     stops: [
-        [20, '#ff675c'],
-        [40, '#ffc34a'],
-        [50, '#c2faaa'],
-        [60, '#ffe99c'],
-        [80, '#a6d8ff'],
-        [100, '#1c9dff']
+        [21, '#ffc34a'],
+        [41, '#ffe99c'],
+        [51, '#c2faaa'],
+        [61, '#a6d8ff'],
+        [81, '#1c9dff']
     ]
 };
 
