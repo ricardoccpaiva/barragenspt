@@ -29,6 +29,7 @@ import { applyBasinsLayerActive, applyDamsLayerActive, LayerToggleHooks, DAMS_CI
 import { createMap, loadReservoir } from "./homepage/map"
 import { navigateToBasin, navigateToDam } from "./homepage/navigation"
 import { registerMapEvents } from "./homepage/map_events"
+import "./homepage/pdsi_layer"
 import "./basin_chart"
 import "./dam_card_charts"
 

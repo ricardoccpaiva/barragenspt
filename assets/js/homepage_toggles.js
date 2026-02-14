@@ -1,5 +1,6 @@
 import topbar from "../vendor/topbar"
 import { DAMS_CIRCLE_COLOR_GRAY, capacityColorStepExpression } from "./utils/colors"
+import { findAvailableDate, addPdsiLayer, removePdsiLayer } from "./homepage/pdsi_layer"
 
 function getMap() {
   return window.map
@@ -63,6 +64,36 @@ export const LayerToggleHooks = {
       const el = this.el
       el.addEventListener("change", () => this.pushEvent("toggle_spain", { checked: el.checked }))
       if (el.checked) this.pushEvent("toggle_spain", { checked: el.checked })
+    }
+  },
+  PdsiLayerToggle: {
+    mounted() {
+      const el = this.el
+      if (el._pdsiListenerAdded) return
+      el._pdsiListenerAdded = true
+      el.addEventListener("change", () => {
+        const map = getMap()
+        if (!map) return
+        if (el.checked) {
+          const basinsToggle = document.getElementById("toggleBasins")
+          if (basinsToggle) {
+            basinsToggle.checked = false
+            applyBasinsLayerActive(false)
+          }
+          el.disabled = true
+          findAvailableDate()
+            .then((fmtDateStr) => {
+              addPdsiLayer(map, fmtDateStr)
+              el.disabled = false
+            })
+            .catch(() => {
+              el.checked = false
+              el.disabled = false
+            })
+        } else {
+          removePdsiLayer(map)
+        }
+      })
     }
   }
 }
