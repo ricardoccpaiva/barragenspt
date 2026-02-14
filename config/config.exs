@@ -22,7 +22,7 @@ config :esbuild,
   version: "0.25.0",
   default: [
     args:
-      ~w(js/app.js js/homepage.js js/homepage_v2.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+      ~w(js/app.js js/homepage.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
@@ -46,6 +46,7 @@ config :barragenspt, Oban,
      crontab: [
        {"0 4 * * *", Barragenspt.Workers.DataPointsUpdate,
         args: %{jcid: unique_id}, max_attempts: 50},
+       {"*/15 * * * *", Barragenspt.Workers.RealtimeDataPointsUpdate, args: %{}, max_attempts: 3},
        {"*/15 * * * *", Barragenspt.Workers.InfoaguaAlertsRefresh, args: %{}, max_attempts: 1},
        {"0 5 * * *", Barragenspt.Workers.RefreshMaterializedViews, args: %{}, max_attempts: 3}
      ]}

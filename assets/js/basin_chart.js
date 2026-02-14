@@ -1,40 +1,37 @@
-let basinChart = null;
-let basinChartSeriesKey = null;
+let basinChart = null
+let basinChartSeriesKey = null
 
 function getBasinChartSeries(canvas) {
   try {
-    return JSON.parse(canvas.dataset.series || "[]");
+    return JSON.parse(canvas.dataset.series || "[]")
   } catch (_) {
-    return [];
+    return []
   }
 }
 
 function formatBasinChartLabel(isoDate) {
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return isoDate;
-  return date.toLocaleDateString("pt-PT", { month: "short", year: "2-digit" });
+  const date = new Date(isoDate)
+  if (Number.isNaN(date.getTime())) return isoDate
+  return date.toLocaleDateString("pt-PT", { month: "short", year: "2-digit" })
 }
 
 function formatBasinTooltipDate(isoDate) {
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return isoDate;
-  return date.toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" });
+  const date = new Date(isoDate)
+  if (Number.isNaN(date.getTime())) return isoDate
+  return date.toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" })
 }
 
 function renderBasinChart() {
-  const canvas = document.getElementById("basinChart");
-  if (!canvas || typeof Chart === "undefined") return;
-
-  const series = getBasinChartSeries(canvas);
-  const seriesKey = JSON.stringify(series);
-
-  if (basinChart && basinChartSeriesKey === seriesKey) return;
-  if (basinChart) basinChart.destroy();
-  basinChartSeriesKey = seriesKey;
-
-  const labels = series.map((point) => formatBasinChartLabel(point.date));
-  const observed = series.map((point) => point.observed_value);
-  const average = series.map((point) => point.historical_average);
+  const canvas = document.getElementById("basinChart")
+  if (!canvas || typeof Chart === "undefined") return
+  const series = getBasinChartSeries(canvas)
+  const seriesKey = JSON.stringify(series)
+  if (basinChart && basinChartSeriesKey === seriesKey) return
+  if (basinChart) basinChart.destroy()
+  basinChartSeriesKey = seriesKey
+  const labels = series.map((point) => formatBasinChartLabel(point.date))
+  const observed = series.map((point) => point.observed_value)
+  const average = series.map((point) => point.historical_average)
 
   basinChart = new Chart(canvas, {
     type: "line",
@@ -83,10 +80,10 @@ function renderBasinChart() {
           padding: 10,
           callbacks: {
             title(items) {
-              if (!items || !items.length) return "";
-              const index = items[0].dataIndex;
-              const point = series[index];
-              return point ? formatBasinTooltipDate(point.date) : "";
+              if (!items || !items.length) return ""
+              const index = items[0].dataIndex
+              const point = series[index]
+              return point ? formatBasinTooltipDate(point.date) : ""
             }
           }
         }
@@ -104,28 +101,25 @@ function renderBasinChart() {
 }
 
 function selectBasinTab(tab) {
-  const table = document.getElementById("basinTabTable");
-  const chart = document.getElementById("basinTabChart");
-  const buttons = document.querySelectorAll("[data-basin-tab]");
-
+  const table = document.getElementById("basinTabTable")
+  const chart = document.getElementById("basinTabChart")
+  const buttons = document.querySelectorAll("[data-basin-tab]")
   buttons.forEach((btn) => {
-    const active = btn.getAttribute("data-basin-tab") === tab;
-    btn.classList.toggle("bg-white", active);
-    btn.classList.toggle("text-slate-700", active);
-    btn.classList.toggle("shadow-sm", active);
-    btn.classList.toggle("text-slate-600", !active);
-  });
-
+    const active = btn.getAttribute("data-basin-tab") === tab
+    btn.classList.toggle("bg-white", active)
+    btn.classList.toggle("text-slate-700", active)
+    btn.classList.toggle("shadow-sm", active)
+    btn.classList.toggle("text-slate-600", !active)
+  })
   if (tab === "chart") {
-    if (table) table.classList.add("hidden");
-    if (chart) chart.classList.remove("hidden");
-    renderBasinChart();
-    return;
+    if (table) table.classList.add("hidden")
+    if (chart) chart.classList.remove("hidden")
+    renderBasinChart()
+    return
   }
-
-  if (chart) chart.classList.add("hidden");
-  if (table) table.classList.remove("hidden");
+  if (chart) chart.classList.add("hidden")
+  if (table) table.classList.remove("hidden")
 }
 
-window.selectBasinTab = selectBasinTab;
+window.selectBasinTab = selectBasinTab
 

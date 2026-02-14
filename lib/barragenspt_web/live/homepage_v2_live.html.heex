@@ -50,7 +50,7 @@
           <ul class="py-0 list-none m-0">
             <%= for d <- @dam_names do %>
               <li>
-                <a href={~p"/v2/basins/#{d.basin_id}/dams/#{d.id}"} data-phx-link="patch" data-phx-link-state="push"
+                <a href={~p"/basins/#{d.basin_id}/dams/#{d.id}"} data-phx-link="patch" data-phx-link-state="push"
                   class="flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-slate-800 hover:bg-slate-50 no-underline">
                   <span>
                     <%= d.name %>
@@ -121,7 +121,7 @@
   </div>
 </aside>
 
-<!-- Card barragem (design 2C) — visível quando se navega para /v2/basins/:basin_id/dams/:dam_id -->
+<!-- Card barragem (design 2C) — visível quando se navega para /basins/:basin_id/dams/:dam_id -->
 <section :if={@dam} id="damCard" class="fixed bottom-2 right-2 z-40 w-[360px]">
   <div
     class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
@@ -133,7 +133,7 @@
         <p class="text-xs text-slate-500">Bacia do <%= @dam.basin_name %>
         </p>
       </div>
-      <a href={if @basin_id, do: ~p"/v2/basins/#{@basin_id}", else: ~p"/v2"} data-phx-link="patch"
+      <a href={if @basin_id, do: ~p"/basins/#{@basin_id}", else: ~p"/"} data-phx-link="patch"
         data-phx-link-state="push" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
     </div>
     <div class="p-4 space-y-3">
@@ -301,7 +301,7 @@
   </div>
 </section>
 
-<a id="basinDetailLink" data-phx-link="patch" data-phx-link-state="push" href="/v2" class="hidden"></a>
+<a id="basinDetailLink" data-phx-link="patch" data-phx-link-state="push" href="/" class="hidden"></a>
 
 <section :if={@basin_card} id="basinInfoPanel" class="fixed bottom-2 right-2 z-40 w-[360px]">
   <div class="bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
@@ -311,7 +311,7 @@
           <%= @basin_card.name %>
         </p>
       </div>
-      <a href="/v2" data-phx-link="patch" data-phx-link-state="push"
+      <a href="/" data-phx-link="patch" data-phx-link-state="push"
         class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
     </div>
     <div class="p-4 space-y-3 text-sm text-slate-600">
@@ -380,7 +380,7 @@
               <%= for dam <- @basin_card.dams do %>
                 <tr class="hover:bg-slate-50">
                   <td class="align-top px-2 py-1.5">
-                    <a href={~p"/v2/basins/#{@basin_id}/dams/#{dam.id}"} data-phx-link="patch"
+                    <a href={~p"/basins/#{@basin_id}/dams/#{dam.id}"} data-phx-link="patch"
                       data-phx-link-state="push" class="text-brand-600 hover:text-brand-700">
                       <%= dam.name %>
                     </a>
