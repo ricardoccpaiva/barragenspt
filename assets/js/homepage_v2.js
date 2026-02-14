@@ -1,12 +1,11 @@
 import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
-import MetricsEvolution from './hooks/metrics_evolution'
 import { applyBasinsLayerActive, applyDamsLayerActive, LayerToggleHooks, DAMS_CIRCLE_COLOR_GRAY_EXPORT } from './homepage_v2_toggles'
 import "./basin_chart"
 import "./dam_card_charts"
 
-let Hooks = { MetricsEvolution, ...LayerToggleHooks }
+let Hooks = { ...LayerToggleHooks }
 
 // Escala alinhada com app.css (.legend-0-20 … .legend-81-100); exposta para hooks/template
 function getStorageColor(percentage) {
