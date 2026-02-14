@@ -32,14 +32,13 @@ defmodule BarragensptWeb.Router do
   scope "/", BarragensptWeb do
     pipe_through(:browser)
 
-    get("/", RedirectController, :v2)
     get("/reports", ReportsController, :index)
     get("/meteo_data", MeteoDataController, :index)
 
     live_session :default do
-      live("/v2", HomepageV2Live, :index)
-      live("/v2/basins/:basin_id", HomepageV2Live, :index)
-      live("/v2/basins/:basin_id/dams/:dam_id", HomepageV2Live, :index)
+      live("/", HomepageV2Live, :index)
+      live("/basins/:basin_id", HomepageV2Live, :index)
+      live("/basins/:basin_id/dams/:dam_id", HomepageV2Live, :index)
     end
   end
 
