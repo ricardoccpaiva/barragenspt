@@ -425,8 +425,8 @@
   </div>
 </section>
 
-<!-- Legenda (% Armazenamento) -->
-<div class="legend-card">
+<!-- Legenda (% Armazenamento) - visível quando PDSI desligado -->
+<div id="legend-storage" class="legend-card">
   <p class="legend-title">% Armazenamento</p>
   <div class="legend-row"><span class="legend-dot legend-0-20"></span><span>0 - 20</span></div>
   <div class="legend-row"><span class="legend-dot legend-21-40"></span><span>21 - 40</span></div>
@@ -434,4 +434,19 @@
   <div class="legend-row"><span class="legend-dot legend-51-60"></span><span>51 - 60</span></div>
   <div class="legend-row"><span class="legend-dot legend-61-80"></span><span>61 - 80</span></div>
   <div class="legend-row"><span class="legend-dot legend-81-100"></span><span>81 - 100</span></div>
+</div>
+
+<!-- Legenda PDSI - visível quando PDSI ligado -->
+<div id="legend-pdsi" class="legend-card hidden">
+  <p class="legend-title">Classes do PDSI</p>
+  <p id="legend-pdsi-date" class="legend-date"></p>
+  <div class="legend-row"><span class="legend-dot" style="background:#218291"></span><span>Chuva extrema</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#5c9e9c"></span><span>Chuva severa</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#91bda8"></span><span>Chuva moderada</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#c7deb4"></span><span>Chuva fraca</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#e9ffbe"></span><span>Normal</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#e8cf90"></span><span>Seca fraca</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#cfa263"></span><span>Seca moderada</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#b5773e"></span><span>Seca severa</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#9c551f"></span><span>Seca extrema</span></div>
 </div>

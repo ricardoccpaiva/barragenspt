@@ -170,6 +170,12 @@ html {
   margin-bottom: 8px;
 }
 
+.legend-date {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
 .legend-row {
   display: flex;
   align-items: center;
@@ -206,6 +212,10 @@ html {
 
 .legend-81-100 {
   background: #1c9dff;
+}
+
+.hidden {
+  display: none !important;
 }
 
 @media (max-width: 768px) {
