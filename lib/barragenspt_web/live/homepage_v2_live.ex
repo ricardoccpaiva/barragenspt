@@ -2,7 +2,7 @@ defmodule BarragensptWeb.HomepageV2Live do
   use BarragensptWeb, :live_view
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Geo.Coordinates
-  alias Barragenspt.Hydrometrics.{Dams, Basins}
+  alias Barragenspt.Hydrometrics.{Dams, Basins, EmbalsesNet}
 
   def mount(_, _session, socket) do
     dams =
@@ -23,7 +23,8 @@ defmodule BarragensptWeb.HomepageV2Live do
         basin_card: nil,
         dam: nil,
         dam_names: [],
-        search_term: ""
+        search_term: "",
+        spain_basins: nil
       )
       |> push_event("zoom_map", %{})
       |> push_event("draw_basins", %{basins: basins})
@@ -667,6 +668,34 @@ defmodule BarragensptWeb.HomepageV2Live do
       else
         socket
       end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("toggle_spain", %{"checked" => checked}, socket) when checked in [true, "true"] do
+    basins =
+      EmbalsesNet.basins_info()
+      |> Enum.map(fn b ->
+        %{
+          id: b.id,
+          basin_name: b.basin_name,
+          capacity_color: b.capacity_color || "#94a3b8"
+        }
+      end)
+
+    socket =
+      socket
+      |> assign(:spain_basins, basins)
+      |> push_event("draw_spain_basins", %{basins: basins})
+
+    {:noreply, socket}
+  end
+
+  def handle_event("toggle_spain", %{"checked" => _}, socket) do
+    socket =
+      socket
+      |> assign(:spain_basins, nil)
+      |> push_event("remove_spain_basins", %{})
 
     {:noreply, socket}
   end

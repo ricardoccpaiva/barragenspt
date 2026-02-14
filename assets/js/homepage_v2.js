@@ -32,6 +32,17 @@ function navigateToBasin(basinId) {
     window.location.href = target;
 }
 
+function navigateToSpainBasin(basinId) {
+    const link = document.getElementById("basinDetailLink");
+    const target = `/v2/basins/${basinId}?country=es`;
+    if (link) {
+        link.setAttribute("href", target);
+        link.click();
+        return;
+    }
+    window.location.href = target;
+}
+
 Hooks.BasinsLayerToggle = {
     mounted() {
         var el = this.el;
@@ -63,6 +74,18 @@ Hooks.DamsLayerToggle = {
             });
         }
         applyDamsLayerActive(el.checked);
+    }
+}
+
+Hooks.SpainLayerToggle = {
+    mounted() {
+        var el = this.el;
+        el.addEventListener('change', function () {
+            this.pushEvent('toggle_spain', { checked: el.checked });
+        }.bind(this));
+        if (el.checked) {
+            this.pushEvent('toggle_spain', { checked: el.checked });
+        }
     }
 }
 
@@ -242,6 +265,72 @@ window.addEventListener('phx:draw_basins', (e) => {
             });
         }
     }
+})
+
+window.spainBasins = [];
+
+window.addEventListener('phx:draw_spain_basins', (e) => {
+    topbar.hide();
+    var basins = e.detail.basins || [];
+    window.spainBasins = basins;
+    basins.forEach(function (item) {
+        var sourceId = 'es_' + item.basin_name;
+        var fillLayerId = sourceId + '_fill';
+        var outlineLayerId = sourceId + '_outline';
+        if (map.getSource(sourceId)) return;
+        map.addSource(sourceId, { type: 'geojson', data: '/geojson/spain/' + item.basin_name + '.geojson' });
+        map.addLayer({
+            id: fillLayerId,
+            type: 'fill',
+            source: sourceId,
+            layout: {},
+            paint: {
+                'fill-color': item.capacity_color || '#94a3b8',
+                'fill-opacity': 0.6
+            }
+        });
+        map.addLayer({
+            id: outlineLayerId,
+            type: 'line',
+            source: sourceId,
+            layout: {},
+            paint: { 'line-color': '#000', 'line-width': 0.5 }
+        });
+        map.on('click', fillLayerId, function (ev) {
+            var sid = ev.features[0].source;
+            var basinName = sid.replace(/^es_/, '');
+            var basin = window.spainBasins.find(function (b) { return b.basin_name === basinName; });
+            if (basin) navigateToSpainBasin(basin.id);
+        });
+        map.on('mouseenter', fillLayerId, function () { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', fillLayerId, function () { map.getCanvas().style.cursor = ''; });
+    });
+    map.fitBounds([
+        [-10.0186, 35.588],
+        [3.8135, 43.9644]
+    ]);
+})
+
+window.addEventListener('phx:remove_spain_basins', (e) => {
+    topbar.hide();
+    window.spainBasins = [];
+    var style = map.getStyle();
+    if (!style || !style.layers) return;
+    var sourceIds = {};
+    style.layers.forEach(function (layer) {
+        if (layer.id.startsWith('es_')) {
+            if (map.getLayer(layer.id)) map.removeLayer(layer.id);
+            var sourceId = layer.id.replace(/_fill$/, '').replace(/_outline$/, '');
+            if (layer.id !== sourceId) sourceIds[sourceId] = true;
+        }
+    });
+    Object.keys(sourceIds).forEach(function (sid) {
+        if (map.getSource(sid)) map.removeSource(sid);
+    });
+    map.fitBounds([
+        [-9.708570, 36.682035],
+        [-6.072327, 42.615949]
+    ]);
 })
 
 var damsSymbolClickBound = false;
