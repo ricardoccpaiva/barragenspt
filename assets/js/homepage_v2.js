@@ -32,6 +32,19 @@ function navigateToBasin(basinId) {
     window.location.href = target;
 }
 
+Hooks.BasinsLayerToggle = {
+    mounted() {
+        var el = this.el;
+        if (!el._basinsListenerAdded) {
+            el._basinsListenerAdded = true;
+            el.addEventListener('change', function () {
+                applyBasinsLayerActive(el.checked);
+            });
+        }
+        applyBasinsLayerActive(el.checked);
+    }
+}
+
 Hooks.BasinChartTimeWindow = {
     mounted() {
         this.el.addEventListener("click", e => {
@@ -140,6 +153,17 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
+function applyBasinsLayerActive(active) {
+    var style = map.getStyle();
+    if (!style || !style.layers) return;
+    var opacity = active ? 0.7 : 0.1;
+    style.layers.forEach(function (layer) {
+        if (layer.type === 'fill' && layer.id.endsWith('_fill')) {
+            map.setPaintProperty(layer.id, 'fill-opacity', opacity);
+        }
+    });
+}
+
 window.addEventListener('phx:draw_basins', (e) => {
     topbar.hide();
 
@@ -185,8 +209,18 @@ window.addEventListener('phx:draw_basins', (e) => {
         map.on("mouseleave", fill_layer_id, () => {
             map.getCanvas().style.cursor = "";
         });
-    })
+    });
 
+    var toggle = document.getElementById('toggleBasins');
+    if (toggle) {
+        applyBasinsLayerActive(toggle.checked);
+        if (!toggle._basinsListenerAdded) {
+            toggle._basinsListenerAdded = true;
+            toggle.addEventListener('change', function () {
+                applyBasinsLayerActive(toggle.checked);
+            });
+        }
+    }
 })
 
 var DAM_ICON_ID = 'dam-icon';
