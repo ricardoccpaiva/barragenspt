@@ -109,6 +109,13 @@
         <span>PDSI</span>
         <input id="togglePdsi" type="checkbox" class="toggle" phx-hook="PdsiLayerToggle">
       </label>
+      <div id="pdsi-slider-wrap" class="hidden pl-1 pt-1 space-y-1">
+        <div class="flex items-center justify-between text-xs text-slate-600">
+          <span>Mês</span>
+          <span id="pdsi-slider-label"></span>
+        </div>
+        <input id="pdsi-month-slider" type="range" min="0" max="12" value="0" class="w-full h-2 accent-sky-500">
+      </div>
       <label class="flex items-center justify-between text-sm">
         <span>SMI</span>
         <input id="toggleSmi" type="checkbox" class="toggle" phx-hook="SmiLayerToggle">

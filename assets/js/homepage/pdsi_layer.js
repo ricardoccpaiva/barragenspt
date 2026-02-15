@@ -57,6 +57,29 @@ function fmtDate(monthOffset = 0) {
   return `${y}-${m}-01`
 }
 
+/** Return date string (YYYY-MM-01) for N months ago. monthsAgo 0 = current month, 1 = 1 month ago, … 12 = 12 months ago. */
+export function getPdsiDateForMonthOffset(monthsAgo) {
+  return fmtDate(-monthsAgo)
+}
+
+/** Return months-ago index (0–12) for a given "YYYY-MM-01" date string, for syncing the slider. */
+export function getPdsiMonthOffsetFromDate(fmtDateStr) {
+  if (!fmtDateStr) return 0
+  const [y, m] = fmtDateStr.split("-").map(Number)
+  if (!y || !m) return 0
+  const now = new Date()
+  const monthsAgo = (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - m)
+  return Math.max(0, Math.min(12, monthsAgo))
+}
+
+/** Short label for slider: "Janeiro 2026". */
+export function getPdsiMonthLabelForOffset(monthsAgo) {
+  const dateStr = getPdsiDateForMonthOffset(monthsAgo)
+  const [y, m] = dateStr.split("-").map(Number)
+  const monthName = MONTH_NAMES_PT[m - 1] || m
+  return `${monthName} ${y}`
+}
+
 /**
  * Build WMS GetMap URL for a given date and optional bbox (for probe). If bbox is omitted,
  * use {bbox-epsg-3857} for MapLibre tile requests.

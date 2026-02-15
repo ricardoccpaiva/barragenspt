@@ -1,6 +1,13 @@
 import topbar from "../vendor/topbar"
 import { DAMS_CIRCLE_COLOR_GRAY, capacityColorStepExpression } from "./utils/colors"
-import { findAvailableDate, addPdsiLayer, removePdsiLayer } from "./homepage/pdsi_layer"
+import {
+  findAvailableDate,
+  addPdsiLayer,
+  removePdsiLayer,
+  getPdsiDateForMonthOffset,
+  getPdsiMonthOffsetFromDate,
+  getPdsiMonthLabelForOffset
+} from "./homepage/pdsi_layer"
 import { findAvailableDate as findSmiAvailableDate, addSmiLayer, removeSmiLayer } from "./homepage/smi_layer"
 
 function getMap() {
@@ -88,6 +95,26 @@ export const LayerToggleHooks = {
       const el = this.el
       if (el._pdsiListenerAdded) return
       el._pdsiListenerAdded = true
+      const sliderWrap = document.getElementById("pdsi-slider-wrap")
+      const monthSlider = document.getElementById("pdsi-month-slider")
+      const sliderLabel = document.getElementById("pdsi-slider-label")
+
+      function updatePdsiSliderFromDate(fmtDateStr) {
+        if (!monthSlider || !sliderLabel) return
+        const monthsAgo = getPdsiMonthOffsetFromDate(fmtDateStr)
+        monthSlider.value = String(12 - monthsAgo)
+        sliderLabel.textContent = getPdsiMonthLabelForOffset(monthsAgo)
+      }
+
+      function onPdsiSliderInput() {
+        const map = getMap()
+        if (!map || !monthSlider) return
+        const monthsAgo = 12 - parseInt(monthSlider.value, 10)
+        const dateStr = getPdsiDateForMonthOffset(monthsAgo)
+        addPdsiLayer(map, dateStr)
+        if (sliderLabel) sliderLabel.textContent = getPdsiMonthLabelForOffset(monthsAgo)
+      }
+
       el.addEventListener("change", () => {
         const map = getMap()
         if (!map) return
@@ -107,6 +134,8 @@ export const LayerToggleHooks = {
           findAvailableDate()
             .then((fmtDateStr) => {
               addPdsiLayer(map, fmtDateStr)
+              if (sliderWrap) sliderWrap.classList.remove("hidden")
+              updatePdsiSliderFromDate(fmtDateStr)
               el.disabled = false
               topbar.hide()
             })
@@ -117,8 +146,13 @@ export const LayerToggleHooks = {
             })
         } else {
           removePdsiLayer(map)
+          if (sliderWrap) sliderWrap.classList.add("hidden")
         }
       })
+
+      if (monthSlider) {
+        monthSlider.addEventListener("input", onPdsiSliderInput)
+      }
     }
   },
   SmiLayerToggle: {
