@@ -1,6 +1,7 @@
 import topbar from "../vendor/topbar"
 import { DAMS_CIRCLE_COLOR_GRAY, capacityColorStepExpression } from "./utils/colors"
 import { findAvailableDate, addPdsiLayer, removePdsiLayer } from "./homepage/pdsi_layer"
+import { findAvailableDate as findSmiAvailableDate, addSmiLayer, removeSmiLayer } from "./homepage/smi_layer"
 
 function getMap() {
   return window.map
@@ -47,10 +48,16 @@ export const LayerToggleHooks = {
         el.addEventListener("change", () => {
           const active = el.checked
           if (active) {
+            const map = getMap()
             const pdsiToggle = document.getElementById("togglePdsi")
             if (pdsiToggle?.checked) {
               pdsiToggle.checked = false
-              removePdsiLayer(getMap())
+              removePdsiLayer(map)
+            }
+            const smiToggle = document.getElementById("toggleSmi")
+            if (smiToggle?.checked) {
+              smiToggle.checked = false
+              removeSmiLayer(map)
             }
           }
           applyBasinsLayerActive(active)
@@ -90,6 +97,11 @@ export const LayerToggleHooks = {
             basinsToggle.checked = false
             applyBasinsLayerActive(false)
           }
+          const smiToggle = document.getElementById("toggleSmi")
+          if (smiToggle?.checked) {
+            smiToggle.checked = false
+            removeSmiLayer(map)
+          }
           el.disabled = true
           topbar.show()
           findAvailableDate()
@@ -105,6 +117,44 @@ export const LayerToggleHooks = {
             })
         } else {
           removePdsiLayer(map)
+        }
+      })
+    }
+  },
+  SmiLayerToggle: {
+    mounted() {
+      const el = this.el
+      if (el._smiListenerAdded) return
+      el._smiListenerAdded = true
+      el.addEventListener("change", () => {
+        const map = getMap()
+        if (!map) return
+        if (el.checked) {
+          const basinsToggle = document.getElementById("toggleBasins")
+          if (basinsToggle) {
+            basinsToggle.checked = false
+            applyBasinsLayerActive(false)
+          }
+          const pdsiToggle = document.getElementById("togglePdsi")
+          if (pdsiToggle?.checked) {
+            pdsiToggle.checked = false
+            removePdsiLayer(map)
+          }
+          el.disabled = true
+          topbar.show()
+          findSmiAvailableDate()
+            .then((isoDateStr) => {
+              addSmiLayer(map, isoDateStr)
+              el.disabled = false
+              topbar.hide()
+            })
+            .catch(() => {
+              el.checked = false
+              el.disabled = false
+              topbar.hide()
+            })
+        } else {
+          removeSmiLayer(map)
         }
       })
     }

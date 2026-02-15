@@ -15,8 +15,8 @@ const PDSI_SOURCE_ID = "pdsi-wms"
 const PDSI_LAYER_ID = "pdsi-layer"
 
 const MONTH_NAMES_PT = [
-  "janeiro", "fevereiro", "março", "abril", "maio", "junho",
-  "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ]
 
 /** Format "YYYY-MM-01" as "Dados de [mês] de [ano]" for the legend. */
@@ -31,16 +31,19 @@ function showPdsiLegend(fmtDateStr) {
   const dateEl = document.getElementById("legend-pdsi-date")
   const pdsiEl = document.getElementById("legend-pdsi")
   const storageEl = document.getElementById("legend-storage")
+  const smiEl = document.getElementById("legend-smi")
   if (dateEl) dateEl.textContent = formatPdsiDateLabel(fmtDateStr)
   if (pdsiEl) pdsiEl.classList.remove("hidden")
   if (storageEl) storageEl.classList.add("hidden")
+  if (smiEl) smiEl.classList.add("hidden")
 }
 
 function hidePdsiLegend() {
   const pdsiEl = document.getElementById("legend-pdsi")
   const storageEl = document.getElementById("legend-storage")
+  const smiEl = document.getElementById("legend-smi")
   if (pdsiEl) pdsiEl.classList.add("hidden")
-  if (storageEl) storageEl.classList.remove("hidden")
+  if (storageEl && (!smiEl || smiEl.classList.contains("hidden"))) storageEl.classList.remove("hidden")
 }
 
 /**
