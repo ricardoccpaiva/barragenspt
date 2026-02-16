@@ -34,6 +34,42 @@ export function applyDamsLayerActive(active) {
   map.setPaintProperty("dams-circles", "circle-color", active ? capacityColorStepExpression("pct") : DAMS_CIRCLE_COLOR_GRAY)
 }
 
+/** Single place for "off" behaviour: uncheck toggle, remove layer, hide slider. Always removes layer from map (e.g. after LiveView re-render toggles may already be unchecked). */
+function turnOffPdsi() {
+  const toggle = document.getElementById("togglePdsi")
+  if (toggle) toggle.checked = false
+  const map = getMap()
+  if (map) removePdsiLayer(map)
+  const wrap = document.getElementById("pdsi-slider-wrap")
+  if (wrap) wrap.classList.add("hidden")
+}
+
+function turnOffSmi() {
+  const toggle = document.getElementById("toggleSmi")
+  if (toggle) toggle.checked = false
+  const map = getMap()
+  if (map) removeSmiLayer(map)
+  const wrap = document.getElementById("smi-slider-wrap")
+  if (wrap) wrap.classList.add("hidden")
+}
+
+function turnOffRain() {
+  const toggle = document.getElementById("toggleRain")
+  if (toggle) toggle.checked = false
+  const map = getMap()
+  if (map) removeRainLayer(map)
+  const wrap = document.getElementById("rain-slider-wrap")
+  if (wrap) wrap.classList.add("hidden")
+}
+
+/** Turn off all overlay layers (PDSI, SMI, Rain). Used on navigation to dam or when clearing. */
+export function clearOverlayLayers() {
+  if (typeof topbar !== "undefined") topbar.hide()
+  turnOffPdsi()
+  turnOffSmi()
+  turnOffRain()
+}
+
 export const DAMS_CIRCLE_COLOR_GRAY_EXPORT = DAMS_CIRCLE_COLOR_GRAY
 
 export function navigateToSpainBasin(basinId) {
@@ -164,8 +200,7 @@ export const LayerToggleHooks = {
               topbar.hide()
             })
         } else {
-          removePdsiLayer(map)
-          if (sliderWrap) sliderWrap.classList.add("hidden")
+          turnOffPdsi()
         }
       })
 
@@ -240,8 +275,7 @@ export const LayerToggleHooks = {
           topbar.show()
           this.pushEvent("toggle_smi", { checked: true, vser: getSmiVser() })
         } else {
-          if (sliderWrap) sliderWrap.classList.add("hidden")
-          this.pushEvent("toggle_smi", { checked: false })
+          turnOffSmi()
         }
       })
 
@@ -316,8 +350,7 @@ export const LayerToggleHooks = {
           topbar.show()
           this.pushEvent("toggle_rain", { checked: true })
         } else {
-          if (rainWrap) rainWrap.classList.add("hidden")
-          this.pushEvent("toggle_rain", { checked: false })
+          turnOffRain()
         }
       })
 
@@ -422,12 +455,8 @@ function registerSpainListeners() {
     }
   })
 
-  window.addEventListener("phx:remove_smi_layer", () => {
-    if (typeof topbar !== "undefined") topbar.hide()
-    const map = getMap()
-    if (map) removeSmiLayer(map)
-    const smiSliderWrap = document.getElementById("smi-slider-wrap")
-    if (smiSliderWrap) smiSliderWrap.classList.add("hidden")
+  window.addEventListener("phx:clear_overlay_layers", () => {
+    clearOverlayLayers()
   })
 
   window.addEventListener("phx:smi_layer_error", () => {
@@ -460,14 +489,6 @@ function registerSpainListeners() {
         rainSliderLabel.textContent = `${d} ${months[m - 1]} ${y}`
       }
     }
-  })
-
-  window.addEventListener("phx:remove_rain_layer", () => {
-    if (typeof topbar !== "undefined") topbar.hide()
-    const map = getMap()
-    if (map) removeRainLayer(map)
-    const rainSliderWrap = document.getElementById("rain-slider-wrap")
-    if (rainSliderWrap) rainSliderWrap.classList.add("hidden")
   })
 
   window.addEventListener("phx:rain_layer_error", () => {

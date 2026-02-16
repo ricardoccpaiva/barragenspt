@@ -129,6 +129,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(last_elevation: last_elevation_assign)
       |> assign(last_elevation_date: last_elevation_date_assign)
       |> assign(current_storage_color: current_storage_color)
+      |> push_event("clear_overlay_layers", %{})
       |> push_event("dam_chart_series", %{series: chart_series})
       |> push_event("dam_discharge_series", %{series: discharge_series})
       |> push_event("dam_realtime_chart", %{rows: realtime_rows})
@@ -624,20 +625,14 @@ defmodule BarragensptWeb.HomepageV2Live do
     fetch_and_push_smi(socket, 1, vser)
   end
 
-  def handle_event("toggle_smi", %{"checked" => _}, socket) do
-    socket = push_event(socket, "remove_smi_layer", %{})
-    {:noreply, socket}
-  end
+  def handle_event("toggle_smi", _, socket), do: {:noreply, socket}
 
   def handle_event("toggle_rain", %{"checked" => checked}, socket)
       when checked in [true, "true"] do
     fetch_and_push_rain(socket, 0)
   end
 
-  def handle_event("toggle_rain", %{"checked" => _}, socket) do
-    socket = push_event(socket, "remove_rain_layer", %{})
-    {:noreply, socket}
-  end
+  def handle_event("toggle_rain", _, socket), do: {:noreply, socket}
 
   def handle_event("rain_change_date", %{"day_offset" => offset}, socket) do
     day_offset = parse_rain_day_offset(offset)
