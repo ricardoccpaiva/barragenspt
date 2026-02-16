@@ -1,21 +1,33 @@
 /**
- * SMI (Soil Moisture Index) WMS layer from IPMA. Always uses the previous day's data.
+ * SMI layer: reage a push_event do servidor (draw_smi_layer / remove_smi_layer).
+ * draw_smi_layer envia { values, date }; este módulo faz fetch do GeoJSON, merge por zid, e pinta o mapa.
  */
 
-const WMS_BASE =
-  "https://cs2.ipma.pt/wms?dataset=smi-forecast_10p1d-continental-ecmwf&service=WMS&request=GetMap" +
-  "&layers=PT%3AIPMA%3ACDG%3ALAYER%3Asmi-forecast_10p1d-continental-ecmwf_latest&styles=&format=image%2Fpng" +
-  "&transparent=true&version=1.1.1&dim_layer=100&width=256&height=256&srs=EPSG%3A3857"
-
-const SMI_SOURCE_ID = "smi-wms"
-const SMI_LAYER_ID = "smi-layer"
+const GEOJSON_URL = "/geojson/pt100_conc.json"
+const SMI_SOURCE_ID = "smi-geojson"
+const SMI_FILL_LAYER_ID = "smi-fill"
+const SMI_OUTLINE_LAYER_ID = "smi-outline"
 
 const MONTH_NAMES_PT = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ]
 
-/** Format "YYYY-MM-DD" as "Dados de [dia] [mês] de [ano]" for the legend. */
+const SMI_NO_DATA_COLOR = "#94a3b8"
+const SMI_VALUES = [-10, 0, 1, 10.01, 20.01, 40.01, 60.01, 80.01, 99.01, 100.01, 130.01, 160.01, 190.01, 200]
+const SMI_COLORS = [
+  "#ff7e1c", "#ffb408", "#fcdf0d", "#f7ff00", "#cefc00", "#65fa0f", "#44c902",
+  "#23a10a", "#066608", "#33ddbb", "#33aaaa", "#3377aa", "#0000ff"
+]
+
+function smiFillColorExpression() {
+  const step = ["step", ["get", "smi"], SMI_NO_DATA_COLOR]
+  SMI_VALUES.forEach((threshold, i) => {
+    if (i < SMI_COLORS.length) step.push(threshold, SMI_COLORS[i])
+  })
+  return step
+}
+
 function formatSmiDateLabel(isoDateStr) {
   if (!isoDateStr) return ""
   const [y, m, d] = isoDateStr.split("-").map(Number)
@@ -43,59 +55,78 @@ function hideSmiLegend() {
   if (storageEl && (!pdsiEl || pdsiEl.classList.contains("hidden"))) storageEl.classList.remove("hidden")
 }
 
-/** Format date as YYYY-MM-DD for the given day offset (0 = today, -1 = yesterday, etc.). */
-function fmtDateDay(dayOffset = 0) {
-  const d = new Date()
-  d.setDate(d.getDate() + dayOffset)
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  return `${y}-${m}-${day}`
+function normalizeValuesByZid(data) {
+  if (!data || typeof data !== "object") return {}
+  if (Array.isArray(data)) {
+    const out = {}
+    data.forEach((item) => {
+      const zid = item?.zid ?? item?.zoneid ?? item?.id
+      const v = item?.value ?? item?.val ?? item?.smi
+      if (zid == null || typeof v !== "number" || Number.isNaN(v)) return
+      const key = String(zid)
+      out[key] = v
+      if (key.startsWith("concelhos_")) out[key.replace(/^concelhos_/, "")] = v
+    })
+    return out
+  }
+  if (data.data && typeof data.data === "object") return normalizeValuesByZid(data.data)
+  const out = {}
+  Object.entries(data).forEach(([k, v]) => {
+    if (typeof v !== "number" || Number.isNaN(v)) return
+    const key = String(k).trim()
+    out[key] = v
+    if (key.startsWith("concelhos_")) out[key.replace(/^concelhos_/, "")] = v
+  })
+  return out
 }
 
-/**
- * Build WMS GetMap URL for a given date (YYYY-MM-DD) and optional bbox.
- */
-function buildWmsUrl(isoDateStr, bbox = "{bbox-epsg-3857}") {
-  const timeParam = encodeURIComponent(isoDateStr + "T00:00:00.000Z")
-  return `${WMS_BASE}&time=${timeParam}&bbox=${bbox}`
+function mergeSmiIntoFeatures(geojson, valuesByZid) {
+  const features = (geojson.features || []).map((f) => {
+    const props = f.properties || {}
+    const zid = props.zid != null ? String(props.zid) : (props.zoneid || "").replace(/^concelhos_/, "")
+    const smi = zid ? (valuesByZid[zid] ?? valuesByZid["concelhos_" + zid]) : null
+    const num = smi != null && typeof smi === "number" && !Number.isNaN(smi) ? smi : null
+    return { ...f, properties: { ...props, smi: num } }
+  })
+  return { type: "FeatureCollection", features }
 }
 
-/**
- * Returns the previous day's date (YYYY-MM-DD) for the SMI layer.
- */
-export function findAvailableDate() {
-  return Promise.resolve(fmtDateDay(-1))
-}
-
-/**
- * Add SMI raster layer to the map. Removes existing source/layer if present.
- */
-export function addSmiLayer(map, isoDateStr) {
-  if (!map) return
-  if (map.getLayer(SMI_LAYER_ID)) map.removeLayer(SMI_LAYER_ID)
+function removeSmiLayersAndSource(map) {
+  if (map.getLayer(SMI_OUTLINE_LAYER_ID)) map.removeLayer(SMI_OUTLINE_LAYER_ID)
+  if (map.getLayer(SMI_FILL_LAYER_ID)) map.removeLayer(SMI_FILL_LAYER_ID)
   if (map.getSource(SMI_SOURCE_ID)) map.removeSource(SMI_SOURCE_ID)
-  const tileUrl = buildWmsUrl(isoDateStr)
-  map.addSource(SMI_SOURCE_ID, {
-    type: "raster",
-    tiles: [tileUrl],
-    tileSize: 256
-  })
-  map.addLayer({
-    id: SMI_LAYER_ID,
-    type: "raster",
-    source: SMI_SOURCE_ID,
-    paint: { "raster-opacity": 0.9 }
-  })
-  showSmiLegend(isoDateStr)
 }
 
 /**
- * Remove SMI layer and source from the map.
+ * Chamado pelo listener phx:draw_smi_layer. values = payload do evomaptimeval, date = "YYYY-MM-DD".
  */
+export function drawSmiLayer(map, rawValues, dateStr) {
+  if (!map) return
+  const valuesByZid = normalizeValuesByZid(rawValues)
+  fetch(GEOJSON_URL)
+    .then((r) => r.json())
+    .then((geojson) => {
+      const merged = mergeSmiIntoFeatures(geojson, valuesByZid)
+      removeSmiLayersAndSource(map)
+      map.addSource(SMI_SOURCE_ID, { type: "geojson", data: merged })
+      map.addLayer({
+        id: SMI_FILL_LAYER_ID,
+        type: "fill",
+        source: SMI_SOURCE_ID,
+        paint: { "fill-color": smiFillColorExpression(), "fill-opacity": 1 }
+      })
+      map.addLayer({
+        id: SMI_OUTLINE_LAYER_ID,
+        type: "line",
+        source: SMI_SOURCE_ID,
+        paint: { "line-color": "#333", "line-width": 0.5 }
+      })
+      showSmiLegend(dateStr || null)
+    })
+}
+
 export function removeSmiLayer(map) {
   if (!map) return
-  if (map.getLayer(SMI_LAYER_ID)) map.removeLayer(SMI_LAYER_ID)
-  if (map.getSource(SMI_SOURCE_ID)) map.removeSource(SMI_SOURCE_ID)
+  removeSmiLayersAndSource(map)
   hideSmiLegend()
 }

@@ -695,4 +695,35 @@ defmodule BarragensptWeb.HomepageV2Live do
     socket = push_event(socket, "remove_spain_basins", %{})
     {:noreply, socket}
   end
+
+  def handle_event("toggle_smi", %{"checked" => checked}, socket) when checked in [true, "true"] do
+    vtim = smi_vtim_yesterday_ms()
+    case Barragenspt.Services.Agroclima.get_smi_values(vtim) do
+      {:ok, data} ->
+        date_iso = smi_yesterday_iso()
+        socket = push_event(socket, "draw_smi_layer", %{values: data, date: date_iso})
+        {:noreply, socket}
+
+      {:error, _} ->
+        socket = push_event(socket, "smi_layer_error", %{})
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("toggle_smi", %{"checked" => _}, socket) do
+    socket = push_event(socket, "remove_smi_layer", %{})
+    {:noreply, socket}
+  end
+
+  defp smi_vtim_yesterday_ms do
+    yesterday = Date.utc_today() |> Date.add(-1)
+    datetime = DateTime.new!(yesterday, ~T[00:00:00])
+    DateTime.to_unix(datetime, :millisecond)
+  end
+
+  defp smi_yesterday_iso do
+    yesterday = Date.utc_today() |> Date.add(-1)
+    Date.to_iso8601(yesterday)
+  end
 end
+

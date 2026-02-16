@@ -8,7 +8,7 @@ import {
   getPdsiMonthOffsetFromDate,
   getPdsiMonthLabelForOffset
 } from "./homepage/pdsi_layer"
-import { findAvailableDate as findSmiAvailableDate, addSmiLayer, removeSmiLayer } from "./homepage/smi_layer"
+import { drawSmiLayer, removeSmiLayer } from "./homepage/smi_layer"
 
 function getMap() {
   return window.map
@@ -176,19 +176,9 @@ export const LayerToggleHooks = {
           }
           el.disabled = true
           topbar.show()
-          findSmiAvailableDate()
-            .then((isoDateStr) => {
-              addSmiLayer(map, isoDateStr)
-              el.disabled = false
-              topbar.hide()
-            })
-            .catch(() => {
-              el.checked = false
-              el.disabled = false
-              topbar.hide()
-            })
+          this.pushEvent("toggle_smi", { checked: true })
         } else {
-          removeSmiLayer(map)
+          this.pushEvent("toggle_smi", { checked: false })
         }
       })
     }
@@ -255,6 +245,37 @@ function registerSpainListeners() {
       if (map.getSource(sid)) map.removeSource(sid)
     })
     map.fitBounds([[-9.708570, 36.682035], [-6.072327, 42.615949]])
+  })
+
+  window.addEventListener("phx:draw_smi_layer", (e) => {
+    if (typeof topbar !== "undefined") topbar.hide()
+    const map = getMap()
+    const smiToggle = document.getElementById("toggleSmi")
+    if (smiToggle) smiToggle.disabled = false
+    const cleaned = Object.fromEntries(
+      Object.entries(e.detail.values).map(([key, value]) => [
+        key.replace(/^a_/, ""),
+        value
+      ])
+    );
+
+    debugger;
+    if (map && e.detail) drawSmiLayer(map, cleaned, e.detail.date)
+  })
+
+  window.addEventListener("phx:remove_smi_layer", () => {
+    if (typeof topbar !== "undefined") topbar.hide()
+    const map = getMap()
+    if (map) removeSmiLayer(map)
+  })
+
+  window.addEventListener("phx:smi_layer_error", () => {
+    if (typeof topbar !== "undefined") topbar.hide()
+    const smiToggle = document.getElementById("toggleSmi")
+    if (smiToggle) {
+      smiToggle.checked = false
+      smiToggle.disabled = false
+    }
   })
 }
 
