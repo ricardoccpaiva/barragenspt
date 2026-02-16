@@ -22,36 +22,36 @@
 
 <!-- Sidebar -->
 <aside id="sidebar"
-  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[85%] max-w-[320px] md:max-w-none md:w-[360px] h-full md:h-[calc(100%-1rem)] bg-slate-100/95 border border-slate-200/70 shadow-float px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-2 space-y-4 md:rounded-2xl md:backdrop-blur inset-y-0 left-0 md:inset-y-2 md:left-2">
+  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[85%] max-w-[296px] md:max-w-none md:w-[336px] h-full md:h-[calc(100%-1rem)] bg-slate-100/95 border border-slate-200/70 shadow-float px-3 pb-3 pt-1.5 md:px-4 md:pb-4 md:pt-1.5 space-y-3 md:rounded-2xl md:backdrop-blur inset-y-0 left-0 md:inset-y-2 md:left-2">
 
 
-  <div class="flex items-center gap-3 px-1 py-1">
+  <div class="flex items-center gap-2 px-0 pt-2 md:pt-2">
     <img src="https://barragens.pt/images/dam.png" alt="Barragens.pt" class="w-10 h-10 rounded-xl object-cover" />
     <div class="leading-none">
       <p class="logo-type text-[34px] text-brand-300 font-semibold">BARRAGENS.PT</p>
     </div>
   </div>
 
-  <div class="mt-1">
+  <div class="mt-0.5">
     <a href="https://www.buymeacoffee.com/barragenspt">
       <img style="height: 30px"
         src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
     </a>
   </div>
 
-  <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white">
+  <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white">
     <h3 class="text-sm font-semibold text-slate-800">Pesquisar</h3>
     <div class="search-wrapper relative">
       <input id="damSearchInput" type="search" placeholder="Barragens ou rios..." phx-hook="SearchDam"
-        class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
-      <div id="damSearchResults" class={"absolute left-0 right-0 top-full mt-1 z-50 max-h-60 overflow-y-auto rounded-xl
-        border border-slate-200 bg-white shadow-lg py-1 #{if @search_term == "" , do: "hidden" , else: "" }"}>
+        class="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
+      <div id="damSearchResults" class={"absolute left-0 right-0 top-full mt-0.5 z-50 max-h-60 overflow-y-auto rounded-lg
+        border border-slate-200 bg-white shadow-lg py-0.5 #{if @search_term == "" , do: "hidden" , else: "" }"}>
         <%= if @search_rivers != [] or (@dam_names != nil and @dam_names != []) do %>
           <ul class="py-0 list-none m-0">
             <%= for r <- @search_rivers || [] do %>
               <li>
                 <button type="button" phx-click="select_river" phx-value-basin_id={r.basin_id} phx-value-river_name={r.river_name}
-                  class="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-slate-800 hover:bg-slate-50 text-left border-0 bg-transparent cursor-pointer">
+                  class="w-full flex items-center gap-2 px-2.5 py-2 text-sm text-slate-800 hover:bg-slate-50 text-left border-0 bg-transparent cursor-pointer">
                   <span class="text-slate-500 text-xs shrink-0">Rio</span>
                   <span><%= r.river_display_name || r.river_name %></span>
                 </button>
@@ -60,7 +60,7 @@
             <%= for d <- @dam_names || [] do %>
               <li>
                 <a href={~p"/basins/#{d.basin_id}/dams/#{d.id}"} data-phx-link="patch" data-phx-link-state="push"
-                  class="flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-slate-800 hover:bg-slate-50 no-underline">
+                  class="flex items-center justify-between gap-2 px-2.5 py-2 text-sm text-slate-800 hover:bg-slate-50 no-underline">
                   <span><%= d.name %></span>
                   <span id={"dam-search-badge-#{d.id}"}
                     class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium text-white"
@@ -73,16 +73,16 @@
           </ul>
         <% else %>
           <%= if @search_term != "" do %>
-            <p class="px-3 py-2.5 text-sm text-slate-500 m-0">Nenhum resultado.</p>
+            <p class="px-2.5 py-2 text-sm text-slate-500 m-0">Nenhum resultado.</p>
           <% end %>
         <% end %>
       </div>
     </div>
   </div>
 
-  <div class={"transition-all duration-200 space-y-4 #{if @search_term != "" ,
+  <div class={"transition-all duration-200 space-y-3 #{if @search_term != "" ,
     do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
-    <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
+    <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white sidebar-section">
       <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
       <label class="flex items-center justify-between text-sm">
         <span>Bacias</span>
@@ -98,13 +98,13 @@
       </label>
     </div>
 
-    <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
+    <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white sidebar-section">
       <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
       <label class="flex items-center justify-between text-sm">
         <span>PDSI</span>
         <input id="togglePdsi" type="checkbox" class="toggle" phx-hook="PdsiLayerToggle">
       </label>
-      <div id="pdsi-slider-wrap" class="hidden pl-1 pt-1 space-y-1">
+      <div id="pdsi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
         <div class="flex items-center justify-between text-xs text-slate-600">
           <span>Mês</span>
           <span id="pdsi-slider-label"></span>
@@ -115,7 +115,7 @@
         <span>SMI</span>
         <input id="toggleSmi" type="checkbox" class="toggle" phx-hook="SmiLayerToggle">
       </label>
-      <div id="smi-slider-wrap" class="hidden pl-1 pt-1 space-y-1">
+      <div id="smi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
         <div class="flex flex-col gap-1">
           <p class="text-xs text-slate-600">Profundidade</p>
           <div class="flex flex-wrap gap-1.5" id="smi-depth-pills" role="group" aria-label="Profundidade SMI">
@@ -134,7 +134,7 @@
         <span>Chuva</span>
         <input id="toggleRain" type="checkbox" class="toggle" phx-hook="RainLayerToggle">
       </label>
-      <div id="rain-slider-wrap" class="hidden pl-1 pt-1 space-y-1">
+      <div id="rain-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
         <div class="flex items-center justify-between text-xs text-slate-600">
           <span>Dia (acum. diário)</span>
           <span id="rain-slider-label"></span>

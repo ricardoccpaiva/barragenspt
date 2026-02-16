@@ -147,7 +147,7 @@ body {
 
 html {
   --viewport-gutter: 8px;
-  --sidebar-offset: calc(360px + 8px);
+  --sidebar-offset: calc(336px + var(--viewport-gutter));
 }
 
 .legend-card {
