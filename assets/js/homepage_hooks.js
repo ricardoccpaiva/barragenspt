@@ -27,7 +27,7 @@ const BasinChartTimeWindow = {
 const DamChartTimeWindow = {
   mounted() {
     this.el.addEventListener("change", () => {
-      const target = this.el.getAttribute?.("data-phx-target") ?? this.el.dataset?.phxTarget
+      const target = this.el.getAttribute?.("phx-target") ?? this.el.getAttribute?.("data-phx-target") ?? this.el.dataset?.phxTarget
       const payload = { value: this.el.value }
       if (target !== undefined && target !== null && target !== "") {
         this.pushEventTo(parseInt(target, 10), "dam_change_window", payload)
