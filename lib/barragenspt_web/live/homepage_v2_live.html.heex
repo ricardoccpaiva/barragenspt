@@ -118,7 +118,7 @@
         <input id="pdsi-month-slider" type="range" min="0" max="12" value="0" class="w-full h-2 accent-sky-500">
       </div>
       <label class="flex items-center justify-between text-sm">
-        <span>SMI</span>
+        <span>Água no solo</span>
         <input id="toggleSmi" type="checkbox" class="toggle" phx-hook="SmiLayerToggle">
       </label>
       <div id="smi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
@@ -205,21 +205,21 @@
 
 <!-- Legenda SMI - visível quando SMI ligado (escala igual a smi_layer.js) -->
 <div id="legend-smi" class="legend-card hidden">
-  <p class="legend-title">Classes do SMI</p>
+  <p class="legend-title">Água no solo</p>
   <p id="legend-smi-date" class="legend-date"></p>
-  <div class="legend-row"><span class="legend-dot" style="background:#ff7e1c"></span><span>&lt;0</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#ffb408"></span><span>0-1</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff7e1c"></span><span>&lt;PEP</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffb408"></span><span>PEP</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#fcdf0d"></span><span>1-10</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#f7ff00"></span><span>10-20</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#cefc00"></span><span>20-40</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#65fa0f"></span><span>40-60</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#44c902"></span><span>60-80</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#23a10a"></span><span>80-99</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#066608"></span><span>99-100</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#33ddbb"></span><span>100-130</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#33aaaa"></span><span>130-160</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#3377aa"></span><span>160-190</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#0000ff"></span><span>≥190</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#066608"></span><span>CC</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#33ddbb"></span><span>1-30</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#33aaaa"></span><span>30-60</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#3377aa"></span><span>60-90</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#0000ff"></span><span>SAT</span></div>
 </div>
 
 <!-- Legenda Chuva - visível quando Chuva ligado -->
