@@ -28,11 +28,7 @@ defmodule BarragensptWeb.HomepageV2Live do
         dam: nil,
         dam_names: [],
         search_rivers: [],
-        search_term: "",
-        spain_layer_visible: false,
-        basins_layer_visible: true,
-        alerts: [],
-        alerts_visible: false
+        search_term: ""
       )
       |> push_event("zoom_map", %{})
       |> push_event("draw_basins", %{basins: basins})
@@ -127,7 +123,6 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(basin_card: nil)
       |> assign(dam: dam)
       |> assign(dam_names: [], search_rivers: [], search_term: "")
-      |> assign(alerts_visible: false, basins_layer_visible: true)
       |> assign(has_realtime_data: has_realtime_data)
       |> assign(current_capacity: current_capacity)
       |> assign(dam_storage_hm3: dam_storage_hm3)
@@ -219,7 +214,6 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> push_event("remove_spain_basins", %{})
       |> assign(basin_card: nil)
       |> assign(spain: false)
-      |> assign(spain_layer_visible: false)
       |> assign(dam: nil)
       |> assign(dam_names: [], search_rivers: [], search_term: "")
       |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
@@ -614,22 +608,11 @@ defmodule BarragensptWeb.HomepageV2Live do
         }
       end)
 
-    socket =
-      socket
-      |> assign(spain_layer_visible: true)
-      |> push_event("draw_spain_basins", %{basins: basins})
-
+    socket = push_event(socket, "draw_spain_basins", %{basins: basins})
     {:noreply, socket}
   end
 
-  def handle_event("toggle_spain", %{"checked" => _}, socket) do
-    socket =
-      socket
-      |> assign(spain_layer_visible: false)
-      |> push_event("remove_spain_basins", %{})
-
-    {:noreply, socket}
-  end
+  def handle_event("toggle_spain", _, socket), do: {:noreply, socket}
 
   def handle_event("toggle_smi", %{"checked" => checked} = params, socket)
       when checked in [true, "true"] do
@@ -656,29 +639,11 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> Enum.reject(fn a -> a.basin_id == nil or a.basin_id == "" end)
       |> Enum.uniq_by(& &1.basin_id)
 
-    socket =
-      socket
-      |> assign(alerts_visible: true, basins_layer_visible: false)
-      |> push_event("draw_alerts_layer", %{alerts: alerts})
-
+    socket = push_event(socket, "draw_alerts_layer", %{alerts: alerts})
     {:noreply, socket}
   end
 
-  def handle_event("toggle_alerts", %{"checked" => _}, socket) do
-    usage_types = Map.get(socket.assigns, :selected_usage_types, [])
-    basins_summary = get_data(socket.assigns[:basin_id], usage_types)
-
-    socket =
-      socket
-      |> assign(alerts: [], alerts_visible: false, basins_layer_visible: true)
-      |> push_event("update_basins_summary", %{basins_summary: basins_summary})
-
-    {:noreply, socket}
-  end
-
-  def handle_event("toggle_basins", %{"checked" => checked}, socket) do
-    {:noreply, assign(socket, basins_layer_visible: checked)}
-  end
+  def handle_event("toggle_alerts", _, socket), do: {:noreply, socket}
 
   def handle_event("rain_change_date", %{"day_offset" => offset}, socket) do
     day_offset = parse_rain_day_offset(offset)
@@ -731,16 +696,11 @@ defmodule BarragensptWeb.HomepageV2Live do
     end
   end
 
+  defp parse_rain_day_offset(_), do: 0
+
   defp list_infoagua_alerts do
     from(a in Alert, order_by: [desc: a.last_update], limit: 50) |> Repo.all()
   end
-
-  defp normalize_basin_name(nil), do: nil
-
-  defp normalize_basin_name(name) when is_binary(name),
-    do: name |> String.trim() |> String.downcase()
-
-  defp parse_rain_day_offset(_), do: 0
 
   defp rain_date_from_offset(day_offset) do
     Date.utc_today() |> Date.add(day_offset)

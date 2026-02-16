@@ -48,13 +48,14 @@ export function registerMapEvents(deps) {
       map.on("mouseenter", fillLayerId, () => { map.getCanvas().style.cursor = "pointer" })
       map.on("mouseleave", fillLayerId, () => { map.getCanvas().style.cursor = "" })
     })
+    window.cachedBasinsSummary = basins.map((item) => ({
+      id: item.id,
+      capacity_color: getStorageColor(item.observed_value)
+    }))
     const toggle = document.getElementById("toggleBasins")
     if (toggle) {
-      applyBasinsLayerActive(toggle.checked)
-      if (!toggle._basinsListenerAdded) {
-        toggle._basinsListenerAdded = true
-        toggle.addEventListener("change", () => applyBasinsLayerActive(toggle.checked))
-      }
+      toggle.checked = true
+      applyBasinsLayerActive(true)
     }
   })
 
@@ -172,8 +173,9 @@ export function registerMapEvents(deps) {
   window.addEventListener("phx:update_basins_summary", (e) => {
     topbar.hide()
     enableTabs()
-    const allLayers = map.getStyle().layers
     const basinsSummary = e.detail.basins_summary
+    if (basinsSummary) window.cachedBasinsSummary = basinsSummary
+    const allLayers = map.getStyle().layers
     allLayers.forEach((item) => {
       if (!item.id.includes("_fill")) return
       const summaryForBasin = basinsSummary.find((b) => b.id + "_fill" === item.id)
@@ -207,6 +209,16 @@ export function registerMapEvents(deps) {
         map.setPaintProperty(layer.id, "fill-opacity", opacity)
       }
     })
+    const legendAlerts = document.getElementById("legend-alerts")
+    const legendStorage = document.getElementById("legend-storage")
+    const legendPdsi = document.getElementById("legend-pdsi")
+    const legendSmi = document.getElementById("legend-smi")
+    const legendRain = document.getElementById("legend-rain")
+    if (legendAlerts) legendAlerts.classList.remove("hidden")
+    if (legendStorage) legendStorage.classList.add("hidden")
+    if (legendPdsi) legendPdsi.classList.add("hidden")
+    if (legendSmi) legendSmi.classList.add("hidden")
+    if (legendRain) legendRain.classList.add("hidden")
   })
 
   window.addEventListener("phx:update_dams_visibility", (e) => {

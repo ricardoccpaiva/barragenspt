@@ -62,18 +62,121 @@ function turnOffRain() {
   if (wrap) wrap.classList.add("hidden")
 }
 
+/** When activating toggle X, turn off these (client-only). */
+const TOGGLE_DEPS = {
+  basins: ["alerts", "pdsi", "smi", "rain"],
+  spain: ["alerts"],
+  alerts: ["basins", "spain", "pdsi", "smi", "rain"],
+  pdsi: ["alerts", "basins", "smi", "rain"],
+  smi: ["alerts", "basins", "pdsi", "rain"],
+  rain: ["alerts", "basins", "pdsi", "smi"]
+}
+
+const TURN_OFF_FNS = {
+  alerts: () => turnOffAlerts(),
+  basins: () => turnOffBasins(),
+  pdsi: () => turnOffPdsi(),
+  smi: () => turnOffSmi(),
+  rain: () => turnOffRain(),
+  spain: () => turnOffSpain()
+}
+
+function whenTurningOn(toggleId) {
+  const deps = TOGGLE_DEPS[toggleId]
+  if (!deps) return
+  deps.forEach((dep) => {
+    const fn = TURN_OFF_FNS[dep]
+    if (fn) fn()
+  })
+}
+
+function turnOffBasins() {
+  const toggle = document.getElementById("toggleBasins")
+  if (toggle) toggle.checked = false
+  applyBasinsLayerActive(false)
+}
+
+function turnOnBasins() {
+  applyBasinsLayerActive(true)
+}
+
+function turnOffDams() {
+  const toggle = document.getElementById("toggleDams")
+  if (toggle) toggle.checked = false
+  applyDamsLayerActive(false)
+}
+
+function turnOnDams() {
+  applyDamsLayerActive(true)
+}
+
+/** Remove Spain basin layers from map (same logic as phx:remove_spain_basins). */
+function removeSpainBasinsFromMap() {
+  if (typeof topbar !== "undefined") topbar.hide()
+  window.spainBasins = []
+  const map = getMap()
+  if (!map) return
+  const style = map.getStyle()
+  if (!style || !style.layers) return
+  const sourceIds = {}
+  style.layers.forEach((layer) => {
+    if (layer.id.startsWith("es_")) {
+      if (map.getLayer(layer.id)) map.removeLayer(layer.id)
+      const sourceId = layer.id.replace(/_fill$/, "").replace(/_outline$/, "")
+      if (layer.id !== sourceId) sourceIds[sourceId] = true
+    }
+  })
+  Object.keys(sourceIds).forEach((sid) => {
+    if (map.getSource(sid)) map.removeSource(sid)
+  })
+  map.fitBounds([[-9.708570, 36.682035], [-6.072327, 42.615949]])
+}
+
+function turnOffSpain() {
+  const toggle = document.getElementById("toggleSpain")
+  if (toggle) toggle.checked = false
+  removeSpainBasinsFromMap()
+}
+
+function applyCachedBasinsSummary() {
+  const basinsSummary = window.cachedBasinsSummary
+  if (!basinsSummary || !basinsSummary.length) return
+  const map = getMap()
+  if (!map) return
+  const style = map.getStyle()
+  if (!style || !style.layers) return
+  const basinsVisible = document.getElementById("toggleBasins")?.checked ?? true
+  const opacity = basinsVisible ? 0.7 : 0
+  style.layers.forEach((item) => {
+    if (!item.id.includes("_fill")) return
+    const summaryForBasin = basinsSummary.find((b) => b.id + "_fill" === item.id)
+    if (summaryForBasin != null) {
+      map.setPaintProperty(item.id, "fill-color", summaryForBasin.capacity_color)
+      map.setPaintProperty(item.id, "fill-opacity", opacity)
+    } else {
+      map.setPaintProperty(item.id, "fill-opacity", 0)
+    }
+  })
+  const legendStorage = document.getElementById("legend-storage")
+  const legendAlerts = document.getElementById("legend-alerts")
+  if (legendAlerts) legendAlerts.classList.add("hidden")
+  if (legendStorage) legendStorage.classList.remove("hidden")
+}
+
 function turnOffAlerts() {
   const toggle = document.getElementById("toggleAlerts")
   if (toggle) toggle.checked = false
+  applyCachedBasinsSummary()
 }
 
-/** Turn off all overlay layers (PDSI, SMI, Rain, Alertas). Used on navigation to dam or when clearing. */
+/** Turn off all overlay layers (PDSI, SMI, Rain, Alertas, Spain). Used on navigation to dam or when clearing. */
 export function clearOverlayLayers() {
   if (typeof topbar !== "undefined") topbar.hide()
   turnOffPdsi()
   turnOffSmi()
   turnOffRain()
   turnOffAlerts()
+  turnOffSpain()
 }
 
 export const DAMS_CIRCLE_COLOR_GRAY_EXPORT = DAMS_CIRCLE_COLOR_GRAY
@@ -96,36 +199,12 @@ export const LayerToggleHooks = {
       if (!el._basinsListenerAdded) {
         el._basinsListenerAdded = true
         el.addEventListener("change", () => {
-          const active = el.checked
-          if (active) {
-            const map = getMap()
-            const alertsToggle = document.getElementById("toggleAlerts")
-            if (alertsToggle?.checked) {
-              turnOffAlerts()
-              this.pushEvent("toggle_alerts", { checked: false })
-            }
-            const pdsiToggle = document.getElementById("togglePdsi")
-            if (pdsiToggle?.checked) {
-              pdsiToggle.checked = false
-              removePdsiLayer(map)
-            }
-            const smiToggle = document.getElementById("toggleSmi")
-            if (smiToggle?.checked) {
-              smiToggle.checked = false
-              removeSmiLayer(map)
-              const smiSliderWrap = document.getElementById("smi-slider-wrap")
-              if (smiSliderWrap) smiSliderWrap.classList.add("hidden")
-            }
-            const rainToggle = document.getElementById("toggleRain")
-            if (rainToggle?.checked) {
-              rainToggle.checked = false
-              removeRainLayer(map)
-              const rainSliderWrap = document.getElementById("rain-slider-wrap")
-              if (rainSliderWrap) rainSliderWrap.classList.add("hidden")
-            }
+          if (el.checked) {
+            whenTurningOn("basins")
+            turnOnBasins()
+          } else {
+            turnOffBasins()
           }
-          applyBasinsLayerActive(active)
-          this.pushEvent("toggle_basins", { checked: active })
         })
       }
       applyBasinsLayerActive(el.checked)
@@ -136,7 +215,10 @@ export const LayerToggleHooks = {
       const el = this.el
       if (!el._damsListenerAdded) {
         el._damsListenerAdded = true
-        el.addEventListener("change", () => applyDamsLayerActive(el.checked))
+        el.addEventListener("change", () => {
+          if (el.checked) turnOnDams()
+          else turnOffDams()
+        })
       }
       applyDamsLayerActive(el.checked)
     }
@@ -146,15 +228,13 @@ export const LayerToggleHooks = {
       const el = this.el
       el.addEventListener("change", () => {
         if (el.checked) {
-          const alertsToggle = document.getElementById("toggleAlerts")
-          if (alertsToggle?.checked) {
-            turnOffAlerts()
-            this.pushEvent("toggle_alerts", { checked: false })
-          }
+          whenTurningOn("spain")
+          this.pushEvent("toggle_spain", { checked: true })
+        } else {
+          turnOffSpain()
         }
-        this.pushEvent("toggle_spain", { checked: el.checked })
       })
-      if (el.checked) this.pushEvent("toggle_spain", { checked: el.checked })
+      if (el.checked) this.pushEvent("toggle_spain", { checked: true })
     }
   },
   AlertsToggle: {
@@ -162,13 +242,11 @@ export const LayerToggleHooks = {
       const el = this.el
       el.addEventListener("change", () => {
         if (el.checked) {
-          const basinsToggle = document.getElementById("toggleBasins")
-          if (basinsToggle?.checked) {
-            basinsToggle.checked = false
-            applyBasinsLayerActive(false)
-          }
+          whenTurningOn("alerts")
+          this.pushEvent("toggle_alerts", { checked: true })
+        } else {
+          turnOffAlerts()
         }
-        this.pushEvent("toggle_alerts", { checked: el.checked })
       })
     }
   },
@@ -201,30 +279,7 @@ export const LayerToggleHooks = {
         const map = getMap()
         if (!map) return
         if (el.checked) {
-          const alertsToggle = document.getElementById("toggleAlerts")
-          if (alertsToggle?.checked) {
-            turnOffAlerts()
-            this.pushEvent("toggle_alerts", { checked: false })
-          }
-          const basinsToggle = document.getElementById("toggleBasins")
-          if (basinsToggle) {
-            basinsToggle.checked = false
-            applyBasinsLayerActive(false)
-          }
-          const smiToggle = document.getElementById("toggleSmi")
-          if (smiToggle?.checked) {
-            smiToggle.checked = false
-            removeSmiLayer(map)
-            const smiSliderWrap = document.getElementById("smi-slider-wrap")
-            if (smiSliderWrap) smiSliderWrap.classList.add("hidden")
-          }
-          const rainToggle = document.getElementById("toggleRain")
-          if (rainToggle?.checked) {
-            rainToggle.checked = false
-            removeRainLayer(map)
-            const rainSliderWrap = document.getElementById("rain-slider-wrap")
-            if (rainSliderWrap) rainSliderWrap.classList.add("hidden")
-          }
+          whenTurningOn("pdsi")
           el.disabled = true
           topbar.show()
           findAvailableDate()
@@ -288,30 +343,7 @@ export const LayerToggleHooks = {
         const map = getMap()
         if (!map) return
         if (el.checked) {
-          const alertsToggle = document.getElementById("toggleAlerts")
-          if (alertsToggle?.checked) {
-            turnOffAlerts()
-            this.pushEvent("toggle_alerts", { checked: false })
-          }
-          const basinsToggle = document.getElementById("toggleBasins")
-          if (basinsToggle) {
-            basinsToggle.checked = false
-            applyBasinsLayerActive(false)
-          }
-          const pdsiToggle = document.getElementById("togglePdsi")
-          if (pdsiToggle?.checked) {
-            pdsiToggle.checked = false
-            removePdsiLayer(map)
-            const pdsiSliderWrap = document.getElementById("pdsi-slider-wrap")
-            if (pdsiSliderWrap) pdsiSliderWrap.classList.add("hidden")
-          }
-          const rainToggle = document.getElementById("toggleRain")
-          if (rainToggle?.checked) {
-            rainToggle.checked = false
-            removeRainLayer(map)
-            const rainSliderWrap = document.getElementById("rain-slider-wrap")
-            if (rainSliderWrap) rainSliderWrap.classList.add("hidden")
-          }
+          whenTurningOn("smi")
           if (sliderWrap) {
             sliderWrap.classList.remove("hidden")
             if (daySlider) daySlider.value = "29"
@@ -368,30 +400,7 @@ export const LayerToggleHooks = {
         const map = getMap()
         if (!map) return
         if (el.checked) {
-          const alertsToggle = document.getElementById("toggleAlerts")
-          if (alertsToggle?.checked) {
-            turnOffAlerts()
-            this.pushEvent("toggle_alerts", { checked: false })
-          }
-          const basinsToggle = document.getElementById("toggleBasins")
-          if (basinsToggle) {
-            basinsToggle.checked = false
-            applyBasinsLayerActive(false)
-          }
-          const pdsiToggle = document.getElementById("togglePdsi")
-          if (pdsiToggle?.checked) {
-            pdsiToggle.checked = false
-            removePdsiLayer(map)
-            const pdsiSliderWrap = document.getElementById("pdsi-slider-wrap")
-            if (pdsiSliderWrap) pdsiSliderWrap.classList.add("hidden")
-          }
-          const smiToggle = document.getElementById("toggleSmi")
-          if (smiToggle?.checked) {
-            smiToggle.checked = false
-            removeSmiLayer(map)
-            const smiSliderWrap = document.getElementById("smi-slider-wrap")
-            if (smiSliderWrap) smiSliderWrap.classList.add("hidden")
-          }
+          whenTurningOn("rain")
           if (rainWrap) {
             rainWrap.classList.remove("hidden")
             if (rainDaySlider) rainDaySlider.value = "15"
@@ -463,24 +472,7 @@ function registerSpainListeners() {
   })
 
   window.addEventListener("phx:remove_spain_basins", () => {
-    if (typeof topbar !== "undefined") topbar.hide()
-    window.spainBasins = []
-    const map = getMap()
-    if (!map) return
-    const style = map.getStyle()
-    if (!style || !style.layers) return
-    const sourceIds = {}
-    style.layers.forEach((layer) => {
-      if (layer.id.startsWith("es_")) {
-        if (map.getLayer(layer.id)) map.removeLayer(layer.id)
-        const sourceId = layer.id.replace(/_fill$/, "").replace(/_outline$/, "")
-        if (layer.id !== sourceId) sourceIds[sourceId] = true
-      }
-    })
-    Object.keys(sourceIds).forEach((sid) => {
-      if (map.getSource(sid)) map.removeSource(sid)
-    })
-    map.fitBounds([[-9.708570, 36.682035], [-6.072327, 42.615949]])
+    removeSpainBasinsFromMap()
   })
 
   window.addEventListener("phx:draw_smi_layer", (e) => {
