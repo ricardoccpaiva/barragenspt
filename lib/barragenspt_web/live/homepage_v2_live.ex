@@ -696,11 +696,27 @@ defmodule BarragensptWeb.HomepageV2Live do
     {:noreply, socket}
   end
 
-  def handle_event("toggle_smi", %{"checked" => checked}, socket) when checked in [true, "true"] do
-    vtim = smi_vtim_yesterday_ms()
+  def handle_event("toggle_smi", %{"checked" => checked}, socket)
+      when checked in [true, "true"] do
+    fetch_and_push_smi(socket, 1)
+  end
+
+  def handle_event("toggle_smi", %{"checked" => _}, socket) do
+    socket = push_event(socket, "remove_smi_layer", %{})
+    {:noreply, socket}
+  end
+
+  def handle_event("smi_change_date", %{"days_ago" => days_str}, socket) do
+    days = parse_days_ago(days_str)
+    fetch_and_push_smi(socket, days)
+  end
+
+  defp fetch_and_push_smi(socket, days_ago) do
+    vtim = smi_vtim_days_ago_ms(days_ago)
+    date_iso = smi_date_iso_days_ago(days_ago)
+
     case Barragenspt.Services.Agroclima.get_smi_values(vtim) do
       {:ok, data} ->
-        date_iso = smi_yesterday_iso()
         socket = push_event(socket, "draw_smi_layer", %{values: data, date: date_iso})
         {:noreply, socket}
 
@@ -710,20 +726,24 @@ defmodule BarragensptWeb.HomepageV2Live do
     end
   end
 
-  def handle_event("toggle_smi", %{"checked" => _}, socket) do
-    socket = push_event(socket, "remove_smi_layer", %{})
-    {:noreply, socket}
+  defp parse_days_ago(days) when is_integer(days), do: max(0, min(30, days))
+
+  defp parse_days_ago(days_str) when is_binary(days_str) do
+    case Integer.parse(days_str) do
+      {n, _} -> max(0, min(30, n))
+      :error -> 1
+    end
   end
 
-  defp smi_vtim_yesterday_ms do
-    yesterday = Date.utc_today() |> Date.add(-1)
-    datetime = DateTime.new!(yesterday, ~T[00:00:00])
+  defp parse_days_ago(_), do: 1
+
+  defp smi_vtim_days_ago_ms(days_ago) do
+    date = Date.utc_today() |> Date.add(-days_ago)
+    datetime = DateTime.new!(date, ~T[00:00:00])
     DateTime.to_unix(datetime, :millisecond)
   end
 
-  defp smi_yesterday_iso do
-    yesterday = Date.utc_today() |> Date.add(-1)
-    Date.to_iso8601(yesterday)
+  defp smi_date_iso_days_ago(days_ago) do
+    Date.utc_today() |> Date.add(-days_ago) |> Date.to_iso8601()
   end
 end
-

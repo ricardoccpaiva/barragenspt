@@ -65,6 +65,8 @@ export const LayerToggleHooks = {
             if (smiToggle?.checked) {
               smiToggle.checked = false
               removeSmiLayer(map)
+              const smiSliderWrap = document.getElementById("smi-slider-wrap")
+              if (smiSliderWrap) smiSliderWrap.classList.add("hidden")
             }
           }
           applyBasinsLayerActive(active)
@@ -128,6 +130,8 @@ export const LayerToggleHooks = {
           if (smiToggle?.checked) {
             smiToggle.checked = false
             removeSmiLayer(map)
+            const smiSliderWrap = document.getElementById("smi-slider-wrap")
+            if (smiSliderWrap) smiSliderWrap.classList.add("hidden")
           }
           el.disabled = true
           topbar.show()
@@ -160,6 +164,10 @@ export const LayerToggleHooks = {
       const el = this.el
       if (el._smiListenerAdded) return
       el._smiListenerAdded = true
+      const sliderWrap = document.getElementById("smi-slider-wrap")
+      const daySlider = document.getElementById("smi-day-slider")
+      const sliderLabel = document.getElementById("smi-slider-label")
+
       el.addEventListener("change", () => {
         const map = getMap()
         if (!map) return
@@ -174,13 +182,35 @@ export const LayerToggleHooks = {
             pdsiToggle.checked = false
             removePdsiLayer(map)
           }
+          if (sliderWrap) {
+            sliderWrap.classList.remove("hidden")
+            if (daySlider) daySlider.value = "29"
+            if (sliderLabel) sliderLabel.textContent = "A carregar..."
+          }
           el.disabled = true
           topbar.show()
           this.pushEvent("toggle_smi", { checked: true })
         } else {
+          if (sliderWrap) sliderWrap.classList.add("hidden")
           this.pushEvent("toggle_smi", { checked: false })
         }
       })
+
+      if (daySlider) {
+        let smiSliderDebounce = null
+        const SMI_SLIDER_DEBOUNCE_MS = 350
+        daySlider.addEventListener("input", () => {
+          if (!el.checked) return
+          if (smiSliderDebounce) clearTimeout(smiSliderDebounce)
+          smiSliderDebounce = setTimeout(() => {
+            smiSliderDebounce = null
+            const sliderVal = parseInt(daySlider.value, 10)
+            const daysAgo = 30 - sliderVal
+            if (sliderLabel) sliderLabel.textContent = "A carregar..."
+            this.pushEvent("smi_change_date", { days_ago: daysAgo })
+          }, SMI_SLIDER_DEBOUNCE_MS)
+        })
+      }
     }
   }
 }
@@ -257,16 +287,25 @@ function registerSpainListeners() {
         key.replace(/^a_/, ""),
         value
       ])
-    );
-
-    debugger;
+    )
     if (map && e.detail) drawSmiLayer(map, cleaned, e.detail.date)
+    const smiSliderLabel = document.getElementById("smi-slider-label")
+    if (e.detail.date && smiSliderLabel) {
+      const dateStr = e.detail.date.slice(0, 10)
+      const [y, m, d] = dateStr.split("-").map(Number)
+      if (y && m && d) {
+        const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+        smiSliderLabel.textContent = `${d} ${months[m - 1]} ${y}`
+      }
+    }
   })
 
   window.addEventListener("phx:remove_smi_layer", () => {
     if (typeof topbar !== "undefined") topbar.hide()
     const map = getMap()
     if (map) removeSmiLayer(map)
+    const smiSliderWrap = document.getElementById("smi-slider-wrap")
+    if (smiSliderWrap) smiSliderWrap.classList.add("hidden")
   })
 
   window.addEventListener("phx:smi_layer_error", () => {

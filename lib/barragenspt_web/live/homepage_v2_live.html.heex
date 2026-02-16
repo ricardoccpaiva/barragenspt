@@ -120,6 +120,13 @@
         <span>SMI</span>
         <input id="toggleSmi" type="checkbox" class="toggle" phx-hook="SmiLayerToggle">
       </label>
+      <div id="smi-slider-wrap" class="hidden pl-1 pt-1 space-y-1">
+        <div class="flex items-center justify-between text-xs text-slate-600">
+          <span>Dia</span>
+          <span id="smi-slider-label"></span>
+        </div>
+        <input id="smi-day-slider" type="range" min="0" max="30" value="29" class="w-full h-2 accent-amber-500">
+      </div>
       <label class="flex items-center justify-between text-sm">
         <span>Chuva</span>
         <input type="checkbox" class="toggle">
