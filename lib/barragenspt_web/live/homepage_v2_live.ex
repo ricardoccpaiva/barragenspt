@@ -2,7 +2,7 @@ defmodule BarragensptWeb.HomepageV2Live do
   use BarragensptWeb, :live_view
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Geo.Coordinates
-  alias Barragenspt.Hydrometrics.{Dams, Basins, EmbalsesNet}
+  alias Barragenspt.Hydrometrics.{Basins, Dams, DamChartSeries, EmbalsesNet}
   require Logger
 
   def mount(_, _session, socket) do
@@ -66,8 +66,8 @@ defmodule BarragensptWeb.HomepageV2Live do
     usage_types_dam = Dams.usage_types(dam.site_id)
 
     bounding_box = Coordinates.bounding_box(id)
-    chart_series = build_dam_chart_series_for_period(id, "d60")
-    discharge_series = build_discharge_chart_series_for_period(id, "d60")
+    chart_series = DamChartSeries.storage_series(id, "d60")
+    discharge_series = DamChartSeries.discharge_series(id, "d60")
     realtime_rows = Dams.realtime_series(id)
     has_realtime_data = realtime_rows != []
 
@@ -112,7 +112,6 @@ defmodule BarragensptWeb.HomepageV2Live do
         }
       end
 
-    default_dam_card_tab = if has_realtime_data, do: "realtime", else: "chart"
     current_storage_color = Colors.lookup_capacity(current_capacity)
 
     socket =
@@ -121,7 +120,6 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(basin_card: nil)
       |> assign(dam: dam)
       |> assign(dam_names: [], search_rivers: [], search_term: "")
-      |> assign(dam_card_tab: default_dam_card_tab)
       |> assign(has_realtime_data: has_realtime_data)
       |> assign(current_capacity: current_capacity)
       |> assign(dam_storage_hm3: dam_storage_hm3)
@@ -401,99 +399,6 @@ defmodule BarragensptWeb.HomepageV2Live do
     end)
   end
 
-  @dam_chart_period_config %{
-    "d7" => {:daily, 1, 7, "%d/%m"},
-    "d14" => {:daily, 1, 14, "%d/%m"},
-    "d30" => {:daily, 1, 30, "%d/%m"},
-    "d60" => {:daily, 2, 60, "%d/%m"},
-    "d180" => {:daily, 6, 180, "%d/%m"},
-    "y2" => {:monthly, 2, 24, "%m/%Y"},
-    "y5" => {:monthly, 5, 60, "%m/%Y"},
-    "y10" => {:monthly, 10, 120, "%m/%Y"},
-    "ymax" => {:monthly, 50, nil, "%m/%Y"}
-  }
-
-  defp build_dam_chart_series_for_period(dam_id, period) do
-    {points, date_format} = fetch_points_for_period(dam_id, period)
-    series = build_series_from_points(points, date_format)
-    %{period => series}
-  end
-
-  defp build_discharge_chart_series_for_period(dam_id, period) do
-    raw = fetch_discharge_flows_for_period(dam_id, period)
-    data = slice_discharge_series(raw, period)
-    %{period => data}
-  end
-
-  defp fetch_discharge_flows_for_period(dam_id, period)
-       when is_map_key(@dam_chart_period_config, period) do
-    {stats_type, fetch_arg, _take_n, _date_format} = @dam_chart_period_config[period]
-
-    case stats_type do
-      :daily -> Dams.discharge_flows_daily(dam_id, fetch_arg)
-      :monthly -> Dams.discharge_flows_monthly(dam_id, fetch_arg)
-    end
-  end
-
-  defp slice_discharge_series(raw, period) do
-    {_stats_type, _fetch_arg, take_n, _date_format} = @dam_chart_period_config[period]
-    labels = raw["labels"] || []
-
-    labels =
-      if take_n && length(labels) > take_n do
-        labels |> Enum.take(-take_n)
-      else
-        labels
-      end
-
-    param_keys = [
-      "ouput_flow_rate_daily",
-      "tributary_daily_flow",
-      "effluent_daily_flow",
-      "turbocharged_daily_flow"
-    ]
-
-    series =
-      for key <- param_keys, reduce: %{} do
-        acc -> Map.put(acc, key, raw[key] |> take_tail_or_all(take_n))
-      end
-
-    Map.put(series, "labels", labels)
-  end
-
-  defp take_tail_or_all(list, nil), do: list || []
-  defp take_tail_or_all(list, n) when is_list(list) and is_integer(n), do: Enum.take(list, -n)
-  defp take_tail_or_all(list, _), do: list || []
-
-  defp fetch_points_for_period(dam_id, period)
-       when is_map_key(@dam_chart_period_config, period) do
-    {stats_type, fetch_arg, take_n, date_format} = @dam_chart_period_config[period]
-
-    points =
-      case stats_type do
-        :daily -> dam_id |> Dams.daily_stats(fetch_arg) |> Enum.map(&normalize_stat/1)
-        :monthly -> dam_id |> Dams.monthly_stats(fetch_arg) |> Enum.map(&normalize_stat/1)
-      end
-
-    points = if take_n, do: Enum.take(points, -take_n), else: points
-    {points, date_format}
-  end
-
-  defp normalize_stat(%{date: date, observed_value: obs, historical_average: avg}) do
-    %{
-      date: date,
-      observed_value: to_float(obs),
-      historical_average: to_float(avg)
-    }
-  end
-
-  defp build_series_from_points(points, date_format) do
-    labels = Enum.map(points, fn %{date: date} -> Calendar.strftime(date, date_format) end)
-    observed = Enum.map(points, & &1.observed_value)
-    average = Enum.map(points, & &1.historical_average)
-    %{"labels" => labels, "observed" => observed, "average" => average}
-  end
-
   defp to_float(nil), do: 0.0
   defp to_float(%Decimal{} = d), do: d |> Decimal.to_float()
   defp to_float(n) when is_number(n), do: n * 1.0
@@ -645,43 +550,6 @@ defmodule BarragensptWeb.HomepageV2Live do
     socket =
       socket
       |> assign(dam_names: dams, search_rivers: search_rivers, search_term: term)
-
-    {:noreply, socket}
-  end
-
-  def handle_event("dam_change_window", %{"value" => value}, socket) do
-    id = socket.assigns.dam.site_id
-
-    socket =
-      if Map.has_key?(@dam_chart_period_config, value) do
-        socket
-        |> push_event("dam_chart_series", %{
-          series: build_dam_chart_series_for_period(id, value),
-          merge: true
-        })
-        |> push_event("dam_discharge_series", %{
-          series: build_discharge_chart_series_for_period(id, value),
-          merge: true
-        })
-      else
-        socket
-      end
-
-    {:noreply, socket}
-  end
-
-  def handle_event("dam_card_tab", %{"tab" => tab}, socket) do
-    socket = assign(socket, :dam_card_tab, tab)
-
-    socket =
-      if tab == "realtime" do
-        series = Dams.realtime_series(socket.assigns.dam.site_id)
-
-        socket
-        |> push_event("dam_realtime_chart", %{rows: series})
-      else
-        socket
-      end
 
     {:noreply, socket}
   end
