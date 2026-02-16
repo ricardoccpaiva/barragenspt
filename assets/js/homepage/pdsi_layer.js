@@ -32,18 +32,21 @@ function showPdsiLegend(fmtDateStr) {
   const pdsiEl = document.getElementById("legend-pdsi")
   const storageEl = document.getElementById("legend-storage")
   const smiEl = document.getElementById("legend-smi")
+  const rainEl = document.getElementById("legend-rain")
   if (dateEl) dateEl.textContent = formatPdsiDateLabel(fmtDateStr)
   if (pdsiEl) pdsiEl.classList.remove("hidden")
   if (storageEl) storageEl.classList.add("hidden")
   if (smiEl) smiEl.classList.add("hidden")
+  if (rainEl) rainEl.classList.add("hidden")
 }
 
 function hidePdsiLegend() {
   const pdsiEl = document.getElementById("legend-pdsi")
   const storageEl = document.getElementById("legend-storage")
   const smiEl = document.getElementById("legend-smi")
+  const rainEl = document.getElementById("legend-rain")
   if (pdsiEl) pdsiEl.classList.add("hidden")
-  if (storageEl && (!smiEl || smiEl.classList.contains("hidden"))) storageEl.classList.remove("hidden")
+  if (storageEl && (!smiEl || smiEl.classList.contains("hidden")) && (!rainEl || rainEl.classList.contains("hidden"))) storageEl.classList.remove("hidden")
 }
 
 /**

@@ -707,6 +707,21 @@ defmodule BarragensptWeb.HomepageV2Live do
     {:noreply, socket}
   end
 
+  def handle_event("toggle_rain", %{"checked" => checked}, socket)
+      when checked in [true, "true"] do
+    fetch_and_push_rain(socket, 0)
+  end
+
+  def handle_event("toggle_rain", %{"checked" => _}, socket) do
+    socket = push_event(socket, "remove_rain_layer", %{})
+    {:noreply, socket}
+  end
+
+  def handle_event("rain_change_date", %{"day_offset" => offset}, socket) do
+    day_offset = parse_rain_day_offset(offset)
+    fetch_and_push_rain(socket, day_offset)
+  end
+
   def handle_event("smi_change_date", %{"days_ago" => days_str} = params, socket) do
     days = parse_days_ago(days_str)
     vser = parse_vser(params["vser"])
@@ -726,6 +741,35 @@ defmodule BarragensptWeb.HomepageV2Live do
         socket = push_event(socket, "smi_layer_error", %{})
         {:noreply, socket}
     end
+  end
+
+  defp fetch_and_push_rain(socket, day_offset) do
+    date = rain_date_from_offset(day_offset)
+    date_iso = Date.to_iso8601(date)
+    vtim = DateTime.new!(date, ~T[00:00:00]) |> DateTime.to_unix(:millisecond)
+
+    case Barragenspt.Services.Agroclima.get_prec_values(vtim, "tot", "dd") do
+      {:ok, data} ->
+        socket = push_event(socket, "draw_rain_layer", %{values: data, date: date_iso})
+        {:noreply, socket}
+
+      {:error, _} ->
+        socket = push_event(socket, "rain_layer_error", %{})
+        {:noreply, socket}
+    end
+  end
+
+  defp parse_rain_day_offset(offset) when is_integer(offset), do: max(-15, min(10, offset))
+  defp parse_rain_day_offset(offset) when is_binary(offset) do
+    case Integer.parse(offset) do
+      {n, _} -> max(-15, min(10, n))
+      :error -> 0
+    end
+  end
+  defp parse_rain_day_offset(_), do: 0
+
+  defp rain_date_from_offset(day_offset) do
+    Date.utc_today() |> Date.add(day_offset)
   end
 
   defp parse_days_ago(days) when is_integer(days), do: max(0, min(30, days))

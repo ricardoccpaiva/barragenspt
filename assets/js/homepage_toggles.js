@@ -9,6 +9,7 @@ import {
   getPdsiMonthLabelForOffset
 } from "./homepage/pdsi_layer"
 import { drawSmiLayer, removeSmiLayer } from "./homepage/smi_layer"
+import { drawRainLayer, removeRainLayer } from "./homepage/rain_layer"
 
 function getMap() {
   return window.map
@@ -67,6 +68,13 @@ export const LayerToggleHooks = {
               removeSmiLayer(map)
               const smiSliderWrap = document.getElementById("smi-slider-wrap")
               if (smiSliderWrap) smiSliderWrap.classList.add("hidden")
+            }
+            const rainToggle = document.getElementById("toggleRain")
+            if (rainToggle?.checked) {
+              rainToggle.checked = false
+              removeRainLayer(map)
+              const rainSliderWrap = document.getElementById("rain-slider-wrap")
+              if (rainSliderWrap) rainSliderWrap.classList.add("hidden")
             }
           }
           applyBasinsLayerActive(active)
@@ -132,6 +140,13 @@ export const LayerToggleHooks = {
             removeSmiLayer(map)
             const smiSliderWrap = document.getElementById("smi-slider-wrap")
             if (smiSliderWrap) smiSliderWrap.classList.add("hidden")
+          }
+          const rainToggle = document.getElementById("toggleRain")
+          if (rainToggle?.checked) {
+            rainToggle.checked = false
+            removeRainLayer(map)
+            const rainSliderWrap = document.getElementById("rain-slider-wrap")
+            if (rainSliderWrap) rainSliderWrap.classList.add("hidden")
           }
           el.disabled = true
           topbar.show()
@@ -209,6 +224,13 @@ export const LayerToggleHooks = {
             const pdsiSliderWrap = document.getElementById("pdsi-slider-wrap")
             if (pdsiSliderWrap) pdsiSliderWrap.classList.add("hidden")
           }
+          const rainToggle = document.getElementById("toggleRain")
+          if (rainToggle?.checked) {
+            rainToggle.checked = false
+            removeRainLayer(map)
+            const rainSliderWrap = document.getElementById("rain-slider-wrap")
+            if (rainSliderWrap) rainSliderWrap.classList.add("hidden")
+          }
           if (sliderWrap) {
             sliderWrap.classList.remove("hidden")
             if (daySlider) daySlider.value = "29"
@@ -244,6 +266,73 @@ export const LayerToggleHooks = {
           pushSmiChangeDate.call(this)
         })
       })
+    }
+  },
+  RainLayerToggle: {
+    mounted() {
+      const el = this.el
+      if (el._rainListenerAdded) return
+      el._rainListenerAdded = true
+      const rainWrap = document.getElementById("rain-slider-wrap")
+      const rainDaySlider = document.getElementById("rain-day-slider")
+      const rainSliderLabel = document.getElementById("rain-slider-label")
+
+      function pushRainChangeDate() {
+        const sliderVal = rainDaySlider ? parseInt(rainDaySlider.value, 10) : 15
+        const dayOffset = sliderVal - 15
+        if (rainSliderLabel) rainSliderLabel.textContent = "A carregar..."
+        this.pushEvent("rain_change_date", { day_offset: dayOffset })
+      }
+
+      el.addEventListener("change", () => {
+        const map = getMap()
+        if (!map) return
+        if (el.checked) {
+          const basinsToggle = document.getElementById("toggleBasins")
+          if (basinsToggle) {
+            basinsToggle.checked = false
+            applyBasinsLayerActive(false)
+          }
+          const pdsiToggle = document.getElementById("togglePdsi")
+          if (pdsiToggle?.checked) {
+            pdsiToggle.checked = false
+            removePdsiLayer(map)
+            const pdsiSliderWrap = document.getElementById("pdsi-slider-wrap")
+            if (pdsiSliderWrap) pdsiSliderWrap.classList.add("hidden")
+          }
+          const smiToggle = document.getElementById("toggleSmi")
+          if (smiToggle?.checked) {
+            smiToggle.checked = false
+            removeSmiLayer(map)
+            const smiSliderWrap = document.getElementById("smi-slider-wrap")
+            if (smiSliderWrap) smiSliderWrap.classList.add("hidden")
+          }
+          if (rainWrap) {
+            rainWrap.classList.remove("hidden")
+            if (rainDaySlider) rainDaySlider.value = "15"
+            if (rainSliderLabel) rainSliderLabel.textContent = "A carregar..."
+          }
+          el.disabled = true
+          topbar.show()
+          this.pushEvent("toggle_rain", { checked: true })
+        } else {
+          if (rainWrap) rainWrap.classList.add("hidden")
+          this.pushEvent("toggle_rain", { checked: false })
+        }
+      })
+
+      if (rainDaySlider) {
+        let rainSliderDebounce = null
+        const RAIN_SLIDER_DEBOUNCE_MS = 350
+        rainDaySlider.addEventListener("input", () => {
+          if (!el.checked) return
+          if (rainSliderDebounce) clearTimeout(rainSliderDebounce)
+          rainSliderDebounce = setTimeout(() => {
+            rainSliderDebounce = null
+            pushRainChangeDate.call(this)
+          }, RAIN_SLIDER_DEBOUNCE_MS)
+        })
+      }
     }
   }
 }
@@ -348,6 +437,45 @@ function registerSpainListeners() {
       smiToggle.checked = false
       smiToggle.disabled = false
     }
+  })
+
+  window.addEventListener("phx:draw_rain_layer", (e) => {
+    if (typeof topbar !== "undefined") topbar.hide()
+    const map = getMap()
+    const rainToggle = document.getElementById("toggleRain")
+    if (rainToggle) rainToggle.disabled = false
+    const cleaned = Object.fromEntries(
+      Object.entries(e.detail.values || {}).map(([key, value]) => [
+        key.replace(/^a_/, ""),
+        value
+      ])
+    )
+    if (map && e.detail) drawRainLayer(map, cleaned, e.detail.date)
+    const rainSliderLabel = document.getElementById("rain-slider-label")
+    if (e.detail.date && rainSliderLabel) {
+      const dateStr = e.detail.date.slice(0, 10)
+      const [y, m, d] = dateStr.split("-").map(Number)
+      if (y && m && d) {
+        const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+        rainSliderLabel.textContent = `${d} ${months[m - 1]} ${y}`
+      }
+    }
+  })
+
+  window.addEventListener("phx:remove_rain_layer", () => {
+    if (typeof topbar !== "undefined") topbar.hide()
+    const map = getMap()
+    if (map) removeRainLayer(map)
+    const rainSliderWrap = document.getElementById("rain-slider-wrap")
+    if (rainSliderWrap) rainSliderWrap.classList.add("hidden")
+  })
+
+  window.addEventListener("phx:rain_layer_error", () => {
+    if (typeof topbar !== "undefined") topbar.hide()
+    const rainToggle = document.getElementById("toggleRain")
+    if (rainToggle) rainToggle.disabled = false
+    const rainSliderLabel = document.getElementById("rain-slider-label")
+    if (rainSliderLabel) rainSliderLabel.textContent = "Erro ao carregar"
   })
 }
 

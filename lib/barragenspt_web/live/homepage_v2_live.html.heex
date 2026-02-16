@@ -137,8 +137,15 @@
       </div>
       <label class="flex items-center justify-between text-sm">
         <span>Chuva</span>
-        <input type="checkbox" class="toggle">
+        <input id="toggleRain" type="checkbox" class="toggle" phx-hook="RainLayerToggle">
       </label>
+      <div id="rain-slider-wrap" class="hidden pl-1 pt-1 space-y-1">
+        <div class="flex items-center justify-between text-xs text-slate-600">
+          <span>Dia (acum. diário)</span>
+          <span id="rain-slider-label"></span>
+        </div>
+        <input id="rain-day-slider" type="range" min="0" max="25" value="15" class="w-full h-2 accent-sky-500">
+      </div>
     </div>
   </div>
 </aside>
@@ -490,4 +497,23 @@
   <div class="legend-row"><span class="legend-dot" style="background:#33aaaa"></span><span>130-160</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#3377aa"></span><span>160-190</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#0000ff"></span><span>≥190</span></div>
+</div>
+
+<!-- Legenda Chuva - visível quando Chuva ligado -->
+<div id="legend-rain" class="legend-card hidden">
+  <p class="legend-title">Precipitação (mm)</p>
+  <p id="legend-rain-date" class="legend-date"></p>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffffff"></span><span>&lt;0.1</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#afd7ff"></span><span>0.1-2</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#99ccff"></span><span>2-5</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#77aaff"></span><span>5-10</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#0077ff"></span><span>10-20</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#0066dd"></span><span>20-30</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffee00"></span><span>30-35</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffdd00"></span><span>35-40</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffaa00"></span><span>40-50</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff7700"></span><span>50-60</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff0000"></span><span>60-90</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff00bb"></span><span>90-120</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#dddddd"></span><span>≥120</span></div>
 </div>

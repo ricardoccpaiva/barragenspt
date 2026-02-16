@@ -24,10 +24,31 @@ defmodule Barragenspt.Services.Agroclima do
   def get_smi_values(vtim, vser) when is_binary(vtim) do
     vser = if vser in @valid_vser, do: vser, else: "p28"
     with {:ok, cookie_header, csrf_token} <- fetch_session_and_csrf(),
-         {:ok, data} <- post_evomaptimeval(vtim, vser, cookie_header, csrf_token) do
+         {:ok, data} <- post_evomaptimeval_smi(vtim, vser, cookie_header, csrf_token) do
       {:ok, data}
     end
   end
+
+  @doc """
+  Obtém valores de precipitação (Chuva) por concelho.
+  vtim = Unix timestamp em milissegundos (início do dia).
+  vser/vtmp = "anom"/"ww" (acumulada semanal) ou "tot"/"dd" (acumulada diária).
+  Retorna `{:ok, data}` ou `{:error, reason}`.
+  """
+  def get_prec_values(vtim, vser \\ "anom", vtmp \\ "ww")
+  def get_prec_values(vtim, vser, vtmp) when is_integer(vtim),
+    do: get_prec_values(to_string(vtim), vser, vtmp)
+  def get_prec_values(vtim, vser, vtmp) when is_binary(vtim) do
+    {vser, vtmp} = normalize_prec_mode(vser, vtmp)
+    with {:ok, cookie_header, csrf_token} <- fetch_session_and_csrf(),
+         {:ok, data} <- post_evomaptimeval_prec(vtim, vser, vtmp, cookie_header, csrf_token) do
+      {:ok, data}
+    end
+  end
+
+  defp normalize_prec_mode(vser, vtmp) when vser in ["anom", "tot"] and vtmp in ["ww", "dd"],
+    do: {vser, vtmp}
+  defp normalize_prec_mode(_, _), do: {"anom", "ww"}
 
   @doc """
   Obtém cookie de sessão e token CSRF da página clievo.
@@ -72,9 +93,21 @@ defmodule Barragenspt.Services.Agroclima do
 
   defp parse_csrft_from_html(_), do: nil
 
-  defp post_evomaptimeval(vtim, vser, cookie_header, csrf_token) do
+  defp post_evomaptimeval_smi(vtim, vser, cookie_header, csrf_token) do
     body =
       "csrfmiddlewaretoken=#{URI.encode_www_form(csrf_token)}&vcod=smi&vlev=conc&vser=#{vser}&vtmp=dd&vzon=PT100&vtim=#{vtim}"
+
+    post_evomaptimeval(body, cookie_header, csrf_token)
+  end
+
+  defp post_evomaptimeval_prec(vtim, vser, vtmp, cookie_header, csrf_token) do
+    body =
+      "csrfmiddlewaretoken=#{URI.encode_www_form(csrf_token)}&vcod=prec&vlev=conc&vser=#{vser}&vtmp=#{vtmp}&vzon=PT100&vtim=#{vtim}"
+
+    post_evomaptimeval(body, cookie_header, csrf_token)
+  end
+
+  defp post_evomaptimeval(body, cookie_header, _csrf_token) do
 
     headers = [
       {"x-requested-with", "XMLHttpRequest"},
@@ -90,8 +123,8 @@ defmodule Barragenspt.Services.Agroclima do
       {:ok, %{status_code: 200, body: response_body}} ->
         {:ok, Jason.decode!(response_body)}
 
-      {:ok, %{status_code: code, body: body}} ->
-        Logger.warning("Agroclima evomaptimeval status=#{code} body=#{String.slice(body, 0..200)}")
+      {:ok, %{status_code: code, body: resp_body}} ->
+        Logger.warning("Agroclima evomaptimeval status=#{code} body=#{String.slice(resp_body, 0..200)}")
         {:error, :upstream}
 
       {:error, reason} ->

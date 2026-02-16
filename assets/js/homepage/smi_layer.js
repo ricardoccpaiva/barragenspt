@@ -41,18 +41,21 @@ function showSmiLegend(isoDateStr) {
   const smiEl = document.getElementById("legend-smi")
   const storageEl = document.getElementById("legend-storage")
   const pdsiEl = document.getElementById("legend-pdsi")
+  const rainEl = document.getElementById("legend-rain")
   if (dateEl) dateEl.textContent = formatSmiDateLabel(isoDateStr)
   if (smiEl) smiEl.classList.remove("hidden")
   if (storageEl) storageEl.classList.add("hidden")
   if (pdsiEl) pdsiEl.classList.add("hidden")
+  if (rainEl) rainEl.classList.add("hidden")
 }
 
 function hideSmiLegend() {
   const smiEl = document.getElementById("legend-smi")
   const storageEl = document.getElementById("legend-storage")
   const pdsiEl = document.getElementById("legend-pdsi")
+  const rainEl = document.getElementById("legend-rain")
   if (smiEl) smiEl.classList.add("hidden")
-  if (storageEl && (!pdsiEl || pdsiEl.classList.contains("hidden"))) storageEl.classList.remove("hidden")
+  if (storageEl && (!pdsiEl || pdsiEl.classList.contains("hidden")) && (!rainEl || rainEl.classList.contains("hidden"))) storageEl.classList.remove("hidden")
 }
 
 function normalizeValuesByZid(data) {
