@@ -206,6 +206,8 @@ export const LayerToggleHooks = {
           if (pdsiToggle?.checked) {
             pdsiToggle.checked = false
             removePdsiLayer(map)
+            const pdsiSliderWrap = document.getElementById("pdsi-slider-wrap")
+            if (pdsiSliderWrap) pdsiSliderWrap.classList.add("hidden")
           }
           if (sliderWrap) {
             sliderWrap.classList.remove("hidden")
