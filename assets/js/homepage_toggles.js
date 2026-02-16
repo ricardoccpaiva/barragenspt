@@ -167,12 +167,23 @@ export const LayerToggleHooks = {
       const sliderWrap = document.getElementById("smi-slider-wrap")
       const daySlider = document.getElementById("smi-day-slider")
       const sliderLabel = document.getElementById("smi-slider-label")
-      const depthSelect = document.getElementById("smi-depth-select")
+      const depthPillsContainer = document.getElementById("smi-depth-pills")
 
       function getSmiVser() {
-        if (!depthSelect) return "p28"
-        const v = depthSelect.value
-        return ["p7", "p28", "p100"].includes(v) ? v : "p28"
+        const active = depthPillsContainer?.querySelector(".smi-depth-pill-active")
+        const v = active?.getAttribute("data-value")
+        return v && ["p7", "p28", "p100"].includes(v) ? v : "p28"
+      }
+
+      function setSmiDepthActive(pillEl) {
+        depthPillsContainer?.querySelectorAll(".smi-depth-pill").forEach((btn) => {
+          btn.classList.remove("smi-depth-pill-active", "bg-brand-500", "text-white", "border-brand-600")
+          btn.classList.add("border-slate-200", "bg-slate-50", "text-slate-700")
+        })
+        if (pillEl) {
+          pillEl.classList.add("smi-depth-pill-active", "bg-brand-500", "text-white", "border-brand-600")
+          pillEl.classList.remove("border-slate-200", "bg-slate-50", "text-slate-700")
+        }
       }
 
       function pushSmiChangeDate() {
@@ -223,13 +234,14 @@ export const LayerToggleHooks = {
         })
       }
 
-      if (depthSelect) {
-        depthSelect.addEventListener("change", () => {
+      depthPillsContainer?.querySelectorAll(".smi-depth-pill").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setSmiDepthActive(btn)
           if (!el.checked) return
           if (sliderLabel) sliderLabel.textContent = "A carregar..."
           pushSmiChangeDate.call(this)
         })
-      }
+      })
     }
   }
 }

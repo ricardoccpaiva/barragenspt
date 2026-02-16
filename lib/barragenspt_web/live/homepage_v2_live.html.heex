@@ -122,18 +122,18 @@
       </label>
       <div id="smi-slider-wrap" class="hidden pl-1 pt-1 space-y-1">
         <div class="flex flex-col gap-1">
-          <label for="smi-depth-select" class="text-xs text-slate-600">Profundidade</label>
-          <select id="smi-depth-select" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm bg-white">
-            <option value="p7">7 cm</option>
-            <option value="p28" selected>28 cm</option>
-            <option value="p100">100 cm</option>
-          </select>
+          <p class="text-xs text-slate-600">Profundidade</p>
+          <div class="flex flex-wrap gap-1.5" id="smi-depth-pills" role="group" aria-label="Profundidade SMI">
+            <button type="button" class="smi-depth-pill rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100" data-value="p7">7 cm</button>
+            <button type="button" class="smi-depth-pill smi-depth-pill-active rounded-full border border-brand-600 bg-brand-500 px-2 py-0.5 text-xs font-medium text-white transition-colors" data-value="p28">28 cm</button>
+            <button type="button" class="smi-depth-pill rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100" data-value="p100">100 cm</button>
+          </div>
         </div>
         <div class="flex items-center justify-between text-xs text-slate-600">
           <span>Dia</span>
           <span id="smi-slider-label"></span>
         </div>
-        <input id="smi-day-slider" type="range" min="0" max="30" value="29" class="w-full h-2 accent-amber-500">
+        <input id="smi-day-slider" type="range" min="0" max="30" value="29" class="w-full h-2 accent-sky-500">
       </div>
       <label class="flex items-center justify-between text-sm">
         <span>Chuva</span>
