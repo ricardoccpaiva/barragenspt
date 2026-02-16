@@ -25,7 +25,8 @@ defmodule BarragensptWeb.HomepageV2Live do
         dam: nil,
         dam_names: [],
         search_rivers: [],
-        search_term: ""
+        search_term: "",
+        spain_layer_visible: false
       )
       |> push_event("zoom_map", %{})
       |> push_event("draw_basins", %{basins: basins})
@@ -143,6 +144,32 @@ defmodule BarragensptWeb.HomepageV2Live do
     end
   end
 
+  def handle_params(%{"basin_id" => id, "country" => "es"}, _url, socket) do
+    %{id: _id, basin_name: basin_name, current_pct: current_pct, capacity_color: capacity_color} =
+      Barragenspt.Hydrometrics.EmbalsesNet.basin_info(id)
+
+    basins =
+      EmbalsesNet.basins_info()
+      |> Enum.map(fn b ->
+        %{
+          id: b.id,
+          basin_name: b.basin_name,
+          capacity_color: b.capacity_color || "#94a3b8"
+        }
+      end)
+
+    socket =
+      socket
+      |> assign(basin_id: id)
+      |> assign(spain: true)
+      |> assign(basin_card: build_basin_card_spain(basin_name, current_pct, capacity_color))
+      |> assign(dam: nil)
+      |> assign(dam_names: [], search_rivers: [], search_term: "")
+      |> push_event("draw_spain_basins", %{basins: basins})
+
+    {:noreply, socket}
+  end
+
   def handle_params(%{"basin_id" => id}, _url, socket) do
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
 
@@ -156,26 +183,12 @@ defmodule BarragensptWeb.HomepageV2Live do
     socket =
       socket
       |> assign(basin_id: id)
+      |> assign(spain: false)
       |> assign(basin_summary: summary)
       |> assign(basin_card: build_basin_card(basin_name, summary, daily_stats, monthly_stats))
       |> assign(dam: nil)
       |> assign(dam_names: [], search_rivers: [], search_term: "")
       |> push_event("zoom_map", %{basin_id: id, bounding_box: bounding_box})
-
-    {:noreply, socket}
-  end
-
-  def handle_params(%{"basin_id" => id, "country" => "es"}, _url, socket) do
-    %{id: _id, basin_name: basin_name, current_pct: current_pct, capacity_color: capacity_color} =
-      Barragenspt.Hydrometrics.EmbalsesNet.basin_info(id)
-
-    socket =
-      socket
-      |> assign(basin_id: id)
-      |> assign(spain: true)
-      |> assign(basin_card: build_basin_card_spain(basin_name, current_pct, capacity_color))
-      |> assign(dam_names: [], search_rivers: [], search_term: "")
-      |> then(&%{&1 | assigns: Map.delete(&1.assigns, :dam)})
 
     {:noreply, socket}
   end
@@ -190,7 +203,10 @@ defmodule BarragensptWeb.HomepageV2Live do
     socket =
       socket
       |> push_event("zoom_map", %{})
+      |> push_event("remove_spain_basins", %{})
       |> assign(basin_card: nil)
+      |> assign(spain: false)
+      |> assign(spain_layer_visible: false)
       |> assign(dam: nil)
       |> assign(dam_names: [], search_rivers: [], search_term: "")
       |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
@@ -263,11 +279,27 @@ defmodule BarragensptWeb.HomepageV2Live do
     "#{current_storage} hm³"
   end
 
+  defp parse_spain_pct(n) when is_number(n), do: n
+
+  defp parse_spain_pct(s) when is_binary(s) do
+    s
+    |> String.replace(",", ".")
+    |> Float.parse()
+    |> case do
+      {num, _} -> num
+      :error -> nil
+    end
+  end
+
+  defp parse_spain_pct(_), do: nil
+
   defp build_basin_card_spain(basin_name, current_pct, capacity_color) do
+    pct = parse_spain_pct(current_pct)
+
     %{
       name: basin_name,
       dams_count: nil,
-      avg_observed: round_or_nil(current_pct),
+      avg_observed: round_or_nil(pct),
       avg_historical: nil,
       month_value: nil,
       month_change: nil,
@@ -535,9 +567,12 @@ defmodule BarragensptWeb.HomepageV2Live do
       end)
 
     term_lower = String.downcase(term)
+
     search_rivers =
       case term do
-        "" -> []
+        "" ->
+          []
+
         _ ->
           socket.assigns.rivers
           |> Enum.filter(fn r ->
@@ -566,12 +601,20 @@ defmodule BarragensptWeb.HomepageV2Live do
         }
       end)
 
-    socket = push_event(socket, "draw_spain_basins", %{basins: basins})
+    socket =
+      socket
+      |> assign(spain_layer_visible: true)
+      |> push_event("draw_spain_basins", %{basins: basins})
+
     {:noreply, socket}
   end
 
   def handle_event("toggle_spain", %{"checked" => _}, socket) do
-    socket = push_event(socket, "remove_spain_basins", %{})
+    socket =
+      socket
+      |> assign(spain_layer_visible: false)
+      |> push_event("remove_spain_basins", %{})
+
     {:noreply, socket}
   end
 
@@ -639,12 +682,14 @@ defmodule BarragensptWeb.HomepageV2Live do
   end
 
   defp parse_rain_day_offset(offset) when is_integer(offset), do: max(-15, min(10, offset))
+
   defp parse_rain_day_offset(offset) when is_binary(offset) do
     case Integer.parse(offset) do
       {n, _} -> max(-15, min(10, n))
       :error -> 0
     end
   end
+
   defp parse_rain_day_offset(_), do: 0
 
   defp rain_date_from_offset(day_offset) do

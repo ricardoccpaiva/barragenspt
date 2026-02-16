@@ -94,7 +94,7 @@
       </label>
       <label class="flex items-center justify-between text-sm">
         <span>Espanha</span>
-        <input id="toggleSpain" type="checkbox" class="toggle" phx-hook="SpainLayerToggle">
+        <input id="toggleSpain" type="checkbox" class="toggle" phx-hook="SpainLayerToggle" checked={@spain_layer_visible}>
       </label>
     </div>
 
@@ -162,7 +162,13 @@
 <a id="basinDetailLink" data-phx-link="patch" data-phx-link-state="push" href="/" class="hidden"></a>
 
 <.live_component
-  :if={@basin_card}
+  :if={@basin_card && @spain}
+  id="homepage-spain-basin-card"
+  module={BarragensptWeb.HomepageV2Live.SpainBasinCardComponent}
+  basin_card={@basin_card}
+/>
+<.live_component
+  :if={@basin_card && !@spain}
   id="homepage-basin-card"
   module={BarragensptWeb.HomepageV2Live.BasinCardComponent}
   basin_id={@basin_id}
