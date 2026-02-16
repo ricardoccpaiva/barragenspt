@@ -62,12 +62,18 @@ function turnOffRain() {
   if (wrap) wrap.classList.add("hidden")
 }
 
-/** Turn off all overlay layers (PDSI, SMI, Rain). Used on navigation to dam or when clearing. */
+function turnOffAlerts() {
+  const toggle = document.getElementById("toggleAlerts")
+  if (toggle) toggle.checked = false
+}
+
+/** Turn off all overlay layers (PDSI, SMI, Rain, Alertas). Used on navigation to dam or when clearing. */
 export function clearOverlayLayers() {
   if (typeof topbar !== "undefined") topbar.hide()
   turnOffPdsi()
   turnOffSmi()
   turnOffRain()
+  turnOffAlerts()
 }
 
 export const DAMS_CIRCLE_COLOR_GRAY_EXPORT = DAMS_CIRCLE_COLOR_GRAY
@@ -93,6 +99,11 @@ export const LayerToggleHooks = {
           const active = el.checked
           if (active) {
             const map = getMap()
+            const alertsToggle = document.getElementById("toggleAlerts")
+            if (alertsToggle?.checked) {
+              turnOffAlerts()
+              this.pushEvent("toggle_alerts", { checked: false })
+            }
             const pdsiToggle = document.getElementById("togglePdsi")
             if (pdsiToggle?.checked) {
               pdsiToggle.checked = false
@@ -114,6 +125,7 @@ export const LayerToggleHooks = {
             }
           }
           applyBasinsLayerActive(active)
+          this.pushEvent("toggle_basins", { checked: active })
         })
       }
       applyBasinsLayerActive(el.checked)
@@ -132,8 +144,32 @@ export const LayerToggleHooks = {
   SpainLayerToggle: {
     mounted() {
       const el = this.el
-      el.addEventListener("change", () => this.pushEvent("toggle_spain", { checked: el.checked }))
+      el.addEventListener("change", () => {
+        if (el.checked) {
+          const alertsToggle = document.getElementById("toggleAlerts")
+          if (alertsToggle?.checked) {
+            turnOffAlerts()
+            this.pushEvent("toggle_alerts", { checked: false })
+          }
+        }
+        this.pushEvent("toggle_spain", { checked: el.checked })
+      })
       if (el.checked) this.pushEvent("toggle_spain", { checked: el.checked })
+    }
+  },
+  AlertsToggle: {
+    mounted() {
+      const el = this.el
+      el.addEventListener("change", () => {
+        if (el.checked) {
+          const basinsToggle = document.getElementById("toggleBasins")
+          if (basinsToggle?.checked) {
+            basinsToggle.checked = false
+            applyBasinsLayerActive(false)
+          }
+        }
+        this.pushEvent("toggle_alerts", { checked: el.checked })
+      })
     }
   },
   PdsiLayerToggle: {
@@ -165,6 +201,11 @@ export const LayerToggleHooks = {
         const map = getMap()
         if (!map) return
         if (el.checked) {
+          const alertsToggle = document.getElementById("toggleAlerts")
+          if (alertsToggle?.checked) {
+            turnOffAlerts()
+            this.pushEvent("toggle_alerts", { checked: false })
+          }
           const basinsToggle = document.getElementById("toggleBasins")
           if (basinsToggle) {
             basinsToggle.checked = false
@@ -247,6 +288,11 @@ export const LayerToggleHooks = {
         const map = getMap()
         if (!map) return
         if (el.checked) {
+          const alertsToggle = document.getElementById("toggleAlerts")
+          if (alertsToggle?.checked) {
+            turnOffAlerts()
+            this.pushEvent("toggle_alerts", { checked: false })
+          }
           const basinsToggle = document.getElementById("toggleBasins")
           if (basinsToggle) {
             basinsToggle.checked = false
@@ -322,6 +368,11 @@ export const LayerToggleHooks = {
         const map = getMap()
         if (!map) return
         if (el.checked) {
+          const alertsToggle = document.getElementById("toggleAlerts")
+          if (alertsToggle?.checked) {
+            turnOffAlerts()
+            this.pushEvent("toggle_alerts", { checked: false })
+          }
           const basinsToggle = document.getElementById("toggleBasins")
           if (basinsToggle) {
             basinsToggle.checked = false

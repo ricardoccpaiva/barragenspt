@@ -1,8 +1,11 @@
 defmodule BarragensptWeb.HomepageV2Live do
   use BarragensptWeb, :live_view
+  import Ecto.Query
+  alias Barragenspt.Repo
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Geo.Coordinates
   alias Barragenspt.Hydrometrics.{Basins, Dams, DamChartSeries, EmbalsesNet}
+  alias Barragenspt.Models.Infoagua.Alert
   require Logger
 
   def mount(_, _session, socket) do
@@ -26,7 +29,10 @@ defmodule BarragensptWeb.HomepageV2Live do
         dam_names: [],
         search_rivers: [],
         search_term: "",
-        spain_layer_visible: false
+        spain_layer_visible: false,
+        basins_layer_visible: true,
+        alerts: [],
+        alerts_visible: false
       )
       |> push_event("zoom_map", %{})
       |> push_event("draw_basins", %{basins: basins})
@@ -121,6 +127,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(basin_card: nil)
       |> assign(dam: dam)
       |> assign(dam_names: [], search_rivers: [], search_term: "")
+      |> assign(alerts_visible: false, basins_layer_visible: true)
       |> assign(has_realtime_data: has_realtime_data)
       |> assign(current_capacity: current_capacity)
       |> assign(dam_storage_hm3: dam_storage_hm3)
@@ -130,6 +137,11 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(last_elevation_date: last_elevation_date_assign)
       |> assign(current_storage_color: current_storage_color)
       |> push_event("clear_overlay_layers", %{})
+      |> then(fn s ->
+        usage_types = Map.get(s.assigns, :selected_usage_types, [])
+        basins_summary = get_data(nil, usage_types)
+        push_event(s, "update_basins_summary", %{basins_summary: basins_summary})
+      end)
       |> push_event("dam_chart_series", %{series: chart_series})
       |> push_event("dam_discharge_series", %{series: discharge_series})
       |> push_event("dam_realtime_chart", %{rows: realtime_rows})
@@ -634,6 +646,40 @@ defmodule BarragensptWeb.HomepageV2Live do
 
   def handle_event("toggle_rain", _, socket), do: {:noreply, socket}
 
+  def handle_event("toggle_alerts", %{"checked" => checked}, socket)
+      when checked in [true, "true"] do
+    alerts =
+      list_infoagua_alerts()
+      |> Enum.map(fn a ->
+        %{basin_id: a.basin_id_internal, color: a.color || "#94a3b8"}
+      end)
+      |> Enum.reject(fn a -> a.basin_id == nil or a.basin_id == "" end)
+      |> Enum.uniq_by(& &1.basin_id)
+
+    socket =
+      socket
+      |> assign(alerts_visible: true, basins_layer_visible: false)
+      |> push_event("draw_alerts_layer", %{alerts: alerts})
+
+    {:noreply, socket}
+  end
+
+  def handle_event("toggle_alerts", %{"checked" => _}, socket) do
+    usage_types = Map.get(socket.assigns, :selected_usage_types, [])
+    basins_summary = get_data(socket.assigns[:basin_id], usage_types)
+
+    socket =
+      socket
+      |> assign(alerts: [], alerts_visible: false, basins_layer_visible: true)
+      |> push_event("update_basins_summary", %{basins_summary: basins_summary})
+
+    {:noreply, socket}
+  end
+
+  def handle_event("toggle_basins", %{"checked" => checked}, socket) do
+    {:noreply, assign(socket, basins_layer_visible: checked)}
+  end
+
   def handle_event("rain_change_date", %{"day_offset" => offset}, socket) do
     day_offset = parse_rain_day_offset(offset)
     fetch_and_push_rain(socket, day_offset)
@@ -684,6 +730,15 @@ defmodule BarragensptWeb.HomepageV2Live do
       :error -> 0
     end
   end
+
+  defp list_infoagua_alerts do
+    from(a in Alert, order_by: [desc: a.last_update], limit: 50) |> Repo.all()
+  end
+
+  defp normalize_basin_name(nil), do: nil
+
+  defp normalize_basin_name(name) when is_binary(name),
+    do: name |> String.trim() |> String.downcase()
 
   defp parse_rain_day_offset(_), do: 0
 

@@ -75,9 +75,9 @@ export function registerMapEvents(deps) {
         geometry: { type: "Point", coordinates: [dam.coordinates.lon, dam.coordinates.lat] }
       })
     })
-    ;["dams-ring-inner", "dams-ring-outer", "dams-circles"].forEach((id) => {
-      if (map.getLayer(id)) map.removeLayer(id)
-    })
+      ;["dams-ring-inner", "dams-ring-outer", "dams-circles"].forEach((id) => {
+        if (map.getLayer(id)) map.removeLayer(id)
+      })
     if (map.getSource("dams")) map.removeSource("dams")
     map.addSource("dams", { type: "geojson", data: damsGeoJSON })
     map.addLayer({
@@ -182,6 +182,29 @@ export function registerMapEvents(deps) {
         map.setPaintProperty(item.id, "fill-opacity", state.areBasinsVisible ? 0.7 : 0)
       } else {
         map.setPaintProperty(item.id, "fill-opacity", 0)
+      }
+    })
+  })
+
+  window.addEventListener("phx:draw_alerts_layer", (e) => {
+    topbar.hide()
+    const alerts = e.detail.alerts || []
+    const alertByBasinId = Object.fromEntries(alerts.map((a) => [String(a.basin_id), a]))
+    const opacity = state.areBasinsVisible ? 0.7 : 0
+    const style = map.getStyle()
+    if (!style || !style.layers) return
+
+    style.layers.forEach((layer) => {
+      if (!layer.id.endsWith("_fill") || layer.id.includes("_reservoir")) return
+      const basinId = layer.id.replace(/_fill$/, "")
+      const alert = alertByBasinId[basinId]
+      if (alert) {
+        map.setPaintProperty(layer.id, "fill-color", alert.color)
+        map.setPaintProperty(layer.id, "fill-opacity", opacity)
+      }
+      else {
+        map.setPaintProperty(layer.id, "fill-color", "#2eb1d3")
+        map.setPaintProperty(layer.id, "fill-opacity", opacity)
       }
     })
   })
