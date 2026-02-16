@@ -167,6 +167,20 @@ export const LayerToggleHooks = {
       const sliderWrap = document.getElementById("smi-slider-wrap")
       const daySlider = document.getElementById("smi-day-slider")
       const sliderLabel = document.getElementById("smi-slider-label")
+      const depthSelect = document.getElementById("smi-depth-select")
+
+      function getSmiVser() {
+        if (!depthSelect) return "p28"
+        const v = depthSelect.value
+        return ["p7", "p28", "p100"].includes(v) ? v : "p28"
+      }
+
+      function pushSmiChangeDate() {
+        const sliderVal = daySlider ? parseInt(daySlider.value, 10) : 29
+        const daysAgo = 30 - sliderVal
+        if (sliderLabel) sliderLabel.textContent = "A carregar..."
+        this.pushEvent("smi_change_date", { days_ago: daysAgo, vser: getSmiVser() })
+      }
 
       el.addEventListener("change", () => {
         const map = getMap()
@@ -189,7 +203,7 @@ export const LayerToggleHooks = {
           }
           el.disabled = true
           topbar.show()
-          this.pushEvent("toggle_smi", { checked: true })
+          this.pushEvent("toggle_smi", { checked: true, vser: getSmiVser() })
         } else {
           if (sliderWrap) sliderWrap.classList.add("hidden")
           this.pushEvent("toggle_smi", { checked: false })
@@ -204,11 +218,16 @@ export const LayerToggleHooks = {
           if (smiSliderDebounce) clearTimeout(smiSliderDebounce)
           smiSliderDebounce = setTimeout(() => {
             smiSliderDebounce = null
-            const sliderVal = parseInt(daySlider.value, 10)
-            const daysAgo = 30 - sliderVal
-            if (sliderLabel) sliderLabel.textContent = "A carregar..."
-            this.pushEvent("smi_change_date", { days_ago: daysAgo })
+            pushSmiChangeDate.call(this)
           }, SMI_SLIDER_DEBOUNCE_MS)
+        })
+      }
+
+      if (depthSelect) {
+        depthSelect.addEventListener("change", () => {
+          if (!el.checked) return
+          if (sliderLabel) sliderLabel.textContent = "A carregar..."
+          pushSmiChangeDate.call(this)
         })
       }
     }

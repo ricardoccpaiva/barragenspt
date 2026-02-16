@@ -121,6 +121,14 @@
         <input id="toggleSmi" type="checkbox" class="toggle" phx-hook="SmiLayerToggle">
       </label>
       <div id="smi-slider-wrap" class="hidden pl-1 pt-1 space-y-1">
+        <div class="flex flex-col gap-1">
+          <label for="smi-depth-select" class="text-xs text-slate-600">Profundidade</label>
+          <select id="smi-depth-select" class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm bg-white">
+            <option value="p7">7 cm</option>
+            <option value="p28" selected>28 cm</option>
+            <option value="p100">100 cm</option>
+          </select>
+        </div>
         <div class="flex items-center justify-between text-xs text-slate-600">
           <span>Dia</span>
           <span id="smi-slider-label"></span>

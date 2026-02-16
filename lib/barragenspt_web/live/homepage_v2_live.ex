@@ -696,9 +696,10 @@ defmodule BarragensptWeb.HomepageV2Live do
     {:noreply, socket}
   end
 
-  def handle_event("toggle_smi", %{"checked" => checked}, socket)
+  def handle_event("toggle_smi", %{"checked" => checked} = params, socket)
       when checked in [true, "true"] do
-    fetch_and_push_smi(socket, 1)
+    vser = parse_vser(params["vser"])
+    fetch_and_push_smi(socket, 1, vser)
   end
 
   def handle_event("toggle_smi", %{"checked" => _}, socket) do
@@ -706,16 +707,17 @@ defmodule BarragensptWeb.HomepageV2Live do
     {:noreply, socket}
   end
 
-  def handle_event("smi_change_date", %{"days_ago" => days_str}, socket) do
+  def handle_event("smi_change_date", %{"days_ago" => days_str} = params, socket) do
     days = parse_days_ago(days_str)
-    fetch_and_push_smi(socket, days)
+    vser = parse_vser(params["vser"])
+    fetch_and_push_smi(socket, days, vser)
   end
 
-  defp fetch_and_push_smi(socket, days_ago) do
+  defp fetch_and_push_smi(socket, days_ago, vser) do
     vtim = smi_vtim_days_ago_ms(days_ago)
     date_iso = smi_date_iso_days_ago(days_ago)
 
-    case Barragenspt.Services.Agroclima.get_smi_values(vtim) do
+    case Barragenspt.Services.Agroclima.get_smi_values(vtim, vser) do
       {:ok, data} ->
         socket = push_event(socket, "draw_smi_layer", %{values: data, date: date_iso})
         {:noreply, socket}
@@ -736,6 +738,9 @@ defmodule BarragensptWeb.HomepageV2Live do
   end
 
   defp parse_days_ago(_), do: 1
+
+  defp parse_vser(v) when v in ["p7", "p28", "p100"], do: v
+  defp parse_vser(_), do: "p28"
 
   defp smi_vtim_days_ago_ms(days_ago) do
     date = Date.utc_today() |> Date.add(-days_ago)
