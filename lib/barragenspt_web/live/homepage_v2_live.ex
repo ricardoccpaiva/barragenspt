@@ -24,6 +24,7 @@ defmodule BarragensptWeb.HomepageV2Live do
         basin_card: nil,
         dam: nil,
         dam_names: [],
+        search_rivers: [],
         search_term: ""
       )
       |> push_event("zoom_map", %{})
@@ -119,8 +120,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(basin_id: basin_id)
       |> assign(basin_card: nil)
       |> assign(dam: dam)
-      |> assign(dam_names: [])
-      |> assign(search_term: "")
+      |> assign(dam_names: [], search_rivers: [], search_term: "")
       |> assign(dam_card_tab: default_dam_card_tab)
       |> assign(has_realtime_data: has_realtime_data)
       |> assign(current_capacity: current_capacity)
@@ -161,8 +161,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(basin_summary: summary)
       |> assign(basin_card: build_basin_card(basin_name, summary, daily_stats, monthly_stats))
       |> assign(dam: nil)
-      |> assign(dam_names: [])
-      |> assign(search_term: "")
+      |> assign(dam_names: [], search_rivers: [], search_term: "")
       |> push_event("zoom_map", %{basin_id: id, bounding_box: bounding_box})
 
     {:noreply, socket}
@@ -177,8 +176,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(basin_id: id)
       |> assign(spain: true)
       |> assign(basin_card: build_basin_card_spain(basin_name, current_pct, capacity_color))
-      |> assign(dam_names: [])
-      |> assign(search_term: "")
+      |> assign(dam_names: [], search_rivers: [], search_term: "")
       |> then(&%{&1 | assigns: Map.delete(&1.assigns, :dam)})
 
     {:noreply, socket}
@@ -196,8 +194,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> push_event("zoom_map", %{})
       |> assign(basin_card: nil)
       |> assign(dam: nil)
-      |> assign(dam_names: [])
-      |> assign(search_term: "")
+      |> assign(dam_names: [], search_rivers: [], search_term: "")
       |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
 
     {:noreply, socket}
@@ -531,6 +528,7 @@ defmodule BarragensptWeb.HomepageV2Live do
 
     socket =
       socket
+      |> assign(search_term: "", search_rivers: [])
       |> push_event("zoom_map", %{basin_id: basin_id, bounding_box: bounding_box})
       |> push_event("focus_river", %{basin_id: basin_id, river_name: river_name})
       |> push_event("update_dams_visibility", %{visible_site_ids: visible_site_ids})
@@ -610,11 +608,12 @@ defmodule BarragensptWeb.HomepageV2Live do
 
   def handle_event("search_dam", %{"search_term" => search_term}, socket) do
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
+    term = String.trim(search_term)
 
     dams =
-      case search_term do
+      case term do
         "" -> []
-        _ -> Barragenspt.Hydrometrics.Dams.search(search_term, usage_types)
+        _ -> Barragenspt.Hydrometrics.Dams.search(term, usage_types)
       end
 
     dams =
@@ -630,10 +629,22 @@ defmodule BarragensptWeb.HomepageV2Live do
         |> Map.put(:current_storage, storage_float)
       end)
 
+    term_lower = String.downcase(term)
+    search_rivers =
+      case term do
+        "" -> []
+        _ ->
+          socket.assigns.rivers
+          |> Enum.filter(fn r ->
+            name = String.downcase(r.river_name || "")
+            display = String.downcase(r.river_display_name || "")
+            String.contains?(name, term_lower) or String.contains?(display, term_lower)
+          end)
+      end
+
     socket =
       socket
-      |> assign(dam_names: dams)
-      |> assign(search_term: String.trim(search_term))
+      |> assign(dam_names: dams, search_rivers: search_rivers, search_term: term)
 
     {:noreply, socket}
   end

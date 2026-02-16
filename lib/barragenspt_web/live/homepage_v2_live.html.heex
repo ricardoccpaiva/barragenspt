@@ -40,53 +40,48 @@
   </div>
 
   <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white">
-    <h3 class="text-sm font-semibold text-slate-800">Pesquisar barragens</h3>
+    <h3 class="text-sm font-semibold text-slate-800">Pesquisar</h3>
     <div class="search-wrapper relative">
-      <input id="damSearchInput" type="search" placeholder="Nome da barragem..." phx-hook="SearchDam"
+      <input id="damSearchInput" type="search" placeholder="Barragens ou rios..." phx-hook="SearchDam"
         class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
       <div id="damSearchResults" class={"absolute left-0 right-0 top-full mt-1 z-50 max-h-60 overflow-y-auto rounded-xl
-        border border-slate-200 bg-white shadow-lg py-1 #{if @search_term=="" , do: "hidden" , else: "" }"}>
-        <%= if @dam_names !=nil && @dam_names !=[] do %>
+        border border-slate-200 bg-white shadow-lg py-1 #{if @search_term == "" , do: "hidden" , else: "" }"}>
+        <%= if @search_rivers != [] or (@dam_names != nil and @dam_names != []) do %>
           <ul class="py-0 list-none m-0">
-            <%= for d <- @dam_names do %>
+            <%= for r <- @search_rivers || [] do %>
+              <li>
+                <button type="button" phx-click="select_river" phx-value-basin_id={r.basin_id} phx-value-river_name={r.river_name}
+                  class="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-slate-800 hover:bg-slate-50 text-left border-0 bg-transparent cursor-pointer">
+                  <span class="text-slate-500 text-xs shrink-0">Rio</span>
+                  <span><%= r.river_display_name || r.river_name %></span>
+                </button>
+              </li>
+            <% end %>
+            <%= for d <- @dam_names || [] do %>
               <li>
                 <a href={~p"/basins/#{d.basin_id}/dams/#{d.id}"} data-phx-link="patch" data-phx-link-state="push"
                   class="flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-slate-800 hover:bg-slate-50 no-underline">
-                  <span>
-                    <%= d.name %>
-                  </span>
+                  <span><%= d.name %></span>
                   <span id={"dam-search-badge-#{d.id}"}
                     class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium text-white"
                     phx-hook="CapacityColor" data-observed={d.current_storage}>
                     <%= if is_number(d.current_storage), do: "#{round(d.current_storage)}%" , else: "—" %>
-                  </span> </a>
+                  </span>
+                </a>
               </li>
-              <% end %>
+            <% end %>
           </ul>
-          <% else %>
-            <%= if @dams !=nil && @dams==[] do %>
-              <p class=" px-3 py-2.5 text-sm text-slate-500 m-0">Nenhum resultado.</p>
-              <% end %>
-                <% end %>
+        <% else %>
+          <%= if @search_term != "" do %>
+            <p class="px-3 py-2.5 text-sm text-slate-500 m-0">Nenhum resultado.</p>
+          <% end %>
+        <% end %>
       </div>
     </div>
   </div>
 
-  <div class={"transition-all duration-200 space-y-4 #{if @search_term !="" ,
+  <div class={"transition-all duration-200 space-y-4 #{if @search_term != "" ,
     do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
-    <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section river-section">
-      <h3 class="text-sm font-semibold text-slate-800">Rios</h3>
-      <select id="riverSelect" phx-hook="RiverChanged"
-        class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white">
-        <option value="">Selecionar rio...</option>
-        <%= for river <- @rivers || [] do %>
-          <option value={"#{river.river_name}_#{river.basin_id}"}>
-            <%= river.river_display_name || river.river_name %>
-          </option>
-          <% end %>
-      </select>
-    </div>
-
     <div class="rounded-2xl border border-slate-100 p-3 space-y-2 shadow-card bg-white sidebar-section">
       <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
       <label class="flex items-center justify-between text-sm">
