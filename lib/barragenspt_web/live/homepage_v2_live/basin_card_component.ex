@@ -5,7 +5,7 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
   def render(assigns) do
     ~H"""
     <section id="basinInfoPanel" class="fixed bottom-2 right-2 z-40 w-[360px]">
-      <div class="bg-slate-100/65 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
+      <div class="bg-slate-100/90 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
         <div class="h-10 px-3 rounded-t-2xl flex items-center justify-between bg-slate-800 border-b border-slate-800 text-white">
           <div>
             <p class="text-sm font-semibold">
@@ -49,15 +49,15 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
               >
               </div>
             </div>
-            <div class="flex flex-wrap gap-1">
+            <div class="flex flex-wrap gap-1 mt-1.5">
               <span
-                class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium #{@basin_card.month_trend_badge_class}"}
+                class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border border-slate-200/80 dark:border-slate-500/80 #{@basin_card.month_trend_badge_class}"}
                 aria-label={"Há 1 mês: #{@basin_card.month_change_label}"}
               >
                 Há 1 mês: {@basin_card.month_change_label}
               </span>
               <span
-                class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium #{@basin_card.year_trend_badge_class}"}
+                class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border border-slate-200/80 dark:border-slate-500/80 #{@basin_card.year_trend_badge_class}"}
                 aria-label={"Há 1 ano: #{@basin_card.year_change_label}"}
               >
                 Há 1 ano: {@basin_card.year_change_label}

@@ -57,7 +57,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
   def render(assigns) do
     ~H"""
     <section id="damCard" class="fixed bottom-2 right-2 z-40 w-[360px]">
-      <div class="w-full max-w-[360px] bg-slate-100/65 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
+      <div class="w-full max-w-[360px] bg-slate-100/90 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
         <div class="h-12 px-4 rounded-t-2xl flex items-center justify-between bg-slate-800 border-b border-slate-800 text-white">
           <div>
             <p class="text-sm font-semibold">
@@ -97,13 +97,13 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             </div>
             <div class="flex flex-wrap gap-1 mt-1.5">
               <span
-                class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium #{@dam_month_trend_badge_class}"}
+                class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border border-slate-200/80 dark:border-slate-500/80 #{@dam_month_trend_badge_class}"}
                 aria-label={"Há 1 mês: #{@dam_month_change_label}"}
               >
                 Há 1 mês: {@dam_month_change_label}
               </span>
               <span
-                class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium #{@dam_year_trend_badge_class}"}
+                class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border border-slate-200/80 dark:border-slate-500/80 #{@dam_year_trend_badge_class}"}
                 aria-label={"Há 1 ano: #{@dam_year_change_label}"}
               >
                 Há 1 ano: {@dam_year_change_label}
@@ -112,14 +112,14 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
           </div>
 
           <div class="grid grid-cols-2 gap-1.5">
-            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/80 border border-slate-100 dark:border-slate-600 px-3 py-2 flex items-center justify-between gap-2 min-h-[40px]">
+            <div class="rounded-lg bg-white dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 px-3 py-2 flex items-center justify-between gap-2 min-h-[40px]">
               <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium shrink-0">Volume</p>
               <p class="text-sm font-bold text-slate-800 dark:text-slate-200 tabular-nums text-right whitespace-nowrap">
                 <span>{@dam_storage_hm3 || "—"}</span>
                 <span class="text-[10px] font-normal text-slate-500 dark:text-slate-400">hm³</span>
               </p>
             </div>
-            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/80 border border-slate-100 dark:border-slate-600 px-3 py-2 flex items-center justify-between gap-2 min-h-[40px]">
+            <div class="rounded-lg bg-white dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 px-3 py-2 flex items-center justify-between gap-2 min-h-[40px]">
               <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium shrink-0">Cota</p>
               <p class="text-sm font-bold text-slate-800 dark:text-slate-200 tabular-nums text-right">
                 {if @last_elevation, do: "#{@last_elevation} m", else: "—"}
