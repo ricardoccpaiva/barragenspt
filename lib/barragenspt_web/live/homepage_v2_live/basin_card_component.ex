@@ -34,17 +34,11 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
               </div>
             </div>
             <div class="flex flex-wrap gap-1.5">
-              <span class={"inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium #{@basin_card.month_trend_badge_class}"} aria-label={"1 mês: #{@basin_card.month_trend_arrow} #{@basin_card.month_change_label}"}>
-                <span aria-hidden="true">
-                  <%= @basin_card.month_trend_arrow %>
-                </span>
-                <%= @basin_card.month_change_label %> há 1 mês
+              <span class={"inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium #{@basin_card.month_trend_badge_class}"} aria-label={"Há 1 mês: #{@basin_card.month_change_label}"}>
+                Há 1 mês: <%= @basin_card.month_change_label %>
               </span>
-              <span class={"inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium #{@basin_card.year_trend_badge_class}"} aria-label={"1 ano: #{@basin_card.year_trend_arrow} #{@basin_card.year_change_label}"}>
-                <span aria-hidden="true">
-                  <%= @basin_card.year_trend_arrow %>
-                </span>
-                <%= @basin_card.year_change_label %> há 1 ano
+              <span class={"inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium #{@basin_card.year_trend_badge_class}"} aria-label={"Há 1 ano: #{@basin_card.year_change_label}"}>
+                Há 1 ano: <%= @basin_card.year_change_label %>
               </span>
             </div>
           </div>

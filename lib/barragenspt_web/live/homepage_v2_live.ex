@@ -263,13 +263,11 @@ defmodule BarragensptWeb.HomepageV2Live do
       month_value: round_or_nil(month_value),
       month_change_label: format_period_change(month_display_change),
       month_reference_label: format_reference_date(month_point && month_point.date),
-      month_trend_arrow: trend_arrow(month_display_change),
       month_trend_class: trend_class(month_display_change),
       month_trend_badge_class: trend_badge_class(month_display_change),
       year_value: round_or_nil(year_value),
       year_change_label: format_period_change(year_display_change),
       year_reference_label: format_reference_date(year_point && year_point.date),
-      year_trend_arrow: trend_arrow(year_display_change),
       year_trend_class: trend_class(year_display_change),
       year_trend_badge_class: trend_badge_class(year_display_change),
       basin_chart_series: monthly_stats,
@@ -313,13 +311,11 @@ defmodule BarragensptWeb.HomepageV2Live do
       month_change_label: "n/a",
       month_reference_label: "n/a",
       trend: "n/a",
-      trend_arrow: "→",
       trend_class: "text-slate-500",
       year_value: nil,
       year_change: nil,
       year_change_label: "n/a",
       year_reference_label: "n/a",
-      year_trend_arrow: "→",
       year_trend_class: "text-slate-500",
       month_trend_badge_class: "bg-slate-100 text-slate-600",
       year_trend_badge_class: "bg-slate-100 text-slate-600",
@@ -408,11 +404,6 @@ defmodule BarragensptWeb.HomepageV2Live do
 
   defp invert_change(nil), do: nil
   defp invert_change(change) when is_number(change), do: change * -1
-
-  defp trend_arrow(nil), do: "→"
-  defp trend_arrow(change) when change > 0, do: "↑"
-  defp trend_arrow(change) when change < 0, do: "↓"
-  defp trend_arrow(_change), do: "→"
 
   defp trend_class(nil), do: "text-slate-500"
   defp trend_class(change) when change > 0, do: "text-emerald-600"
