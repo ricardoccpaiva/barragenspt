@@ -54,12 +54,8 @@ window.addEventListener("phx:enable_tabs", enableTabs)
 const map = createMap()
 window.map = map
 
-window.addEventListener("dark-mode-change", (e) => {
-  if (map) {
-    const url = e.detail.dark ? DARK_STYLE : LIGHT_STYLE;
-
-    map.setStyle(url);
-  }
+window.addEventListener("dark-mode-change", () => {
+  location.reload()
 })
 
 registerMapEvents({
