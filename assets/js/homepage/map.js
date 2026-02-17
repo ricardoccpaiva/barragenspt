@@ -1,8 +1,13 @@
 import topbar from "../../vendor/topbar"
 
-const MAP_STYLE = "https://mapas.barragens.pt/styles/klokantech-basic/style.json"
+export const LIGHT_STYLE = "https://mapas.barragens.pt/styles/klokantech-basic/style.json"
+export const DARK_STYLE = "https://mapas.barragens.pt/styles/positron/style.json"
 const DEFAULT_CENTER = [-8, 39.69]
 const DEFAULT_ZOOM = 5
+
+function getStyleUrl() {
+  return document.documentElement.classList.contains("dark") ? DARK_STYLE : LIGHT_STYLE
+}
 
 /**
  * Creates and configures the MapLibre map. Caller must assign to window.map if needed.
@@ -10,7 +15,7 @@ const DEFAULT_ZOOM = 5
 export function createMap() {
   const map = new maplibregl.Map({
     container: "map",
-    style: MAP_STYLE,
+    style: getStyleUrl(),
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM
   })

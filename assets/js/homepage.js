@@ -26,7 +26,7 @@ import topbar from "../vendor/topbar"
 import { getStorageColor } from "./utils/colors"
 import { Hooks as HooksFromFile } from "./homepage_hooks"
 import { applyBasinsLayerActive, applyDamsLayerActive, LayerToggleHooks, DAMS_CIRCLE_COLOR_GRAY_EXPORT } from "./homepage_toggles"
-import { createMap, loadReservoir } from "./homepage/map"
+import { createMap, loadReservoir, LIGHT_STYLE, DARK_STYLE } from "./homepage/map"
 import { navigateToBasin, navigateToDam } from "./homepage/navigation"
 import { registerMapEvents } from "./homepage/map_events"
 import "./homepage/pdsi_layer"
@@ -53,6 +53,14 @@ window.addEventListener("phx:enable_tabs", enableTabs)
 
 const map = createMap()
 window.map = map
+
+window.addEventListener("dark-mode-change", (e) => {
+  if (map) {
+    const url = e.detail.dark ? DARK_STYLE : LIGHT_STYLE;
+
+    map.setStyle(url);
+  }
+})
 
 registerMapEvents({
   map,
