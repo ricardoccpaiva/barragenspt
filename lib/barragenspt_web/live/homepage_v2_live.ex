@@ -28,7 +28,8 @@ defmodule BarragensptWeb.HomepageV2Live do
         dam: nil,
         dam_names: [],
         search_rivers: [],
-        search_term: ""
+        search_term: "",
+        settings_modal_open: false
       )
       |> push_event("zoom_map", %{})
       |> push_event("draw_basins", %{basins: basins})
@@ -644,6 +645,14 @@ defmodule BarragensptWeb.HomepageV2Live do
   end
 
   def handle_event("toggle_alerts", _, socket), do: {:noreply, socket}
+
+  def handle_event("open_settings_modal", _, socket) do
+    {:noreply, assign(socket, settings_modal_open: true)}
+  end
+
+  def handle_event("close_settings_modal", _, socket) do
+    {:noreply, assign(socket, settings_modal_open: false)}
+  end
 
   def handle_event("rain_change_date", %{"day_offset" => offset}, socket) do
     day_offset = parse_rain_day_offset(offset)

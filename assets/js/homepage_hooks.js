@@ -102,6 +102,33 @@ const SearchDam = {
   }
 }
 
+const DarkModeToggle = {
+  mounted() {
+    const el = this.el
+    el.checked = document.documentElement.classList.contains("dark")
+    el.addEventListener("change", () => {
+      const on = el.checked
+      document.documentElement.classList.toggle("dark", on)
+      try { localStorage.setItem("darkMode", on ? "1" : "0") } catch (e) {}
+      window.dispatchEvent(new CustomEvent("dark-mode-change", { detail: { dark: on } }))
+    })
+  }
+}
+
+const SettingsModalBackdrop = {
+  mounted() {
+    this.el.addEventListener("click", (e) => {
+      if (e.target === this.el) this.pushEvent("close_settings_modal", {})
+    })
+  }
+}
+
+const SettingsModalCloseButton = {
+  mounted() {
+    this.el.addEventListener("click", () => this.pushEvent("close_settings_modal", {}))
+  }
+}
+
 export const Hooks = {
   CapacityColor,
   BasinChartTimeWindow,
@@ -111,5 +138,8 @@ export const Hooks = {
   DamRealtimeChartMount,
   RiverChanged,
   UsageTypeChanged,
-  SearchDam
+  SearchDam,
+  DarkModeToggle,
+  SettingsModalBackdrop,
+  SettingsModalCloseButton
 }

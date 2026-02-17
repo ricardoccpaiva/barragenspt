@@ -57,7 +57,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
   def render(assigns) do
     ~H"""
     <section id="damCard" class="fixed bottom-2 right-2 z-40 w-[360px]">
-      <div class="w-full max-w-[360px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+      <div class="w-full max-w-[360px] bg-white dark:bg-slate-800/95 rounded-2xl shadow-float border border-slate-200 dark:border-slate-600 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
         <div class="h-12 px-4 rounded-t-2xl flex items-center justify-between bg-slate-800 border-b border-slate-800 text-white">
           <div>
             <p class="text-sm font-semibold">
@@ -79,28 +79,28 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
           <% pct_float = pct_rounded && Decimal.to_float(pct_rounded) %>
           <% pct_label = if pct_float, do: "#{:erlang.float_to_binary(pct_float, decimals: 2)}%", else: "n/a" %>
           <div class="grid grid-cols-3 gap-1.5">
-            <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center flex flex-col justify-center min-h-[42px]">
-              <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider font-medium">Enchimento</p>
-              <p class="text-sm font-bold text-brand-600 tabular-nums">{pct_label}</p>
+            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/80 border border-slate-100 dark:border-slate-600 p-2 text-center flex flex-col justify-center min-h-[42px]">
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase mb-0.5 tracking-wider font-medium">Enchimento</p>
+              <p class="text-sm font-bold text-brand-600 dark:text-brand-400 tabular-nums">{pct_label}</p>
             </div>
-            <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center flex flex-col justify-center min-h-[42px]">
-              <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider font-medium">Volume</p>
-              <p class="text-sm font-bold text-slate-800 tabular-nums">
+            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/80 border border-slate-100 dark:border-slate-600 p-2 text-center flex flex-col justify-center min-h-[42px]">
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase mb-0.5 tracking-wider font-medium">Volume</p>
+              <p class="text-sm font-bold text-slate-800 dark:text-slate-200 tabular-nums">
                 <span>{@dam_storage_hm3 || "—"}</span>
-                <span class="text-[10px] font-normal text-slate-500"> hm³</span>
+                <span class="text-[10px] font-normal text-slate-500 dark:text-slate-400"> hm³</span>
               </p>
             </div>
-            <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center flex flex-col justify-center min-h-[42px]">
-              <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider font-medium">Cota</p>
-              <p class="text-sm font-bold text-slate-800 tabular-nums">
+            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/80 border border-slate-100 dark:border-slate-600 p-2 text-center flex flex-col justify-center min-h-[42px]">
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase mb-0.5 tracking-wider font-medium">Cota</p>
+              <p class="text-sm font-bold text-slate-800 dark:text-slate-200 tabular-nums">
                 {if @last_elevation, do: "#{@last_elevation} m", else: "—"}
               </p>
             </div>
           </div>
-          <div class="h-1.5 rounded-full bg-slate-200 overflow-hidden" role="progressbar" aria-valuenow={pct_float} aria-valuemin="0" aria-valuemax="100">
+          <div class="h-1.5 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden" role="progressbar" aria-valuenow={pct_float} aria-valuemin="0" aria-valuemax="100">
             <div class="h-full bg-brand-500 rounded-full transition-[width] duration-300" style={"width: #{pct_float || 0}%"}></div>
           </div>
-          <p class="text-[10px] text-slate-500">
+          <p class="text-[10px] text-slate-500 dark:text-slate-400">
             Atualizado em
             <span class="tabular-nums">
               {@last_data_point || @last_elevation_date || "—"}
@@ -184,7 +184,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             phx-hook="DamChartMount"
           >
             <div class="flex justify-between items-center">
-              <span class="text-xs font-medium text-slate-600">Armazenamento</span>
+              <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Armazenamento</span>
               <select
                 id="timeWindow"
                 phx-target={@myself}
@@ -202,10 +202,10 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 <option value="ymax">Sem limite</option>
               </select>
             </div>
-            <div class="h-36 rounded-lg bg-slate-100/80 border border-slate-200/80 overflow-hidden">
+            <div class="h-36 rounded-lg bg-slate-100/80 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden">
               <canvas id="damChart"></canvas>
             </div>
-            <ul class="text-[10px] text-slate-500 mt-0.5 list-none space-y-0.5">
+            <ul class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 list-none space-y-0.5">
               <li class="inline-flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0"></span>Valores observados (%)
               </li>
@@ -222,7 +222,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             phx-hook="DischargeChartMount"
           >
             <div class="flex justify-between items-center">
-              <span class="text-xs font-medium text-slate-600">Caudais</span>
+              <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Caudais</span>
               <select
                 id="dischargeTimeWindow"
                 phx-target={@myself}
@@ -240,10 +240,10 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 <option value="ymax">Sem limite</option>
               </select>
             </div>
-            <div class="h-36 rounded-lg bg-slate-100/80 border border-slate-200/80 overflow-hidden">
+            <div class="h-36 rounded-lg bg-slate-100/80 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden">
               <canvas id="damDischargeChart"></canvas>
             </div>
-            <ul class="text-[10px] text-slate-500 mt-0.5 list-none space-y-0.5">
+            <ul class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 list-none space-y-0.5">
               <li class="inline-flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0"></span>Caudal descarregado médio diário
               </li>
@@ -265,15 +265,15 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             class="pt-1.5 space-y-1.5"
             phx-hook="DamRealtimeChartMount"
           >
-            <span class="text-xs font-medium text-slate-600">Dados em tempo real</span>
+            <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Dados em tempo real</span>
             <div phx-update="ignore" id="dam-realtime-chart-container">
               <div
-                class="rounded-lg bg-slate-100/80 border border-slate-200/80 overflow-hidden"
+                class="rounded-lg bg-slate-100/80 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden"
                 style="height: 180px;"
               >
                 <canvas id="damRealtimeChart"></canvas>
               </div>
-              <ul class="text-[10px] text-slate-500 mt-1 list-none space-y-0.5">
+              <ul class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 list-none space-y-0.5">
                 <li class="inline-flex items-center gap-1">
                   <span
                     class="w-1.5 h-1.5 rounded-full shrink-0"

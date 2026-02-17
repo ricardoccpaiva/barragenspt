@@ -5,13 +5,13 @@
   <div id="map" phx-update="ignore"></div>
   <div
     class="absolute top-4 left-4 right-4 flex items-center justify-between md:justify-start md:gap-3 z-10 pointer-events-none">
-    <div class="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-white/90 shadow-card">
-      <svg class="w-5 h-5 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <div class="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100">
+      <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z" />
       </svg>
       <span class="text-sm font-semibold">barragens.pt</span>
     </div>
-    <button class="pointer-events-auto md:hidden p-2.5 rounded-xl bg-white/90 shadow-card" aria-label="Abrir menu"
+    <button class="pointer-events-auto md:hidden p-2.5 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100" aria-label="Abrir menu"
       onclick="toggleSidebar(true)">
       <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -22,13 +22,13 @@
 
 <!-- Sidebar -->
 <aside id="sidebar"
-  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[85%] max-w-[296px] md:max-w-none md:w-[336px] h-full md:h-[calc(100%-1rem)] bg-slate-100/65 border border-slate-200/50 shadow-float px-3 pb-3 pt-1.5 md:px-4 md:pb-4 md:pt-1.5 space-y-3 md:rounded-2xl backdrop-blur-md inset-y-0 left-0 md:inset-y-2 md:left-2">
+  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[85%] max-w-[296px] md:max-w-none md:w-[336px] h-full md:h-[calc(100%-1rem)] flex flex-col bg-slate-100/65 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pb-2 pt-1.5 md:px-4 md:pb-2 md:pt-1.5 space-y-3 md:rounded-2xl backdrop-blur-md inset-y-0 left-0 md:inset-y-2 md:left-2">
 
 
   <div class="flex items-center gap-2 px-0 pt-2 md:pt-2">
     <img src="https://barragens.pt/images/dam.png" alt="Barragens.pt" class="w-10 h-10 rounded-xl object-cover" />
     <div class="leading-none">
-      <p class="logo-type text-[34px] text-slate-600 font-semibold">BARRAGENS.PT</p>
+      <p class="logo-type text-[34px] text-slate-600 dark:text-slate-300 font-semibold">BARRAGENS.PT</p>
     </div>
   </div>
 
@@ -39,13 +39,13 @@
     </a>
   </div>
 
-  <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white">
-    <h3 class="text-sm font-semibold text-slate-800">Pesquisar</h3>
+  <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90">
+    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Pesquisar</h3>
     <div class="search-wrapper relative">
       <input id="damSearchInput" type="search" placeholder="Barragens ou rios..." phx-hook="SearchDam"
-        class="w-full rounded-lg border border-slate-200 px-2.5 py-2 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
+        class="w-full rounded-lg border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 px-2.5 py-2 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
       <div id="damSearchResults" class={"absolute left-0 right-0 top-full mt-0.5 z-50 max-h-60 overflow-y-auto
-        rounded-lg border border-slate-200 bg-white shadow-lg py-0.5 #{if @search_term=="" , do: "hidden" , else: ""
+        rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 shadow-lg py-0.5 #{if @search_term=="" , do: "hidden" , else: ""
         }"}>
         <%= if @search_rivers !=[] or (@dam_names !=nil and @dam_names !=[]) do %>
           <ul class="py-0 list-none m-0">
@@ -53,8 +53,8 @@
               <li>
                 <button type="button" phx-click="select_river" phx-value-basin_id={r.basin_id}
                   phx-value-river_name={r.river_name}
-                  class="w-full flex items-center gap-2 px-2.5 py-2 text-sm text-slate-800 hover:bg-slate-50 text-left border-0 bg-transparent cursor-pointer">
-                  <span class="text-slate-500 text-xs shrink-0">Rio</span>
+                  class="w-full flex items-center gap-2 px-2.5 py-2 text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 text-left border-0 bg-transparent cursor-pointer">
+                  <span class="text-slate-500 dark:text-slate-400 text-xs shrink-0">Rio</span>
                   <span>
                     <%= r.river_display_name || r.river_name %>
                   </span>
@@ -64,12 +64,12 @@
                 <%= for d <- @dam_names || [] do %>
                   <li>
                     <a href={~p"/basins/#{d.basin_id}/dams/#{d.id}"} data-phx-link="patch" data-phx-link-state="push"
-                      class="flex items-center justify-between gap-2 px-2.5 py-2 text-sm text-slate-800 hover:bg-slate-50 no-underline">
+                      class="flex items-center justify-between gap-2 px-2.5 py-2 text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 no-underline">
                       <span>
                         <%= d.name %>
                       </span>
                       <span id={"dam-search-badge-#{d.id}"}
-                        class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium text-white"
+                        class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium text-white dark:ring-1 dark:ring-white/20"
                         phx-hook="CapacityColor" data-observed={d.current_storage}>
                         <%= if is_number(d.current_storage), do: "#{round(d.current_storage)}%" , else: "—" %>
                       </span>
@@ -79,34 +79,35 @@
           </ul>
           <% else %>
             <%= if @search_term !="" do %>
-              <p class="px-2.5 py-2 text-sm text-slate-500 m-0">Nenhum resultado.</p>
+              <p class="px-2.5 py-2 text-sm text-slate-500 dark:text-slate-400 m-0">Nenhum resultado.</p>
               <% end %>
                 <% end %>
       </div>
     </div>
   </div>
 
-  <div class={"transition-all duration-200 space-y-3 #{if @search_term !="" ,
+  <div class={"flex flex-col flex-1 min-h-0 transition-all duration-200 #{if @search_term !="" ,
     do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
-    <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white sidebar-section" id="camadas-section" phx-update="ignore">
-      <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
-      <label class="flex items-center justify-between text-sm">
+    <div class="flex-1 min-h-0 overflow-y-auto space-y-3">
+    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section" id="camadas-section" phx-update="ignore">
+      <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Camadas</h3>
+      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>Bacias</span>
         <input id="toggleBasins" type="checkbox" class="toggle" phx-hook="BasinsLayerToggle">
       </label>
-      <label class="flex items-center justify-between text-sm">
+      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>Barragens</span>
         <input id="toggleDams" type="checkbox" class="toggle" phx-hook="DamsLayerToggle">
       </label>
-      <label class="flex items-center justify-between text-sm">
+      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>Espanha</span>
         <input id="toggleSpain" type="checkbox" class="toggle" phx-hook="SpainLayerToggle">
       </label>
     </div>
 
-    <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white sidebar-section">
-      <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
-      <label class="flex items-center justify-between text-sm">
+    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+      <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Índices Meteorológicos</h3>
+      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>PDSI</span>
         <input id="togglePdsi" type="checkbox" class="toggle" phx-hook="PdsiLayerToggle">
       </label>
@@ -117,7 +118,7 @@
         </div>
         <input id="pdsi-month-slider" type="range" min="0" max="12" value="0" class="w-full h-2 accent-sky-500">
       </div>
-      <label class="flex items-center justify-between text-sm">
+      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>Água no solo</span>
         <input id="toggleSmi" type="checkbox" class="toggle" phx-hook="SmiLayerToggle">
       </label>
@@ -142,7 +143,7 @@
         </div>
         <input id="smi-day-slider" type="range" min="0" max="30" value="29" class="w-full h-2 accent-sky-500">
       </div>
-      <label class="flex items-center justify-between text-sm">
+      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>Chuva</span>
         <input id="toggleRain" type="checkbox" class="toggle" phx-hook="RainLayerToggle">
       </label>
@@ -155,15 +156,63 @@
       </div>
     </div>
 
-    <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white sidebar-section">
-      <h3 class="text-sm font-semibold text-slate-800">Alertas (Infoagua)</h3>
-      <label class="flex items-center justify-between text-sm">
+    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+      <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Alertas (Infoagua)</h3>
+      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>Alertas cheias</span>
         <input id="toggleAlerts" type="checkbox" class="toggle" phx-hook="AlertsToggle">
       </label>
     </div>
+    </div>
+
+    <div class="shrink-0 w-full pt-1 mt-1.5 border-t border-slate-200/80 dark:border-slate-600 flex justify-start">
+      <button
+        type="button"
+        phx-click="open_settings_modal"
+        aria-label="Definições"
+        class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors -ml-1"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
+    </div>
   </div>
 </aside>
+
+<%= if @settings_modal_open do %>
+  <div
+    id="settings-modal-backdrop"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+    phx-hook="SettingsModalBackdrop"
+  >
+    <div
+      class="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-600 p-4"
+      id="settings-modal-content"
+      onclick="event.stopPropagation()"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Definições</h3>
+        <button
+          type="button"
+          id="settings-modal-close-btn"
+          phx-hook="SettingsModalCloseButton"
+          aria-label="Fechar"
+          class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300 py-1">
+        <span>Modo escuro</span>
+        <input id="toggleDarkMode" type="checkbox" class="toggle" phx-hook="DarkModeToggle">
+      </label>
+    </div>
+  </div>
+<% end %>
 
 <.live_component :if={@dam} id="homepage-dam-card" module={BarragensptWeb.HomepageV2Live.DamCardComponent}
   basin_id={@basin_id} dam={@dam} current_capacity={@current_capacity} dam_storage_hm3={@dam_storage_hm3}

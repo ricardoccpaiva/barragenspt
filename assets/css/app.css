@@ -64,6 +64,18 @@ body {
   transform: translateX(20px);
 }
 
+.dark .toggle {
+  background: #475569;
+}
+
+.dark .toggle::after {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.dark .toggle:checked {
+  background: #0ea5e9;
+}
+
 .logo-type {
   font-family: 'Kanit', 'Plus Jakarta Sans', system-ui, sans-serif;
   font-weight: 800;
