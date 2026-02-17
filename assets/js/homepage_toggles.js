@@ -322,13 +322,15 @@ export const LayerToggleHooks = {
       }
 
       function setSmiDepthActive(pillEl) {
+        const inactiveClasses = ["border-slate-200", "bg-slate-50", "text-slate-700", "dark:border-slate-500", "dark:bg-slate-600", "dark:text-slate-200"]
+        const activeClasses = ["smi-depth-pill-active", "bg-brand-500", "text-white", "border-brand-600", "dark:border-brand-500"]
         depthPillsContainer?.querySelectorAll(".smi-depth-pill").forEach((btn) => {
-          btn.classList.remove("smi-depth-pill-active", "bg-brand-500", "text-white", "border-brand-600")
-          btn.classList.add("border-slate-200", "bg-slate-50", "text-slate-700")
+          btn.classList.remove(...activeClasses)
+          btn.classList.add(...inactiveClasses)
         })
         if (pillEl) {
-          pillEl.classList.add("smi-depth-pill-active", "bg-brand-500", "text-white", "border-brand-600")
-          pillEl.classList.remove("border-slate-200", "bg-slate-50", "text-slate-700")
+          pillEl.classList.remove(...inactiveClasses)
+          pillEl.classList.add(...activeClasses)
         }
       }
 
