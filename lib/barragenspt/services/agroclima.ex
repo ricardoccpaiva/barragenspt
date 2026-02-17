@@ -1,4 +1,7 @@
 defmodule Barragenspt.Services.Agroclima do
+  use Nebulex.Caching
+  alias Barragenspt.Cache
+
   @moduledoc """
   Cliente para a API do Agroclima (IPMA). Obtém sessão/cookie e token CSRF
   (atributo csrft no HTML) e faz POST ao evomaptimeval para dados SMI por concelho.
@@ -19,10 +22,18 @@ defmodule Barragenspt.Services.Agroclima do
   Retorna `{:ok, data}` com o JSON decodificado ou `{:error, reason}`.
   """
   def get_smi_values(vtim, vser \\ "p28")
+
   def get_smi_values(vtim, vser) when is_integer(vtim),
     do: get_smi_values(to_string(vtim), vser)
+
+  @decorate cacheable(
+              cache: Cache,
+              key: "get_smi_values_#{vtim}_#{vser}",
+              ttl: :timer.days(1)
+            )
   def get_smi_values(vtim, vser) when is_binary(vtim) do
     vser = if vser in @valid_vser, do: vser, else: "p28"
+
     with {:ok, cookie_header, csrf_token} <- fetch_session_and_csrf(),
          {:ok, data} <- post_evomaptimeval_smi(vtim, vser, cookie_header, csrf_token) do
       {:ok, data}
@@ -36,10 +47,18 @@ defmodule Barragenspt.Services.Agroclima do
   Retorna `{:ok, data}` ou `{:error, reason}`.
   """
   def get_prec_values(vtim, vser \\ "anom", vtmp \\ "ww")
+
   def get_prec_values(vtim, vser, vtmp) when is_integer(vtim),
     do: get_prec_values(to_string(vtim), vser, vtmp)
+
+  @decorate cacheable(
+              cache: Cache,
+              key: "get_prec_values_#{vtim}_#{vser}_#{vtmp}",
+              ttl: :timer.days(1)
+            )
   def get_prec_values(vtim, vser, vtmp) when is_binary(vtim) do
     {vser, vtmp} = normalize_prec_mode(vser, vtmp)
+
     with {:ok, cookie_header, csrf_token} <- fetch_session_and_csrf(),
          {:ok, data} <- post_evomaptimeval_prec(vtim, vser, vtmp, cookie_header, csrf_token) do
       {:ok, data}
@@ -48,6 +67,7 @@ defmodule Barragenspt.Services.Agroclima do
 
   defp normalize_prec_mode(vser, vtmp) when vser in ["anom", "tot"] and vtmp in ["ww", "dd"],
     do: {vser, vtmp}
+
   defp normalize_prec_mode(_, _), do: {"anom", "ww"}
 
   @doc """
@@ -108,7 +128,6 @@ defmodule Barragenspt.Services.Agroclima do
   end
 
   defp post_evomaptimeval(body, cookie_header, _csrf_token) do
-
     headers = [
       {"x-requested-with", "XMLHttpRequest"},
       {"origin", @base_url},
@@ -124,7 +143,10 @@ defmodule Barragenspt.Services.Agroclima do
         {:ok, Jason.decode!(response_body)}
 
       {:ok, %{status_code: code, body: resp_body}} ->
-        Logger.warning("Agroclima evomaptimeval status=#{code} body=#{String.slice(resp_body, 0..200)}")
+        Logger.warning(
+          "Agroclima evomaptimeval status=#{code} body=#{String.slice(resp_body, 0..200)}"
+        )
+
         {:error, :upstream}
 
       {:error, reason} ->
