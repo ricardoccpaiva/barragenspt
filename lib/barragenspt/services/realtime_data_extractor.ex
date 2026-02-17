@@ -4,6 +4,7 @@ defmodule Barragenspt.Workers.RealtimeDataExtractor do
   import Ecto.Query
   alias Barragenspt.Models.Hydrometrics.{Dam, DataPointRealtime}
   alias Barragenspt.Repo
+  alias Barragenspt.RealtimeDataPointsCache
 
   @base_url "https://infoagua.apambiente.pt/pt/cheias/cheia-detalhe/"
   @params_mapping [
@@ -15,6 +16,9 @@ defmodule Barragenspt.Workers.RealtimeDataExtractor do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"site_id" => site_id}}) do
+    Repo.delete_all(from(d in DataPointRealtime, where: d.site_id == ^site_id))
+    flush_realtime_cache(site_id)
+
     Logger.info("RealtimeDataExtractor: fetching data for site_id=#{site_id}")
 
     case get_raw_html_content(site_id) do
@@ -146,6 +150,12 @@ defmodule Barragenspt.Workers.RealtimeDataExtractor do
   end
 
   defp store([], _site_id), do: 0
+
+  defp flush_realtime_cache(site_id) do
+    key = "realtime_series_#{site_id}"
+    RealtimeDataPointsCache.delete(key)
+    Logger.debug("RealtimeDataExtractor: flushed cache key #{key}")
+  end
 
   defp parse_moment(moment) when is_binary(moment) do
     # "2026-02-13 13:00:00" -> "2026-02-13T13:00:00" for ISO8601
