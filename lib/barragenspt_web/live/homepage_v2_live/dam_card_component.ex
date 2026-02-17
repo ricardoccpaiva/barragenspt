@@ -74,53 +74,65 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             Fechar
           </a>
         </div>
-        <div class="p-3 space-y-2">
+        <div class="p-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
           <% pct_rounded = @current_capacity && Decimal.round(@current_capacity, 2) %>
           <% pct_float = pct_rounded && Decimal.to_float(pct_rounded) %>
           <% pct_label = if pct_float, do: "#{:erlang.float_to_binary(pct_float, decimals: 2)}%", else: "n/a" %>
-          <div class="grid grid-cols-3 gap-1.5">
-            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/80 border border-slate-100 dark:border-slate-600 p-2 text-center flex flex-col justify-center min-h-[42px]">
-              <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase mb-0.5 tracking-wider font-medium">Enchimento</p>
-              <p class="text-sm font-bold text-brand-600 dark:text-brand-400 tabular-nums">{pct_label}</p>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-start gap-2">
+              <p class="text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+                {pct_label}
+              </p>
+              <span class="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">Atual</span>
             </div>
-            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/80 border border-slate-100 dark:border-slate-600 p-2 text-center flex flex-col justify-center min-h-[42px]">
-              <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase mb-0.5 tracking-wider font-medium">Volume</p>
-              <p class="text-sm font-bold text-slate-800 dark:text-slate-200 tabular-nums">
+            <div
+              class="h-1.5 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden"
+              role="progressbar"
+              aria-valuenow={pct_float}
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-label="Enchimento atual"
+            >
+              <div class="h-full bg-brand-500 rounded-full transition-[width] duration-300" style={"width: #{pct_float || 0}%"}></div>
+            </div>
+            <div class="flex flex-wrap gap-1 mt-1.5">
+              <span
+                class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium #{@dam_month_trend_badge_class}"}
+                aria-label={"Há 1 mês: #{@dam_month_change_label}"}
+              >
+                Há 1 mês: {@dam_month_change_label}
+              </span>
+              <span
+                class={"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium #{@dam_year_trend_badge_class}"}
+                aria-label={"Há 1 ano: #{@dam_year_change_label}"}
+              >
+                Há 1 ano: {@dam_year_change_label}
+              </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5">
+            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/80 border border-slate-100 dark:border-slate-600 px-3 py-2 flex items-center justify-between gap-2 min-h-[40px]">
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium shrink-0">Volume</p>
+              <p class="text-sm font-bold text-slate-800 dark:text-slate-200 tabular-nums text-right whitespace-nowrap">
                 <span>{@dam_storage_hm3 || "—"}</span>
-                <span class="text-[10px] font-normal text-slate-500 dark:text-slate-400"> hm³</span>
+                <span class="text-[10px] font-normal text-slate-500 dark:text-slate-400">hm³</span>
               </p>
             </div>
-            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/80 border border-slate-100 dark:border-slate-600 p-2 text-center flex flex-col justify-center min-h-[42px]">
-              <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase mb-0.5 tracking-wider font-medium">Cota</p>
-              <p class="text-sm font-bold text-slate-800 dark:text-slate-200 tabular-nums">
+            <div class="rounded-lg bg-slate-50 dark:bg-slate-700/80 border border-slate-100 dark:border-slate-600 px-3 py-2 flex items-center justify-between gap-2 min-h-[40px]">
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium shrink-0">Cota</p>
+              <p class="text-sm font-bold text-slate-800 dark:text-slate-200 tabular-nums text-right">
                 {if @last_elevation, do: "#{@last_elevation} m", else: "—"}
               </p>
             </div>
           </div>
-          <div class="h-1.5 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden" role="progressbar" aria-valuenow={pct_float} aria-valuemin="0" aria-valuemax="100">
-            <div class="h-full bg-brand-500 rounded-full transition-[width] duration-300" style={"width: #{pct_float || 0}%"}></div>
-          </div>
+
           <p class="text-[10px] text-slate-500 dark:text-slate-400">
             Atualizado em
             <span class="tabular-nums">
               {@last_data_point || @last_elevation_date || "—"}
             </span>
           </p>
-
-          <div class="flex flex-wrap gap-1">
-            <span
-              class={"inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium #{@dam_month_trend_badge_class}"}
-              aria-label={"Há 1 mês: #{@dam_month_change_label}"}
-            >
-              Há 1 mês: {@dam_month_change_label}
-            </span>
-            <span
-              class={"inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium #{@dam_year_trend_badge_class}"}
-              aria-label={"Há 1 ano: #{@dam_year_change_label}"}
-            >
-              Há 1 ano: {@dam_year_change_label}
-            </span>
-          </div>
 
           <div class="pt-0.5">
             <div class="inline-flex rounded-full bg-slate-200/80 p-0.5 text-xs font-medium text-slate-600">
