@@ -4,15 +4,20 @@ defmodule Barragenspt.Workers.RealtimeDataPointsUpdate do
   alias Barragenspt.Hydrometrics.Dams
   alias Barragenspt.Models.Hydrometrics.DataPointRealtime
   alias Barragenspt.Repo
+  require Logger
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: _args}) do
     Barragenspt.RealtimeDataPointsCache.flush()
 
     from(DataPointRealtime) |> Repo.delete_all()
-    site_ids = Enum.map(Dams.all(), & &1.site_id)
 
-    Enum.each(site_ids, &Barragenspt.Services.RealtimeDataExtractor.fetch/1)
+    Dams.all()
+    |> Enum.map(fn d ->
+      Barragenspt.Workers.RealtimeDataExtractor.new(%{"site_id" => d.site_id})
+    end)
+    |> OpentelemetryOban.insert_all()
+
     :ok
   end
 end

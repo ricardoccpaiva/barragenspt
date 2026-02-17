@@ -1,4 +1,5 @@
-defmodule Barragenspt.Services.RealtimeDataExtractor do
+defmodule Barragenspt.Workers.RealtimeDataExtractor do
+  use Oban.Worker, queue: :data_points_update
   require Logger
   import Ecto.Query
   alias Barragenspt.Models.Hydrometrics.{Dam, DataPointRealtime}
@@ -12,7 +13,10 @@ defmodule Barragenspt.Services.RealtimeDataExtractor do
     {7, "volume_armazenado"}
   ]
 
-  def fetch(site_id) do
+  @impl Oban.Worker
+  def perform(%Oban.Job{args: %{"site_id" => site_id}}) do
+    Logger.info("RealtimeDataExtractor: fetching data for site_id=#{site_id}")
+
     case get_raw_html_content(site_id) do
       {:ok, body} ->
         body
@@ -20,10 +24,14 @@ defmodule Barragenspt.Services.RealtimeDataExtractor do
         |> prep(site_id)
         |> store(site_id)
 
+        :ok
+
       {:error, reason} ->
         Logger.error(
           "RealtimeDataExtractor: error fetching data for site_id=#{site_id}: #{inspect(reason)}"
         )
+
+        {:error, reason}
     end
   end
 
@@ -31,12 +39,18 @@ defmodule Barragenspt.Services.RealtimeDataExtractor do
     url = @base_url <> site_id
     client = Tesla.client([])
 
+    Logger.info("RealtimeDataExtractor: fetching raw html content for site_id=#{site_id}")
+
     case Tesla.get(client, url) do
       {:ok, %Tesla.Env{body: body}} when is_binary(body) ->
         Logger.info("RealtimeDataExtractor: fetched raw html content for site_id=#{site_id}")
         {:ok, body}
 
       {:error, reason} ->
+        Logger.error(
+          "RealtimeDataExtractor: error fetching raw html content for site_id=#{site_id}: #{inspect(reason)}"
+        )
+
         {:error, reason}
     end
   end
@@ -65,6 +79,7 @@ defmodule Barragenspt.Services.RealtimeDataExtractor do
         data
 
       _ ->
+        Logger.error("RealtimeDataExtractor: no data found for site_id=#{site_id}")
         []
     end
   end
