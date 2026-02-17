@@ -509,6 +509,8 @@ function registerSpainListeners() {
       smiToggle.checked = false
       smiToggle.disabled = false
     }
+    const smiSliderLabel = document.getElementById("smi-slider-label")
+    if (smiSliderLabel) smiSliderLabel.textContent = "Erro ao carregar"
   })
 
   window.addEventListener("phx:draw_rain_layer", (e) => {
