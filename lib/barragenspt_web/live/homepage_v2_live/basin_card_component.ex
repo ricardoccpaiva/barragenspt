@@ -5,7 +5,7 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
   def render(assigns) do
     ~H"""
     <section id="basinInfoPanel" class="fixed bottom-2 right-2 z-40 w-[360px]">
-      <div class="bg-slate-100/90 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
+      <div class="bg-slate-100/80 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
         <div class="h-10 px-3 rounded-t-2xl flex items-center justify-between bg-slate-800 border-b border-slate-800 text-white">
           <div>
             <p class="text-sm font-semibold">
