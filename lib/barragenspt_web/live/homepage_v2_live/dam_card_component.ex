@@ -57,70 +57,48 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
   def render(assigns) do
     ~H"""
     <section id="damCard" class="fixed bottom-2 right-2 z-40 w-[360px]">
-      <div class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
-        <div class="h-12 px-4 rounded-t-2xl flex items-center justify-between bg-slate-100/95 border-b border-slate-200/70">
+      <div class="w-full max-w-[360px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+        <div class="h-12 px-4 rounded-t-2xl flex items-center justify-between bg-slate-800 border-b border-slate-800 text-white">
           <div>
-            <p class="text-sm font-semibold text-slate-900">
+            <p class="text-sm font-semibold">
               {@dam.site_name}
             </p>
-            <p class="text-xs text-slate-500">Bacia do {@dam.basin_name}</p>
+            <p class="text-xs text-slate-300">Bacia do {@dam.basin_name}</p>
           </div>
           <a
             href={if @basin_id, do: ~p"/basins/#{@basin_id}", else: ~p"/"}
             data-phx-link="patch"
             data-phx-link-state="push"
-            class="text-xs text-slate-500 hover:text-slate-700"
+            class="text-xs text-slate-400 hover:text-white"
           >
             Fechar
           </a>
         </div>
-        <div class="p-4 space-y-3">
-          <% pct = @current_capacity && Decimal.round(@current_capacity, 0) |> Decimal.to_integer() %>
-          <div class="grid grid-cols-3 gap-3">
-            <div class="rounded-xl bg-slate-50 border border-slate-100 py-1.5 px-3 flex flex-col items-center justify-center min-h-[52px]">
-              <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider">Enchimento</p>
-              <div class="relative h-12 w-12">
-                <svg viewBox="0 0 36 36" class="h-12 w-12 -rotate-90" aria-hidden="true">
-                  <path
-                    class="text-slate-200"
-                    stroke="currentColor"
-                    stroke-width="3"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831"
-                  />
-                  <path
-                    class="text-brand-500"
-                    stroke="currentColor"
-                    stroke-width="3"
-                    fill="none"
-                    stroke-linecap="round"
-                    stroke-dasharray={"#{pct || 0}, 100"}
-                    d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831"
-                  />
-                </svg>
-                <div
-                  class="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-700 tabular-nums"
-                  aria-label="Percentagem de enchimento"
-                >
-                  {if pct, do: "#{pct}%", else: "n/a"}
-                </div>
-              </div>
+        <div class="p-3 space-y-2">
+          <% pct_rounded = @current_capacity && Decimal.round(@current_capacity, 2) %>
+          <% pct_float = pct_rounded && Decimal.to_float(pct_rounded) %>
+          <% pct_label = if pct_float, do: "#{:erlang.float_to_binary(pct_float, decimals: 2)}%", else: "n/a" %>
+          <div class="grid grid-cols-3 gap-1.5">
+            <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center flex flex-col justify-center min-h-[42px]">
+              <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider font-medium">Enchimento</p>
+              <p class="text-sm font-bold text-brand-600 tabular-nums">{pct_label}</p>
             </div>
-            <div class="rounded-xl bg-slate-50 border border-slate-100 py-1.5 px-3 text-center flex flex-col justify-center min-h-[52px]">
-              <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider">Volume</p>
-              <p class="text-base font-bold text-slate-800">
-                <span class="tabular-nums">
-                  {@dam_storage_hm3 || "—"}
-                </span>
-                <span class="text-xs font-normal text-slate-500">hm³</span>
+            <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center flex flex-col justify-center min-h-[42px]">
+              <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider font-medium">Volume</p>
+              <p class="text-sm font-bold text-slate-800 tabular-nums">
+                <span>{@dam_storage_hm3 || "—"}</span>
+                <span class="text-[10px] font-normal text-slate-500"> hm³</span>
               </p>
             </div>
-            <div class="rounded-xl bg-slate-50 border border-slate-100 py-1.5 px-3 text-center flex flex-col justify-center min-h-[52px]">
-              <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider">Cota</p>
-              <p class="text-base font-bold text-slate-800 tabular-nums">
+            <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center flex flex-col justify-center min-h-[42px]">
+              <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider font-medium">Cota</p>
+              <p class="text-sm font-bold text-slate-800 tabular-nums">
                 {if @last_elevation, do: "#{@last_elevation} m", else: "—"}
               </p>
             </div>
+          </div>
+          <div class="h-1.5 rounded-full bg-slate-200 overflow-hidden" role="progressbar" aria-valuenow={pct_float} aria-valuemin="0" aria-valuemax="100">
+            <div class="h-full bg-brand-500 rounded-full transition-[width] duration-300" style={"width: #{pct_float || 0}%"}></div>
           </div>
           <p class="text-[10px] text-slate-500">
             Atualizado em
@@ -129,7 +107,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             </span>
           </p>
 
-          <div class="flex flex-wrap gap-1.5">
+          <div class="flex flex-wrap gap-1">
             <span
               class={"inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium #{@dam_month_trend_badge_class}"}
               aria-label={"Há 1 mês: #{@dam_month_change_label}"}
@@ -144,8 +122,8 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             </span>
           </div>
 
-          <div class="pt-1">
-            <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">
+          <div class="pt-0.5">
+            <div class="inline-flex rounded-full bg-slate-200/80 p-0.5 text-xs font-medium text-slate-600">
               <%= if @has_realtime_data do %>
                 <button
                   type="button"
@@ -153,8 +131,8 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                   phx-click="dam_card_tab"
                   phx-value-tab="realtime"
                   class={[
-                    "rounded-full px-3 py-1",
-                    @dam_card_tab == "realtime" && "bg-white text-slate-700 shadow-sm"
+                    "rounded-full px-2.5 py-0.5",
+                    @dam_card_tab == "realtime" && "bg-slate-50 text-slate-700 shadow-sm"
                   ]}
                 >
                   Realtime
@@ -166,8 +144,8 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 phx-click="dam_card_tab"
                 phx-value-tab="chart"
                 class={[
-                  "rounded-full px-3 py-1",
-                  @dam_card_tab == "chart" && "bg-white text-slate-700 shadow-sm"
+                  "rounded-full px-2.5 py-0.5",
+                  @dam_card_tab == "chart" && "bg-slate-50 text-slate-700 shadow-sm"
                 ]}
               >
                 Armazenamento
@@ -178,8 +156,8 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 phx-click="dam_card_tab"
                 phx-value-tab="discharge"
                 class={[
-                  "rounded-full px-3 py-1",
-                  @dam_card_tab == "discharge" && "bg-white text-slate-700 shadow-sm"
+                  "rounded-full px-2.5 py-0.5",
+                  @dam_card_tab == "discharge" && "bg-slate-50 text-slate-700 shadow-sm"
                 ]}
               >
                 Caudais
@@ -190,8 +168,8 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 phx-click="dam_card_tab"
                 phx-value-tab="metadata"
                 class={[
-                  "rounded-full px-3 py-1",
-                  @dam_card_tab == "metadata" && "bg-white text-slate-700 shadow-sm"
+                  "rounded-full px-2.5 py-0.5",
+                  @dam_card_tab == "metadata" && "bg-slate-50 text-slate-700 shadow-sm"
                 ]}
               >
                 Info
@@ -202,7 +180,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
           <div
             :if={@dam_card_tab == "chart"}
             id="dam-chart-tab"
-            class="pt-2 space-y-2"
+            class="pt-1.5 space-y-1.5"
             phx-hook="DamChartMount"
           >
             <div class="flex justify-between items-center">
@@ -211,7 +189,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 id="timeWindow"
                 phx-target={@myself}
                 phx-hook="DamChartTimeWindow"
-                class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white"
+                class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-slate-50"
               >
                 <option value="d7">1 semana</option>
                 <option value="d14">2 semanas</option>
@@ -224,10 +202,10 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 <option value="ymax">Sem limite</option>
               </select>
             </div>
-            <div class="h-48 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden">
+            <div class="h-36 rounded-lg bg-slate-100/80 border border-slate-200/80 overflow-hidden">
               <canvas id="damChart"></canvas>
             </div>
-            <ul class="text-[10px] text-slate-500 mt-1 list-none space-y-0.5">
+            <ul class="text-[10px] text-slate-500 mt-0.5 list-none space-y-0.5">
               <li class="inline-flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0"></span>Valores observados (%)
               </li>
@@ -240,7 +218,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
           <div
             :if={@dam_card_tab == "discharge"}
             id="dam-discharge-tab"
-            class="pt-2 space-y-2"
+            class="pt-1.5 space-y-1.5"
             phx-hook="DischargeChartMount"
           >
             <div class="flex justify-between items-center">
@@ -249,7 +227,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 id="dischargeTimeWindow"
                 phx-target={@myself}
                 phx-hook="DamChartTimeWindow"
-                class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white"
+                class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-slate-50"
               >
                 <option value="d7">1 semana</option>
                 <option value="d14">2 semanas</option>
@@ -262,10 +240,10 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 <option value="ymax">Sem limite</option>
               </select>
             </div>
-            <div class="h-48 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden">
+            <div class="h-36 rounded-lg bg-slate-100/80 border border-slate-200/80 overflow-hidden">
               <canvas id="damDischargeChart"></canvas>
             </div>
-            <ul class="text-[10px] text-slate-500 mt-1 list-none space-y-0.5">
+            <ul class="text-[10px] text-slate-500 mt-0.5 list-none space-y-0.5">
               <li class="inline-flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0"></span>Caudal descarregado médio diário
               </li>
@@ -284,14 +262,14 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
           <div
             :if={@has_realtime_data && @dam_card_tab == "realtime"}
             id="dam-realtime-tab"
-            class="pt-2 space-y-2"
+            class="pt-1.5 space-y-1.5"
             phx-hook="DamRealtimeChartMount"
           >
             <span class="text-xs font-medium text-slate-600">Dados em tempo real</span>
             <div phx-update="ignore" id="dam-realtime-chart-container">
               <div
-                class="rounded-xl bg-white border border-slate-100 overflow-hidden"
-                style="height: 240px;"
+                class="rounded-lg bg-slate-100/80 border border-slate-200/80 overflow-hidden"
+                style="height: 180px;"
               >
                 <canvas id="damRealtimeChart"></canvas>
               </div>
@@ -318,10 +296,10 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             </div>
           </div>
 
-          <div :if={@dam_card_tab == "metadata"} class="pt-2">
-            <div class="max-h-[42vh] overflow-y-auto rounded-xl bg-white border border-slate-100 text-[13px]">
+          <div :if={@dam_card_tab == "metadata"} class="pt-1.5">
+            <div class="max-h-[36vh] overflow-y-auto rounded-lg bg-slate-100/80 border border-slate-200/80 text-[13px]">
               <%= for {section_name, fields} <- Map.get(@dam, :metadata, %{}) || %{}, is_map(fields) do %>
-                <div class="px-4 py-3 border-b border-slate-100 last:border-b-0">
+                <div class="px-3 py-2 border-b border-slate-200/80 last:border-b-0">
                   <p class="text-sm font-bold text-slate-900 mb-2">
                     {section_name}
                   </p>

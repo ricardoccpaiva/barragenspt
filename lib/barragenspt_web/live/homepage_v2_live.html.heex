@@ -88,7 +88,7 @@
 
   <div class={"transition-all duration-200 space-y-3 #{if @search_term !="" ,
     do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
-    <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white sidebar-section">
+    <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white sidebar-section" id="camadas-section" phx-update="ignore">
       <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
       <label class="flex items-center justify-between text-sm">
         <span>Bacias</span>
