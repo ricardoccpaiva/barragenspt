@@ -197,22 +197,24 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
           >
             <div class="flex justify-between items-center">
               <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Armazenamento</span>
-              <select
-                id="timeWindow"
-                phx-target={@myself}
-                phx-hook="DamChartTimeWindow"
-                class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-slate-50"
-              >
-                <option value="d7">1 semana</option>
-                <option value="d14">2 semanas</option>
-                <option value="d30">1 mês</option>
-                <option value="d60" selected>2 meses</option>
-                <option value="d180">6 meses</option>
-                <option value="y2">2 anos</option>
-                <option value="y5">5 anos</option>
-                <option value="y10">10 anos</option>
-                <option value="ymax">Sem limite</option>
-              </select>
+              <div class="border border-slate-200 dark:border-slate-500 rounded-lg pl-2 pr-2.5 py-1 bg-slate-50 dark:bg-slate-600 min-w-0">
+                <select
+                  id="timeWindow"
+                  phx-target={@myself}
+                  phx-hook="DamChartTimeWindow"
+                  class="text-xs w-full min-w-0 border-0 bg-transparent py-0 pr-5 text-slate-800 dark:text-slate-200 focus:ring-0 focus:outline-none cursor-pointer"
+                >
+                  <option value="d7">1 semana</option>
+                  <option value="d14">2 semanas</option>
+                  <option value="d30">1 mês</option>
+                  <option value="d60" selected>2 meses</option>
+                  <option value="d180">6 meses</option>
+                  <option value="y2">2 anos</option>
+                  <option value="y5">5 anos</option>
+                  <option value="y10">10 anos</option>
+                  <option value="ymax">Sem limite</option>
+                </select>
+              </div>
             </div>
             <div class="h-36 rounded-lg bg-slate-100/80 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden">
               <canvas id="damChart"></canvas>
@@ -235,22 +237,24 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
           >
             <div class="flex justify-between items-center">
               <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Caudais</span>
-              <select
-                id="dischargeTimeWindow"
-                phx-target={@myself}
-                phx-hook="DamChartTimeWindow"
-                class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-slate-50"
-              >
-                <option value="d7">1 semana</option>
-                <option value="d14">2 semanas</option>
-                <option value="d30">1 mês</option>
-                <option value="d60" selected>2 meses</option>
-                <option value="d180">6 meses</option>
-                <option value="y2">2 anos</option>
-                <option value="y5">5 anos</option>
-                <option value="y10">10 anos</option>
-                <option value="ymax">Sem limite</option>
-              </select>
+              <div class="border border-slate-200 dark:border-slate-500 rounded-lg pl-2 pr-2.5 py-1 bg-slate-50 dark:bg-slate-600 min-w-0">
+                <select
+                  id="dischargeTimeWindow"
+                  phx-target={@myself}
+                  phx-hook="DamChartTimeWindow"
+                  class="text-xs w-full min-w-0 border-0 bg-transparent py-0 pr-5 text-slate-800 dark:text-slate-200 focus:ring-0 focus:outline-none cursor-pointer"
+                >
+                  <option value="d7">1 semana</option>
+                  <option value="d14">2 semanas</option>
+                  <option value="d30">1 mês</option>
+                  <option value="d60" selected>2 meses</option>
+                  <option value="d180">6 meses</option>
+                  <option value="y2">2 anos</option>
+                  <option value="y5">5 anos</option>
+                  <option value="y10">10 anos</option>
+                  <option value="ymax">Sem limite</option>
+                </select>
+              </div>
             </div>
             <div class="h-36 rounded-lg bg-slate-100/80 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden">
               <canvas id="damDischargeChart"></canvas>
