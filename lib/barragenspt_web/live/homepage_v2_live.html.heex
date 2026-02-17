@@ -168,7 +168,9 @@
 <.live_component :if={@dam} id="homepage-dam-card" module={BarragensptWeb.HomepageV2Live.DamCardComponent}
   basin_id={@basin_id} dam={@dam} current_capacity={@current_capacity} dam_storage_hm3={@dam_storage_hm3}
   last_elevation={@last_elevation} last_data_point={@last_data_point} last_elevation_date={@last_elevation_date}
-  has_realtime_data={@has_realtime_data} />
+  has_realtime_data={@has_realtime_data}
+  dam_month_change_label={@dam_month_change_label} dam_year_change_label={@dam_year_change_label}
+  dam_month_trend_badge_class={@dam_month_trend_badge_class} dam_year_trend_badge_class={@dam_year_trend_badge_class} />
 
 <a id="basinDetailLink" data-phx-link="patch" data-phx-link-state="push" href="/" class="hidden"></a>
 

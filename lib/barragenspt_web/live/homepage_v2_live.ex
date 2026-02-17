@@ -117,6 +117,11 @@ defmodule BarragensptWeb.HomepageV2Live do
 
     current_storage_color = Colors.lookup_capacity(current_capacity)
 
+    daily_stats_dam = Dams.daily_stats(id, 12)
+    monthly_stats_dam = Dams.monthly_stats(id, 2)
+    month_change_dam = period_change(daily_stats_dam, 31, 1) |> invert_change()
+    year_change_dam = period_change(monthly_stats_dam, 365, 45) |> invert_change()
+
     socket =
       socket
       |> assign(basin_id: basin_id)
@@ -131,6 +136,10 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(last_elevation: last_elevation_assign)
       |> assign(last_elevation_date: last_elevation_date_assign)
       |> assign(current_storage_color: current_storage_color)
+      |> assign(dam_month_change_label: format_period_change(month_change_dam))
+      |> assign(dam_year_change_label: format_period_change(year_change_dam))
+      |> assign(dam_month_trend_badge_class: trend_badge_class(month_change_dam))
+      |> assign(dam_year_trend_badge_class: trend_badge_class(year_change_dam))
       |> push_event("clear_overlay_layers", %{})
       |> then(fn s ->
         usage_types = Map.get(s.assigns, :selected_usage_types, [])

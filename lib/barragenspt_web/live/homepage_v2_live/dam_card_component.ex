@@ -10,6 +10,10 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
       socket
       |> assign(assigns)
       |> assign_new(:dam_card_tab, fn -> default_tab end)
+      |> assign_new(:dam_month_change_label, fn -> "n/a" end)
+      |> assign_new(:dam_year_change_label, fn -> "n/a" end)
+      |> assign_new(:dam_month_trend_badge_class, fn -> "bg-slate-100 text-slate-600" end)
+      |> assign_new(:dam_year_trend_badge_class, fn -> "bg-slate-100 text-slate-600" end)
 
     {:ok, socket}
   end
@@ -54,10 +58,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
     ~H"""
     <section id="damCard" class="fixed bottom-2 right-2 z-40 w-[360px]">
       <div class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
-        <div
-          class="h-14 px-4 rounded-t-2xl flex items-center justify-between border-b border-slate-200/70"
-          style="background-color: #F2F2F2"
-        >
+        <div class="h-12 px-4 rounded-t-2xl flex items-center justify-between bg-slate-100/95 border-b border-slate-200/70">
           <div>
             <p class="text-sm font-semibold text-slate-900">
               {@dam.site_name}
@@ -127,6 +128,21 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
               {@last_data_point || @last_elevation_date || "—"}
             </span>
           </p>
+
+          <div class="flex flex-wrap gap-1.5">
+            <span
+              class={"inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium #{@dam_month_trend_badge_class}"}
+              aria-label={"Há 1 mês: #{@dam_month_change_label}"}
+            >
+              Há 1 mês: {@dam_month_change_label}
+            </span>
+            <span
+              class={"inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium #{@dam_year_trend_badge_class}"}
+              aria-label={"Há 1 ano: #{@dam_year_change_label}"}
+            >
+              Há 1 ano: {@dam_year_change_label}
+            </span>
+          </div>
 
           <div class="pt-1">
             <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">

@@ -6,10 +6,7 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
     ~H"""
     <section id="basinInfoPanel" class="fixed bottom-2 right-2 z-40 w-[360px]">
       <div class="bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
-        <div
-          class="h-14 px-4 rounded-t-2xl flex items-center justify-between border-b border-slate-200/70"
-          style="background-color: #F2F2F2"
-        >
+        <div class="h-12 px-4 rounded-t-2xl flex items-center justify-between bg-slate-100/95 border-b border-slate-200/70">
           <div>
             <p class="text-sm font-semibold text-slate-900">
               {@basin_card.name}
