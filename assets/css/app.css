@@ -258,7 +258,8 @@ html {
 
   .legend-card {
     left: 12px;
-    bottom: 12px;
+    /* espaço para o Buy Me a Coffee stacked por baixo (h-8 + gap) */
+    bottom: 48px;
   }
 }
 

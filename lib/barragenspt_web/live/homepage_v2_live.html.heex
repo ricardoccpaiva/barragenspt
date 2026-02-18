@@ -4,19 +4,19 @@
 <main class="fixed inset-0">
   <div id="map" phx-update="ignore"></div>
   <div
-    class="absolute top-4 left-4 right-4 flex items-center justify-between md:justify-start md:gap-3 z-10 pointer-events-none">
-    <div class="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100">
-      <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z" />
-      </svg>
-      <span class="text-sm font-semibold">barragens.pt</span>
-    </div>
-    <button class="pointer-events-auto md:hidden p-2.5 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100" aria-label="Abrir menu"
+    class="absolute top-4 left-4 right-14 md:right-4 flex items-start justify-start gap-2 z-10 pointer-events-none">
+    <button class="pointer-events-auto md:hidden h-10 w-10 flex items-center justify-center shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100" aria-label="Abrir menu"
       onclick="toggleSidebar(true)">
-      <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      <svg class="w-5 h-5 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
     </button>
+    <div class="pointer-events-auto flex items-center gap-2 h-10 px-3 shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100">
+      <svg class="w-5 h-5 text-brand-600 dark:text-brand-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z" />
+      </svg>
+      <span class="text-sm font-semibold whitespace-nowrap">barragens.pt</span>
+    </div>
   </div>
 </main>
 
@@ -322,3 +322,10 @@
   <div class="legend-row"><span class="legend-dot" style="background:#fd4351"></span><span>Situação de risco</span>
   </div>
 </div>
+
+<!-- Buy Me a Coffee - canto inferior esquerdo, stacked por baixo da legenda (mobile; desktop: só na sidebar) -->
+<a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer"
+  class="fixed bottom-2 left-3 z-20 md:hidden" aria-label="Ajudar o barragens.pt">
+  <img class="h-8 w-auto object-contain" alt=""
+    src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+</a>
