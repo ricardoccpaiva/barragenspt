@@ -216,7 +216,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 </select>
               </div>
             </div>
-            <div class="h-36 rounded-lg bg-slate-100/80 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden">
+            <div class="h-36 rounded-lg bg-white/90 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden">
               <canvas id="damChart"></canvas>
             </div>
             <ul class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 list-none space-y-0.5">
@@ -256,7 +256,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
                 </select>
               </div>
             </div>
-            <div class="h-36 rounded-lg bg-slate-100/80 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden">
+            <div class="h-36 rounded-lg bg-white/90 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden">
               <canvas id="damDischargeChart"></canvas>
             </div>
             <ul class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 list-none space-y-0.5">
@@ -284,7 +284,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Dados em tempo real</span>
             <div phx-update="ignore" id="dam-realtime-chart-container">
               <div
-                class="rounded-lg bg-slate-100/80 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden"
+                class="rounded-lg bg-white/90 dark:bg-slate-700/80 border border-slate-200/80 dark:border-slate-600 overflow-hidden"
                 style="height: 180px;"
               >
                 <canvas id="damRealtimeChart"></canvas>

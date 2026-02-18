@@ -134,7 +134,7 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
 
           <div id="basinTabChart" class="pt-1.5 hidden">
             <p class="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Evolução</p>
-            <div class="mt-1.5 h-[32vh] rounded-lg border border-slate-200/80 dark:border-slate-600 bg-slate-100/60 dark:bg-slate-700/60 p-2 flex flex-col">
+            <div class="mt-1.5 h-[32vh] rounded-lg border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-700/60 p-2 flex flex-col">
               <div class="mt-auto">
                 <div class="h-36">
                   <canvas
