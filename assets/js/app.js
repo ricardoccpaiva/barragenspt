@@ -21,4 +21,10 @@ import "../css/app.css"
 
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
+// html2canvas-pro - captura de elementos DOM como imagem
+import html2canvas from "html2canvas-pro"
+
+// Disponível globalmente para LiveView hooks (ex.: window.html2canvas)
+window.html2canvas = html2canvas
+
 // Establish Phoenix Socket and LiveView configuration.

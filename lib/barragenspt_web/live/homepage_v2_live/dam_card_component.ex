@@ -65,14 +65,29 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             </p>
             <p class="text-xs text-slate-300">Bacia do {@dam.basin_name}</p>
           </div>
-          <a
-            href={if @basin_id, do: ~p"/basins/#{@basin_id}", else: ~p"/"}
-            data-phx-link="patch"
-            data-phx-link-state="push"
-            class="text-xs text-slate-400 hover:text-white"
-          >
-            Fechar
-          </a>
+          <div class="flex items-center gap-1">
+            <button
+              id="export-dam-card-btn"
+              type="button"
+              phx-hook="ExportDamCard"
+              data-dam-name={@dam.site_name}
+              aria-label="Exportar card como imagem"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/80 transition-colors"
+              title="Exportar card como imagem"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+            <a
+              href={if @basin_id, do: ~p"/basins/#{@basin_id}", else: ~p"/"}
+              data-phx-link="patch"
+              data-phx-link-state="push"
+              class="text-xs text-slate-400 hover:text-white"
+            >
+              Fechar
+            </a>
+          </div>
         </div>
         <div class="p-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
           <% pct_rounded = @current_capacity && Decimal.round(@current_capacity, 2) %>

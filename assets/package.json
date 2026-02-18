@@ -10,6 +10,7 @@
   "keywords": [],
   "description": "",
   "dependencies": {
+    "html2canvas-pro": "^1.6.7",
     "vega": "^5.25.0",
     "vega-embed": "^6.23.0",
     "vega-lite": "^5.16.1"

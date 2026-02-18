@@ -4,25 +4,40 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <section id="basinInfoPanel" class="fixed bottom-2 right-2 z-40 w-[360px]">
-      <div class="bg-slate-100/80 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
-        <div class="h-10 px-3 rounded-t-2xl flex items-center justify-between bg-slate-800 border-b border-slate-800 text-white">
+    <section id="basinInfoPanel" class="fixed bottom-2 right-2 z-40 w-[360px] max-h-[95vh] flex flex-col">
+      <div class="bg-slate-100/80 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200 flex flex-col max-h-[95vh]">
+        <div class="h-10 px-3 rounded-t-2xl flex items-center justify-between bg-slate-800 border-b border-slate-800 text-white shrink-0">
           <div>
             <p class="text-sm font-semibold">
               {@basin_card.name}
             </p>
           </div>
-          <a
-            href="/"
-            data-phx-link="patch"
-            data-phx-link-state="push"
-            class="text-xs text-slate-400 hover:text-white p-1 rounded"
-          >
-            Fechar
-          </a>
+          <div class="flex items-center gap-1">
+            <button
+              id="export-basin-card-btn"
+              type="button"
+              phx-hook="ExportBasinCard"
+              data-basin-name={@basin_card.name}
+              aria-label="Exportar card como imagem"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/80 transition-colors"
+              title="Exportar card como imagem"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+            <a
+              href="/"
+              data-phx-link="patch"
+              data-phx-link-state="push"
+              class="text-xs text-slate-400 hover:text-white p-1 rounded"
+            >
+              Fechar
+            </a>
+          </div>
         </div>
-        <div class="p-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-          <div class="flex flex-col gap-1">
+        <div class="p-3 space-y-2 text-sm text-slate-600 dark:text-slate-300 flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div class="flex flex-col gap-1 shrink-0">
             <div class="flex items-start gap-2">
               <p class="text-2xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
                 {if @basin_card.avg_observed, do: "#{@basin_card.avg_observed}%", else: "n/a"}
@@ -65,7 +80,7 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
             </div>
           </div>
 
-          <div class="pt-1">
+          <div class="pt-1 shrink-0">
             <div class="inline-flex rounded-full bg-slate-200/80 dark:bg-slate-600 p-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
               <button
                 type="button"
@@ -86,9 +101,9 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
             </div>
           </div>
 
-          <div :if={@basin_card.dams != []} id="basinTabTable" class="pt-1.5 flex flex-col">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Barragens</p>
-            <div class="mt-1.5 h-[32vh] overflow-y-auto rounded-lg border border-slate-200/80 dark:border-slate-600 bg-slate-100/60 dark:bg-slate-700/60">
+          <div :if={@basin_card.dams != []} id="basinTabTable" class="pt-1.5 flex flex-col flex-1 min-h-0 overflow-hidden">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 shrink-0">Barragens</p>
+            <div class="mt-1.5 flex-1 min-h-0 overflow-y-auto rounded-lg border border-slate-200/80 dark:border-slate-600 bg-slate-100/60 dark:bg-slate-700/60">
               <table class="w-full text-sm">
                 <thead class="bg-slate-200/60 dark:bg-slate-600/80 text-slate-500 dark:text-slate-300">
                   <tr>
@@ -132,7 +147,7 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
             </div>
           </div>
 
-          <div id="basinTabChart" class="pt-1.5 hidden">
+          <div id="basinTabChart" class="pt-1.5 hidden shrink-0">
             <p class="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Evolução</p>
             <div class="mt-1.5 h-[32vh] rounded-lg border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-700/60 p-2 flex flex-col">
               <div class="mt-auto">

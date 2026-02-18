@@ -109,7 +109,7 @@ const DarkModeToggle = {
     el.addEventListener("change", () => {
       const on = el.checked
       document.documentElement.classList.toggle("dark", on)
-      try { localStorage.setItem("darkMode", on ? "1" : "0") } catch (e) {}
+      try { localStorage.setItem("darkMode", on ? "1" : "0") } catch (e) { }
       window.dispatchEvent(new CustomEvent("dark-mode-change", { detail: { dark: on } }))
     })
   }
@@ -129,6 +129,50 @@ const SettingsModalCloseButton = {
   }
 }
 
+const ExportDamCard = {
+  mounted() {
+    this.el.addEventListener("click", (e) => {
+      e.preventDefault()
+      const card = document.getElementById("damCard")
+      if (!card || typeof window.html2canvas !== "function") return
+      const filename = (this.el.dataset.damName || "barragem").replace(/\s+/g, "-") + ".png"
+      window.html2canvas(card, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: null
+      }).then((canvas) => {
+        const link = document.createElement("a")
+        link.download = filename
+        link.href = canvas.toDataURL("image/png")
+        link.click()
+      })
+    })
+  }
+}
+
+const ExportBasinCard = {
+  mounted() {
+    this.el.addEventListener("click", (e) => {
+      e.preventDefault()
+      const card = document.getElementById("basinInfoPanel")
+      if (!card || typeof window.html2canvas !== "function") return
+      const filename = (this.el.dataset.basinName || "bacia").replace(/\s+/g, "-") + ".png"
+      window.html2canvas(card, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: null
+      }).then((canvas) => {
+        const link = document.createElement("a")
+        link.download = filename
+        link.href = canvas.toDataURL("image/png")
+        link.click()
+      })
+    })
+  }
+}
+
 export const Hooks = {
   CapacityColor,
   BasinChartTimeWindow,
@@ -136,6 +180,8 @@ export const Hooks = {
   DamChartMount,
   DischargeChartMount,
   DamRealtimeChartMount,
+  ExportDamCard,
+  ExportBasinCard,
   RiverChanged,
   UsageTypeChanged,
   SearchDam,
