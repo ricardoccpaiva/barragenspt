@@ -106,6 +106,26 @@
     </div>
 
     <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+      <details class="group">
+        <summary class="text-sm font-semibold text-slate-800 dark:text-slate-100 cursor-pointer list-none flex items-center justify-between gap-2 py-0.5">
+          <span>Tipos de uso</span>
+          <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="pt-2 space-y-1.5 border-t border-slate-100 dark:border-slate-600 mt-1.5">
+          <%= for {ut} <- @usage_types do %>
+            <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+              <input type="checkbox" id={"usage-type-#{ut}"} name={ut} phx-hook="UsageTypeChanged" checked={ut in @selected_usage_types}
+                class="rounded border-slate-300 dark:border-slate-500 text-brand-600 focus:ring-brand-500/30">
+              <span><%= ut %></span>
+            </label>
+          <% end %>
+        </div>
+      </details>
+    </div>
+
+    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
       <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Índices Meteorológicos</h3>
       <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>PDSI</span>

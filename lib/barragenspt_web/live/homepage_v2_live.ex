@@ -23,6 +23,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       |> assign(
         rivers: rivers,
         usage_types: usage_types,
+        selected_usage_types: [],
         dams: dams,
         basin_card: nil,
         dam: nil,
