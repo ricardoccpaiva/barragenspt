@@ -12,11 +12,11 @@
   <meta property="og:url" content="https://barragens.pt/">
   <meta property="og:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://barragens.pt/images/dam.png">
+  <meta property="og:image" content={Routes.static_url(@conn, "/images/dam.png")}>
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Barragens.pt - Início">
   <meta name="twitter:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
-  <meta name="twitter:image" content="https://barragens.pt/images/dam_large.png">
+  <meta name="twitter:image" content={Routes.static_url(@conn, "/images/dam_large.png")}>
 
   <meta name="Keywords" content="barragens, albufeiras, água, seca, chuva">
   <%= csrf_meta_tag() %>

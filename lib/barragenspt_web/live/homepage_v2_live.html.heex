@@ -15,7 +15,7 @@
       <svg class="w-5 h-5 text-brand-600 dark:text-brand-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z" />
       </svg>
-      <span class="text-sm font-semibold whitespace-nowrap">barragens.pt</span>
+      <span class="text-sm font-semibold whitespace-nowrap">BARRAGENS.PT</span>
     </div>
   </div>
 </main>
@@ -26,17 +26,10 @@
 
 
   <div class="flex items-center gap-2 px-0 pt-2 md:pt-2 min-w-0">
-    <img src="https://barragens.pt/images/dam.png" alt="Barragens.pt" class="w-10 h-10 rounded-xl object-cover shrink-0" />
+    <img src={@logo_path} alt="Barragens.pt" class="w-10 h-10 object-cover shrink-0" />
     <div class="leading-none min-w-0 flex-1">
-      <p class="logo-type text-[30px] md:text-[34px] text-slate-600 dark:text-slate-300 font-semibold">BARRAGENS.PT</p>
+      <p class="logo-type text-[30px] md:text-[34px] text-slate-600 dark:text-slate-300 font-semibold mt-[12px]">BARRAGENS.PT</p>
     </div>
-  </div>
-
-  <div class="mt-0.5">
-    <a href="https://www.buymeacoffee.com/barragenspt">
-      <img style="height: 30px"
-        src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
-    </a>
   </div>
 
   <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90">
@@ -185,12 +178,16 @@
     </div>
     </div>
 
-    <div class="shrink-0 w-full pt-1 mt-1.5 border-t border-slate-200/80 dark:border-slate-600 flex justify-start">
+    <div class="shrink-0 w-full pt-1 mt-1.5 border-t border-slate-200/80 dark:border-slate-600 flex items-center justify-between">
+      <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer" class="shrink-0" aria-label="Ajudar o barragens.pt">
+        <img class="h-7 w-auto object-contain" alt=""
+          src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+      </a>
       <button
         type="button"
         phx-click="open_settings_modal"
         aria-label="Definições"
-        class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors -ml-1"
+        class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors -mr-1"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -325,7 +322,7 @@
 
 <!-- Buy Me a Coffee - canto inferior esquerdo, stacked por baixo da legenda (mobile; desktop: só na sidebar) -->
 <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer"
-  class="fixed bottom-2 left-3 z-20 md:hidden" aria-label="Ajudar o barragens.pt">
+  class="fixed bottom-2 left-3 z-20 md:hidden" aria-label="Ajudar o BARRAGENS.PT">
   <img class="h-8 w-auto object-contain" alt=""
-    src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+    src="https://img.buymeacoffee.com/button-api/?text=Ajudar o BARRAGENS.PT&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
 </a>

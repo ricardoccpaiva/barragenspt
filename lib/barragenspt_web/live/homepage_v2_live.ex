@@ -30,7 +30,8 @@ defmodule BarragensptWeb.HomepageV2Live do
         dam_names: [],
         search_rivers: [],
         search_term: "",
-        settings_modal_open: false
+        settings_modal_open: false,
+        logo_path: Routes.static_path(socket.endpoint, "/images/dam.png")
       )
       |> push_event("zoom_map", %{})
       |> push_event("draw_basins", %{basins: basins})
