@@ -56,8 +56,8 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <section id="damCard" class="fixed bottom-2 right-2 z-40 w-[360px]">
-      <div class="w-full max-w-[360px] bg-slate-100/80 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
+    <section id="damCard" class="fixed bottom-2 left-2 right-2 md:left-auto md:right-2 z-40 md:w-[360px]">
+      <div class="w-full bg-slate-100/80 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
         <div class="h-12 px-4 rounded-t-2xl flex items-center justify-between bg-slate-800 border-b border-slate-800 text-white">
           <div>
             <p class="text-sm font-semibold">

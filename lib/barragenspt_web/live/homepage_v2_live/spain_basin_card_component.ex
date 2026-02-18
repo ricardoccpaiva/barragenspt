@@ -36,7 +36,7 @@ defmodule BarragensptWeb.HomepageV2Live.SpainBasinCardComponent do
       |> assign(:pct_display, pct_display(assigns))
 
     ~H"""
-    <section id="basinInfoPanelSpain" class="fixed bottom-2 right-2 z-40 w-[360px]">
+    <section id="basinInfoPanelSpain" class="fixed bottom-2 left-2 right-2 md:left-auto md:right-2 z-40 md:w-[360px]">
       <div class="bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
         <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
           <p class="text-sm font-semibold text-slate-900">
