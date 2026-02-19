@@ -159,14 +159,15 @@ body {
 
 html {
   --viewport-gutter: 8px;
-  --sidebar-offset: calc(336px + var(--viewport-gutter));
 }
 
 .legend-card {
-  position: fixed;
-  left: calc(var(--sidebar-offset) + var(--viewport-gutter));
-  bottom: var(--viewport-gutter);
+  position: absolute;
+  left: 100%;
+  margin-left: var(--viewport-gutter);
+  bottom: 0;
   z-index: 30;
+  pointer-events: auto;
   background: rgba(248, 250, 252, 0.65);
   border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: 12px;
@@ -257,9 +258,7 @@ html {
   }
 
   .legend-card {
-    left: 12px;
-    /* espaço para o Buy Me a Coffee stacked por baixo (h-8 + gap) */
-    bottom: 48px;
+    bottom: 0;
   }
 }
 

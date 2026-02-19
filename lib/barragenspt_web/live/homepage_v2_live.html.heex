@@ -22,13 +22,13 @@
 
 <!-- Sidebar -->
 <aside id="sidebar"
-  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[85%] max-w-[296px] md:max-w-none md:w-[336px] h-full md:h-[calc(100%-1rem)] flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pb-2 pt-1.5 md:px-4 md:pb-2 md:pt-1.5 space-y-3 md:rounded-2xl backdrop-blur-md inset-y-0 left-0 md:inset-y-2 md:left-2">
+  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[80%] max-w-[279px] md:max-w-none md:w-[317px] h-full md:h-[calc(100%-1rem)] flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pb-2 pt-1.5 md:px-4 md:pb-2 md:pt-1.5 space-y-3 md:rounded-2xl backdrop-blur-md inset-y-0 left-0 md:inset-y-2 md:left-2">
 
 
   <div class="flex items-center gap-2 px-0 pt-2 md:pt-2 min-w-0">
     <img src={@logo_path} alt="Barragens.pt" class="w-10 h-10 object-cover shrink-0" />
     <div class="leading-none min-w-0 flex-1">
-      <p class="logo-type text-[30px] md:text-[34px] text-slate-600 dark:text-slate-300 font-semibold mt-[12px]">BARRAGENS.PT</p>
+      <p class="logo-type text-[32px] text-slate-600 dark:text-slate-300 font-semibold mt-[12px]">BARRAGENS.PT</p>
     </div>
   </div>
 
@@ -179,9 +179,9 @@
     </div>
 
     <div class="shrink-0 w-full pt-1 mt-1.5 border-t border-slate-200/80 dark:border-slate-600 flex items-center justify-between">
-      <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer" class="shrink-0" aria-label="Ajudar o barragens.pt">
+      <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer" class="shrink-0" aria-label="Ajudar o projeto">
         <img class="h-7 w-auto object-contain" alt=""
-          src="https://img.buymeacoffee.com/button-api/?text=Ajudar o barragens.pt&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+          src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
       </a>
       <button
         type="button"
@@ -194,6 +194,73 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </button>
+    </div>
+  </div>
+
+  <!-- Legendas das camadas (encostadas ao bordo direito da sidebar) -->
+  <div id="legend-storage" class="legend-card">
+    <p class="legend-title">% Armazenamento</p>
+    <div class="legend-row"><span class="legend-dot legend-0-20"></span><span>0 - 20</span></div>
+    <div class="legend-row"><span class="legend-dot legend-21-40"></span><span>21 - 40</span></div>
+    <div class="legend-row"><span class="legend-dot legend-41-50"></span><span>41 - 50</span></div>
+    <div class="legend-row"><span class="legend-dot legend-51-60"></span><span>51 - 60</span></div>
+    <div class="legend-row"><span class="legend-dot legend-61-80"></span><span>61 - 80</span></div>
+    <div class="legend-row"><span class="legend-dot legend-81-100"></span><span>81 - 100</span></div>
+  </div>
+  <div id="legend-pdsi" class="legend-card hidden">
+    <p class="legend-title">Classes do PDSI</p>
+    <p id="legend-pdsi-date" class="legend-date"></p>
+    <div class="legend-row"><span class="legend-dot" style="background:#218291"></span><span>Chuva extrema</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#5c9e9c"></span><span>Chuva severa</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#91bda8"></span><span>Chuva moderada</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#c7deb4"></span><span>Chuva fraca</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#e9ffbe"></span><span>Normal</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#e8cf90"></span><span>Seca fraca</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#cfa263"></span><span>Seca moderada</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#b5773e"></span><span>Seca severa</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#9c551f"></span><span>Seca extrema</span></div>
+  </div>
+  <div id="legend-smi" class="legend-card hidden">
+    <p class="legend-title">Água no solo</p>
+    <p id="legend-smi-date" class="legend-date"></p>
+    <div class="legend-row"><span class="legend-dot" style="background:#ff7e1c"></span><span>&lt;PEP</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#ffb408"></span><span>PEP</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#fcdf0d"></span><span>1-10</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#f7ff00"></span><span>10-20</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#cefc00"></span><span>20-40</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#65fa0f"></span><span>40-60</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#44c902"></span><span>60-80</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#23a10a"></span><span>80-99</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#066608"></span><span>CC</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#33ddbb"></span><span>1-30</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#33aaaa"></span><span>30-60</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#3377aa"></span><span>60-90</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#0000ff"></span><span>SAT</span></div>
+  </div>
+  <div id="legend-rain" class="legend-card hidden">
+    <p class="legend-title">Precipitação (mm)</p>
+    <p id="legend-rain-date" class="legend-date"></p>
+    <div class="legend-row"><span class="legend-dot" style="background:#ffffff"></span><span>&lt;0.1</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#afd7ff"></span><span>0.1-2</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#99ccff"></span><span>2-5</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#77aaff"></span><span>5-10</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#0077ff"></span><span>10-20</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#0066dd"></span><span>20-30</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#ffee00"></span><span>30-35</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#ffdd00"></span><span>35-40</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#ffaa00"></span><span>40-50</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#ff7700"></span><span>50-60</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#ff0000"></span><span>60-90</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#ff00bb"></span><span>90-120</span></div>
+    <div class="legend-row"><span class="legend-dot" style="background:#dddddd"></span><span>≥120</span></div>
+  </div>
+  <div id="legend-alerts" class="legend-card hidden">
+    <p class="legend-title">Alertas</p>
+    <div class="legend-row"><span class="legend-dot" style="background:#2eb1d3"></span><span>Sem alertas ativos</span>
+    </div>
+    <div class="legend-row"><span class="legend-dot" style="background:#ffcf44"></span><span>Situação de alerta</span>
+    </div>
+    <div class="legend-row"><span class="legend-dot" style="background:#fd4351"></span><span>Situação de risco</span>
     </div>
   </div>
 </aside>
@@ -245,84 +312,9 @@
 <.live_component :if={@basin_card && !@spain} id="homepage-basin-card"
   module={BarragensptWeb.HomepageV2Live.BasinCardComponent} basin_id={@basin_id} basin_card={@basin_card} />
 
-<!-- Legenda (% Armazenamento) - visível quando PDSI desligado -->
-<div id="legend-storage" class="legend-card">
-  <p class="legend-title">% Armazenamento</p>
-  <div class="legend-row"><span class="legend-dot legend-0-20"></span><span>0 - 20</span></div>
-  <div class="legend-row"><span class="legend-dot legend-21-40"></span><span>21 - 40</span></div>
-  <div class="legend-row"><span class="legend-dot legend-41-50"></span><span>41 - 50</span></div>
-  <div class="legend-row"><span class="legend-dot legend-51-60"></span><span>51 - 60</span></div>
-  <div class="legend-row"><span class="legend-dot legend-61-80"></span><span>61 - 80</span></div>
-  <div class="legend-row"><span class="legend-dot legend-81-100"></span><span>81 - 100</span></div>
-</div>
-
-<!-- Legenda PDSI - visível quando PDSI ligado -->
-<div id="legend-pdsi" class="legend-card hidden">
-  <p class="legend-title">Classes do PDSI</p>
-  <p id="legend-pdsi-date" class="legend-date"></p>
-  <div class="legend-row"><span class="legend-dot" style="background:#218291"></span><span>Chuva extrema</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#5c9e9c"></span><span>Chuva severa</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#91bda8"></span><span>Chuva moderada</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#c7deb4"></span><span>Chuva fraca</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#e9ffbe"></span><span>Normal</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#e8cf90"></span><span>Seca fraca</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#cfa263"></span><span>Seca moderada</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#b5773e"></span><span>Seca severa</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#9c551f"></span><span>Seca extrema</span></div>
-</div>
-
-<!-- Legenda SMI - visível quando SMI ligado (escala igual a smi_layer.js) -->
-<div id="legend-smi" class="legend-card hidden">
-  <p class="legend-title">Água no solo</p>
-  <p id="legend-smi-date" class="legend-date"></p>
-  <div class="legend-row"><span class="legend-dot" style="background:#ff7e1c"></span><span>&lt;PEP</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#ffb408"></span><span>PEP</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#fcdf0d"></span><span>1-10</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#f7ff00"></span><span>10-20</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#cefc00"></span><span>20-40</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#65fa0f"></span><span>40-60</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#44c902"></span><span>60-80</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#23a10a"></span><span>80-99</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#066608"></span><span>CC</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#33ddbb"></span><span>1-30</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#33aaaa"></span><span>30-60</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#3377aa"></span><span>60-90</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#0000ff"></span><span>SAT</span></div>
-</div>
-
-<!-- Legenda Chuva - visível quando Chuva ligado -->
-<div id="legend-rain" class="legend-card hidden">
-  <p class="legend-title">Precipitação (mm)</p>
-  <p id="legend-rain-date" class="legend-date"></p>
-  <div class="legend-row"><span class="legend-dot" style="background:#ffffff"></span><span>&lt;0.1</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#afd7ff"></span><span>0.1-2</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#99ccff"></span><span>2-5</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#77aaff"></span><span>5-10</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#0077ff"></span><span>10-20</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#0066dd"></span><span>20-30</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#ffee00"></span><span>30-35</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#ffdd00"></span><span>35-40</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#ffaa00"></span><span>40-50</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#ff7700"></span><span>50-60</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#ff0000"></span><span>60-90</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#ff00bb"></span><span>90-120</span></div>
-  <div class="legend-row"><span class="legend-dot" style="background:#dddddd"></span><span>≥120</span></div>
-</div>
-
-<!-- Legenda Risco de cheias - visível quando Alertas ligado -->
-<div id="legend-alerts" class="legend-card hidden">
-  <p class="legend-title">Alertas</p>
-  <div class="legend-row"><span class="legend-dot" style="background:#2eb1d3"></span><span>Sem alertas ativos</span>
-  </div>
-  <div class="legend-row"><span class="legend-dot" style="background:#ffcf44"></span><span>Situação de alerta</span>
-  </div>
-  <div class="legend-row"><span class="legend-dot" style="background:#fd4351"></span><span>Situação de risco</span>
-  </div>
-</div>
-
 <!-- Buy Me a Coffee - canto inferior esquerdo, stacked por baixo da legenda (mobile; desktop: só na sidebar) -->
 <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer"
-  class="fixed bottom-2 left-3 z-20 md:hidden" aria-label="Ajudar o BARRAGENS.PT">
+  class="fixed bottom-2 left-3 z-20 md:hidden" aria-label="Ajudar o projeto">
   <img class="h-8 w-auto object-contain" alt=""
-    src="https://img.buymeacoffee.com/button-api/?text=Ajudar o BARRAGENS.PT&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+    src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
 </a>
