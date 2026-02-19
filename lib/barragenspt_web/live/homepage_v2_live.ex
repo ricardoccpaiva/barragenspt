@@ -103,7 +103,7 @@ defmodule BarragensptWeb.HomepageV2Live do
 
         {
           cap_decimal,
-          dam.current_storage_value,
+          div_volume_by_1000(dam.current_storage_value),
           latest[:cota],
           data_point_str,
           date_str
@@ -111,7 +111,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       else
         {
           dam.current_storage_pct,
-          dam.current_storage_value,
+          div_volume_by_1000(dam.current_storage_value),
           last_elevation,
           last_data_point,
           elevation_date
@@ -291,7 +291,7 @@ defmodule BarragensptWeb.HomepageV2Live do
   defp build_total_storage_label(summary, avg_observed) do
     sum = Enum.reduce(summary, 0, fn item, acc -> item.total_capacity + acc end)
 
-    current_storage = (sum * avg_observed / 100) |> Float.round(2)
+    current_storage = (sum * avg_observed / 100) / 1000 |> Float.round(2)
 
     "#{current_storage} hm³"
   end
@@ -348,6 +348,10 @@ defmodule BarragensptWeb.HomepageV2Live do
 
   defp round_or_nil(nil), do: nil
   defp round_or_nil(value), do: Float.round(value, 1)
+
+  defp div_volume_by_1000(nil), do: nil
+  defp div_volume_by_1000(%Decimal{} = v), do: v |> Decimal.div(1000) |> Decimal.round(2) |> Decimal.to_float()
+  defp div_volume_by_1000(v) when is_number(v), do: v / 1000 |> Float.round(2)
 
   defp period_point([], _target_days, _max_distance_days), do: nil
 
