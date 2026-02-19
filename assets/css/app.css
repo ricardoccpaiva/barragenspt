@@ -54,8 +54,9 @@ main.fixed.inset-0 {
 }
 
 .sidebar-mobile {
-  transform: translateX(-100%);
+  transform: translateX(-110%);
   transition: transform 0.3s ease;
+  z-index: 10000;
 }
 
 .sidebar-mobile.open {
