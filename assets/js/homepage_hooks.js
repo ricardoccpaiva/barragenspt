@@ -129,6 +129,32 @@ const SettingsModalCloseButton = {
   }
 }
 
+const OpenInfoModal = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      const backdrop = document.getElementById("info-modal-backdrop")
+      if (backdrop) backdrop.classList.remove("hidden")
+    })
+  }
+}
+
+const InfoModalBackdrop = {
+  mounted() {
+    this.el.addEventListener("click", (e) => {
+      if (e.target === this.el) this.el.classList.add("hidden")
+    })
+  }
+}
+
+const InfoModalCloseButton = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      const backdrop = document.getElementById("info-modal-backdrop")
+      if (backdrop) backdrop.classList.add("hidden")
+    })
+  }
+}
+
 const ExportDamCard = {
   mounted() {
     this.el.addEventListener("click", (e) => {
@@ -188,5 +214,8 @@ export const Hooks = {
   SearchDam,
   DarkModeToggle,
   SettingsModalBackdrop,
-  SettingsModalCloseButton
+  SettingsModalCloseButton,
+  OpenInfoModal,
+  InfoModalBackdrop,
+  InfoModalCloseButton
 }
