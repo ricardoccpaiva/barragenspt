@@ -109,7 +109,7 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
                   <tr>
                     <th class="px-2 py-1 text-left font-medium">Nome</th>
                     <th class="px-2 py-1 text-right font-medium">Atual</th>
-                    <th class="px-2 py-1 text-right font-medium">Histórico</th>
+                    <th class="px-2 py-1 text-right font-medium">Média</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200/80 dark:divide-slate-600">
