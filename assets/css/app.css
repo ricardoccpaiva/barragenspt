@@ -123,11 +123,13 @@ main.fixed.inset-0 {
   -webkit-mask-repeat: no-repeat;
   mask-position: center;
   -webkit-mask-position: center;
+  margin-bottom: -10px;
+  margin-left: 3px;
 }
 
 .logo-type {
-  font-family: 'Kanit', 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-weight: 800;
+  font-family: 'Smooch Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 300;
 }
 
 .search-results {

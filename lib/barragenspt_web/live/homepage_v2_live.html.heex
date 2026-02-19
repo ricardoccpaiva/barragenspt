@@ -3,16 +3,19 @@
 <!-- Mapa full-screen (sempre por trás da sidebar) -->
 <main class="fixed inset-0">
   <div id="map" phx-update="ignore"></div>
-  <div
-    class="absolute top-4 left-4 right-14 md:right-4 flex items-start justify-start gap-2 z-10 pointer-events-none">
-    <button class="pointer-events-auto md:hidden h-10 w-10 flex items-center justify-center shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100" aria-label="Abrir menu"
-      onclick="toggleSidebar(true)">
-      <svg class="w-5 h-5 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+  <div class="absolute top-4 left-4 right-14 md:right-4 flex items-start justify-start gap-2 z-10 pointer-events-none">
+    <button
+      class="pointer-events-auto md:hidden h-10 w-10 flex items-center justify-center shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100"
+      aria-label="Abrir menu" onclick="toggleSidebar(true)">
+      <svg class="w-5 h-5 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" stroke-width="2.5"
+        viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
     </button>
-    <div class="pointer-events-auto flex items-center gap-2 h-10 px-3 shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100">
-      <svg class="w-5 h-5 text-brand-600 dark:text-brand-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <div
+      class="pointer-events-auto flex items-center gap-2 h-10 px-3 shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100">
+      <svg class="w-5 h-5 text-brand-600 dark:text-brand-400 shrink-0" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2">
         <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z" />
       </svg>
       <span class="text-sm font-semibold whitespace-nowrap">BARRAGENS.PT</span>
@@ -26,25 +29,21 @@
 
 
   <div class="flex items-center gap-2 px-0 pt-1 md:pt-1 min-w-0">
-    <div
-      role="img"
-      aria-label="Barragens.pt"
-      class="sidebar-logo w-8 h-8 shrink-0 bg-slate-600 dark:bg-slate-300"
-      style={"--logo-url: url('#{@logo_path}')"}
-    />
+    <div role="img" aria-label="Barragens.pt" class="sidebar-logo w-8 h-8 shrink-0 bg-slate-600 dark:bg-slate-300"
+      style={"--logo-url: url('#{@logo_path}')"} />
     <div class="leading-none min-w-0 flex-1">
-      <p class="logo-type text-[32px] text-slate-600 dark:text-slate-300 font-semibold mt-[12px]">BARRAGENS.PT</p>
+      <p class="logo-type text-[36px] text-slate-600 dark:text-slate-300 font-semibold mt-[12px]">BARRAGENS.PT</p>
     </div>
   </div>
 
-  <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90">
+  <div
+    class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90">
     <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Pesquisar</h3>
     <div class="search-wrapper relative">
       <input id="damSearchInput" type="search" placeholder="Barragens ou rios..." phx-hook="SearchDam"
         class="w-full rounded-lg border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 px-2.5 py-2 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
       <div id="damSearchResults" class={"absolute left-0 right-0 top-full mt-0.5 z-50 max-h-60 overflow-y-auto
-        rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 shadow-lg py-0.5 #{if @search_term=="" , do: "hidden" , else: ""
-        }"}>
+        rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 shadow-lg py-0.5 #{if @search_term == "", do: "hidden", else: ""}"}>
         <%= if @search_rivers !=[] or (@dam_names !=nil and @dam_names !=[]) do %>
           <ul class="py-0 list-none m-0">
             <%= for r <- @search_rivers || [] do %>
@@ -87,115 +86,124 @@
   <div class={"flex flex-col flex-1 min-h-0 transition-all duration-200 #{if @search_term !="" ,
     do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
     <div class="flex-1 min-h-0 overflow-y-auto space-y-3">
-    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section" id="camadas-section" phx-update="ignore">
-      <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">% de armazenamento</h3>
-      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-        <span>Bacias</span>
-        <input id="toggleBasins" type="checkbox" class="toggle" phx-hook="BasinsLayerToggle">
-      </label>
-      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-        <span>Barragens</span>
-        <input id="toggleDams" type="checkbox" class="toggle" phx-hook="DamsLayerToggle">
-      </label>
-      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-        <span>Espanha</span>
-        <input id="toggleSpain" type="checkbox" class="toggle" phx-hook="SpainLayerToggle">
-      </label>
-    </div>
-
-    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
-      <details class="group">
-        <summary class="text-sm font-semibold text-slate-800 dark:text-slate-100 cursor-pointer list-none flex items-center justify-between gap-2 py-0.5">
-          <span>Tipos de uso</span>
-          <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </summary>
-        <div class="pt-2 space-y-1.5 border-t border-slate-100 dark:border-slate-600 mt-1.5">
-          <%= for {ut} <- @usage_types do %>
-            <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
-              <input type="checkbox" id={"usage-type-#{ut}"} name={ut} phx-hook="UsageTypeChanged" checked={ut in @selected_usage_types}
-                class="rounded border-slate-300 dark:border-slate-500 text-brand-600 focus:ring-brand-500/30">
-              <span><%= ut %></span>
-            </label>
-          <% end %>
-        </div>
-      </details>
-    </div>
-
-    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
-      <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Estado do solo e precipitação</h3>
-      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-        <span>PDSI</span>
-        <input id="togglePdsi" type="checkbox" class="toggle" phx-hook="PdsiLayerToggle">
-      </label>
-      <div id="pdsi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
-        <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-          <span>Mês</span>
-          <span id="pdsi-slider-label"></span>
-        </div>
-        <input id="pdsi-month-slider" type="range" min="0" max="12" value="0" class="w-full h-2 accent-sky-500">
+      <div
+        class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section"
+        id="camadas-section" phx-update="ignore">
+        <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">% de armazenamento</h3>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Bacias</span>
+          <input id="toggleBasins" type="checkbox" class="toggle" phx-hook="BasinsLayerToggle">
+        </label>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Barragens</span>
+          <input id="toggleDams" type="checkbox" class="toggle" phx-hook="DamsLayerToggle">
+        </label>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Espanha</span>
+          <input id="toggleSpain" type="checkbox" class="toggle" phx-hook="SpainLayerToggle">
+        </label>
       </div>
-      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-        <span>Água no solo</span>
-        <input id="toggleSmi" type="checkbox" class="toggle" phx-hook="SmiLayerToggle">
-      </label>
-      <div id="smi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
-        <div class="flex flex-col gap-1">
-          <p class="text-xs text-slate-600 dark:text-slate-400">Profundidade</p>
-          <div class="flex flex-wrap gap-1.5" id="smi-depth-pills" role="group" aria-label="Profundidade SMI">
-            <button type="button"
-              class="smi-depth-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-              data-value="p7">7 cm</button>
-            <button type="button"
-              class="smi-depth-pill smi-depth-pill-active rounded-full border border-brand-600 dark:border-brand-500 bg-brand-500 px-2 py-0.5 text-xs font-medium text-white transition-colors"
-              data-value="p28">28 cm</button>
-            <button type="button"
-              class="smi-depth-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-              data-value="p100">100 cm</button>
+
+      <div
+        class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+        <details class="group">
+          <summary
+            class="text-sm font-semibold text-slate-800 dark:text-slate-100 cursor-pointer list-none flex items-center justify-between gap-2 py-0.5">
+            <span>Tipos de uso</span>
+            <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform group-open:rotate-180"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div class="pt-2 space-y-1.5 border-t border-slate-100 dark:border-slate-600 mt-1.5">
+            <%= for {ut} <- @usage_types do %>
+              <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                <input type="checkbox" id={"usage-type-#{ut}"} name={ut} phx-hook="UsageTypeChanged" checked={ut in
+                  @selected_usage_types}
+                  class="rounded border-slate-300 dark:border-slate-500 text-brand-600 focus:ring-brand-500/30">
+                <span>
+                  <%= ut %>
+                </span>
+              </label>
+              <% end %>
           </div>
-        </div>
-        <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-          <span>Dia</span>
-          <span id="smi-slider-label"></span>
-        </div>
-        <input id="smi-day-slider" type="range" min="0" max="30" value="29" class="w-full h-2 accent-sky-500">
+        </details>
       </div>
-      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-        <span>Chuva</span>
-        <input id="toggleRain" type="checkbox" class="toggle" phx-hook="RainLayerToggle">
-      </label>
-      <div id="rain-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
-        <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-          <span>Dia (acum. diário)</span>
-          <span id="rain-slider-label"></span>
+
+      <div
+        class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+        <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Estado do solo e precipitação</h3>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>PDSI</span>
+          <input id="togglePdsi" type="checkbox" class="toggle" phx-hook="PdsiLayerToggle">
+        </label>
+        <div id="pdsi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
+          <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+            <span>Mês</span>
+            <span id="pdsi-slider-label"></span>
+          </div>
+          <input id="pdsi-month-slider" type="range" min="0" max="12" value="0" class="w-full h-2 accent-sky-500">
         </div>
-        <input id="rain-day-slider" type="range" min="0" max="25" value="15" class="w-full h-2 accent-sky-500">
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Água no solo</span>
+          <input id="toggleSmi" type="checkbox" class="toggle" phx-hook="SmiLayerToggle">
+        </label>
+        <div id="smi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
+          <div class="flex flex-col gap-1">
+            <p class="text-xs text-slate-600 dark:text-slate-400">Profundidade</p>
+            <div class="flex flex-wrap gap-1.5" id="smi-depth-pills" role="group" aria-label="Profundidade SMI">
+              <button type="button"
+                class="smi-depth-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
+                data-value="p7">7 cm</button>
+              <button type="button"
+                class="smi-depth-pill smi-depth-pill-active rounded-full border border-brand-600 dark:border-brand-500 bg-brand-500 px-2 py-0.5 text-xs font-medium text-white transition-colors"
+                data-value="p28">28 cm</button>
+              <button type="button"
+                class="smi-depth-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
+                data-value="p100">100 cm</button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+            <span>Dia</span>
+            <span id="smi-slider-label"></span>
+          </div>
+          <input id="smi-day-slider" type="range" min="0" max="30" value="29" class="w-full h-2 accent-sky-500">
+        </div>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Chuva</span>
+          <input id="toggleRain" type="checkbox" class="toggle" phx-hook="RainLayerToggle">
+        </label>
+        <div id="rain-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
+          <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+            <span>Dia (acum. diário)</span>
+            <span id="rain-slider-label"></span>
+          </div>
+          <input id="rain-day-slider" type="range" min="0" max="25" value="15" class="w-full h-2 accent-sky-500">
+        </div>
+      </div>
+
+      <div
+        class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+        <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Risco de cheias</h3>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Alertas</span>
+          <input id="toggleAlerts" type="checkbox" class="toggle" phx-hook="AlertsToggle">
+        </label>
       </div>
     </div>
 
-    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
-      <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Risco de cheias</h3>
-      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-        <span>Alertas</span>
-        <input id="toggleAlerts" type="checkbox" class="toggle" phx-hook="AlertsToggle">
-      </label>
-    </div>
-    </div>
-
-    <div class="shrink-0 w-full pt-1 mt-1.5 border-t border-slate-200/80 dark:border-slate-600 flex items-center justify-between">
-      <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer" class="shrink-0" aria-label="Ajudar o projeto">
+    <div
+      class="shrink-0 w-full pt-1 mt-1.5 border-t border-slate-200/80 dark:border-slate-600 flex items-center justify-between">
+      <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer" class="shrink-0"
+        aria-label="Ajudar o projeto">
         <img class="h-7 w-auto object-contain" alt=""
           src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
       </a>
-      <button
-        type="button"
-        phx-click="open_settings_modal"
-        aria-label="Definições"
-        class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors -mr-1"
-      >
+      <button type="button" phx-click="open_settings_modal" aria-label="Definições"
+        class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors -mr-1">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </button>
@@ -271,25 +279,16 @@
 </aside>
 
 <%= if @settings_modal_open do %>
-  <div
-    id="settings-modal-backdrop"
+  <div id="settings-modal-backdrop"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-    phx-hook="SettingsModalBackdrop"
-  >
+    phx-hook="SettingsModalBackdrop">
     <div
       class="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-600 p-4"
-      id="settings-modal-content"
-      onclick="event.stopPropagation()"
-    >
+      id="settings-modal-content" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Definições</h3>
-        <button
-          type="button"
-          id="settings-modal-close-btn"
-          phx-hook="SettingsModalCloseButton"
-          aria-label="Fechar"
-          class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
-        >
+        <button type="button" id="settings-modal-close-btn" phx-hook="SettingsModalCloseButton" aria-label="Fechar"
+          class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -301,25 +300,25 @@
       </label>
     </div>
   </div>
-<% end %>
+  <% end %>
 
-<.live_component :if={@dam} id="homepage-dam-card" module={BarragensptWeb.HomepageV2Live.DamCardComponent}
-  basin_id={@basin_id} dam={@dam} current_capacity={@current_capacity} dam_storage_hm3={@dam_storage_hm3}
-  last_elevation={@last_elevation} last_data_point={@last_data_point} last_elevation_date={@last_elevation_date}
-  has_realtime_data={@has_realtime_data}
-  dam_month_change_label={@dam_month_change_label} dam_year_change_label={@dam_year_change_label}
-  dam_month_trend_badge_class={@dam_month_trend_badge_class} dam_year_trend_badge_class={@dam_year_trend_badge_class} />
+    <.live_component :if={@dam} id="homepage-dam-card" module={BarragensptWeb.HomepageV2Live.DamCardComponent}
+      basin_id={@basin_id} dam={@dam} current_capacity={@current_capacity} dam_storage_hm3={@dam_storage_hm3}
+      last_elevation={@last_elevation} last_data_point={@last_data_point} last_elevation_date={@last_elevation_date}
+      has_realtime_data={@has_realtime_data} dam_month_change_label={@dam_month_change_label}
+      dam_year_change_label={@dam_year_change_label} dam_month_trend_badge_class={@dam_month_trend_badge_class}
+      dam_year_trend_badge_class={@dam_year_trend_badge_class} />
 
-<a id="basinDetailLink" data-phx-link="patch" data-phx-link-state="push" href="/" class="hidden"></a>
+    <a id="basinDetailLink" data-phx-link="patch" data-phx-link-state="push" href="/" class="hidden"></a>
 
-<.live_component :if={@basin_card && @spain} id="homepage-spain-basin-card"
-  module={BarragensptWeb.HomepageV2Live.SpainBasinCardComponent} basin_card={@basin_card} />
-<.live_component :if={@basin_card && !@spain} id="homepage-basin-card"
-  module={BarragensptWeb.HomepageV2Live.BasinCardComponent} basin_id={@basin_id} basin_card={@basin_card} />
+    <.live_component :if={@basin_card && @spain} id="homepage-spain-basin-card"
+      module={BarragensptWeb.HomepageV2Live.SpainBasinCardComponent} basin_card={@basin_card} />
+    <.live_component :if={@basin_card && !@spain} id="homepage-basin-card"
+      module={BarragensptWeb.HomepageV2Live.BasinCardComponent} basin_id={@basin_id} basin_card={@basin_card} />
 
-<!-- Buy Me a Coffee - canto inferior esquerdo, stacked por baixo da legenda (mobile; desktop: só na sidebar) -->
-<a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer"
-  class="fixed bottom-2 left-3 z-20 md:hidden" aria-label="Ajudar o projeto">
-  <img class="h-8 w-auto object-contain" alt=""
-    src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
-</a>
+    <!-- Buy Me a Coffee - canto inferior esquerdo, stacked por baixo da legenda (mobile; desktop: só na sidebar) -->
+    <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer"
+      class="fixed bottom-2 left-3 z-20 md:hidden" aria-label="Ajudar o projeto">
+      <img class="h-8 w-auto object-contain" alt=""
+        src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+    </a>
