@@ -213,11 +213,9 @@ html {
   --viewport-gutter: 8px;
 }
 
-/* Mesma opacidade visual que a sidebar (bg-slate-100/80): menos transparente que 0.8 em rgba */
+/* Legendas fora da sidebar: position fixed para funcionar em mobile (sidebar com transform) */
 .legend-card {
-  position: absolute;
-  left: 100%;
-  margin-left: var(--viewport-gutter);
+  position: fixed;
   bottom: 0;
   z-index: 30;
   pointer-events: auto;
@@ -232,10 +230,12 @@ html {
   backdrop-filter: blur(12px);
 }
 
-/* Alinhar base da legenda à base da sidebar (sidebar tem pb-0) */
+/* Desktop: encostada à direita da sidebar; alinhada ao fundo (inset-y-2) */
 @media (min-width: 768px) {
   .legend-card {
-    bottom: 0;
+    left: calc(0.5rem + 317px + var(--viewport-gutter));
+    right: auto;
+    bottom: 0.5rem;
   }
 }
 
@@ -312,13 +312,17 @@ html {
   display: none !important;
 }
 
-@media (max-width: 768px) {
+/* Mobile: encostada à esquerda, por cima do Buy Me a Coffee; sidebar (z-40) por cima de ambos */
+@media (max-width: 767px) {
   html {
     --viewport-gutter: 12px;
   }
 
   .legend-card {
-    bottom: 0;
+    left: var(--viewport-gutter);
+    right: auto;
+    bottom: 3.5rem; /* acima do botão Buy Me a Coffee */
+    z-index: 25; /* acima do botão (z-20), abaixo da sidebar (z-40) */
   }
 }
 

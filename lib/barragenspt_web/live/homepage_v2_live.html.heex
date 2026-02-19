@@ -205,74 +205,74 @@
       </button>
     </div>
   </div>
-
-  <!-- Legendas das camadas (encostadas ao bordo direito da sidebar) -->
-  <div id="legend-storage" class="legend-card">
-    <p class="legend-title">% Armazenamento</p>
-    <div class="legend-row"><span class="legend-dot legend-0-20"></span><span>0 - 20</span></div>
-    <div class="legend-row"><span class="legend-dot legend-21-40"></span><span>21 - 40</span></div>
-    <div class="legend-row"><span class="legend-dot legend-41-50"></span><span>41 - 50</span></div>
-    <div class="legend-row"><span class="legend-dot legend-51-60"></span><span>51 - 60</span></div>
-    <div class="legend-row"><span class="legend-dot legend-61-80"></span><span>61 - 80</span></div>
-    <div class="legend-row"><span class="legend-dot legend-81-100"></span><span>81 - 100</span></div>
-  </div>
-  <div id="legend-pdsi" class="legend-card hidden">
-    <p class="legend-title">Classes do PDSI</p>
-    <p id="legend-pdsi-date" class="legend-date"></p>
-    <div class="legend-row"><span class="legend-dot" style="background:#218291"></span><span>Chuva extrema</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#5c9e9c"></span><span>Chuva severa</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#91bda8"></span><span>Chuva moderada</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#c7deb4"></span><span>Chuva fraca</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#e9ffbe"></span><span>Normal</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#e8cf90"></span><span>Seca fraca</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#cfa263"></span><span>Seca moderada</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#b5773e"></span><span>Seca severa</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#9c551f"></span><span>Seca extrema</span></div>
-  </div>
-  <div id="legend-smi" class="legend-card hidden">
-    <p class="legend-title">Água no solo</p>
-    <p id="legend-smi-date" class="legend-date"></p>
-    <div class="legend-row"><span class="legend-dot" style="background:#ff7e1c"></span><span>&lt;PEP</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#ffb408"></span><span>PEP</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#fcdf0d"></span><span>1-10</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#f7ff00"></span><span>10-20</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#cefc00"></span><span>20-40</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#65fa0f"></span><span>40-60</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#44c902"></span><span>60-80</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#23a10a"></span><span>80-99</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#066608"></span><span>CC</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#33ddbb"></span><span>1-30</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#33aaaa"></span><span>30-60</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#3377aa"></span><span>60-90</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#0000ff"></span><span>SAT</span></div>
-  </div>
-  <div id="legend-rain" class="legend-card hidden">
-    <p class="legend-title">Precipitação (mm)</p>
-    <p id="legend-rain-date" class="legend-date"></p>
-    <div class="legend-row"><span class="legend-dot" style="background:#ffffff"></span><span>&lt;0.1</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#afd7ff"></span><span>0.1-2</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#99ccff"></span><span>2-5</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#77aaff"></span><span>5-10</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#0077ff"></span><span>10-20</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#0066dd"></span><span>20-30</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#ffee00"></span><span>30-35</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#ffdd00"></span><span>35-40</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#ffaa00"></span><span>40-50</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#ff7700"></span><span>50-60</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#ff0000"></span><span>60-90</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#ff00bb"></span><span>90-120</span></div>
-    <div class="legend-row"><span class="legend-dot" style="background:#dddddd"></span><span>≥120</span></div>
-  </div>
-  <div id="legend-alerts" class="legend-card hidden">
-    <p class="legend-title">Alertas</p>
-    <div class="legend-row"><span class="legend-dot" style="background:#2eb1d3"></span><span>Sem alertas ativos</span>
-    </div>
-    <div class="legend-row"><span class="legend-dot" style="background:#ffcf44"></span><span>Situação de alerta</span>
-    </div>
-    <div class="legend-row"><span class="legend-dot" style="background:#fd4351"></span><span>Situação de risco</span>
-    </div>
-  </div>
 </aside>
+
+<!-- Legendas fora da sidebar para position:fixed funcionar em mobile (sidebar com transform corta o containing block) -->
+<div id="legend-storage" class="legend-card">
+  <p class="legend-title">% Armazenamento</p>
+  <div class="legend-row"><span class="legend-dot legend-0-20"></span><span>0 - 20</span></div>
+  <div class="legend-row"><span class="legend-dot legend-21-40"></span><span>21 - 40</span></div>
+  <div class="legend-row"><span class="legend-dot legend-41-50"></span><span>41 - 50</span></div>
+  <div class="legend-row"><span class="legend-dot legend-51-60"></span><span>51 - 60</span></div>
+  <div class="legend-row"><span class="legend-dot legend-61-80"></span><span>61 - 80</span></div>
+  <div class="legend-row"><span class="legend-dot legend-81-100"></span><span>81 - 100</span></div>
+</div>
+<div id="legend-pdsi" class="legend-card hidden">
+  <p class="legend-title">Classes do PDSI</p>
+  <p id="legend-pdsi-date" class="legend-date"></p>
+  <div class="legend-row"><span class="legend-dot" style="background:#218291"></span><span>Chuva extrema</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#5c9e9c"></span><span>Chuva severa</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#91bda8"></span><span>Chuva moderada</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#c7deb4"></span><span>Chuva fraca</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#e9ffbe"></span><span>Normal</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#e8cf90"></span><span>Seca fraca</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#cfa263"></span><span>Seca moderada</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#b5773e"></span><span>Seca severa</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#9c551f"></span><span>Seca extrema</span></div>
+</div>
+<div id="legend-smi" class="legend-card hidden">
+  <p class="legend-title">Água no solo</p>
+  <p id="legend-smi-date" class="legend-date"></p>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff7e1c"></span><span>&lt;PEP</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffb408"></span><span>PEP</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#fcdf0d"></span><span>1-10</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#f7ff00"></span><span>10-20</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#cefc00"></span><span>20-40</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#65fa0f"></span><span>40-60</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#44c902"></span><span>60-80</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#23a10a"></span><span>80-99</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#066608"></span><span>CC</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#33ddbb"></span><span>1-30</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#33aaaa"></span><span>30-60</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#3377aa"></span><span>60-90</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#0000ff"></span><span>SAT</span></div>
+</div>
+<div id="legend-rain" class="legend-card hidden">
+  <p class="legend-title">Precipitação (mm)</p>
+  <p id="legend-rain-date" class="legend-date"></p>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffffff"></span><span>&lt;0.1</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#afd7ff"></span><span>0.1-2</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#99ccff"></span><span>2-5</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#77aaff"></span><span>5-10</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#0077ff"></span><span>10-20</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#0066dd"></span><span>20-30</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffee00"></span><span>30-35</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffdd00"></span><span>35-40</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffaa00"></span><span>40-50</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff7700"></span><span>50-60</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff0000"></span><span>60-90</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff00bb"></span><span>90-120</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#dddddd"></span><span>≥120</span></div>
+</div>
+<div id="legend-alerts" class="legend-card hidden">
+  <p class="legend-title">Alertas</p>
+  <div class="legend-row"><span class="legend-dot" style="background:#2eb1d3"></span><span>Sem alertas ativos</span>
+  </div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffcf44"></span><span>Situação de alerta</span>
+  </div>
+  <div class="legend-row"><span class="legend-dot" style="background:#fd4351"></span><span>Situação de risco</span>
+  </div>
+</div>
 
 <%= if @settings_modal_open do %>
   <div id="settings-modal-backdrop"
