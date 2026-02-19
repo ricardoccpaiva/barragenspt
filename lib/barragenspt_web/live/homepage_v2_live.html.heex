@@ -26,7 +26,12 @@
 
 
   <div class="flex items-center gap-2 px-0 pt-1 md:pt-1 min-w-0">
-    <img src={@logo_path} alt="Barragens.pt" class="w-10 h-10 object-cover shrink-0" />
+    <div
+      role="img"
+      aria-label="Barragens.pt"
+      class="sidebar-logo w-8 h-8 shrink-0 bg-slate-600 dark:bg-slate-300"
+      style={"--logo-url: url('#{@logo_path}')"}
+    />
     <div class="leading-none min-w-0 flex-1">
       <p class="logo-type text-[32px] text-slate-600 dark:text-slate-300 font-semibold mt-[12px]">BARRAGENS.PT</p>
     </div>

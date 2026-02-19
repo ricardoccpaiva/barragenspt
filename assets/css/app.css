@@ -44,6 +44,7 @@ main.fixed.inset-0 {
   min-height: 100vh;
   z-index: 0;
 }
+
 #map {
   position: absolute;
   inset: 0;
@@ -110,6 +111,18 @@ main.fixed.inset-0 {
 
 .dark .toggle:checked {
   background: #0ea5e9;
+}
+
+/* Logo na sidebar: cor do texto (slate-600 / slate-300), forma via máscara */
+.sidebar-logo {
+  mask-image: var(--logo-url);
+  -webkit-mask-image: var(--logo-url);
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
 }
 
 .logo-type {
@@ -205,7 +218,7 @@ html {
   bottom: 0;
   z-index: 30;
   pointer-events: auto;
-  background: rgba(241, 245, 249, 0.92);
+  background: rgba(241, 245, 249, 0.95);
   border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
@@ -219,7 +232,7 @@ html {
 /* Alinhar base da legenda à base da sidebar (sidebar tem pb-1.5 no desktop) */
 @media (min-width: 768px) {
   .legend-card {
-    bottom: -0.375rem;
+    bottom: -10px;
   }
 }
 
