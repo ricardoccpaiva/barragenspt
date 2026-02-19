@@ -25,18 +25,18 @@
 
 <!-- Sidebar -->
 <aside id="sidebar"
-  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[80%] max-w-[279px] md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] md:inset-y-2 md:left-2 md:right-auto flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-3 pb-0 md:px-3 md:pt-3 md:pb-0 space-y-3 rounded-2xl backdrop-blur-md">
+  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[80%] max-w-[279px] md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] md:inset-y-2 md:left-2 md:right-auto flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-1.5 pb-0 md:px-3 md:pt-1.5 md:pb-0 space-y-3 rounded-2xl backdrop-blur-md">
 
 
   <div class="flex items-center gap-2 min-w-0">
-    <div role="img" aria-label="Barragens.pt" class="sidebar-logo w-8 h-8 shrink-0 bg-slate-600 dark:bg-slate-300"
+    <div role="img" aria-label="Barragens.pt" class="sidebar-logo w-8 h-8 shrink-0 bg-brand-600 dark:bg-brand-400"
       style={"--logo-url: url('#{@logo_path}')"} />
     <div class="leading-none min-w-0 flex-1">
-      <p class="logo-type text-[36px] text-slate-600 dark:text-slate-300 font-semibold mt-2">BARRAGENS.PT</p>
+      <p class="logo-type text-[38px] text-slate-600 dark:text-slate-300 font-semibold mt-[12px]">BARRAGENS.PT</p>
     </div>
   </div>
 
-  <div class="search-wrapper relative">
+  <div class="search-wrapper relative mt-[11px]">
     <input id="damSearchInput" type="search" placeholder="Pesquisar barragens ou rios..." phx-hook="SearchDam"
         class="w-full rounded-lg border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 px-2.5 py-2 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
       <div id="damSearchResults" class={"absolute left-0 right-0 top-full mt-0.5 z-50 max-h-60 overflow-y-auto
