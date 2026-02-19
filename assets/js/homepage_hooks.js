@@ -155,7 +155,8 @@ const ExportBasinCard = {
   mounted() {
     this.el.addEventListener("click", (e) => {
       e.preventDefault()
-      const card = document.getElementById("basinInfoPanel")
+      const panelId = this.el.dataset.exportTarget || "basinInfoPanel"
+      const card = document.getElementById(panelId)
       if (!card || typeof window.html2canvas !== "function") return
       const filename = (this.el.dataset.basinName || "bacia").replace(/\s+/g, "-") + ".png"
       window.html2canvas(card, {
