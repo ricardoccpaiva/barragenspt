@@ -17,6 +17,17 @@ config :barragenspt, BarragensptWeb.Endpoint,
   pubsub_server: Barragenspt.PubSub,
   live_view: [signing_salt: "r91nm81s"]
 
+# Configure Tailwind (paths relative to project root)
+config :tailwind,
+  version: "4.1.10",
+  default: [
+    args: ~w(
+      --input=assets/css/app.css
+      --output=priv/static/assets/app.css
+    ),
+    cd: Path.expand("..", __DIR__)
+  ]
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.0",

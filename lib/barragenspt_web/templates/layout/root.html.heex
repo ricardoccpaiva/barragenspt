@@ -27,8 +27,6 @@
         rel="stylesheet">
       <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@800&display=swap" rel="stylesheet">
       <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
-      <link rel="stylesheet" href="http://localhost:4000/assets/app.css">
-      <script src="https://cdn.tailwindcss.com"></script>
       <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
       <script>
@@ -38,35 +36,6 @@
           } catch (e) {}
         })();
       </script>
-      <script>
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
-              fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
-              colors: {
-                brand: {
-                  50: '#f0f9ff',
-                  100: '#e0f2fe',
-                  200: '#bae6fd',
-                  300: '#7dd3fc',
-                  400: '#38bdf8',
-                  500: '#0ea5e9',
-                  600: '#0284c7',
-                  700: '#0369a1',
-                  800: '#075985',
-                  900: '#0c4a6e'
-                }
-              },
-              boxShadow: {
-                'card': '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
-                'float': '0 25px 50px -12px rgb(0 0 0 / 0.12)'
-              }
-            }
-          }
-        }
-      </script>
-
       <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css" )} />
       <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js" )}></script>
       <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/homepage.js"
