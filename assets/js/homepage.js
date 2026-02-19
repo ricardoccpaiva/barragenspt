@@ -44,6 +44,11 @@ window.addEventListener("phx:page-loading-stop", () => topbar.hide())
 liveSocket.connect()
 window.liveSocket = liveSocket
 
+window.addEventListener("phx:close_contact_modal", () => {
+  const el = document.getElementById("contact-modal-backdrop")
+  if (el) el.classList.add("hidden")
+})
+
 const state = { areBasinsVisible: true }
 
 function enableTabs() {

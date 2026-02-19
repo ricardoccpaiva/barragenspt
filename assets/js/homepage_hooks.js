@@ -129,6 +129,32 @@ const SettingsModalCloseButton = {
   }
 }
 
+const OpenContactModal = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      const backdrop = document.getElementById("contact-modal-backdrop")
+      if (backdrop) backdrop.classList.remove("hidden")
+    })
+  }
+}
+
+const ContactModalBackdrop = {
+  mounted() {
+    this.el.addEventListener("click", (e) => {
+      if (e.target === this.el) this.el.classList.add("hidden")
+    })
+  }
+}
+
+const ContactModalCloseButton = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      const backdrop = document.getElementById("contact-modal-backdrop")
+      if (backdrop) backdrop.classList.add("hidden")
+    })
+  }
+}
+
 const OpenInfoModal = {
   mounted() {
     this.el.addEventListener("click", () => {
@@ -215,6 +241,9 @@ export const Hooks = {
   DarkModeToggle,
   SettingsModalBackdrop,
   SettingsModalCloseButton,
+  OpenContactModal,
+  ContactModalBackdrop,
+  ContactModalCloseButton,
   OpenInfoModal,
   InfoModalBackdrop,
   InfoModalCloseButton

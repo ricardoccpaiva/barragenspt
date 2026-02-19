@@ -224,6 +224,10 @@ main.fixed.inset-0 {
   z-index: 10001;
 }
 
+.contact-modal-backdrop {
+  z-index: 10001;
+}
+
 html {
   --viewport-gutter: 8px;
 }

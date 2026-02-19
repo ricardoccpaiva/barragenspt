@@ -660,6 +660,16 @@ defmodule BarragensptWeb.HomepageV2Live do
     {:noreply, assign(socket, settings_modal_open: false)}
   end
 
+  def handle_event("submit_contact", %{"name" => _name, "email" => _email, "message" => _message}, socket) do
+    # TODO: enviar email ou guardar mensagem
+    socket =
+      socket
+      |> put_flash(:info, "Obrigado. A sua mensagem foi recebida.")
+      |> push_event("close_contact_modal", %{})
+
+    {:noreply, socket}
+  end
+
   def handle_event("rain_change_date", %{"day_offset" => offset}, socket) do
     day_offset = parse_rain_day_offset(offset)
     fetch_and_push_rain(socket, day_offset)
