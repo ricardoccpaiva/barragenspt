@@ -22,17 +22,17 @@
 
 <!-- Sidebar -->
 <aside id="sidebar"
-  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[80%] max-w-[279px] md:max-w-none md:w-[317px] h-full md:h-[calc(100%-1rem)] flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pb-2 pt-1.5 md:px-4 md:pb-2 md:pt-1.5 space-y-3 md:rounded-2xl backdrop-blur-md inset-y-0 left-0 md:inset-y-2 md:left-2">
+  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[80%] max-w-[279px] md:max-w-none md:w-[317px] h-full md:h-[calc(100%-1rem)] flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-2.5 pb-1.5 pt-1 md:px-3 md:pb-1.5 md:pt-1 space-y-2.5 md:rounded-2xl backdrop-blur-md inset-y-0 left-0 md:inset-y-2 md:left-2">
 
 
-  <div class="flex items-center gap-2 px-0 pt-2 md:pt-2 min-w-0">
+  <div class="flex items-center gap-2 px-0 pt-1 md:pt-1 min-w-0">
     <img src={@logo_path} alt="Barragens.pt" class="w-10 h-10 object-cover shrink-0" />
     <div class="leading-none min-w-0 flex-1">
       <p class="logo-type text-[32px] text-slate-600 dark:text-slate-300 font-semibold mt-[12px]">BARRAGENS.PT</p>
     </div>
   </div>
 
-  <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90">
+  <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90">
     <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Pesquisar</h3>
     <div class="search-wrapper relative">
       <input id="damSearchInput" type="search" placeholder="Barragens ou rios..." phx-hook="SearchDam"
@@ -82,7 +82,7 @@
   <div class={"flex flex-col flex-1 min-h-0 transition-all duration-200 #{if @search_term !="" ,
     do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
     <div class="flex-1 min-h-0 overflow-y-auto space-y-3">
-    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section" id="camadas-section" phx-update="ignore">
+    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section" id="camadas-section" phx-update="ignore">
       <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">% de armazenamento</h3>
       <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>Bacias</span>
@@ -98,7 +98,7 @@
       </label>
     </div>
 
-    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
       <details class="group">
         <summary class="text-sm font-semibold text-slate-800 dark:text-slate-100 cursor-pointer list-none flex items-center justify-between gap-2 py-0.5">
           <span>Tipos de uso</span>
@@ -118,7 +118,7 @@
       </details>
     </div>
 
-    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
       <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Estado do solo e precipitação</h3>
       <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>PDSI</span>
@@ -169,7 +169,7 @@
       </div>
     </div>
 
-    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2.5 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+    <div class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
       <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Risco de cheias</h3>
       <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
         <span>Alertas</span>

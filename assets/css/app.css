@@ -33,8 +33,8 @@ body {
 
 .toggle {
   appearance: none;
-  width: 44px;
-  height: 24px;
+  width: 38px;
+  height: 20px;
   background: #e2e8f0;
   border-radius: 9999px;
   position: relative;
@@ -46,8 +46,8 @@ body {
 .toggle::after {
   content: '';
   position: absolute;
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   top: 3px;
   left: 3px;
   border-radius: 9999px;
@@ -61,7 +61,7 @@ body {
 }
 
 .toggle:checked::after {
-  transform: translateX(20px);
+  transform: translateX(18px);
 }
 
 .dark .toggle {
