@@ -128,6 +128,12 @@ main.fixed.inset-0 {
   margin-left: 2px;
 }
 
+/* Logo na barra do mapa (mobile): centrado, puxado um pouco para a esquerda */
+.header-bar-logo {
+  margin-bottom: 0;
+  margin-left: -6px;
+}
+
 .logo-type {
   font-family: 'Smooch Sans', 'Plus Jakarta Sans', system-ui, sans-serif;
   font-weight: 400;
