@@ -215,8 +215,12 @@ main.fixed.inset-0 {
   opacity: 1;
 }
 
-/* Modal informações: ao centro, por cima de tudo (sidebar tem z-index 10000) */
+/* Modais: ao centro, por cima de tudo (sidebar tem z-index 10000) */
 .info-modal-backdrop {
+  z-index: 10001;
+}
+
+.settings-modal-backdrop {
   z-index: 10001;
 }
 
