@@ -49,6 +49,36 @@ window.addEventListener("phx:close_contact_modal", () => {
   if (el) el.classList.add("hidden")
 })
 
+function showToast(message, type = "success") {
+  let container = document.getElementById("app-toast-container")
+  if (!container) {
+    container = document.createElement("div")
+    container.id = "app-toast-container"
+    container.className = "app-toast-container"
+    document.body.appendChild(container)
+  }
+
+  const toast = document.createElement("div")
+  toast.className = `app-toast ${type === "error" ? "app-toast-error" : "app-toast-success"}`
+  const icon = type === "error" ? "⚠" : "✓"
+  toast.innerHTML = `<span class="app-toast-icon">${icon}</span><span class="app-toast-message"></span>`
+  const messageNode = toast.querySelector(".app-toast-message")
+  if (messageNode) messageNode.textContent = message
+  container.appendChild(toast)
+
+  requestAnimationFrame(() => toast.classList.add("app-toast-visible"))
+  setTimeout(() => {
+    toast.classList.remove("app-toast-visible")
+    setTimeout(() => toast.remove(), 180)
+  }, 2800)
+}
+
+window.addEventListener("phx:show_toast", (event) => {
+  const detail = event.detail || {}
+  if (!detail.message) return
+  showToast(detail.message, detail.type)
+})
+
 const state = { areBasinsVisible: true }
 
 function enableTabs() {

@@ -291,7 +291,7 @@ defmodule BarragensptWeb.HomepageV2Live do
   defp build_total_storage_label(summary, avg_observed) do
     sum = Enum.reduce(summary, 0, fn item, acc -> item.total_capacity + acc end)
 
-    current_storage = (sum * avg_observed / 100) / 1000 |> Float.round(2)
+    current_storage = (sum * avg_observed / 100 / 1000) |> Float.round(2)
 
     "#{current_storage} hm³"
   end
@@ -350,8 +350,11 @@ defmodule BarragensptWeb.HomepageV2Live do
   defp round_or_nil(value), do: Float.round(value, 1)
 
   defp div_volume_by_1000(nil), do: nil
-  defp div_volume_by_1000(%Decimal{} = v), do: v |> Decimal.div(1000) |> Decimal.round(2) |> Decimal.to_float()
-  defp div_volume_by_1000(v) when is_number(v), do: v / 1000 |> Float.round(2)
+
+  defp div_volume_by_1000(%Decimal{} = v),
+    do: v |> Decimal.div(1000) |> Decimal.round(2) |> Decimal.to_float()
+
+  defp div_volume_by_1000(v) when is_number(v), do: (v / 1000) |> Float.round(2)
 
   defp period_point([], _target_days, _max_distance_days), do: nil
 
@@ -660,14 +663,50 @@ defmodule BarragensptWeb.HomepageV2Live do
     {:noreply, assign(socket, settings_modal_open: false)}
   end
 
-  def handle_event("submit_contact", %{"name" => _name, "email" => _email, "message" => _message}, socket) do
-    # TODO: enviar email ou guardar mensagem
-    socket =
-      socket
-      |> put_flash(:info, "Obrigado. A sua mensagem foi recebida.")
-      |> push_event("close_contact_modal", %{})
+  def handle_event(
+        "submit_contact",
+        %{"name" => name, "email" => email, "message" => message},
+        socket
+      ) do
+    socket = push_event(socket, "close_contact_modal", %{})
 
-    {:noreply, socket}
+    case Application.get_env(:barragenspt, :resend_api_key) do
+      nil ->
+        Logger.error("RESEND_API_KEY is not configured")
+
+        {:noreply,
+         push_event(socket, "show_toast", %{
+           type: "error",
+           message: "Não foi possível enviar a mensagem."
+         })}
+
+      api_key ->
+        client = Resend.client(api_key: api_key)
+
+        case Resend.Emails.send(client, %{
+               from: "info@barragens.pt",
+               to: "ricardoccpaiva@gmail.com",
+               cc: email,
+               subject: "BarragensPT: Nova mensagem de #{name}",
+               html: message
+             }) do
+          {:ok, _} ->
+            {:noreply,
+             push_event(socket, "show_toast", %{
+               type: "success",
+               message: "Mensagem enviada com sucesso. Obrigado!"
+             })}
+
+          {:error, reason} ->
+            Logger.error("Failed to send contact email: #{inspect(reason)}")
+
+            {:noreply,
+             push_event(socket, "show_toast", %{
+               type: "error",
+               message: "Não foi possível enviar a mensagem."
+             })}
+        end
+    end
   end
 
   def handle_event("rain_change_date", %{"day_offset" => offset}, socket) do

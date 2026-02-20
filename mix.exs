@@ -79,6 +79,7 @@ defmodule Barragenspt.MixProject do
       {:sweet_xml, "~> 0.7.4"},
       {:mogrify, "~> 0.9.3"},
       {:bugsnag, "~> 3.0.2"},
+      {:resend, "~> 0.4"},
       {:swoosh, "~> 1.6"},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev}
     ]
