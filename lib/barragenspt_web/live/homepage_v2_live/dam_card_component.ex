@@ -56,8 +56,8 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <section id="damCard" class="fixed bottom-2 left-2 right-2 md:left-auto md:right-2 z-40 md:w-[360px]">
-      <div class="w-full bg-slate-100/80 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200">
+    <section id="damCard" class="fixed bottom-2 left-2 right-2 md:left-auto md:right-2 z-40 md:w-[360px] max-h-[70vh]">
+      <div class="w-full h-full max-h-[70vh] bg-slate-100/80 dark:bg-slate-800/70 backdrop-blur-md rounded-2xl shadow-float border border-slate-200/50 dark:border-slate-600/60 overflow-hidden text-[13px] text-slate-800 dark:text-slate-200 flex flex-col">
         <div class="h-12 px-4 rounded-t-2xl flex items-center justify-between bg-slate-800 border-b border-slate-800 text-white">
           <div>
             <p class="text-sm font-semibold">
@@ -89,7 +89,7 @@ defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
             </a>
           </div>
         </div>
-        <div class="p-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+        <div class="p-3 space-y-2 text-sm text-slate-600 dark:text-slate-300 flex-1 min-h-0 overflow-y-auto">
           <% pct_rounded = @current_capacity && Decimal.round(@current_capacity, 2) %>
           <% pct_float = pct_rounded && Decimal.to_float(pct_rounded) %>
           <% pct_label = if pct_float, do: "#{:erlang.float_to_binary(pct_float, decimals: 2)}%", else: "n/a" %>
