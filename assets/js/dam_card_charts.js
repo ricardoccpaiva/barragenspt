@@ -294,12 +294,6 @@ document.body.addEventListener("change", (e) => {
   if (e.target.id === "dischargeTimeWindow") updateDischargeChart(dischargeSeries)
 })
 
-window.addEventListener("dark-mode-change", () => {
-  if (chartSeries && typeof updateDamChart === "function") updateDamChart(chartSeries)
-  if (dischargeSeries && typeof updateDischargeChart === "function") updateDischargeChart(dischargeSeries)
-  if (realtimeChartPayload && typeof updateRealtimeChart === "function") updateRealtimeChart(realtimeChartPayload)
-})
-
 window.addEventListener("phx:page-loading-stop", () => {
   const el = document.getElementById("damChart")
   if (el && chartSeries && typeof updateDamChart === "function") updateDamChart(chartSeries)
