@@ -131,7 +131,19 @@
         class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
         <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Estado do solo e precipitação</h3>
         <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
-          <span>PDSI</span>
+          <span class="inline-flex items-center gap-1.5">
+            <span>PDSI</span>
+            <a
+              href="https://www.ipma.pt/pt/oclima/observatorio.secas/pdsi/monitorizacao/servico.situacaoatual/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-300 text-[10px] font-semibold leading-none text-slate-800 hover:bg-slate-400 dark:bg-slate-500 dark:text-slate-100 dark:hover:bg-slate-400"
+              aria-label="Mais informação sobre PDSI"
+              title="Mais informação sobre PDSI"
+            >
+              i
+            </a>
+          </span>
           <input id="togglePdsi" type="checkbox" class="toggle" phx-hook="PdsiLayerToggle">
         </label>
         <div id="pdsi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
