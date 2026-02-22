@@ -532,11 +532,12 @@ function registerSpainListeners() {
     if (typeof topbar !== "undefined") topbar.hide()
     const smiToggle = document.getElementById("toggleSmi")
     if (smiToggle) {
-      smiToggle.checked = false
       smiToggle.disabled = false
     }
+    const map = getMap()
+    if (map) removeSmiLayer(map)
     const smiSliderLabel = document.getElementById("smi-slider-label")
-    if (smiSliderLabel) smiSliderLabel.textContent = "Erro ao carregar"
+    if (smiSliderLabel) smiSliderLabel.textContent = "Sem dados para esta data"
   })
 
   window.addEventListener("phx:draw_rain_layer", (e) => {
