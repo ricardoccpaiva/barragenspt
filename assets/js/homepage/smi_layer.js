@@ -3,7 +3,13 @@
  * draw_smi_layer envia { values, date }; este módulo faz fetch do GeoJSON, merge por zid, e pinta o mapa.
  */
 
-const GEOJSON_URL = "/geojson/pt100_conc.json"
+const GEOJSON_BY_VLEV = {
+  conc: "/geojson/pt100_conc.json",
+  nuts3: "/geojson/pt100_nuts3.json",
+  dist: "/geojson/pt100_dist.json",
+  nuts2: "/geojson/pt100_nuts2.json",
+  hidro: "/geojson/pt100_hidro.json"
+}
 const SMI_SOURCE_ID = "smi-geojson"
 const SMI_FILL_LAYER_ID = "smi-fill"
 const SMI_OUTLINE_LAYER_ID = "smi-outline"
@@ -101,12 +107,13 @@ function removeSmiLayersAndSource(map) {
 }
 
 /**
- * Chamado pelo listener phx:draw_smi_layer. values = payload do evomaptimeval, date = "YYYY-MM-DD".
+ * Chamado pelo listener phx:draw_smi_layer. values = payload do evomaptimeval, date = "YYYY-MM-DD", vlev = nível de agregação.
  */
-export function drawSmiLayer(map, rawValues, dateStr) {
+export function drawSmiLayer(map, rawValues, dateStr, vlev) {
   if (!map) return
   const valuesByZid = normalizeValuesByZid(rawValues)
-  fetch(GEOJSON_URL)
+  const geojsonUrl = (vlev && GEOJSON_BY_VLEV[vlev]) ? GEOJSON_BY_VLEV[vlev] : GEOJSON_BY_VLEV.conc
+  fetch(geojsonUrl)
     .then((r) => r.json())
     .then((geojson) => {
       const merged = mergeSmiIntoFeatures(geojson, valuesByZid)

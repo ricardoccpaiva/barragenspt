@@ -14,53 +14,58 @@ defmodule Barragenspt.Services.Agroclima do
   @timeout 15_000
 
   @valid_vser ~w(p7 p28 p100)
+  @valid_vlev ~w(conc nuts3 dist nuts2 hidro)
 
   @doc """
-  Obtém valores SMI por feature (concelho) para o timestamp e profundidade dados.
+  Obtém valores SMI por feature para o timestamp, profundidade e nível de agregação dados.
   vtim = Unix timestamp em milissegundos (início do dia).
   vser = profundidade na API: "p7", "p28" ou "p100" (default "p28").
+  vlev = nível de agregação: "conc", "nuts3", "dist", "nuts2", "hidro" (default "conc").
   Retorna `{:ok, data}` com o JSON decodificado ou `{:error, reason}`.
   """
-  def get_smi_values(vtim, vser \\ "p28")
+  def get_smi_values(vtim, vser \\ "p28", vlev \\ "conc")
 
-  def get_smi_values(vtim, vser) when is_integer(vtim),
-    do: get_smi_values(to_string(vtim), vser)
+  def get_smi_values(vtim, vser, vlev) when is_integer(vtim),
+    do: get_smi_values(to_string(vtim), vser, vlev)
 
   @decorate cacheable(
               cache: Cache,
-              key: "get_smi_values_#{vtim}_#{vser}",
+              key: "get_smi_values_#{vtim}_#{vser}_#{vlev}",
               ttl: :timer.days(1)
             )
-  def get_smi_values(vtim, vser) when is_binary(vtim) do
+  def get_smi_values(vtim, vser, vlev) when is_binary(vtim) do
     vser = if vser in @valid_vser, do: vser, else: "p28"
+    vlev = if vlev in @valid_vlev, do: vlev, else: "conc"
 
     with {:ok, cookie_header, csrf_token} <- fetch_session_and_csrf(),
-         {:ok, data} <- post_evomaptimeval_smi(vtim, vser, cookie_header, csrf_token) do
+         {:ok, data} <- post_evomaptimeval_smi(vtim, vser, vlev, cookie_header, csrf_token) do
       {:ok, data}
     end
   end
 
   @doc """
-  Obtém valores de precipitação (Chuva) por concelho.
+  Obtém valores de precipitação (Chuva) por nível de agregação.
   vtim = Unix timestamp em milissegundos (início do dia).
   vser/vtmp = "anom"/"ww" (acumulada semanal) ou "tot"/"dd" (acumulada diária).
+  vlev = nível de agregação: "conc", "nuts3", "dist", "nuts2", "hidro" (default "conc").
   Retorna `{:ok, data}` ou `{:error, reason}`.
   """
-  def get_prec_values(vtim, vser \\ "anom", vtmp \\ "ww")
+  def get_prec_values(vtim, vser \\ "anom", vtmp \\ "ww", vlev \\ "conc")
 
-  def get_prec_values(vtim, vser, vtmp) when is_integer(vtim),
-    do: get_prec_values(to_string(vtim), vser, vtmp)
+  def get_prec_values(vtim, vser, vtmp, vlev) when is_integer(vtim),
+    do: get_prec_values(to_string(vtim), vser, vtmp, vlev)
 
   @decorate cacheable(
               cache: Cache,
-              key: "get_prec_values_#{vtim}_#{vser}_#{vtmp}",
+              key: "get_prec_values_#{vtim}_#{vser}_#{vtmp}_#{vlev}",
               ttl: :timer.days(1)
             )
-  def get_prec_values(vtim, vser, vtmp) when is_binary(vtim) do
+  def get_prec_values(vtim, vser, vtmp, vlev) when is_binary(vtim) do
     {vser, vtmp} = normalize_prec_mode(vser, vtmp)
+    vlev = if vlev in @valid_vlev, do: vlev, else: "conc"
 
     with {:ok, cookie_header, csrf_token} <- fetch_session_and_csrf(),
-         {:ok, data} <- post_evomaptimeval_prec(vtim, vser, vtmp, cookie_header, csrf_token) do
+         {:ok, data} <- post_evomaptimeval_prec(vtim, vser, vtmp, vlev, cookie_header, csrf_token) do
       {:ok, data}
     end
   end
@@ -113,16 +118,16 @@ defmodule Barragenspt.Services.Agroclima do
 
   defp parse_csrft_from_html(_), do: nil
 
-  defp post_evomaptimeval_smi(vtim, vser, cookie_header, csrf_token) do
+  defp post_evomaptimeval_smi(vtim, vser, vlev, cookie_header, csrf_token) do
     body =
-      "csrfmiddlewaretoken=#{URI.encode_www_form(csrf_token)}&vcod=smi&vlev=conc&vser=#{vser}&vtmp=dd&vzon=PT100&vtim=#{vtim}"
+      "csrfmiddlewaretoken=#{URI.encode_www_form(csrf_token)}&vcod=smi&vlev=#{vlev}&vser=#{vser}&vtmp=dd&vzon=PT100&vtim=#{vtim}"
 
     post_evomaptimeval(body, cookie_header, csrf_token)
   end
 
-  defp post_evomaptimeval_prec(vtim, vser, vtmp, cookie_header, csrf_token) do
+  defp post_evomaptimeval_prec(vtim, vser, vtmp, vlev, cookie_header, csrf_token) do
     body =
-      "csrfmiddlewaretoken=#{URI.encode_www_form(csrf_token)}&vcod=prec&vlev=conc&vser=#{vser}&vtmp=#{vtmp}&vzon=PT100&vtim=#{vtim}"
+      "csrfmiddlewaretoken=#{URI.encode_www_form(csrf_token)}&vcod=prec&vlev=#{vlev}&vser=#{vser}&vtmp=#{vtmp}&vzon=PT100&vtim=#{vtim}"
 
     post_evomaptimeval(body, cookie_header, csrf_token)
   end

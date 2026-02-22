@@ -3,7 +3,13 @@
  * Same GeoJSON by zid as SMI; fill color by precipitation value.
  */
 
-const GEOJSON_URL = "/geojson/pt100_conc.json"
+const GEOJSON_BY_VLEV = {
+  conc: "/geojson/pt100_conc.json",
+  nuts3: "/geojson/pt100_nuts3.json",
+  dist: "/geojson/pt100_dist.json",
+  nuts2: "/geojson/pt100_nuts2.json",
+  hidro: "/geojson/pt100_hidro.json"
+}
 const RAIN_SOURCE_ID = "rain-geojson"
 const RAIN_FILL_LAYER_ID = "rain-fill"
 const RAIN_OUTLINE_LAYER_ID = "rain-outline"
@@ -106,10 +112,11 @@ function removeRainLayersAndSource(map) {
   if (map.getSource(RAIN_SOURCE_ID)) map.removeSource(RAIN_SOURCE_ID)
 }
 
-export function drawRainLayer(map, rawValues, dateStr) {
+export function drawRainLayer(map, rawValues, dateStr, vlev) {
   if (!map) return
   const valuesByZid = normalizeValuesByZid(rawValues)
-  fetch(GEOJSON_URL)
+  const geojsonUrl = (vlev && GEOJSON_BY_VLEV[vlev]) ? GEOJSON_BY_VLEV[vlev] : GEOJSON_BY_VLEV.conc
+  fetch(geojsonUrl)
     .then((r) => r.json())
     .then((geojson) => {
       const merged = mergeRainIntoFeatures(geojson, valuesByZid)

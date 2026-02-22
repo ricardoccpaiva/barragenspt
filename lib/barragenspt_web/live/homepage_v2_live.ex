@@ -627,14 +627,16 @@ defmodule BarragensptWeb.HomepageV2Live do
   def handle_event("toggle_smi", %{"checked" => checked} = params, socket)
       when checked in [true, "true"] do
     vser = parse_vser(params["vser"])
-    fetch_and_push_smi(socket, 1, vser)
+    vlev = parse_vlev(params["vlev"])
+    fetch_and_push_smi(socket, 1, vser, vlev)
   end
 
   def handle_event("toggle_smi", _, socket), do: {:noreply, socket}
 
-  def handle_event("toggle_rain", %{"checked" => checked}, socket)
+  def handle_event("toggle_rain", %{"checked" => checked} = params, socket)
       when checked in [true, "true"] do
-    fetch_and_push_rain(socket, 0)
+    vlev = parse_vlev(params["vlev"])
+    fetch_and_push_rain(socket, 0, vlev)
   end
 
   def handle_event("toggle_rain", _, socket), do: {:noreply, socket}
@@ -709,24 +711,26 @@ defmodule BarragensptWeb.HomepageV2Live do
     end
   end
 
-  def handle_event("rain_change_date", %{"day_offset" => offset}, socket) do
+  def handle_event("rain_change_date", %{"day_offset" => offset} = params, socket) do
     day_offset = parse_rain_day_offset(offset)
-    fetch_and_push_rain(socket, day_offset)
+    vlev = parse_vlev(params["vlev"])
+    fetch_and_push_rain(socket, day_offset, vlev)
   end
 
   def handle_event("smi_change_date", %{"days_ago" => days_str} = params, socket) do
     days = parse_days_ago(days_str)
     vser = parse_vser(params["vser"])
-    fetch_and_push_smi(socket, days, vser)
+    vlev = parse_vlev(params["vlev"])
+    fetch_and_push_smi(socket, days, vser, vlev)
   end
 
-  defp fetch_and_push_smi(socket, days_ago, vser) do
+  defp fetch_and_push_smi(socket, days_ago, vser, vlev) do
     vtim = smi_vtim_days_ago_ms(days_ago)
     date_iso = smi_date_iso_days_ago(days_ago)
 
-    case Barragenspt.Services.Agroclima.get_smi_values(vtim, vser) do
+    case Barragenspt.Services.Agroclima.get_smi_values(vtim, vser, vlev) do
       {:ok, data} ->
-        socket = push_event(socket, "draw_smi_layer", %{values: data, date: date_iso})
+        socket = push_event(socket, "draw_smi_layer", %{values: data, date: date_iso, vlev: vlev})
         {:noreply, socket}
 
       {:error, _} ->
@@ -735,14 +739,14 @@ defmodule BarragensptWeb.HomepageV2Live do
     end
   end
 
-  defp fetch_and_push_rain(socket, day_offset) do
+  defp fetch_and_push_rain(socket, day_offset, vlev) do
     date = rain_date_from_offset(day_offset)
     date_iso = Date.to_iso8601(date)
     vtim = DateTime.new!(date, ~T[00:00:00]) |> DateTime.to_unix(:millisecond)
 
-    case Barragenspt.Services.Agroclima.get_prec_values(vtim, "tot", "dd") do
+    case Barragenspt.Services.Agroclima.get_prec_values(vtim, "tot", "dd", vlev) do
       {:ok, data} ->
-        socket = push_event(socket, "draw_rain_layer", %{values: data, date: date_iso})
+        socket = push_event(socket, "draw_rain_layer", %{values: data, date: date_iso, vlev: vlev})
         {:noreply, socket}
 
       {:error, _} ->
@@ -783,6 +787,9 @@ defmodule BarragensptWeb.HomepageV2Live do
 
   defp parse_vser(v) when v in ["p7", "p28", "p100"], do: v
   defp parse_vser(_), do: "p28"
+
+  defp parse_vlev(v) when v in ["conc", "nuts3", "dist", "nuts2", "hidro"], do: v
+  defp parse_vlev(_), do: "conc"
 
   defp smi_vtim_days_ago_ms(days_ago) do
     date = Date.utc_today() |> Date.add(-days_ago)

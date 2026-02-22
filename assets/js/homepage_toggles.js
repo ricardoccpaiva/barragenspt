@@ -314,11 +314,18 @@ export const LayerToggleHooks = {
       const daySlider = document.getElementById("smi-day-slider")
       const sliderLabel = document.getElementById("smi-slider-label")
       const depthPillsContainer = document.getElementById("smi-depth-pills")
+      const vlevPillsContainer = document.getElementById("smi-vlev-pills")
 
       function getSmiVser() {
         const active = depthPillsContainer?.querySelector(".smi-depth-pill-active")
         const v = active?.getAttribute("data-value")
         return v && ["p7", "p28", "p100"].includes(v) ? v : "p28"
+      }
+
+      function getSmiVlev() {
+        const active = vlevPillsContainer?.querySelector(".vlev-pill-active")
+        const v = active?.getAttribute("data-value")
+        return v && ["conc", "nuts3", "dist", "nuts2", "hidro"].includes(v) ? v : "conc"
       }
 
       function setSmiDepthActive(pillEl) {
@@ -334,11 +341,24 @@ export const LayerToggleHooks = {
         }
       }
 
+      function setSmiVlevActive(pillEl) {
+        const inactiveClasses = ["border-slate-200", "bg-slate-50", "text-slate-700", "dark:border-slate-500", "dark:bg-slate-600", "dark:text-slate-200"]
+        const activeClasses = ["vlev-pill-active", "bg-brand-500", "text-white", "border-brand-600", "dark:border-brand-500"]
+        vlevPillsContainer?.querySelectorAll(".vlev-pill").forEach((btn) => {
+          btn.classList.remove(...activeClasses)
+          btn.classList.add(...inactiveClasses)
+        })
+        if (pillEl) {
+          pillEl.classList.remove(...inactiveClasses)
+          pillEl.classList.add(...activeClasses)
+        }
+      }
+
       function pushSmiChangeDate() {
         const sliderVal = daySlider ? parseInt(daySlider.value, 10) : 29
         const daysAgo = 30 - sliderVal
         if (sliderLabel) sliderLabel.textContent = "A carregar..."
-        this.pushEvent("smi_change_date", { days_ago: daysAgo, vser: getSmiVser() })
+        this.pushEvent("smi_change_date", { days_ago: daysAgo, vser: getSmiVser(), vlev: getSmiVlev() })
       }
 
       el.addEventListener("change", () => {
@@ -353,7 +373,7 @@ export const LayerToggleHooks = {
           }
           el.disabled = true
           topbar.show()
-          this.pushEvent("toggle_smi", { checked: true, vser: getSmiVser() })
+          this.pushEvent("toggle_smi", { checked: true, vser: getSmiVser(), vlev: getSmiVlev() })
         } else {
           turnOffSmi()
         }
@@ -380,6 +400,15 @@ export const LayerToggleHooks = {
           pushSmiChangeDate.call(this)
         })
       })
+
+      vlevPillsContainer?.querySelectorAll(".vlev-pill").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setSmiVlevActive(btn)
+          if (!el.checked) return
+          if (sliderLabel) sliderLabel.textContent = "A carregar..."
+          pushSmiChangeDate.call(this)
+        })
+      })
     }
   },
   RainLayerToggle: {
@@ -390,12 +419,32 @@ export const LayerToggleHooks = {
       const rainWrap = document.getElementById("rain-slider-wrap")
       const rainDaySlider = document.getElementById("rain-day-slider")
       const rainSliderLabel = document.getElementById("rain-slider-label")
+      const rainVlevPills = document.getElementById("rain-vlev-pills")
+
+      function getRainVlev() {
+        const active = rainVlevPills?.querySelector(".vlev-pill-active")
+        const v = active?.getAttribute("data-value")
+        return v && ["conc", "nuts3", "dist", "nuts2", "hidro"].includes(v) ? v : "conc"
+      }
+
+      function setRainVlevActive(pillEl) {
+        const inactiveClasses = ["border-slate-200", "bg-slate-50", "text-slate-700", "dark:border-slate-500", "dark:bg-slate-600", "dark:text-slate-200"]
+        const activeClasses = ["vlev-pill-active", "bg-brand-500", "text-white", "border-brand-600", "dark:border-brand-500"]
+        rainVlevPills?.querySelectorAll(".vlev-pill").forEach((btn) => {
+          btn.classList.remove(...activeClasses)
+          btn.classList.add(...inactiveClasses)
+        })
+        if (pillEl) {
+          pillEl.classList.remove(...inactiveClasses)
+          pillEl.classList.add(...activeClasses)
+        }
+      }
 
       function pushRainChangeDate() {
         const sliderVal = rainDaySlider ? parseInt(rainDaySlider.value, 10) : 15
         const dayOffset = sliderVal - 15
         if (rainSliderLabel) rainSliderLabel.textContent = "A carregar..."
-        this.pushEvent("rain_change_date", { day_offset: dayOffset })
+        this.pushEvent("rain_change_date", { day_offset: dayOffset, vlev: getRainVlev() })
       }
 
       el.addEventListener("change", () => {
@@ -410,7 +459,7 @@ export const LayerToggleHooks = {
           }
           el.disabled = true
           topbar.show()
-          this.pushEvent("toggle_rain", { checked: true })
+          this.pushEvent("toggle_rain", { checked: true, vlev: getRainVlev() })
         } else {
           turnOffRain()
         }
@@ -428,6 +477,15 @@ export const LayerToggleHooks = {
           }, RAIN_SLIDER_DEBOUNCE_MS)
         })
       }
+
+      rainVlevPills?.querySelectorAll(".vlev-pill").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setRainVlevActive(btn)
+          if (!el.checked) return
+          if (rainSliderLabel) rainSliderLabel.textContent = "A carregar..."
+          pushRainChangeDate.call(this)
+        })
+      })
     }
   }
 }
@@ -488,7 +546,7 @@ function registerSpainListeners() {
         value
       ])
     )
-    if (map && e.detail) drawSmiLayer(map, cleaned, e.detail.date)
+    if (map && e.detail) drawSmiLayer(map, cleaned, e.detail.date, e.detail.vlev)
     const smiSliderLabel = document.getElementById("smi-slider-label")
     if (e.detail.date && smiSliderLabel) {
       const dateStr = e.detail.date.slice(0, 10)
@@ -526,7 +584,7 @@ function registerSpainListeners() {
         value
       ])
     )
-    if (map && e.detail) drawRainLayer(map, cleaned, e.detail.date)
+    if (map && e.detail) drawRainLayer(map, cleaned, e.detail.date, e.detail.vlev)
     const rainSliderLabel = document.getElementById("rain-slider-label")
     if (e.detail.date && rainSliderLabel) {
       const dateStr = e.detail.date.slice(0, 10)
