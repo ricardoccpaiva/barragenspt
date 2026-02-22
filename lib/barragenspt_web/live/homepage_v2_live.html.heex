@@ -144,38 +144,24 @@
         </label>
         <div id="smi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
           <div class="flex flex-col gap-1">
-            <p class="text-xs text-slate-600 dark:text-slate-400">Profundidade</p>
-            <div class="flex flex-wrap gap-1.5" id="smi-depth-pills" role="group" aria-label="Profundidade SMI">
-              <button type="button"
-                class="smi-depth-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-                data-value="p7">7 cm</button>
-              <button type="button"
-                class="smi-depth-pill smi-depth-pill-active rounded-full border border-brand-600 dark:border-brand-500 bg-brand-500 px-2 py-0.5 text-xs font-medium text-white transition-colors"
-                data-value="p28">28 cm</button>
-              <button type="button"
-                class="smi-depth-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-                data-value="p100">100 cm</button>
-            </div>
+            <label for="smi-depth-select" class="text-xs text-slate-600 dark:text-slate-400">Profundidade</label>
+            <select id="smi-depth-select" aria-label="Profundidade SMI"
+              class="sidebar-select w-full rounded-md border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs px-2 py-1 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+              <option value="p7">7 cm</option>
+              <option value="p28" selected>28 cm</option>
+              <option value="p100">100 cm</option>
+            </select>
           </div>
           <div class="flex flex-col gap-1">
-            <p class="text-xs text-slate-600 dark:text-slate-400">Agregação</p>
-            <div class="flex flex-wrap gap-1.5" id="smi-vlev-pills" role="group" aria-label="Agregação SMI">
-              <button type="button"
-                class="vlev-pill vlev-pill-active rounded-full border border-brand-600 dark:border-brand-500 bg-brand-500 px-2 py-0.5 text-xs font-medium text-white transition-colors"
-                data-value="conc">Concelhos</button>
-              <button type="button"
-                class="vlev-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-                data-value="nuts3">NUTS III</button>
-              <button type="button"
-                class="vlev-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-                data-value="dist">Distritos</button>
-              <button type="button"
-                class="vlev-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-                data-value="nuts2">NUTS II</button>
-              <button type="button"
-                class="vlev-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-                data-value="hidro">Bacias</button>
-            </div>
+            <label for="smi-vlev-select" class="text-xs text-slate-600 dark:text-slate-400">Agregação</label>
+            <select id="smi-vlev-select" aria-label="Agregação SMI"
+              class="sidebar-select w-full rounded-md border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs px-2 py-1 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+              <option value="conc" selected>Concelhos</option>
+              <option value="nuts3">NUTS III</option>
+              <option value="dist">Distritos</option>
+              <option value="nuts2">NUTS II</option>
+              <option value="hidro">Bacias</option>
+            </select>
           </div>
           <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
             <span>Dia</span>
@@ -189,24 +175,15 @@
         </label>
         <div id="rain-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
           <div class="flex flex-col gap-1">
-            <p class="text-xs text-slate-600 dark:text-slate-400">Agregação</p>
-            <div class="flex flex-wrap gap-1.5" id="rain-vlev-pills" role="group" aria-label="Agregação Chuva">
-              <button type="button"
-                class="vlev-pill vlev-pill-active rounded-full border border-brand-600 dark:border-brand-500 bg-brand-500 px-2 py-0.5 text-xs font-medium text-white transition-colors"
-                data-value="conc">Concelhos</button>
-              <button type="button"
-                class="vlev-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-                data-value="nuts3">NUTS III</button>
-              <button type="button"
-                class="vlev-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-                data-value="dist">Distritos</button>
-              <button type="button"
-                class="vlev-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-                data-value="nuts2">NUTS II</button>
-              <button type="button"
-                class="vlev-pill rounded-full border border-slate-200 dark:border-slate-500 bg-slate-50 dark:bg-slate-600 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-500"
-                data-value="hidro">Bacias</button>
-            </div>
+            <label for="rain-vlev-select" class="text-xs text-slate-600 dark:text-slate-400">Agregação</label>
+            <select id="rain-vlev-select" aria-label="Agregação Chuva"
+              class="sidebar-select w-full rounded-md border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs px-2 py-1 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+              <option value="conc" selected>Concelhos</option>
+              <option value="nuts3">NUTS III</option>
+              <option value="dist">Distritos</option>
+              <option value="nuts2">NUTS II</option>
+              <option value="hidro">Bacias</option>
+            </select>
           </div>
           <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
             <span>Dia (acum. diário)</span>

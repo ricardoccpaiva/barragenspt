@@ -313,45 +313,17 @@ export const LayerToggleHooks = {
       const sliderWrap = document.getElementById("smi-slider-wrap")
       const daySlider = document.getElementById("smi-day-slider")
       const sliderLabel = document.getElementById("smi-slider-label")
-      const depthPillsContainer = document.getElementById("smi-depth-pills")
-      const vlevPillsContainer = document.getElementById("smi-vlev-pills")
+      const depthSelect = document.getElementById("smi-depth-select")
+      const vlevSelect = document.getElementById("smi-vlev-select")
 
       function getSmiVser() {
-        const active = depthPillsContainer?.querySelector(".smi-depth-pill-active")
-        const v = active?.getAttribute("data-value")
+        const v = depthSelect?.value
         return v && ["p7", "p28", "p100"].includes(v) ? v : "p28"
       }
 
       function getSmiVlev() {
-        const active = vlevPillsContainer?.querySelector(".vlev-pill-active")
-        const v = active?.getAttribute("data-value")
+        const v = vlevSelect?.value
         return v && ["conc", "nuts3", "dist", "nuts2", "hidro"].includes(v) ? v : "conc"
-      }
-
-      function setSmiDepthActive(pillEl) {
-        const inactiveClasses = ["border-slate-200", "bg-slate-50", "text-slate-700", "dark:border-slate-500", "dark:bg-slate-600", "dark:text-slate-200"]
-        const activeClasses = ["smi-depth-pill-active", "bg-brand-500", "text-white", "border-brand-600", "dark:border-brand-500"]
-        depthPillsContainer?.querySelectorAll(".smi-depth-pill").forEach((btn) => {
-          btn.classList.remove(...activeClasses)
-          btn.classList.add(...inactiveClasses)
-        })
-        if (pillEl) {
-          pillEl.classList.remove(...inactiveClasses)
-          pillEl.classList.add(...activeClasses)
-        }
-      }
-
-      function setSmiVlevActive(pillEl) {
-        const inactiveClasses = ["border-slate-200", "bg-slate-50", "text-slate-700", "dark:border-slate-500", "dark:bg-slate-600", "dark:text-slate-200"]
-        const activeClasses = ["vlev-pill-active", "bg-brand-500", "text-white", "border-brand-600", "dark:border-brand-500"]
-        vlevPillsContainer?.querySelectorAll(".vlev-pill").forEach((btn) => {
-          btn.classList.remove(...activeClasses)
-          btn.classList.add(...inactiveClasses)
-        })
-        if (pillEl) {
-          pillEl.classList.remove(...inactiveClasses)
-          pillEl.classList.add(...activeClasses)
-        }
       }
 
       function pushSmiChangeDate() {
@@ -392,22 +364,16 @@ export const LayerToggleHooks = {
         })
       }
 
-      depthPillsContainer?.querySelectorAll(".smi-depth-pill").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          setSmiDepthActive(btn)
-          if (!el.checked) return
-          if (sliderLabel) sliderLabel.textContent = "A carregar..."
-          pushSmiChangeDate.call(this)
-        })
+      depthSelect?.addEventListener("change", () => {
+        if (!el.checked) return
+        if (sliderLabel) sliderLabel.textContent = "A carregar..."
+        pushSmiChangeDate.call(this)
       })
 
-      vlevPillsContainer?.querySelectorAll(".vlev-pill").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          setSmiVlevActive(btn)
-          if (!el.checked) return
-          if (sliderLabel) sliderLabel.textContent = "A carregar..."
-          pushSmiChangeDate.call(this)
-        })
+      vlevSelect?.addEventListener("change", () => {
+        if (!el.checked) return
+        if (sliderLabel) sliderLabel.textContent = "A carregar..."
+        pushSmiChangeDate.call(this)
       })
     }
   },
@@ -419,25 +385,11 @@ export const LayerToggleHooks = {
       const rainWrap = document.getElementById("rain-slider-wrap")
       const rainDaySlider = document.getElementById("rain-day-slider")
       const rainSliderLabel = document.getElementById("rain-slider-label")
-      const rainVlevPills = document.getElementById("rain-vlev-pills")
+      const rainVlevSelect = document.getElementById("rain-vlev-select")
 
       function getRainVlev() {
-        const active = rainVlevPills?.querySelector(".vlev-pill-active")
-        const v = active?.getAttribute("data-value")
+        const v = rainVlevSelect?.value
         return v && ["conc", "nuts3", "dist", "nuts2", "hidro"].includes(v) ? v : "conc"
-      }
-
-      function setRainVlevActive(pillEl) {
-        const inactiveClasses = ["border-slate-200", "bg-slate-50", "text-slate-700", "dark:border-slate-500", "dark:bg-slate-600", "dark:text-slate-200"]
-        const activeClasses = ["vlev-pill-active", "bg-brand-500", "text-white", "border-brand-600", "dark:border-brand-500"]
-        rainVlevPills?.querySelectorAll(".vlev-pill").forEach((btn) => {
-          btn.classList.remove(...activeClasses)
-          btn.classList.add(...inactiveClasses)
-        })
-        if (pillEl) {
-          pillEl.classList.remove(...inactiveClasses)
-          pillEl.classList.add(...activeClasses)
-        }
       }
 
       function pushRainChangeDate() {
@@ -478,13 +430,10 @@ export const LayerToggleHooks = {
         })
       }
 
-      rainVlevPills?.querySelectorAll(".vlev-pill").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          setRainVlevActive(btn)
-          if (!el.checked) return
-          if (rainSliderLabel) rainSliderLabel.textContent = "A carregar..."
-          pushRainChangeDate.call(this)
-        })
+      rainVlevSelect?.addEventListener("change", () => {
+        if (!el.checked) return
+        if (rainSliderLabel) rainSliderLabel.textContent = "A carregar..."
+        pushRainChangeDate.call(this)
       })
     }
   }
