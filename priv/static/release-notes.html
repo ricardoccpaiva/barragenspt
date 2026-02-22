@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>barragens.pt — Release Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Smooch+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --ink: #1f2a44;
+      --muted: #5f6f8f;
+      --brand: #0284c7;
+      --brand-soft: #e0f2fe;
+      --line: #dce5f2;
+      --ok: #0f766e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      background: radial-gradient(circle at 20% 0%, #e8f2ff 0%, var(--bg) 48%, #edf2f9 100%);
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .page {
+      width: min(1120px, 94vw);
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .hero {
+      background: linear-gradient(145deg, #1e3a5f 0%, #0f2743 55%, #10263f 100%);
+      color: #f8fbff;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 18px 42px rgba(15, 35, 62, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .hero h1 {
+      margin: 0 0 4px;
+      font-family: "Smooch Sans", "Plus Jakarta Sans", system-ui, sans-serif;
+      font-size: clamp(22px, 3.2vw, 34px);
+      letter-spacing: 0.3px;
+      line-height: 1;
+    }
+
+    .hero p {
+      margin: 0;
+      font-size: clamp(14px, 1.8vw, 18px);
+      color: #d8e9ff;
+    }
+
+    .hero .meta {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 14px;
+    }
+
+    .section {
+      margin-top: 22px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 25px rgba(15, 35, 62, 0.08);
+    }
+
+    .section h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .section p {
+      margin: 0;
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    .timeline {
+      margin-top: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .timeline-item {
+      border: 1px solid var(--line);
+      border-left: 6px solid var(--brand);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fbfdff;
+    }
+
+    .timeline-item h3 {
+      margin: 0 0 4px;
+      font-size: 19px;
+      line-height: 1;
+    }
+
+    .timeline-item ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 15px;
+      color: #405375;
+    }
+
+        .gallery {
+      margin-top: 14px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      align-items: stretch;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card img {
+      width: 100%;
+      display: block;
+      height: auto;
+      background: #edf3fb;
+      vertical-align: bottom;
+    }
+
+    .card .copy {
+      padding: 6px 10px 8px;
+    }
+
+    .card h3 {
+      margin: 0 0 2px;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--line);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      font-size: 14px;
+      color: #3f5376;
+    }
+
+    .footer a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 860px) {
+      .gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .section h2 {
+        font-size: 30px;
+      }
+
+      .timeline-item h3 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="hero">
+      <h1>barragens.pt</h1>
+      <p>Uma nova identidade visual e uma nova experiência de utilização.</p>
+    </header>
+
+    <section class="section">
+      <h2>Highlights visuais</h2>
+      <p>Alguns exemplos das melhorias de layout e experiência no produto.</p>
+
+      <div class="gallery">
+        <article class="card">
+          <img src="/images/rn/sidebar.png" alt="Sidebar e elementos de controlo no mapa" />
+          <div class="copy">
+            <h3>Sidebar refinada</h3>
+            <p>Disposição melhorada dos elementos na sidebar levando a um melhor aproveitamento do espaço. Pesquisa de
+              rios e barragens unificada.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="/images/rn/bacia.png" alt="Vista geral da bacia do Douro no mapa" />
+          <div class="copy">
+            <h3>Card da bacia hidrográfica redesenhado</h3>
+            <p>Para além da listagem de barragens da bacia, é agora possível ver a % de armazenamento e o volume
+              correspondente.</p>
+            <p>
+              Existem agora 2 badges que mostram a % de armazenamento há 1 mês e há 1 ano.
+            </p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="/images/rn/dam_card.png" alt="Vista geral da bacia do Douro no mapa" />
+          <div class="copy">
+            <h3>Card da barragem redesenhado</h3>
+            <p>Informação apresentada de forma mais clara e organizada, dando destaque ao que é mais relevante.</p>
+            <p>
+              Foram adicionadas tabs de forma a simplificar a visualização dos dados, nomeadamente sob a forma de
+              gráficos.
+            </p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="/images/rn/dark_mode.png" alt="Vista geral da bacia do Douro no mapa" />
+          <div class="copy">
+            <h3>Dark mode</h3>
+            <p>Possibilidade de ativar o modo escuro para uma experiência mais confortável.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="/images/rn/caudais.png" alt="Gráfico de caudais na dam card" />
+          <div class="copy">
+            <h3>Indicadores de caudais</h3>
+            <p>Tab dedicada à visualização dos diferentes tipos de caudais com selector temporal.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="/images/rn/realtime.png" alt="Card da Albufeira da Aguieira com evolução" />
+          <div class="copy">
+            <h3>Dados near real time</h3>
+            <p>No detalhe de uma barragem, é possível visualizar a % de armazenamento, o caudal afluente e o efluente
+              para as últimas 48h, atualizados de hora a hora.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="/images/rn/timeline.png" alt="Vista mobile com elementos flutuantes" />
+          <div class="copy">
+            <h3>Timeline de indicadores</h3>
+            <p>Para os indicadores do estado do solo e precipitação, é agora possível ver valores de até 15 dias antes
+              da data atual.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="/images/rn/export.png" alt="Vista mobile com elementos flutuantes" />
+          <div class="copy">
+            <h3>Exportar card como imagem</h3>
+            <p>Para os indicadores do estado do solo e precipitação, é agora possível ver valores de até 15 dias antes
+              da data atual.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="/images/rn/logo.png" alt="Vista mobile com elementos flutuantes" />
+          <div class="copy">
+            <h3>Novo logo</h3>
+            <p>Seja para comunicar um bug, uma sugesão de melhoria ou para partilhar uma ideia, o formulário de contacto
+              está disponível de forma simples e direta.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="/images/rn/contact_form.png" alt="Vista mobile com elementos flutuantes" />
+          <div class="copy">
+            <h3>Formulário de contacto</h3>
+            <p>Seja para comunicar um bug, uma sugesão de melhoria ou para partilhar uma ideia, o formulário de contacto
+              está disponível de forma simples e direta.</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="footer">
+        <strong style="color: var(--ok)">Dados:</strong> SNIRH, InfoAgua, AgroClima
+        <span>•</span>
+        <strong>Código fonte:</strong> <a href="https://github.com/ricardoccpaiva/barragenspt" target="_blank"
+          rel="noopener noreferrer">GitHub</a>
+        <span>•</span>
+        <strong>Desenhado e implementado por:</strong> <a href="https://x.com/ricardoccpaiva" target="_blank"
+          rel="noopener noreferrer">@ricardoccpaiva</a>
+        <span>•</span>
+        <strong>Logo by:</strong> Freepik
+      </div>
+    </section>
+  </main>
+</body>
+
+</html>
