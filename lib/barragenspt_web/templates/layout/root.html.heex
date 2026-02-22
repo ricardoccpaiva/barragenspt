@@ -12,58 +12,108 @@
   <meta property="og:url" content="https://barragens.pt/">
   <meta property="og:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
   <meta property="og:type" content="website">
-  <meta property="og:image" content={Routes.static_url(@conn, "/images/dam.png")}>
+  <meta property="og:image" content={Routes.static_url(@conn, "/images/dam.png" )}>
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Barragens.pt - Início">
   <meta name="twitter:description" content="Vê num mapa o estado de armazenamento das barragens em Portugal">
-  <meta name="twitter:image" content={Routes.static_url(@conn, "/images/dam_large.png")}>
+  <meta name="twitter:image" content={Routes.static_url(@conn, "/images/dam_large.png" )}>
 
   <meta name="Keywords" content="barragens, albufeiras, água, seca, chuva">
   <%= csrf_meta_tag() %>
-    <title><%= assigns[:page_title] || "barragens.pt" %></title>
-      <link rel="preconnect" href="https://fonts.googleapis.com">
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
-      <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@800&display=swap" rel="stylesheet">
-      <link href="https://fonts.googleapis.com/css2?family=Smooch+Sans:wght@100..900&display=swap" rel="stylesheet">
-      <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
-      <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <title>
+      <%= assigns[:page_title] || "barragens.pt" %>
+    </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Smooch+Sans:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem('darkMode') === '1') document.documentElement.classList.add('dark');
+        } catch (e) { }
+      })();
+    </script>
+    <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css" )} />
+    <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js" )}></script>
+    <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/homepage.js"
+      )}></script>
+    <%= if assigns[:maps] !=nil do %>
+      <!-- Google tag (gtag.js) -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LZ6X0F43Z"></script>
       <script>
-        (function() {
-          try {
-            if (localStorage.getItem('darkMode') === '1') document.documentElement.classList.add('dark');
-          } catch (e) {}
-        })();
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-2LZ6X0F43Z');
       </script>
-      <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css" )} />
-      <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/app.js" )}></script>
-      <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/assets/homepage.js"
-        )}></script>
-      <%= if assigns[:maps] !=nil do %>
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-2LZ6X0F43Z"></script>
+      <% else %>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ECR8CXBPZ"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
           function gtag() { dataLayer.push(arguments); }
           gtag('js', new Date());
-
-          gtag('config', 'G-2LZ6X0F43Z');
+          gtag('config', 'G-5ECR8CXBPZ');
         </script>
-        <% else %>
-          <script async src="https://www.googletagmanager.com/gtag/js?id=G-5ECR8CXBPZ"></script>
-          <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() { dataLayer.push(arguments); }
-            gtag('js', new Date());
-            gtag('config', 'G-5ECR8CXBPZ');
-          </script>
-          <% end %>
+        <% end %>
 </head>
 
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
   <%= @inner_content %>
+
+    <div id="release-modal-backdrop" class="fixed inset-0 z-[10002] hidden bg-slate-900/60 backdrop-blur-sm"
+      aria-hidden="true"></div>
+    <div id="release-modal"
+      class="fixed left-1/2 top-1/2 z-[10003] hidden w-[min(90vw,420px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-600 dark:bg-slate-800"
+      role="dialog" aria-labelledby="release-modal-title" aria-modal="true">
+      <h2 id="release-modal-title" class="text-lg font-semibold text-slate-800 dark:text-slate-100">Nova versão 🚀</h2>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+        O barragens.pt está diferente, com uma nova identidade visual e uma experiência de utilização melhorada.
+        Consulta todas as novidades <a href="/release-notes.html" target="_blank" rel="noopener noreferrer"
+          class="text-brand-600 dark:text-brand-400 underline hover:no-underline">aqui
+        </a>.
+      </p>
+      <img src="/images/rn/release_notes_preview.png" alt="Pré-visualização das novidades"
+        class="mt-3 w-full rounded-lg border border-slate-200 object-cover dark:border-slate-500"
+        style="max-height: 180px; object-fit: cover;">
+      <div class="mt-4 flex justify-end">
+        <button type="button" id="release-modal-ok"
+          class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600">OK</button>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var COOKIE_NAME = 'barragenspt_seen_release_modal';
+        function getCookie(name) {
+          var m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+          return m ? m[2] : null;
+        }
+        function setCookie(name) {
+          var maxAge = 2147483647;
+          document.cookie = name + '=1;path=/;max-age=' + maxAge + ';SameSite=Lax';
+        }
+        if (getCookie(COOKIE_NAME)) return;
+        var backdrop = document.getElementById('release-modal-backdrop');
+        var modal = document.getElementById('release-modal');
+        function close() {
+          if (backdrop) backdrop.classList.add('hidden');
+          if (modal) modal.classList.add('hidden');
+          setCookie(COOKIE_NAME);
+        }
+        if (backdrop) backdrop.classList.remove('hidden');
+        if (modal) modal.classList.remove('hidden');
+        backdrop && (backdrop.onclick = close);
+        var btn = document.getElementById('release-modal-ok');
+        if (btn) btn.onclick = close;
+      })();
+    </script>
 </body>
 
 </html>
