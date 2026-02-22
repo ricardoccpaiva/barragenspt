@@ -746,7 +746,9 @@ defmodule BarragensptWeb.HomepageV2Live do
 
     case Barragenspt.Services.Agroclima.get_prec_values(vtim, "tot", "dd", vlev) do
       {:ok, data} ->
-        socket = push_event(socket, "draw_rain_layer", %{values: data, date: date_iso, vlev: vlev})
+        socket =
+          push_event(socket, "draw_rain_layer", %{values: data, date: date_iso, vlev: vlev})
+
         {:noreply, socket}
 
       {:error, _} ->

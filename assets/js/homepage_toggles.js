@@ -133,7 +133,10 @@ function removeSpainBasinsFromMap() {
   Object.keys(sourceIds).forEach((sid) => {
     if (map.getSource(sid)) map.removeSource(sid)
   })
-  map.fitBounds([[-9.708570, 36.682035], [-6.072327, 42.615949]])
+  map.fitBounds([
+    [-17.30384751295111, 36.50952345455322],
+    [-2.262873003102527, 42.457622802586286]
+  ])
 }
 
 function turnOffSpain() {
@@ -212,7 +215,7 @@ export const LayerToggleHooks = {
           }
         })
       }
-      applyBasinsLayerActive(el.checked)
+      //applyBasinsLayerActive(el.checked)
     }
   },
   DamsLayerToggle: {
@@ -226,7 +229,7 @@ export const LayerToggleHooks = {
           else turnOffDams()
         })
       }
-      applyDamsLayerActive(el.checked)
+      //applyDamsLayerActive(el.checked)
     }
   },
   SpainLayerToggle: {
