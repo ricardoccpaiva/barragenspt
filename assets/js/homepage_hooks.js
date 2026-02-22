@@ -91,14 +91,35 @@ const UsageTypeChanged = {
       topbar.show()
       const usageType = e.target.name
       const checked = e.target.checked
+      gtagEvent("usage_type_filter", { type: usageType, state: checked ? "on" : "off" })
       this.pushEvent("update_selected_usage_types", { usage_type: usageType, checked })
     })
   }
 }
 
+function gtagEvent(name, params) {
+  if (typeof gtag === "function") gtag("event", name, params)
+}
+
 const SearchDam = {
   mounted() {
     this.el.addEventListener("input", () => this.pushEvent("search_dam", { search_term: this.el.value }))
+
+    const resultsContainer = document.getElementById("damSearchResults")
+    if (resultsContainer) {
+      resultsContainer.addEventListener("click", (e) => {
+        const riverBtn = e.target.closest("button[data-river-name]")
+        if (riverBtn) {
+          gtagEvent("select_river", { river_name: riverBtn.dataset.riverName })
+          return
+        }
+        const damLink = e.target.closest("a[data-phx-link]")
+        if (damLink) {
+          const nameEl = damLink.querySelector("span:first-child")
+          gtagEvent("select_dam", { dam_name: nameEl ? nameEl.textContent.trim() : "" })
+        }
+      })
+    }
   }
 }
 
@@ -108,9 +129,18 @@ const DarkModeToggle = {
     el.checked = document.documentElement.classList.contains("dark")
     el.addEventListener("change", () => {
       const on = el.checked
+      gtagEvent("toggle_dark_mode", { state: on ? "on" : "off" })
       document.documentElement.classList.toggle("dark", on)
       try { localStorage.setItem("darkMode", on ? "1" : "0") } catch (e) { }
       window.dispatchEvent(new CustomEvent("dark-mode-change", { detail: { dark: on } }))
+    })
+  }
+}
+
+const OpenSettingsModal = {
+  mounted() {
+    this.el.addEventListener("click", () => {
+      gtagEvent("open_modal", { modal: "settings" })
     })
   }
 }
@@ -129,9 +159,18 @@ const SettingsModalCloseButton = {
   }
 }
 
+const ContactForm = {
+  mounted() {
+    this.el.addEventListener("submit", () => {
+      gtagEvent("contact_form_submit")
+    })
+  }
+}
+
 const OpenContactModal = {
   mounted() {
     this.el.addEventListener("click", () => {
+      gtagEvent("open_modal", { modal: "contact" })
       const backdrop = document.getElementById("contact-modal-backdrop")
       if (backdrop) backdrop.classList.remove("hidden")
     })
@@ -158,6 +197,7 @@ const ContactModalCloseButton = {
 const OpenInfoModal = {
   mounted() {
     this.el.addEventListener("click", () => {
+      gtagEvent("open_modal", { modal: "info" })
       const backdrop = document.getElementById("info-modal-backdrop")
       if (backdrop) backdrop.classList.remove("hidden")
     })
@@ -239,8 +279,10 @@ export const Hooks = {
   UsageTypeChanged,
   SearchDam,
   DarkModeToggle,
+  OpenSettingsModal,
   SettingsModalBackdrop,
   SettingsModalCloseButton,
+  ContactForm,
   OpenContactModal,
   ContactModalBackdrop,
   ContactModalCloseButton,

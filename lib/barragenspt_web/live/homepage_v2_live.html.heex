@@ -48,6 +48,7 @@
             <li>
               <button type="button" phx-click="select_river" phx-value-basin_id={r.basin_id}
                 phx-value-river_name={r.river_name}
+                data-river-name={r.river_display_name || r.river_name}
                 class="w-full flex items-center gap-2 px-2.5 py-2 text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 text-left border-0 bg-transparent cursor-pointer">
                 <span class="text-slate-500 dark:text-slate-400 text-xs shrink-0">Rio</span>
                 <span>
@@ -230,7 +231,7 @@
               d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </button>
-        <button type="button" phx-click="open_settings_modal" aria-label="Definições"
+        <button type="button" phx-click="open_settings_modal" phx-hook="OpenSettingsModal" id="open-settings-modal-btn" aria-label="Definições"
           class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -349,7 +350,7 @@
             </svg>
           </button>
         </div>
-        <form phx-submit="submit_contact" class="space-y-3">
+        <form phx-submit="submit_contact" phx-hook="ContactForm" id="contact-form" class="space-y-3">
           <div>
             <label for="contact-name"
               class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-0.5">Nome</label>

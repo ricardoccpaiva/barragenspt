@@ -15,6 +15,10 @@ function getMap() {
   return window.map
 }
 
+function gtagEvent(name, params) {
+  if (typeof gtag === "function") gtag("event", name, params)
+}
+
 export function applyBasinsLayerActive(active) {
   const map = getMap()
   if (!map) return
@@ -199,6 +203,7 @@ export const LayerToggleHooks = {
       if (!el._basinsListenerAdded) {
         el._basinsListenerAdded = true
         el.addEventListener("change", () => {
+          gtagEvent("toggle_layer", { layer: "basins", state: el.checked ? "on" : "off" })
           if (el.checked) {
             whenTurningOn("basins")
             turnOnBasins()
@@ -216,6 +221,7 @@ export const LayerToggleHooks = {
       if (!el._damsListenerAdded) {
         el._damsListenerAdded = true
         el.addEventListener("change", () => {
+          gtagEvent("toggle_layer", { layer: "dams", state: el.checked ? "on" : "off" })
           if (el.checked) turnOnDams()
           else turnOffDams()
         })
@@ -227,6 +233,7 @@ export const LayerToggleHooks = {
     mounted() {
       const el = this.el
       el.addEventListener("change", () => {
+        gtagEvent("toggle_layer", { layer: "spain", state: el.checked ? "on" : "off" })
         if (el.checked) {
           whenTurningOn("spain")
           this.pushEvent("toggle_spain", { checked: true })
@@ -241,6 +248,7 @@ export const LayerToggleHooks = {
     mounted() {
       const el = this.el
       el.addEventListener("change", () => {
+        gtagEvent("toggle_layer", { layer: "alerts", state: el.checked ? "on" : "off" })
         if (el.checked) {
           whenTurningOn("alerts")
           this.pushEvent("toggle_alerts", { checked: true })
@@ -276,6 +284,7 @@ export const LayerToggleHooks = {
       }
 
       el.addEventListener("change", () => {
+        gtagEvent("toggle_layer", { layer: "pdsi", state: el.checked ? "on" : "off" })
         const map = getMap()
         if (!map) return
         if (el.checked) {
@@ -334,6 +343,7 @@ export const LayerToggleHooks = {
       }
 
       el.addEventListener("change", () => {
+        gtagEvent("toggle_layer", { layer: "smi", state: el.checked ? "on" : "off" })
         const map = getMap()
         if (!map) return
         if (el.checked) {
@@ -365,12 +375,14 @@ export const LayerToggleHooks = {
       }
 
       depthSelect?.addEventListener("change", () => {
+        gtagEvent("smi_depth_change", { value: depthSelect.value })
         if (!el.checked) return
         if (sliderLabel) sliderLabel.textContent = "A carregar..."
         pushSmiChangeDate.call(this)
       })
 
       vlevSelect?.addEventListener("change", () => {
+        gtagEvent("smi_aggregation_change", { value: vlevSelect.value })
         if (!el.checked) return
         if (sliderLabel) sliderLabel.textContent = "A carregar..."
         pushSmiChangeDate.call(this)
@@ -400,6 +412,7 @@ export const LayerToggleHooks = {
       }
 
       el.addEventListener("change", () => {
+        gtagEvent("toggle_layer", { layer: "rain", state: el.checked ? "on" : "off" })
         const map = getMap()
         if (!map) return
         if (el.checked) {
@@ -431,6 +444,7 @@ export const LayerToggleHooks = {
       }
 
       rainVlevSelect?.addEventListener("change", () => {
+        gtagEvent("rain_aggregation_change", { value: rainVlevSelect.value })
         if (!el.checked) return
         if (rainSliderLabel) rainSliderLabel.textContent = "A carregar..."
         pushRainChangeDate.call(this)
