@@ -21,11 +21,48 @@ function formatBasinTooltipDate(isoDate) {
   return date.toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" })
 }
 
+function getBasinWindowDays(windowValue) {
+  const map = {
+    d180: 180,
+    y1: 365,
+    y2: 365 * 2,
+    y5: 365 * 5
+  }
+  return map[windowValue] || null
+}
+
+function filterSeriesByWindow(series, windowValue) {
+  if (!Array.isArray(series) || !series.length || windowValue === "ymax") return series
+
+  const days = getBasinWindowDays(windowValue)
+  if (!days) return series
+
+  const latestPoint = series[series.length - 1]
+  const latestDate = latestPoint && latestPoint.date ? new Date(latestPoint.date) : null
+  if (!latestDate || Number.isNaN(latestDate.getTime())) return series
+
+  const minDate = new Date(latestDate.getTime() - days * 24 * 60 * 60 * 1000)
+  return series.filter((point) => {
+    const pointDate = new Date(point.date)
+    return !Number.isNaN(pointDate.getTime()) && pointDate >= minDate
+  })
+}
+
+function bindBasinWindowChange() {
+  const select = document.getElementById("basinTimeWindow")
+  if (!select || select.dataset.bound === "1") return
+  select.dataset.bound = "1"
+  select.addEventListener("change", () => renderBasinChart())
+}
+
 function renderBasinChart() {
   const canvas = document.getElementById("basinChart")
   if (!canvas || typeof Chart === "undefined") return
-  const series = getBasinChartSeries(canvas)
-  const seriesKey = JSON.stringify(series)
+  const windowSelect = document.getElementById("basinTimeWindow")
+  const windowValue = windowSelect ? windowSelect.value : "y2"
+  const fullSeries = getBasinChartSeries(canvas)
+  const series = filterSeriesByWindow(fullSeries, windowValue)
+  const seriesKey = JSON.stringify([windowValue, series])
   if (basinChart && basinChartSeriesKey === seriesKey) return
   if (basinChart) basinChart.destroy()
   basinChartSeriesKey = seriesKey
@@ -114,6 +151,7 @@ function selectBasinTab(tab) {
   if (tab === "chart") {
     if (table) table.classList.add("hidden")
     if (chart) chart.classList.remove("hidden")
+    bindBasinWindowChange()
     renderBasinChart()
     return
   }

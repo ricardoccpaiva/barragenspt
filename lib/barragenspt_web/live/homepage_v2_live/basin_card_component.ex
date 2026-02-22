@@ -148,7 +148,21 @@ defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
           </div>
 
           <div id="basinTabChart" class="pt-1.5 hidden shrink-0">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Evolução</p>
+            <div class="flex justify-between items-center">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Evolução</p>
+              <div class="border border-slate-200 dark:border-slate-500 rounded-lg pl-2 pr-2.5 py-1 bg-slate-50 dark:bg-slate-600 min-w-0">
+                <select
+                  id="basinTimeWindow"
+                  class="text-xs w-full min-w-0 border-0 bg-transparent py-0 pr-5 text-slate-800 dark:text-slate-200 focus:ring-0 focus:outline-none cursor-pointer"
+                >
+                  <option value="d180">6 meses</option>
+                  <option value="y1">1 ano</option>
+                  <option value="y2" selected>2 anos</option>
+                  <option value="y5">5 anos</option>
+                  <option value="ymax">Sem limite</option>
+                </select>
+              </div>
+            </div>
             <div class="mt-1.5 h-[36vh] rounded-lg border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-700/60 p-2 flex flex-col">
               <div class="mt-auto">
                 <div class="h-52">
