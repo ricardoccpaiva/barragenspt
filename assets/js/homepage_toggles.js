@@ -494,7 +494,7 @@ function registerSpainListeners() {
       map.on("mouseenter", fillLayerId, () => { map.getCanvas().style.cursor = "pointer" })
       map.on("mouseleave", fillLayerId, () => { map.getCanvas().style.cursor = "" })
     })
-    map.fitBounds([[-10.0186, 35.588], [3.8135, 43.9644]])
+    map.fitBounds([[-14.548988, 35.635395], [3.930016, 44.306345]])
   })
 
   window.addEventListener("phx:remove_spain_basins", () => {
