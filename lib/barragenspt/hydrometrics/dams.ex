@@ -35,7 +35,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
       from(b in SiteCurrentStorage,
         join: d in Dam,
         on: b.site_id == d.site_id,
-        where: b.current_storage_pct <= 100 and b.site_id == ^id,
+        where: b.site_id == ^id,
         select: %{
           basin_id: d.basin_id,
           basin_name: d.basin,
@@ -335,8 +335,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Stream.map(fn {value, date} ->
       build_monthly_stats_map(value, date, historic_values, discharge_stats)
     end)
-    |> Stream.reject(fn %{observed_value: value} -> value > 100 end)
-    |> Stream.reject(fn %{historical_average: value} -> value > 100 end)
+    # |> Stream.reject(fn %{observed_value: value} -> value > 100 end)
+    # |> Stream.reject(fn %{historical_average: value} -> value > 100 end)
     |> Enum.to_list()
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
@@ -485,7 +485,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   def current_storage_for_sites(site_ids) when is_list(site_ids) do
     Repo.all(
       from(b in SiteCurrentStorage,
-        where: b.site_id in ^site_ids and b.current_storage_pct <= 100,
+        where: b.site_id in ^site_ids,
         select: %{
           site_id: b.site_id,
           current_storage: fragment("round(?, 1)", b.current_storage_pct)
@@ -498,7 +498,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   def current_storage(site_id) when is_binary(site_id) do
     Repo.one(
       from(b in SiteCurrentStorage,
-        where: b.site_id == ^site_id and b.current_storage_pct <= 100,
+        where: b.site_id == ^site_id,
         select: %{
           current_storage: fragment("round(?, 1)", b.current_storage_pct)
         }
@@ -551,7 +551,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         basin: "Observado"
       }
     end)
-    |> Stream.reject(fn %{value: value} -> value > 100 end)
+    # |> Stream.reject(fn %{value: value} -> value > 100 end)
     |> Enum.to_list()
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
@@ -691,7 +691,6 @@ defmodule Barragenspt.Hydrometrics.Dams do
       from(b in SiteCurrentStorage,
         join: d in Dam,
         on: b.site_id == d.site_id,
-        where: b.current_storage_pct <= 100,
         select: %{
           basin_id: d.basin_id,
           basin_name: d.basin,
@@ -712,9 +711,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         on: b.site_id == du.site_id,
         join: d in Dam,
         on: b.site_id == d.site_id,
-        where:
-          b.current_storage_pct <= 100 and
-            du.usage_name in ^usage_types,
+        where: du.usage_name in ^usage_types,
         select: %{
           basin_id: d.basin_id,
           basin_name: d.basin,

@@ -138,9 +138,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
       from(d in subquery(daily_average_storage_by_basin_query(nil, usage_types)),
         join: b in subquery(basin_current_storage_query(usage_types)),
         on: d.basin_id == b.id,
-        where:
-          d.period == ^"#{Timex.now().day}-#{Timex.now().month}" and b.current_storage <= 100 and
-            d.value <= 100,
+        where: d.period == ^"#{Timex.now().day}-#{Timex.now().month}",
         select: %{
           id: d.basin_id,
           name: b.name,
@@ -161,8 +159,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
     filter =
       dynamic(
         [d, b, _du, dd],
-        d.period == ^"#{Timex.now().day}-#{Timex.now().month}" and b.basin_id == ^id and
-          b.value <= dd.total_capacity and d.value <= dd.total_capacity
+        d.period == ^"#{Timex.now().day}-#{Timex.now().month}" and b.basin_id == ^id
       )
 
     filter =

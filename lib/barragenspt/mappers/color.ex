@@ -23,7 +23,7 @@ defmodule Barragenspt.Mappers.Colors do
       pct <= 50 -> 3
       pct <= 60 -> 4
       pct <= 80 -> 5
-      pct <= 100 -> 6
+      pct <= 200 -> 6
       true -> 0
     end
   end
