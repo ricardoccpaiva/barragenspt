@@ -1,4 +1,4 @@
-@import "tailwindcss/index.css";
+@import "tailwindcss";
 
 /* Dark mode: use .dark class on html (set by JS from localStorage) */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -340,8 +340,10 @@ html {
   .legend-card {
     left: var(--viewport-gutter);
     right: auto;
-    bottom: 3.5rem; /* acima do botão Buy Me a Coffee */
-    z-index: 25; /* acima do botão (z-20), abaixo da sidebar (z-40) */
+    bottom: 3.5rem;
+    /* acima do botão Buy Me a Coffee */
+    z-index: 25;
+    /* acima do botão (z-20), abaixo da sidebar (z-40) */
   }
 }
 
