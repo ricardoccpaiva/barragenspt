@@ -33,9 +33,8 @@ defmodule BarragensptWeb.HomepageV2Live do
         settings_modal_open: false,
         logo_path: Routes.static_path(socket.endpoint, "/images/droplets.svg")
       )
+      |> push_event("draw_map_layers", %{basins: basins, dams: dams})
       |> push_event("zoom_map", %{})
-      |> push_event("draw_basins", %{basins: basins})
-      |> push_event("draw_dams", %{dams: dams})
 
     {:ok, socket}
   end

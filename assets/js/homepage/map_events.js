@@ -30,99 +30,118 @@ export function registerMapEvents(deps) {
 
   let damsSymbolClickBound = false
 
+  function drawBasins(basins = []) {
+    basins.forEach((item) => {
+      const fillLayerId = item.id + "_fill"
+      map.addSource(item.id, { type: "geojson", data: "/geojson/" + item.name + ".geojson" })
+      map.addLayer({
+        id: fillLayerId,
+        type: "fill",
+        source: item.id,
+        layout: {},
+        paint: {
+          "fill-color": getStorageColor(item.observed_value),
+          "fill-opacity": 0.7
+        }
+      })
+      map.addLayer({
+        id: item.id + "_outline",
+        type: "line",
+        source: item.id,
+        layout: {},
+        paint: { "line-color": "#000", "line-width": 0.5 }
+      })
+      map.on("click", fillLayerId, (ev) => {
+        navigateToBasin(ev.features[0].source)
+      })
+      map.on("mouseenter", fillLayerId, () => { map.getCanvas().style.cursor = "pointer" })
+      map.on("mouseleave", fillLayerId, () => { map.getCanvas().style.cursor = "" })
+    })
+    window.cachedBasinsSummary = basins.map((item) => ({
+      id: item.id,
+      capacity_color: getStorageColor(item.observed_value)
+    }))
+    const toggle = document.getElementById("toggleBasins")
+    if (toggle) {
+      toggle.checked = true
+      applyBasinsLayerActive(true)
+    }
+  }
+
+  function drawDams(dams = []) {
+    const damsGeoJSON = { type: "FeatureCollection", features: [] }
+    dams.forEach((dam) => {
+      damsGeoJSON.features.push({
+        type: "Feature",
+        properties: {
+          name: dam.dam_name || dam.name,
+          pct: dam.current_storage,
+          basin: dam.basin_name,
+          id: dam.id,
+          basin_id: dam.basin_id
+        },
+        geometry: { type: "Point", coordinates: [dam.coordinates.lon, dam.coordinates.lat] }
+      })
+    })
+      ;["dams-ring-inner", "dams-ring-outer", "dams-circles"].forEach((id) => {
+        if (map.getLayer(id)) map.removeLayer(id)
+      })
+    if (map.getSource("dams")) map.removeSource("dams")
+    map.addSource("dams", { type: "geojson", data: damsGeoJSON })
+    map.addLayer({
+      id: "dams-circles",
+      type: "circle",
+      source: "dams",
+      paint: {
+        "circle-radius": 6,
+        "circle-color": damsCircleColorGray,
+        "circle-stroke-width": 2,
+        "circle-stroke-color": "#fff"
+      }
+    })
+    const toggle = document.getElementById("toggleDams")
+    if (toggle) {
+      applyDamsLayerActive(toggle.checked)
+      if (!toggle._damsListenerAdded) {
+        toggle._damsListenerAdded = true
+        toggle.addEventListener("change", () => applyDamsLayerActive(toggle.checked))
+      }
+    }
+    if (!damsSymbolClickBound) {
+      damsSymbolClickBound = true
+      map.on("click", "dams-circles", (ev) => {
+        const props = ev.features[0].properties
+        if (props.id && props.basin_id != null) navigateToDam(props.basin_id, props.id)
+      })
+      map.on("mouseenter", "dams-circles", () => { map.getCanvas().style.cursor = "pointer" })
+      map.on("mouseleave", "dams-circles", () => { map.getCanvas().style.cursor = "" })
+    }
+  }
+
+  // Unified initial draw event (basins + dams in one callback).
+  window.addEventListener("phx:draw_map_layers", (e) => {
+    topbar.hide()
+    whenStyleLoaded(map, () => {
+      drawBasins(e.detail.basins || [])
+      drawDams(e.detail.dams || [])
+      topbar.hide()
+    })
+  })
+
+  // Backward compatibility for individual events.
   window.addEventListener("phx:draw_basins", (e) => {
     topbar.hide()
     whenStyleLoaded(map, () => {
-      const basins = e.detail.basins
-      basins.forEach((item) => {
-        const fillLayerId = item.id + "_fill"
-        map.addSource(item.id, { type: "geojson", data: "/geojson/" + item.name + ".geojson" })
-        map.addLayer({
-          id: fillLayerId,
-          type: "fill",
-          source: item.id,
-          layout: {},
-          paint: {
-            "fill-color": getStorageColor(item.observed_value),
-            "fill-opacity": 0.7
-          }
-        })
-        map.addLayer({
-          id: item.id + "_outline",
-          type: "line",
-          source: item.id,
-          layout: {},
-          paint: { "line-color": "#000", "line-width": 0.5 }
-        })
-        map.on("click", fillLayerId, (ev) => {
-          navigateToBasin(ev.features[0].source)
-        })
-        map.on("mouseenter", fillLayerId, () => { map.getCanvas().style.cursor = "pointer" })
-        map.on("mouseleave", fillLayerId, () => { map.getCanvas().style.cursor = "" })
-      })
-      window.cachedBasinsSummary = basins.map((item) => ({
-        id: item.id,
-        capacity_color: getStorageColor(item.observed_value)
-      }))
-      const toggle = document.getElementById("toggleBasins")
-      if (toggle) {
-        toggle.checked = true
-        applyBasinsLayerActive(true)
-      }
+      drawBasins(e.detail.basins || [])
+      topbar.hide()
     })
   })
 
   window.addEventListener("phx:draw_dams", (e) => {
     topbar.hide()
     whenStyleLoaded(map, () => {
-      const dams = e.detail.dams
-      const damsGeoJSON = { type: "FeatureCollection", features: [] }
-      dams.forEach((dam) => {
-        damsGeoJSON.features.push({
-          type: "Feature",
-          properties: {
-            name: dam.dam_name || dam.name,
-            pct: dam.current_storage,
-            basin: dam.basin_name,
-            id: dam.id,
-            basin_id: dam.basin_id
-          },
-          geometry: { type: "Point", coordinates: [dam.coordinates.lon, dam.coordinates.lat] }
-        })
-      })
-        ;["dams-ring-inner", "dams-ring-outer", "dams-circles"].forEach((id) => {
-          if (map.getLayer(id)) map.removeLayer(id)
-        })
-      if (map.getSource("dams")) map.removeSource("dams")
-      map.addSource("dams", { type: "geojson", data: damsGeoJSON })
-      map.addLayer({
-        id: "dams-circles",
-        type: "circle",
-        source: "dams",
-        paint: {
-          "circle-radius": 6,
-          "circle-color": damsCircleColorGray,
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#fff"
-        }
-      })
-      const toggle = document.getElementById("toggleDams")
-      if (toggle) {
-        applyDamsLayerActive(toggle.checked)
-        if (!toggle._damsListenerAdded) {
-          toggle._damsListenerAdded = true
-          toggle.addEventListener("change", () => applyDamsLayerActive(toggle.checked))
-        }
-      }
-      if (!damsSymbolClickBound) {
-        damsSymbolClickBound = true
-        map.on("click", "dams-circles", (ev) => {
-          const props = ev.features[0].properties
-          if (props.id && props.basin_id != null) navigateToDam(props.basin_id, props.id)
-        })
-        map.on("mouseenter", "dams-circles", () => { map.getCanvas().style.cursor = "pointer" })
-        map.on("mouseleave", "dams-circles", () => { map.getCanvas().style.cursor = "" })
-      }
+      drawDams(e.detail.dams || [])
+      topbar.hide()
     })
   })
 
