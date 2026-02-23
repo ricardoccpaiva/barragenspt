@@ -2,6 +2,9 @@ import Config
 
 config :barragenspt, :resend_api_key, System.get_env("RESEND_API_KEY")
 
+config :barragenspt, :snirh,
+  proxy: System.get_env("SNIRH_PROXY")
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration

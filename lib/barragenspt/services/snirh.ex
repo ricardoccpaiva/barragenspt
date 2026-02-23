@@ -1,12 +1,19 @@
 defmodule Barragenspt.Services.Snirh do
+  require Logger
   @timeout 25000
-  @base_url Application.compile_env!(:barragenspt, :snirh)[:csv_data_url]
+  @snirh_config Application.compile_env!(:barragenspt, :snirh)
+  @base_url @snirh_config[:csv_data_url]
 
   def get_raw_csv_data(site_id, parameter_id, start_date, end_date) do
     query_params =
       "?sites=#{site_id}&pars=#{parameter_id}&tmin=#{start_date}&tmax=#{end_date}&formato=csv"
 
-    options = [recv_timeout: @timeout, timeout: @timeout]
+    options = [
+      recv_timeout: @timeout,
+      timeout: @timeout,
+      hackney: hackney_opts()
+    ]
+
     %HTTPoison.Response{body: body} = HTTPoison.get!(@base_url <> query_params, [], options)
 
     body
@@ -52,5 +59,14 @@ defmodule Barragenspt.Services.Snirh do
     |> then(fn {:ok, response} -> response.body end)
     |> Codepagex.to_string(:iso_8859_1)
     |> then(fn {:ok, value} -> value end)
+  end
+
+  defp hackney_opts do
+    snirh_config = Application.get_env(:barragenspt, :snirh, [])
+    proxy = Keyword.get(snirh_config, :proxy)
+
+    if is_binary(proxy) and proxy != "",
+      do: [proxy: proxy, insecure: true],
+      else: [insecure: true]
   end
 end

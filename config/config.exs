@@ -71,7 +71,8 @@ config :barragenspt, Oban,
   ]
 
 config :barragenspt, :snirh,
-  csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php"
+  csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php",
+  proxy: nil
 
 config :ex_aws, :s3,
   scheme: "https://",
