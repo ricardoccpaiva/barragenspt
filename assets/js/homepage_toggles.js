@@ -470,7 +470,10 @@ function registerSpainListeners() {
       const fillLayerId = sourceId + "_fill"
       const outlineLayerId = sourceId + "_outline"
       if (map.getSource(sourceId)) return
-      map.addSource(sourceId, { type: "geojson", data: "/geojson/spain/" + item.basin_name + ".geojson" })
+      map.addSource(sourceId, {
+        type: "geojson",
+        data: "/geojson/spain/" + String(item.basin_name || "").toLowerCase() + ".geojson"
+      })
       map.addLayer({
         id: fillLayerId,
         type: "fill",

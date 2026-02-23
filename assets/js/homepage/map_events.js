@@ -33,7 +33,10 @@ export function registerMapEvents(deps) {
   function drawBasins(basins = []) {
     basins.forEach((item) => {
       const fillLayerId = item.id + "_fill"
-      map.addSource(item.id, { type: "geojson", data: "/geojson/" + item.name + ".geojson" })
+      map.addSource(item.id, {
+        type: "geojson",
+        data: "/geojson/" + String(item.name || "").toLowerCase() + ".geojson"
+      })
       map.addLayer({
         id: fillLayerId,
         type: "fill",
