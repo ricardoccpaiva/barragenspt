@@ -1,5 +1,7 @@
 defmodule Barragenspt.Geo.Coordinates do
   alias Barragenspt.Hydrometrics.Dams
+  use Nebulex.Caching
+  alias Barragenspt.Cache
 
   def bounding_box(site_id) do
     path = "priv/static/geojson/reservoirs/#{site_id}.geojson"
@@ -21,6 +23,11 @@ defmodule Barragenspt.Geo.Coordinates do
     end
   end
 
+  @decorate cacheable(
+              cache: Cache,
+              key: "coordinates_from_dam_#{id}",
+              ttl: :timer.hours(24)
+            )
   def from_dam(id) when is_binary(id) do
     dam = Dams.get(id)
 

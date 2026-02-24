@@ -131,7 +131,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
   @decorate cacheable(
               cache: Cache,
               key: "basins.summary_stats_#{Enum.join(usage_types, "-")}",
-              ttl: :timer.hours(1)
+              ttl: :timer.hours(24)
             )
   def summary_stats(usage_types) do
     query =

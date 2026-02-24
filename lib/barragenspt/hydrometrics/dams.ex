@@ -84,6 +84,11 @@ defmodule Barragenspt.Hydrometrics.Dams do
   defp decimal_to_float(n) when is_number(n), do: n * 1.0
   defp decimal_to_float(_), do: nil
 
+  @decorate cacheable(
+              cache: Cache,
+              key: "usage_types",
+              ttl: :timer.hours(1)
+            )
   def usage_types do
     from(b in DamUsage,
       select: {b.usage_name}
@@ -136,7 +141,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @decorate cacheable(
               cache: Cache,
               key: "river_names",
-              ttl: :timer.hours(1)
+              ttl: :timer.hours(24)
             )
   def get_river_names() do
     all()
