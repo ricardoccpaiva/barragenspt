@@ -1,5 +1,4 @@
 defmodule Barragenspt.Geo.Coordinates do
-  alias Barragenspt.Hydrometrics.Dams
   use Nebulex.Caching
   alias Barragenspt.Cache
 
@@ -25,18 +24,9 @@ defmodule Barragenspt.Geo.Coordinates do
 
   @decorate cacheable(
               cache: Cache,
-              key: "coordinates_from_dam_#{id}",
+              key: "coordinates_from_dam_#{dam.site_id}",
               ttl: :timer.hours(24)
             )
-  def from_dam(id) when is_binary(id) do
-    dam = Dams.get(id)
-
-    %{
-      lat: parse(dam.metadata["Identificação"]["Latitude (m)"], "N"),
-      lon: parse(dam.metadata["Identificação"]["Longitude (m)"], "W")
-    }
-  end
-
   def from_dam(dam) do
     %{
       lat: parse(dam.metadata["Identificação"]["Latitude (m)"], "N"),

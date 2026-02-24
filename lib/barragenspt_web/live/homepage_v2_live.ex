@@ -49,7 +49,7 @@ defmodule BarragensptWeb.HomepageV2Live do
       current_storage:
         dam.current_storage |> Decimal.new() |> Decimal.round(2) |> Decimal.to_float(),
       colected_at: dam.colected_at,
-      coordinates: Coordinates.from_dam(dam.site_id)
+      coordinates: Coordinates.from_dam(dam)
     }
   end
 
