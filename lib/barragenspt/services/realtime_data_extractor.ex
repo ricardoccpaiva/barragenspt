@@ -83,7 +83,7 @@ defmodule Barragenspt.Workers.RealtimeDataExtractor do
         data
 
       _ ->
-        Logger.error("RealtimeDataExtractor: no data found for site_id=#{site_id}")
+        Logger.info("RealtimeDataExtractor: no data found for site_id=#{site_id}")
         []
     end
   end
