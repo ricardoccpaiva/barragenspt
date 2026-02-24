@@ -1,5 +1,5 @@
 defmodule Barragenspt.Workers.InfoaguaAlertsRefresh do
-  use Oban.Worker, queue: :meteo_data
+  use Oban.Worker, queue: :data_points_update
   require Logger
 
   import Ecto.Query
