@@ -1,6 +1,7 @@
 defmodule Barragenspt.Geo.Coordinates do
   use Nebulex.Caching
   alias Barragenspt.Cache
+  alias Barragenspt.Hydrometrics.Dams
 
   def bounding_box(site_id) do
     path = "priv/static/geojson/reservoirs/#{site_id}.geojson"
@@ -17,7 +18,7 @@ defmodule Barragenspt.Geo.Coordinates do
       |> Enum.to_list()
       |> Geocalc.bounding_box_for_points()
     else
-      %{lat: lat, lon: lon} = from_dam(site_id)
+      %{lat: lat, lon: lon} = from_dam_site_id(site_id)
       Geocalc.bounding_box([lon, lat], 10)
     end
   end
@@ -32,6 +33,10 @@ defmodule Barragenspt.Geo.Coordinates do
       lat: parse(dam.metadata["Identificação"]["Latitude (m)"], "N"),
       lon: parse(dam.metadata["Identificação"]["Longitude (m)"], "W")
     }
+  end
+
+  def from_dam_site_id(id) do
+    id |> Dams.get() |> from_dam()
   end
 
   def parse(coord, dir) do
