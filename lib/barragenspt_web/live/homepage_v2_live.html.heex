@@ -1,3 +1,13 @@
+<!-- Loading overlay: gota centrada que enche como progress bar até o mapa carregar -->
+<div id="loading-overlay" class="loading-overlay fixed inset-0 z-[10001] flex items-center justify-center bg-slate-50 dark:bg-slate-900" aria-hidden="true" role="status">
+  <div class="flex flex-col items-center gap-3">
+    <div class="loading-drop-container" style={"--logo-url: url('#{@logo_path}')"}>
+      <div class="loading-drop-fill"></div>
+    </div>
+    <p class="logo-type text-2xl text-slate-600 dark:text-slate-400">A carregar...</p>
+  </div>
+</div>
+
 <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 z-30 hidden" onclick="toggleSidebar(false)"></div>
 
 <!-- Mapa full-screen (sempre por trás da sidebar) -->

@@ -85,6 +85,51 @@ html.map-loaded .map-wait {
   visibility: visible;
 }
 
+/* Loading overlay: gota centrada que enche como progress bar até o mapa carregar */
+.loading-overlay {
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+html.map-loaded .loading-overlay {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.loading-drop-container {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  mask-image: var(--logo-url);
+  -webkit-mask-image: var(--logo-url);
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  background: rgba(148, 163, 184, 0.3);
+}
+
+.loading-drop-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  background: #0284c7;
+  animation: drop-fill 2s ease-out forwards;
+}
+
+@keyframes drop-fill {
+  from {
+    height: 0;
+  }
+  to {
+    height: 100%;
+  }
+}
+
 .toggle {
   appearance: none;
   width: 40px;
