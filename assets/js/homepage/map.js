@@ -28,7 +28,10 @@ export function createMap() {
       showUserHeading: true
     })
   )
-  map.on("idle", () => topbar.hide())
+  map.on("idle", () => {
+    topbar.hide()
+    document.documentElement.classList.add("map-loaded")
+  })
 
   return map
 }

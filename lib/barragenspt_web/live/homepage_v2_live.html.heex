@@ -3,7 +3,7 @@
 <!-- Mapa full-screen (sempre por trás da sidebar) -->
 <main class="fixed inset-0">
   <div id="map" phx-update="ignore"></div>
-  <div class="absolute top-4 left-4 right-14 md:right-4 flex items-start justify-start gap-2 z-10 pointer-events-none">
+  <div class="map-wait absolute top-4 left-4 right-14 md:right-4 flex items-start justify-start gap-2 z-10 pointer-events-none">
     <button
       class="pointer-events-auto md:hidden h-10 w-10 flex items-center justify-center shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100"
       aria-label="Abrir menu" onclick="toggleSidebar(true)">
@@ -23,9 +23,9 @@
   </div>
 </main>
 
-<!-- Sidebar -->
+<!-- Sidebar (shown when map has loaded) -->
 <aside id="sidebar"
-  class="sidebar-mobile md:translate-x-0 fixed z-40 w-[80%] max-w-[279px] md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] md:inset-y-2 md:left-2 md:right-auto flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-1.5 pb-2.5 md:px-3 md:pt-1.5 md:pb-2.5 space-y-3 rounded-2xl backdrop-blur-md">
+  class="map-wait sidebar-mobile md:translate-x-0 fixed z-40 w-[80%] max-w-[279px] md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] md:inset-y-2 md:left-2 md:right-auto flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-1.5 pb-2.5 md:px-3 md:pt-1.5 md:pb-2.5 space-y-3 rounded-2xl backdrop-blur-md">
 
 
   <div class="flex items-center gap-2 min-w-0 pb-1.5 border-b border-slate-200/80 dark:border-slate-600/80">
@@ -258,7 +258,7 @@
 </aside>
 
 <!-- Legendas fora da sidebar para position:fixed funcionar em mobile (sidebar com transform corta o containing block) -->
-<div id="legend-storage" class="legend-card">
+<div id="legend-storage" class="map-wait legend-card">
   <p class="legend-title">% Armazenamento</p>
   <div class="legend-row"><span class="legend-dot legend-0-20"></span><span>0 - 20</span></div>
   <div class="legend-row"><span class="legend-dot legend-21-40"></span><span>21 - 40</span></div>
@@ -267,7 +267,7 @@
   <div class="legend-row"><span class="legend-dot legend-61-80"></span><span>61 - 80</span></div>
   <div class="legend-row"><span class="legend-dot legend-81-100"></span><span>81 - 100</span></div>
 </div>
-<div id="legend-pdsi" class="legend-card hidden">
+<div id="legend-pdsi" class="map-wait legend-card hidden">
   <p class="legend-title">Classes do PDSI</p>
   <p id="legend-pdsi-date" class="legend-date"></p>
   <div class="legend-row"><span class="legend-dot" style="background:#218291"></span><span>Chuva extrema</span></div>
@@ -280,7 +280,7 @@
   <div class="legend-row"><span class="legend-dot" style="background:#b5773e"></span><span>Seca severa</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#9c551f"></span><span>Seca extrema</span></div>
 </div>
-<div id="legend-smi" class="legend-card hidden">
+<div id="legend-smi" class="map-wait legend-card hidden">
   <p class="legend-title">Água no solo</p>
   <p id="legend-smi-date" class="legend-date"></p>
   <div class="legend-row"><span class="legend-dot" style="background:#ff7e1c"></span><span>&lt;PEP</span></div>
@@ -297,7 +297,7 @@
   <div class="legend-row"><span class="legend-dot" style="background:#3377aa"></span><span>60-90</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#0000ff"></span><span>SAT</span></div>
 </div>
-<div id="legend-rain" class="legend-card hidden">
+<div id="legend-rain" class="map-wait legend-card hidden">
   <p class="legend-title">Precipitação (mm)</p>
   <p id="legend-rain-date" class="legend-date"></p>
   <div class="legend-row"><span class="legend-dot" style="background:#ffffff"></span><span>&lt;0.1</span></div>
@@ -314,7 +314,7 @@
   <div class="legend-row"><span class="legend-dot" style="background:#ff00bb"></span><span>90-120</span></div>
   <div class="legend-row"><span class="legend-dot" style="background:#dddddd"></span><span>≥120</span></div>
 </div>
-<div id="legend-alerts" class="legend-card hidden">
+<div id="legend-alerts" class="map-wait legend-card hidden">
   <p class="legend-title">Alertas</p>
   <div class="legend-row"><span class="legend-dot" style="background:#2eb1d3"></span><span>Sem alertas ativos</span>
   </div>
@@ -420,23 +420,29 @@
       </div>
     </div>
 
-    <.live_component :if={@dam} id="homepage-dam-card" module={BarragensptWeb.HomepageV2Live.DamCardComponent}
-      basin_id={@basin_id} dam={@dam} current_capacity={@current_capacity} dam_storage_hm3={@dam_storage_hm3}
-      last_elevation={@last_elevation} last_data_point={@last_data_point} last_elevation_date={@last_elevation_date}
-      has_realtime_data={@has_realtime_data} dam_month_change_label={@dam_month_change_label}
-      dam_year_change_label={@dam_year_change_label} dam_month_trend_badge_class={@dam_month_trend_badge_class}
-      dam_year_trend_badge_class={@dam_year_trend_badge_class} />
+    <div :if={@dam} class="map-wait">
+      <.live_component id="homepage-dam-card" module={BarragensptWeb.HomepageV2Live.DamCardComponent}
+        basin_id={@basin_id} dam={@dam} current_capacity={@current_capacity} dam_storage_hm3={@dam_storage_hm3}
+        last_elevation={@last_elevation} last_data_point={@last_data_point} last_elevation_date={@last_elevation_date}
+        has_realtime_data={@has_realtime_data} dam_month_change_label={@dam_month_change_label}
+        dam_year_change_label={@dam_year_change_label} dam_month_trend_badge_class={@dam_month_trend_badge_class}
+        dam_year_trend_badge_class={@dam_year_trend_badge_class} />
+    </div>
 
     <a id="basinDetailLink" data-phx-link="patch" data-phx-link-state="push" href="/" class="hidden"></a>
 
-    <.live_component :if={@basin_card && @spain} id="homepage-spain-basin-card"
-      module={BarragensptWeb.HomepageV2Live.SpainBasinCardComponent} basin_card={@basin_card} />
-    <.live_component :if={@basin_card && !@spain} id="homepage-basin-card"
-      module={BarragensptWeb.HomepageV2Live.BasinCardComponent} basin_id={@basin_id} basin_card={@basin_card} />
+    <div :if={@basin_card && @spain} class="map-wait">
+      <.live_component id="homepage-spain-basin-card"
+        module={BarragensptWeb.HomepageV2Live.SpainBasinCardComponent} basin_card={@basin_card} />
+    </div>
+    <div :if={@basin_card && !@spain} class="map-wait">
+      <.live_component id="homepage-basin-card"
+        module={BarragensptWeb.HomepageV2Live.BasinCardComponent} basin_id={@basin_id} basin_card={@basin_card} />
+    </div>
 
     <!-- Buy Me a Coffee - canto inferior esquerdo, stacked por baixo da legenda (mobile; desktop: só na sidebar) -->
     <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer"
-      class="fixed bottom-2 left-3 z-20 md:hidden" aria-label="Ajudar o projeto">
+      class="map-wait fixed bottom-2 left-3 z-20 md:hidden" aria-label="Ajudar o projeto">
       <img class="h-8 w-auto object-contain" alt=""
         src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
     </a>
