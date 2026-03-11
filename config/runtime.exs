@@ -2,8 +2,7 @@ import Config
 
 config :barragenspt, :resend_api_key, System.get_env("RESEND_API_KEY")
 
-config :barragenspt, :snirh,
-  proxy: System.get_env("SNIRH_PROXY")
+config :barragenspt, :snirh, proxy: System.get_env("SNIRH_PROXY")
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -18,10 +17,6 @@ if System.get_env("PHX_SERVER") && System.get_env("RELEASE_NAME") do
 end
 
 if config_env() == :prod do
-  app_name =
-    System.get_env("FLY_APP_NAME") ||
-      raise "FLY_APP_NAME not available"
-
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
