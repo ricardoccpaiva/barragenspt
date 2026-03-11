@@ -27,7 +27,7 @@ services:
       - GRAFANA_AUTH_TOKEN=${GRAFANA_AUTH_TOKEN}
       - GRAFANA_HOST=${GRAFANA_HOST}
       - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
-      - PHX_HOST=barragens.pt
+      - PHX_HOST=${PHX_HOST}
       - OTEL_RESOURCE_ATTRIBUTES=service.name=barragens.pt,service.version=1.0,deployment.environment=production
       - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
       - OTEL_METRICS_EXPORTER=otlp
