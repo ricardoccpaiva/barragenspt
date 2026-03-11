@@ -1,8 +1,7 @@
 defmodule Barragenspt.Services.Snirh do
   require Logger
   @timeout 25000
-  @snirh_config Application.compile_env!(:barragenspt, :snirh)
-  @base_url @snirh_config[:csv_data_url]
+  @default_csv_url "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php"
 
   def get_raw_csv_data(site_id, parameter_id, start_date, end_date) do
     query_params =
@@ -14,7 +13,8 @@ defmodule Barragenspt.Services.Snirh do
       hackney: hackney_opts()
     ]
 
-    %HTTPoison.Response{body: body} = HTTPoison.get!(@base_url <> query_params, [], options)
+    base_url = snirh_config()[:csv_data_url] || @default_csv_url
+    %HTTPoison.Response{body: body} = HTTPoison.get!(base_url <> query_params, [], options)
 
     body
   end
@@ -61,9 +61,10 @@ defmodule Barragenspt.Services.Snirh do
     |> then(fn {:ok, value} -> value end)
   end
 
+  defp snirh_config, do: Application.get_env(:barragenspt, :snirh, [])
+
   defp hackney_opts do
-    snirh_config = Application.get_env(:barragenspt, :snirh, [])
-    proxy = Keyword.get(snirh_config, :proxy)
+    proxy = Keyword.get(snirh_config(), :proxy)
 
     if is_binary(proxy) and proxy != "",
       do: [proxy: proxy, insecure: true],
