@@ -39,6 +39,7 @@ services:
       - SNIRH_PROXY=${SNIRH_PROXY}
     ports:
       - "4000:4000"
+    command: ["/bin/sh", "-c", "/app/bin/migrate && exec /app/bin/server"]
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor
