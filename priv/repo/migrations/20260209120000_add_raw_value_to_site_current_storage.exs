@@ -2,10 +2,16 @@ defmodule Barragenspt.Repo.Migrations.AddRawValueToSiteCurrentStorage do
   use Ecto.Migration
 
   def up do
-    drop_if_exists index(:site_current_storage, [:site_id])
-
-    execute "DROP VIEW IF EXISTS site_current_storage;"
-    execute "DROP MATERIALIZED VIEW IF EXISTS site_current_storage;"
+    execute("""
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM pg_matviews WHERE schemaname = 'public' AND matviewname = 'site_current_storage') THEN
+        DROP INDEX IF EXISTS site_current_storage_site_id_index;
+        DROP MATERIALIZED VIEW site_current_storage;
+      ELSIF EXISTS (SELECT 1 FROM pg_views WHERE schemaname = 'public' AND viewname = 'site_current_storage') THEN
+        DROP VIEW site_current_storage;
+      END IF;
+    END $$;
+    """)
 
     execute """
     CREATE MATERIALIZED VIEW site_current_storage AS
@@ -29,10 +35,16 @@ defmodule Barragenspt.Repo.Migrations.AddRawValueToSiteCurrentStorage do
   end
 
   def down do
-    drop_if_exists index(:site_current_storage, [:site_id])
-
-    execute "DROP VIEW IF EXISTS site_current_storage;"
-    execute "DROP MATERIALIZED VIEW IF EXISTS site_current_storage;"
+    execute("""
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM pg_matviews WHERE schemaname = 'public' AND matviewname = 'site_current_storage') THEN
+        DROP INDEX IF EXISTS site_current_storage_site_id_index;
+        DROP MATERIALIZED VIEW site_current_storage;
+      ELSIF EXISTS (SELECT 1 FROM pg_views WHERE schemaname = 'public' AND viewname = 'site_current_storage') THEN
+        DROP VIEW site_current_storage;
+      END IF;
+    END $$;
+    """)
 
     execute """
     CREATE MATERIALIZED VIEW site_current_storage AS
