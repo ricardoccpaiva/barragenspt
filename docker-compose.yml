@@ -1,7 +1,7 @@
 version: '3.2'
 services:
   postgres:
-    image: postgres:18
+    image: postgres:17
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
