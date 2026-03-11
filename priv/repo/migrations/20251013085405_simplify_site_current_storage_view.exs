@@ -2,6 +2,7 @@ defmodule Barragenspt.Repo.Migrations.SimplifySiteCurrentStorageView do
   use Ecto.Migration
 
   def up do
+    execute("DROP MATERIALIZED VIEW IF EXISTS site_current_storage;")
     execute("DROP VIEW IF EXISTS site_current_storage;")
 
     execute("""
@@ -20,6 +21,7 @@ defmodule Barragenspt.Repo.Migrations.SimplifySiteCurrentStorageView do
   end
 
   def down do
+    execute("DROP MATERIALIZED VIEW IF EXISTS site_current_storage;")
     execute("DROP VIEW IF EXISTS site_current_storage;")
 
     execute("""

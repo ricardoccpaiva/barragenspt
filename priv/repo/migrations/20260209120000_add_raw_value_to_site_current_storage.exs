@@ -2,8 +2,9 @@ defmodule Barragenspt.Repo.Migrations.AddRawValueToSiteCurrentStorage do
   use Ecto.Migration
 
   def up do
-    drop index(:site_current_storage, [:site_id])
+    drop_if_exists index(:site_current_storage, [:site_id])
 
+    execute "DROP VIEW IF EXISTS site_current_storage;"
     execute "DROP MATERIALIZED VIEW IF EXISTS site_current_storage;"
 
     execute """
@@ -28,8 +29,9 @@ defmodule Barragenspt.Repo.Migrations.AddRawValueToSiteCurrentStorage do
   end
 
   def down do
-    drop index(:site_current_storage, [:site_id])
+    drop_if_exists index(:site_current_storage, [:site_id])
 
+    execute "DROP VIEW IF EXISTS site_current_storage;"
     execute "DROP MATERIALIZED VIEW IF EXISTS site_current_storage;"
 
     execute """
