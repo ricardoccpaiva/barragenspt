@@ -1,0 +1,78 @@
+version: '3.2'
+services:
+  barragenspt:
+    build:
+      context: .
+      tags:
+        - barragenspt:main
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - GRAFANA_AUTH_TOKEN=${GRAFANA_AUTH_TOKEN}
+      - GRAFANA_HOST=${GRAFANA_HOST}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      - PHX_HOST=barragens.pt
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=barragens.pt,service.version=1.0,deployment.environment=production
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_LOGS_EXPORTER=otlp
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - BUGSNAG_API_KEY=${BUGSNAG_API_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - SNIRH_PROXY=${SNIRH_PROXY}
+    ports:
+      - "4000:4000"
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    restart: unless-stopped
+    devices:
+      - "/dev/kmsg:/dev/kmsg"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8080:8080"
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./promtail.yaml:/etc/promtail/config.yaml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yaml
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:latest
+    restart: always
+    container_name: postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=${DATBASE_URL}
+    ports:
+      - '9187:9187'
+    labels:
+      - "traefik.enable=false"
