@@ -53,11 +53,11 @@ COPY assets assets
 
 RUN cd assets && npm install
 
-# compile assets
-RUN mix assets.deploy
-
 # Compile the release
 COPY lib lib
+
+# compile assets
+RUN mix assets.deploy
 
 RUN mix compile
 
