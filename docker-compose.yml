@@ -59,12 +59,18 @@ services:
 
   promtail:
     image: grafana/promtail:latest
+    environment:
+      - LOKI_URL=${LOKI_URL}
     volumes:
-      - ./promtail.yaml:/etc/promtail/config.yaml:ro
+      - ./promtail.yaml.template:/etc/promtail/promtail.yaml.template:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/log:/var/log
-    command: -config.file=/etc/promtail/config.yaml
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        sed "s|REPLACE_LOKI_URL|$$LOKI_URL|g" /etc/promtail/promtail.yaml.template > /tmp/promtail.yaml &&
+        exec /usr/bin/promtail -config.file=/tmp/promtail.yaml
 
   postgres-exporter:
     image: quay.io/prometheuscommunity/postgres-exporter:latest
