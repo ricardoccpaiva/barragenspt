@@ -77,14 +77,32 @@ services:
     environment:
       - LOKI_URL=${LOKI_URL}
     volumes:
-      - ./promtail.yaml.template:/etc/promtail/promtail.yaml.template:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/log:/var/log
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        sed "s|REPLACE_LOKI_URL|$$LOKI_URL|g" /etc/promtail/promtail.yaml.template > /tmp/promtail.yaml &&
+        cat > /tmp/promtail.yaml << 'CONFIG'
+        server:
+          http_listen_port: 9080
+          grpc_listen_port: 0
+        positions:
+          filename: /tmp/positions.yaml
+        clients:
+          - url: REPLACE_LOKI_URL
+            tenant_id: tenant1
+        scrape_configs:
+          - job_name: containers
+            docker_sd_configs:
+              - host: unix:///var/run/docker.sock
+                refresh_interval: 5s
+            relabel_configs:
+              - source_labels: ["__meta_docker_container_name"]
+                regex: "/(.*)"
+                target_label: "container"
+        CONFIG
+        sed -i "s|REPLACE_LOKI_URL|$$LOKI_URL|g" /tmp/promtail.yaml
         exec /usr/bin/promtail -config.file=/tmp/promtail.yaml
 
   postgres-exporter:
