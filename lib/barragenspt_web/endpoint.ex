@@ -55,5 +55,6 @@ defmodule BarragensptWeb.Endpoint do
   plug(Plug.MethodOverride)
   plug(Plug.Head)
   plug(Plug.Session, @session_options)
+  plug(BarragensptWeb.Plugs.Health)
   plug(BarragensptWeb.Router)
 end
