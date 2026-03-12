@@ -79,7 +79,9 @@ defmodule Barragenspt.MixProject do
       {:sweet_xml, "~> 0.7.4"},
       {:mogrify, "~> 0.9.3"},
       {:bugsnag, "~> 3.0.2"},
-      {:swoosh, "~> 1.6"}
+      {:resend, "~> 0.4"},
+      {:swoosh, "~> 1.6"},
+      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev}
     ]
   end
 
@@ -95,7 +97,7 @@ defmodule Barragenspt.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.deploy": ["esbuild default --minify", "phx.digest"]
+      "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
     ]
   end
 end

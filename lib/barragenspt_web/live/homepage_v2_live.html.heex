@@ -1,0 +1,458 @@
+<!-- Loading overlay: gota centrada que enche como progress bar até o mapa carregar -->
+<div id="loading-overlay" class="loading-overlay fixed inset-0 z-[10001] flex items-center justify-center bg-slate-50 dark:bg-slate-900" aria-hidden="true" role="status">
+  <div class="flex flex-col items-center gap-3">
+    <div class="loading-drop-container" style={"--logo-url: url('#{@logo_path}')"}>
+      <div class="loading-drop-fill"></div>
+    </div>
+    <p class="logo-type text-2xl text-slate-600 dark:text-slate-400">A carregar...</p>
+  </div>
+</div>
+
+<div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 z-30 hidden" onclick="toggleSidebar(false)"></div>
+
+<!-- Mapa full-screen (sempre por trás da sidebar) -->
+<main class="fixed inset-0">
+  <div id="map" phx-update="ignore"></div>
+  <div class="map-wait absolute top-4 left-4 right-14 md:right-4 flex items-start justify-start gap-2 z-10 pointer-events-none">
+    <button
+      class="pointer-events-auto md:hidden h-10 w-10 flex items-center justify-center shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100"
+      aria-label="Abrir menu" onclick="toggleSidebar(true)">
+      <svg class="w-5 h-5 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" stroke-width="2.5"
+        viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <div
+      class="pointer-events-auto flex items-center gap-2 h-10 px-3 shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card">
+      <div role="img" aria-label="Barragens.pt"
+        class="sidebar-logo header-bar-logo w-6 h-6 shrink-0 bg-brand-600 dark:bg-brand-400" style={"--logo-url:
+        url('#{@logo_path}')"} />
+      <span
+        class="logo-type text-[22px] font-medium whitespace-nowrap text-slate-600 dark:text-slate-300">BARRAGENS.PT</span>
+    </div>
+  </div>
+</main>
+
+<!-- Sidebar (shown when map has loaded) -->
+<aside id="sidebar"
+  class="map-wait sidebar-mobile md:translate-x-0 fixed z-40 w-[80%] max-w-[279px] md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] md:inset-y-2 md:left-2 md:right-auto flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-1.5 pb-2.5 md:px-3 md:pt-1.5 md:pb-2.5 space-y-3 rounded-2xl backdrop-blur-md">
+
+
+  <div class="flex items-center gap-2 min-w-0 pb-1.5 border-b border-slate-200/80 dark:border-slate-600/80">
+    <div role="img" aria-label="Barragens.pt" class="sidebar-logo w-8 h-8 shrink-0 bg-brand-600 dark:bg-brand-400"
+      style={"--logo-url: url('#{@logo_path}')"} />
+    <div class="leading-none min-w-0 flex-1">
+      <p class="logo-type text-[38px] text-slate-600 dark:text-slate-300 font-semibold mt-[12px]">BARRAGENS.PT</p>
+    </div>
+  </div>
+
+  <div class="search-wrapper relative mt-1.5">
+    <input id="damSearchInput" type="search" placeholder="Pesquisar barragens ou rios..." phx-hook="SearchDam"
+      class="w-full rounded-lg border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 px-2.5 py-2 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
+    <div id="damSearchResults" class={"absolute left-0 right-0 top-full mt-0.5 z-50 max-h-60 overflow-y-auto rounded-lg
+      border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 shadow-lg py-0.5 #{if @search_term=="" ,
+      do: "hidden" , else: "" }"}>
+      <%= if @search_rivers !=[] or (@dam_names !=nil and @dam_names !=[]) do %>
+        <ul class="py-0 list-none m-0">
+          <%= for r <- @search_rivers || [] do %>
+            <li>
+              <button type="button" phx-click="select_river" phx-value-basin_id={r.basin_id}
+                phx-value-river_name={r.river_name} data-river-name={r.river_display_name || r.river_name}
+                class="w-full flex items-center gap-2 px-2.5 py-2 text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 text-left border-0 bg-transparent cursor-pointer">
+                <span class="text-slate-500 dark:text-slate-400 text-xs shrink-0">Rio</span>
+                <span>
+                  <%= r.river_display_name || r.river_name %>
+                </span>
+              </button>
+            </li>
+            <% end %>
+              <%= for d <- @dam_names || [] do %>
+                <li>
+                  <a href={~p"/basins/#{d.basin_id}/dams/#{d.id}"} data-phx-link="patch" data-phx-link-state="push"
+                    class="flex items-center justify-between gap-2 px-2.5 py-2 text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 no-underline">
+                    <span>
+                      <%= d.name %>
+                    </span>
+                    <span id={"dam-search-badge-#{d.id}"}
+                      class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium text-white dark:ring-1 dark:ring-white/20"
+                      phx-hook="CapacityColor" data-observed={d.current_storage}>
+                      <%= if is_number(d.current_storage), do: "#{round(d.current_storage)}%" , else: "—" %>
+                    </span>
+                  </a>
+                </li>
+                <% end %>
+        </ul>
+        <% else %>
+          <%= if @search_term !="" do %>
+            <p class="px-2.5 py-2 text-sm text-slate-500 dark:text-slate-400 m-0">Nenhum resultado.</p>
+            <% end %>
+              <% end %>
+    </div>
+  </div>
+
+  <div class={"flex flex-col flex-1 min-h-0 transition-all duration-200 #{if @search_term !="" ,
+    do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
+    <div class="flex-1 min-h-0 overflow-y-auto space-y-3">
+      <div
+        class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section"
+        id="camadas-section" phx-update="ignore">
+        <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">% de armazenamento</h3>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Bacias</span>
+          <input id="toggleBasins" type="checkbox" class="toggle" phx-hook="BasinsLayerToggle">
+        </label>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Barragens</span>
+          <input id="toggleDams" type="checkbox" class="toggle" phx-hook="DamsLayerToggle">
+        </label>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Espanha</span>
+          <input id="toggleSpain" type="checkbox" class="toggle" phx-hook="SpainLayerToggle">
+        </label>
+      </div>
+
+      <div
+        class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+        <details class="group">
+          <summary
+            class="text-sm font-semibold text-slate-800 dark:text-slate-100 cursor-pointer list-none flex items-center justify-between gap-2 py-0.5">
+            <span>Tipos de uso</span>
+            <svg class="w-4 h-4 text-slate-500 dark:text-slate-400 transition-transform group-open:rotate-180"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div class="pt-2 space-y-1.5 border-t border-slate-100 dark:border-slate-600 mt-1.5">
+            <%= for {ut} <- @usage_types do %>
+              <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                <input type="checkbox" id={"usage-type-#{ut}"} name={ut} phx-hook="UsageTypeChanged" checked={ut in
+                  @selected_usage_types}
+                  class="rounded border-slate-300 dark:border-slate-500 text-brand-600 focus:ring-brand-500/30">
+                <span>
+                  <%= ut %>
+                </span>
+              </label>
+              <% end %>
+          </div>
+        </details>
+      </div>
+
+      <div
+        class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+        <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Estado do solo e precipitação</h3>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span class="inline-flex items-center gap-1.5">
+            <span>PDSI</span>
+            <a
+              href="https://www.ipma.pt/pt/oclima/observatorio.secas/pdsi/monitorizacao/servico.situacaoatual/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-300 text-[10px] font-semibold leading-none text-slate-800 hover:bg-slate-400 dark:bg-slate-500 dark:text-slate-100 dark:hover:bg-slate-400"
+              aria-label="Mais informação sobre PDSI"
+              title="Mais informação sobre PDSI"
+            >
+              i
+            </a>
+          </span>
+          <input id="togglePdsi" type="checkbox" class="toggle" phx-hook="PdsiLayerToggle">
+        </label>
+        <div id="pdsi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
+          <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+            <span>Mês</span>
+            <span id="pdsi-slider-label"></span>
+          </div>
+          <input id="pdsi-month-slider" type="range" min="0" max="12" value="0" class="w-full h-2 accent-sky-500">
+        </div>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Água no solo</span>
+          <input id="toggleSmi" type="checkbox" class="toggle" phx-hook="SmiLayerToggle">
+        </label>
+        <div id="smi-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
+          <div class="flex flex-col gap-1">
+            <label for="smi-depth-select" class="text-xs text-slate-600 dark:text-slate-400">Profundidade</label>
+            <select id="smi-depth-select" aria-label="Profundidade SMI"
+              class="sidebar-select w-full rounded-md border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs px-2 py-1 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+              <option value="p7">7 cm</option>
+              <option value="p28" selected>28 cm</option>
+              <option value="p100">100 cm</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="smi-vlev-select" class="text-xs text-slate-600 dark:text-slate-400">Agregação</label>
+            <select id="smi-vlev-select" aria-label="Agregação SMI"
+              class="sidebar-select w-full rounded-md border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs px-2 py-1 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+              <option value="conc" selected>Concelhos</option>
+              <option value="nuts3">NUTS III</option>
+              <option value="dist">Distritos</option>
+              <option value="nuts2">NUTS II</option>
+              <option value="hidro">Bacias</option>
+            </select>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+            <span>Dia</span>
+            <span id="smi-slider-label"></span>
+          </div>
+          <input id="smi-day-slider" type="range" min="0" max="30" value="29" class="w-full h-2 accent-sky-500">
+        </div>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Precipitação</span>
+          <input id="toggleRain" type="checkbox" class="toggle" phx-hook="RainLayerToggle">
+        </label>
+        <div id="rain-slider-wrap" class="hidden pl-0.5 pt-0.5 space-y-0.5">
+          <div class="flex flex-col gap-1">
+            <label for="rain-vlev-select" class="text-xs text-slate-600 dark:text-slate-400">Agregação</label>
+            <select id="rain-vlev-select" aria-label="Agregação Chuva"
+              class="sidebar-select w-full rounded-md border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs px-2 py-1 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+              <option value="conc" selected>Concelhos</option>
+              <option value="nuts3">NUTS III</option>
+              <option value="dist">Distritos</option>
+              <option value="nuts2">NUTS II</option>
+              <option value="hidro">Bacias</option>
+            </select>
+          </div>
+          <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+            <span>Dia (acum. diário)</span>
+            <span id="rain-slider-label"></span>
+          </div>
+          <input id="rain-day-slider" type="range" min="0" max="25" value="15" class="w-full h-2 accent-sky-500">
+        </div>
+      </div>
+
+      <div
+        class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section">
+        <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">Risco de cheias</h3>
+        <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
+          <span>Alertas</span>
+          <input id="toggleAlerts" type="checkbox" class="toggle" phx-hook="AlertsToggle">
+        </label>
+      </div>
+    </div>
+
+    <div
+      class="shrink-0 w-full pt-2 mt-2 border-t border-slate-200/80 dark:border-slate-600 flex items-center justify-between">
+      <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer" class="shrink-0"
+        aria-label="Ajudar o projeto">
+        <img class="h-7 w-auto object-contain" alt=""
+          src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+      </a>
+      <div class="flex items-center gap-0.5 -mr-1">
+        <button type="button" id="open-info-modal-btn" phx-hook="OpenInfoModal" aria-label="Informações"
+          class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+            aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
+        <button type="button" id="open-contact-modal-btn" phx-hook="OpenContactModal" aria-label="Contacto"
+          class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+            aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </button>
+        <button type="button" phx-click="open_settings_modal" phx-hook="OpenSettingsModal" id="open-settings-modal-btn"
+          aria-label="Definições"
+          class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Legendas fora da sidebar para position:fixed funcionar em mobile (sidebar com transform corta o containing block) -->
+<div id="legend-storage" class="map-wait legend-card">
+  <p class="legend-title">% Armazenamento</p>
+  <div class="legend-row"><span class="legend-dot legend-0-20"></span><span>0 - 20</span></div>
+  <div class="legend-row"><span class="legend-dot legend-21-40"></span><span>21 - 40</span></div>
+  <div class="legend-row"><span class="legend-dot legend-41-50"></span><span>41 - 50</span></div>
+  <div class="legend-row"><span class="legend-dot legend-51-60"></span><span>51 - 60</span></div>
+  <div class="legend-row"><span class="legend-dot legend-61-80"></span><span>61 - 80</span></div>
+  <div class="legend-row"><span class="legend-dot legend-81-100"></span><span>81 - 100</span></div>
+</div>
+<div id="legend-pdsi" class="map-wait legend-card hidden">
+  <p class="legend-title">Classes do PDSI</p>
+  <p id="legend-pdsi-date" class="legend-date"></p>
+  <div class="legend-row"><span class="legend-dot" style="background:#218291"></span><span>Chuva extrema</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#5c9e9c"></span><span>Chuva severa</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#91bda8"></span><span>Chuva moderada</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#c7deb4"></span><span>Chuva fraca</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#e9ffbe"></span><span>Normal</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#e8cf90"></span><span>Seca fraca</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#cfa263"></span><span>Seca moderada</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#b5773e"></span><span>Seca severa</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#9c551f"></span><span>Seca extrema</span></div>
+</div>
+<div id="legend-smi" class="map-wait legend-card hidden">
+  <p class="legend-title">Água no solo</p>
+  <p id="legend-smi-date" class="legend-date"></p>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff7e1c"></span><span>&lt;PEP</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffb408"></span><span>PEP</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#fcdf0d"></span><span>1-10</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#f7ff00"></span><span>10-20</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#cefc00"></span><span>20-40</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#65fa0f"></span><span>40-60</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#44c902"></span><span>60-80</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#23a10a"></span><span>80-99</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#066608"></span><span>CC</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#33ddbb"></span><span>1-30</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#33aaaa"></span><span>30-60</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#3377aa"></span><span>60-90</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#0000ff"></span><span>SAT</span></div>
+</div>
+<div id="legend-rain" class="map-wait legend-card hidden">
+  <p class="legend-title">Precipitação (mm)</p>
+  <p id="legend-rain-date" class="legend-date"></p>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffffff"></span><span>&lt;0.1</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#afd7ff"></span><span>0.1-2</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#99ccff"></span><span>2-5</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#77aaff"></span><span>5-10</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#0077ff"></span><span>10-20</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#0066dd"></span><span>20-30</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffee00"></span><span>30-35</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffdd00"></span><span>35-40</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffaa00"></span><span>40-50</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff7700"></span><span>50-60</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff0000"></span><span>60-90</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ff00bb"></span><span>90-120</span></div>
+  <div class="legend-row"><span class="legend-dot" style="background:#dddddd"></span><span>≥120</span></div>
+</div>
+<div id="legend-alerts" class="map-wait legend-card hidden">
+  <p class="legend-title">Alertas</p>
+  <div class="legend-row"><span class="legend-dot" style="background:#2eb1d3"></span><span>Sem alertas ativos</span>
+  </div>
+  <div class="legend-row"><span class="legend-dot" style="background:#ffcf44"></span><span>Situação de alerta</span>
+  </div>
+  <div class="legend-row"><span class="legend-dot" style="background:#fd4351"></span><span>Situação de risco</span>
+  </div>
+</div>
+
+<%= if @settings_modal_open do %>
+  <div id="settings-modal-backdrop"
+    class="settings-modal-backdrop fixed inset-0 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+    phx-hook="SettingsModalBackdrop">
+    <div
+      class="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-600 p-4"
+      id="settings-modal-content" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Definições</h3>
+        <button type="button" id="settings-modal-close-btn" phx-hook="SettingsModalCloseButton" aria-label="Fechar"
+          class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <label class="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300 py-1">
+        <span>Modo escuro</span>
+        <input id="toggleDarkMode" type="checkbox" class="toggle" phx-hook="DarkModeToggle">
+      </label>
+    </div>
+  </div>
+  <% end %>
+
+    <div id="contact-modal-backdrop" phx-hook="ContactModalBackdrop"
+      class="contact-modal-backdrop hidden fixed inset-0 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+      <div
+        class="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-600 p-4"
+        onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Contacto</h3>
+          <button type="button" id="contact-modal-close-btn" phx-hook="ContactModalCloseButton" aria-label="Fechar"
+            class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <form phx-submit="submit_contact" phx-hook="ContactForm" id="contact-form" class="space-y-3">
+          <div>
+            <label for="contact-name"
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-0.5">Nome</label>
+            <input type="text" id="contact-name" name="name" required
+              class="w-full rounded-lg border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 px-2.5 py-2 text-sm focus:ring-2 focus:ring-brand-500/30 focus:outline-none" />
+          </div>
+          <div>
+            <label for="contact-email"
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-0.5">Email</label>
+            <input type="email" id="contact-email" name="email" required
+              class="w-full rounded-lg border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 px-2.5 py-2 text-sm focus:ring-2 focus:ring-brand-500/30 focus:outline-none" />
+          </div>
+          <div>
+            <label for="contact-message"
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-0.5">Mensagem</label>
+            <textarea id="contact-message" name="message" rows="4" required
+              class="w-full rounded-lg border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 px-2.5 py-2 text-sm focus:ring-2 focus:ring-brand-500/30 focus:outline-none resize-none"></textarea>
+          </div>
+          <button type="submit"
+            class="w-full rounded-lg bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white font-medium py-2 px-4 text-sm transition-colors">
+            Enviar
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div id="info-modal-backdrop" phx-hook="InfoModalBackdrop"
+      class="info-modal-backdrop hidden fixed inset-0 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+      <div
+        class="info-modal-content w-full max-w-sm rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-600 p-4"
+        onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-100">Informações</h3>
+          <button type="button" id="info-modal-close-btn" phx-hook="InfoModalCloseButton" aria-label="Fechar"
+            class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <ul class="text-sm text-slate-700 dark:text-slate-300 space-y-3 list-none pl-0">
+          <li>Dados obtidos através dos portais SNIRH, InfoAgua e AgroClima.</li>
+          <li>
+            Código fonte:
+            <a href="https://github.com/ricardoccpaiva/barragenspt" target="_blank" rel="noopener noreferrer"
+              class="text-brand-600 dark:text-brand-400 hover:underline">GitHub</a>
+          </li>
+          <li>
+            Desenhado e implementado por
+            <a href="https://x.com/ricardoccpaiva" target="_blank" rel="noopener noreferrer"
+              class="text-brand-600 dark:text-brand-400 hover:underline">@ricardoccpaiva</a>
+          </li>
+          <li>Logo by Lucide.dev</li>
+        </ul>
+      </div>
+    </div>
+
+    <div :if={@dam} class="map-wait">
+      <.live_component id="homepage-dam-card" module={BarragensptWeb.HomepageV2Live.DamCardComponent}
+        basin_id={@basin_id} dam={@dam} current_capacity={@current_capacity} dam_storage_hm3={@dam_storage_hm3}
+        last_elevation={@last_elevation} last_data_point={@last_data_point} last_elevation_date={@last_elevation_date}
+        has_realtime_data={@has_realtime_data} dam_month_change_label={@dam_month_change_label}
+        dam_year_change_label={@dam_year_change_label} dam_month_trend_badge_class={@dam_month_trend_badge_class}
+        dam_year_trend_badge_class={@dam_year_trend_badge_class} />
+    </div>
+
+    <a id="basinDetailLink" data-phx-link="patch" data-phx-link-state="push" href="/" class="hidden"></a>
+
+    <div :if={@basin_card && @spain} class="map-wait">
+      <.live_component id="homepage-spain-basin-card"
+        module={BarragensptWeb.HomepageV2Live.SpainBasinCardComponent} basin_card={@basin_card} />
+    </div>
+    <div :if={@basin_card && !@spain} class="map-wait">
+      <.live_component id="homepage-basin-card"
+        module={BarragensptWeb.HomepageV2Live.BasinCardComponent} basin_id={@basin_id} basin_card={@basin_card} />
+    </div>
+
+    <!-- Buy Me a Coffee - canto inferior esquerdo, stacked por baixo da legenda (mobile; desktop: só na sidebar) -->
+    <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer"
+      class="map-wait fixed bottom-2 left-3 z-20 md:hidden" aria-label="Ajudar o projeto">
+      <img class="h-8 w-auto object-contain" alt=""
+        src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+    </a>

@@ -3,15 +3,28 @@ defmodule Barragenspt.Mappers.Colors do
     pct |> Decimal.to_float() |> lookup_capacity()
   end
 
+  # Escala alinhada com app.css (.legend-0-20 … .legend-81-100) e mapa
   def lookup_capacity(pct) do
     cond do
-      0 < pct and pct < 21 -> "#FFADAD"
-      21 <= pct and pct <= 41 -> "#FFD6A5"
-      41 <= pct and pct <= 51 -> "#FDFFB6"
-      51 <= pct and pct <= 61 -> "#CAFFBF"
-      61 <= pct and pct <= 81 -> "#A6D8FF"
-      81 <= pct and pct <= 100 -> "#72B6F9"
-      true -> "#D3D3D3"
+      pct <= 20 -> "#ff675c"
+      pct <= 40 -> "#ffc34a"
+      pct <= 50 -> "#ffe99c"
+      pct <= 60 -> "#c2faaa"
+      pct <= 80 -> "#a6d8ff"
+      pct <= 100 -> "#1c9dff"
+      true -> "#94a3b8"
+    end
+  end
+
+  def lookup_index(pct) do
+    cond do
+      pct <= 20 -> 1
+      pct <= 40 -> 2
+      pct <= 50 -> 3
+      pct <= 60 -> 4
+      pct <= 80 -> 5
+      pct <= 200 -> 6
+      true -> 0
     end
   end
 

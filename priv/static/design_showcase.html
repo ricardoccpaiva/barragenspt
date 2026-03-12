@@ -1,0 +1,2275 @@
+<!DOCTYPE html>
+<html lang="pt">
+<!--
+  AGREGADOR GENÉRICO DE DESIGN — tabs no topo (Bacias, Barragens, etc.).
+  Bacias: os 8 designs de card em grelha, todos visíveis. Barragens: placeholder.
+  Nova secção: botão .top-tab com data-page="id" + .page-content com data-page="id".
+-->
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>barragens.pt — Design showcase (genérico)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc',
+              400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1',
+              800: '#075985', 900: '#0c4a6e'
+            }
+          },
+          boxShadow: {
+            'card': '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
+            'float': '0 25px 50px -12px rgb(0 0 0 / 0.12)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .page-content {
+      display: none;
+    }
+
+    .page-content.is-active {
+      display: block;
+    }
+
+    .top-tab.active {
+      background: white;
+      color: #0f172a;
+      font-weight: 600;
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    }
+
+    /* Badges de capacidade (estilo: fundo pastel, borda ligeiramente mais escura, texto mais carregado/vivo) — hex de color.ex */
+    .badge-capacity {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 0.375rem;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      border-width: 1px;
+    }
+
+    .badge-capacity-p0 {
+      background-color: #FFADAD;
+      border-color: color-mix(in srgb, #FFADAD 88%, black);
+      color: color-mix(in srgb, #FFADAD 50%, black);
+    }
+
+    .badge-capacity-p1 {
+      background-color: #FFD6A5;
+      border-color: color-mix(in srgb, #FFD6A5 88%, black);
+      color: color-mix(in srgb, #FFD6A5 50%, black);
+    }
+
+    .badge-capacity-p2 {
+      background-color: #FDFFB6;
+      border-color: color-mix(in srgb, #FDFFB6 88%, black);
+      color: color-mix(in srgb, #FDFFB6 50%, black);
+    }
+
+    .badge-capacity-p3 {
+      background-color: #CAFFBF;
+      border-color: color-mix(in srgb, #CAFFBF 88%, black);
+      color: color-mix(in srgb, #CAFFBF 50%, black);
+    }
+
+    .badge-capacity-p4 {
+      background-color: #A6D8FF;
+      border-color: color-mix(in srgb, #A6D8FF 88%, black);
+      color: color-mix(in srgb, #A6D8FF 50%, black);
+    }
+
+    .badge-capacity-p5 {
+      background-color: #72B6F9;
+      border-color: color-mix(in srgb, #72B6F9 88%, black);
+      color: color-mix(in srgb, #72B6F9 50%, black);
+    }
+
+    /* Toggle switch (não checkbox) */
+    .toggle {
+      appearance: none;
+      width: 44px;
+      height: 24px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      position: relative;
+      outline: none;
+      transition: background 0.2s ease;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      top: 3px;
+      left: 3px;
+      border-radius: 9999px;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s ease;
+    }
+    .toggle:checked {
+      background: #0ea5e9;
+    }
+    .toggle:checked::after {
+      transform: translateX(20px);
+    }
+
+    /* Preview cards (OG 1200×628) — escala no showcase */
+    .og-preview-frame {
+      aspect-ratio: 1200 / 628;
+      max-width: 380px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      border: 1px solid #e2e8f0;
+    }
+    .og-preview-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-100 min-h-screen text-slate-800 p-4 md:p-6">
+  <div class="max-w-6xl mx-auto">
+    <header class="mb-4">
+      <h1 class="text-xl font-bold text-slate-900">Design showcase</h1>
+      <p class="text-sm text-slate-500 mt-0.5">Um único sítio para consultar opções de design. Escolhe Bacias ou
+        Barragens em cima.</p>
+    </header>
+
+    <!-- Tabs no topo: Bacias | Barragens -->
+    <div class="mb-6 flex gap-1 rounded-xl bg-slate-200/80 p-1 text-sm font-medium text-slate-600 w-fit">
+      <button type="button" class="top-tab rounded-lg px-4 py-2 hover:bg-white/50 transition-colors active"
+        data-page="bacias">Bacias</button>
+      <button type="button" class="top-tab rounded-lg px-4 py-2 hover:bg-white/50 transition-colors"
+        data-page="barragens">Barragens</button>
+      <button type="button" class="top-tab rounded-lg px-4 py-2 hover:bg-white/50 transition-colors"
+        data-page="badges">Badges</button>
+      <button type="button" class="top-tab rounded-lg px-4 py-2 hover:bg-white/50 transition-colors"
+        data-page="cards">Cards</button>
+      <button type="button" class="top-tab rounded-lg px-4 py-2 hover:bg-white/50 transition-colors"
+        data-page="homepage">Homepage</button>
+      <button type="button" class="top-tab rounded-lg px-4 py-2 hover:bg-white/50 transition-colors"
+        data-page="dam-cards">Dam cards</button>
+      <button type="button" class="top-tab rounded-lg px-4 py-2 hover:bg-white/50 transition-colors"
+        data-page="sidebar">Sidebar</button>
+      <button type="button" class="top-tab rounded-lg px-4 py-2 hover:bg-white/50 transition-colors"
+        data-page="preview-cards">Preview cards</button>
+    </div>
+
+    <!-- Página Bacias: os 8 designs em grelha, todos visíveis -->
+    <div class="page-content is-active" data-page="bacias" id="page-bacias">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- 1 -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">1 — Circular + badges</p>
+          <div
+            class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <p class="text-sm font-semibold text-slate-900">Bacia do Tejo</p>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-4 space-y-3 text-sm text-slate-600">
+              <div class="flex flex-col items-center justify-center">
+                <div class="relative h-14 w-14">
+                  <svg viewBox="0 0 36 36" class="h-14 w-14 -rotate-90">
+                    <path class="text-slate-100" stroke="currentColor" stroke-width="4" fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+                    <path class="text-brand-500" stroke="currentColor" stroke-width="4" fill="none"
+                      stroke-linecap="round" stroke-dasharray="67, 100"
+                      d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+                  </svg>
+                  <div
+                    class="absolute inset-0 flex items-center justify-center text-xs font-semibold text-slate-700 tabular-nums">
+                    67%</div>
+                </div>
+                <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1.5">Atual</p>
+              </div>
+              <div class="flex items-center justify-center gap-2 flex-wrap">
+                <span
+                  class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">↑
+                  +4% há 1 mês</span>
+                <span
+                  class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700">↓
+                  −2% há 1 ano</span>
+              </div>
+              <div class="pt-2">
+                <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">
+                  <button type="button"
+                    class="rounded-full px-3 py-1 bg-white text-slate-700 shadow-sm">Barragens</button>
+                  <button type="button" class="rounded-full px-3 py-1">Evolução</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">2 — Número + barra + chips</p>
+          <div
+            class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <p class="text-sm font-semibold text-slate-900">Bacia do Tejo</p>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-4 space-y-3 text-sm text-slate-600">
+              <div>
+                <div class="flex items-baseline justify-between gap-2">
+                  <p class="text-2xl font-bold text-slate-900 tabular-nums">67%</p>
+                  <p class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Atual</p>
+                </div>
+                <div class="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div class="h-full bg-brand-500 rounded-full" style="width: 67%"></div>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-center">
+                  <p class="text-[10px] text-slate-500 mb-0.5">1 mês</p>
+                  <p class="text-xs font-semibold text-emerald-600">↑ +4%</p>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-center">
+                  <p class="text-[10px] text-slate-500 mb-0.5">1 ano</p>
+                  <p class="text-xs font-semibold text-rose-600">↓ −2%</p>
+                </div>
+              </div>
+              <div class="pt-2">
+                <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">
+                  <button type="button"
+                    class="rounded-full px-3 py-1 bg-white text-slate-700 shadow-sm">Barragens</button>
+                  <button type="button" class="rounded-full px-3 py-1">Evolução</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">3 — Uma linha + 1 ano em baixo
+          </p>
+          <div
+            class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <p class="text-sm font-semibold text-slate-900">Bacia do Tejo</p>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-4 space-y-3 text-sm text-slate-600">
+              <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span class="text-2xl font-bold text-slate-900 tabular-nums">67%</span>
+                <span class="text-xs text-slate-500">Atual</span>
+                <span class="text-slate-300">·</span>
+                <span class="text-xs font-medium text-emerald-600">↑ +4% vs há 1 mês</span>
+              </div>
+              <p class="text-xs text-slate-500">Há 1 ano: <span class="font-medium text-rose-600">↓ −2%</span></p>
+              <div class="pt-2">
+                <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">
+                  <button type="button"
+                    class="rounded-full px-3 py-1 bg-white text-slate-700 shadow-sm">Barragens</button>
+                  <button type="button" class="rounded-full px-3 py-1">Evolução</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">4 — Circular + badges ao lado
+          </p>
+          <div
+            class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <p class="text-sm font-semibold text-slate-900">Bacia do Tejo</p>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-4 space-y-3 text-sm text-slate-600">
+              <div class="flex items-center gap-3">
+                <div class="relative h-12 w-12 shrink-0">
+                  <svg viewBox="0 0 36 36" class="h-12 w-12 -rotate-90">
+                    <path class="text-slate-100" stroke="currentColor" stroke-width="4" fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+                    <path class="text-brand-500" stroke="currentColor" stroke-width="4" fill="none"
+                      stroke-linecap="round" stroke-dasharray="67, 100"
+                      d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+                  </svg>
+                  <div
+                    class="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-slate-700 tabular-nums">
+                    67%</div>
+                </div>
+                <div class="flex flex-col gap-1.5 min-w-0">
+                  <span class="text-[10px] uppercase tracking-[0.15em] text-slate-500">Atual</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    <span
+                      class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">↑
+                      +4% há 1 mês</span>
+                    <span
+                      class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700">↓
+                      −2% há 1 ano</span>
+                  </div>
+                </div>
+              </div>
+              <div class="pt-2">
+                <div class="inline-flex rounded-full bg-slate-100 p-1 text-xs font-medium text-slate-600">
+                  <button type="button"
+                    class="rounded-full px-3 py-1 bg-white text-slate-700 shadow-sm">Barragens</button>
+                  <button type="button" class="rounded-full px-3 py-1">Evolução</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- A -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">A — Faixa resumo + tabela</p>
+          <div
+            class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <p class="text-sm font-semibold text-slate-900">Bacia do Tejo</p>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-3">
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                <span class="font-bold text-slate-900 tabular-nums">67%</span>
+                <span class="text-slate-400">·</span>
+                <span class="text-slate-600">4 200 hm³</span>
+                <span class="text-slate-400">·</span>
+                <span class="text-emerald-600 font-medium">↑ +4%</span> <span class="text-slate-500">1 mês</span>
+                <span class="text-slate-400">·</span>
+                <span class="text-rose-600 font-medium">↓ −2%</span> <span class="text-slate-500">1 ano</span>
+              </div>
+              <div class="mt-2 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 67%"></div>
+              </div>
+            </div>
+            <div class="px-3 pb-3">
+              <div class="inline-flex rounded-full bg-slate-100 p-0.5 text-xs text-slate-600">
+                <button type="button" class="rounded-full px-2.5 py-1 bg-white shadow-sm">Barragens</button>
+                <button type="button" class="rounded-full px-2.5 py-1">Evolução</button>
+              </div>
+            </div>
+            <div class="border-t border-slate-100 px-2 pb-2 max-h-[38vh] overflow-y-auto">
+              <table class="w-full text-xs">
+                <thead class="bg-slate-50/80 text-slate-500 sticky top-0">
+                  <tr>
+                    <th class="px-2 py-1 text-left font-medium">Nome</th>
+                    <th class="px-2 py-1 text-right">Atual</th>
+                    <th class="px-2 py-1 text-right">Hist.</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr class="hover:bg-slate-50/50">
+                    <td class="px-2 py-1"><a href="#" class="text-brand-600">Alqueva</a><span
+                        class="block text-[9px] text-slate-500">09/02/2025</span></td>
+                    <td class="px-2 py-1 text-right"><span
+                        class="rounded-full bg-amber-100 px-1.5 py-0.5 text-amber-700">45%</span></td>
+                    <td class="px-2 py-1 text-right text-slate-600">42%</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50">
+                    <td class="px-2 py-1"><a href="#" class="text-brand-600">Pedrógão</a><span
+                        class="block text-[9px] text-slate-500">09/02/2025</span></td>
+                    <td class="px-2 py-1 text-right"><span
+                        class="rounded-full bg-emerald-100 px-1.5 py-0.5 text-emerald-700">78%</span></td>
+                    <td class="px-2 py-1 text-right text-slate-600">72%</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50">
+                    <td class="px-2 py-1"><a href="#" class="text-brand-600">Maranhão</a><span
+                        class="block text-[9px] text-slate-500">08/02/2025</span></td>
+                    <td class="px-2 py-1 text-right"><span
+                        class="rounded-full bg-lime-100 px-1.5 py-0.5 text-lime-700">62%</span></td>
+                    <td class="px-2 py-1 text-right text-slate-600">58%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- B -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">B — 4 blocos + tabela</p>
+          <div
+            class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <p class="text-sm font-semibold text-slate-900">Bacia do Tejo</p>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-center">
+                  <p class="text-[10px] uppercase tracking-wider text-slate-500">Atual</p>
+                  <p class="text-xl font-bold text-slate-900 tabular-nums">67%</p>
+                  <div class="mt-1 h-1 rounded-full bg-slate-200 overflow-hidden">
+                    <div class="h-full bg-brand-500 rounded-full" style="width: 67%"></div>
+                  </div>
+                </div>
+                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-center">
+                  <p class="text-[10px] uppercase tracking-wider text-slate-500">Volume</p>
+                  <p class="text-lg font-bold text-slate-800 tabular-nums">4 200</p>
+                  <p class="text-[10px] text-slate-500">hm³</p>
+                </div>
+                <div class="rounded-xl border border-emerald-100 bg-emerald-50/50 p-2.5 text-center">
+                  <p class="text-[10px] text-slate-600">1 mês</p>
+                  <p class="text-sm font-semibold text-emerald-700">↑ +4%</p>
+                </div>
+                <div class="rounded-xl border border-rose-100 bg-rose-50/50 p-2.5 text-center">
+                  <p class="text-[10px] text-slate-600">1 ano</p>
+                  <p class="text-sm font-semibold text-rose-700">↓ −2%</p>
+                </div>
+              </div>
+            </div>
+            <div class="px-3 pb-3">
+              <div class="inline-flex rounded-full bg-slate-100 p-0.5 text-xs text-slate-600">
+                <button type="button" class="rounded-full px-2.5 py-1 bg-white shadow-sm">Barragens</button>
+                <button type="button" class="rounded-full px-2.5 py-1">Evolução</button>
+              </div>
+            </div>
+            <div class="border-t border-slate-100 px-2 pb-2 max-h-[32vh] overflow-y-auto">
+              <table class="w-full text-xs">
+                <thead class="bg-slate-50/80 text-slate-500">
+                  <tr>
+                    <th class="px-2 py-1 text-left">Nome</th>
+                    <th class="px-2 py-1 text-right">Atual</th>
+                    <th class="px-2 py-1 text-right">Hist.</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr class="hover:bg-slate-50/50">
+                    <td class="px-2 py-1"><a href="#" class="text-brand-600">Alqueva</a></td>
+                    <td class="px-2 py-1 text-right"><span
+                        class="rounded-full bg-amber-100 px-1.5 py-0.5 text-amber-700">45%</span></td>
+                    <td class="px-2 py-1 text-right text-slate-600">42%</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50">
+                    <td class="px-2 py-1"><a href="#" class="text-brand-600">Pedrógão</a></td>
+                    <td class="px-2 py-1 text-right"><span
+                        class="rounded-full bg-emerald-100 px-1.5 py-0.5 text-emerald-700">78%</span></td>
+                    <td class="px-2 py-1 text-right text-slate-600">72%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- C -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">C — % + volume · tendências</p>
+          <div
+            class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <p class="text-sm font-semibold text-slate-900">Bacia do Tejo</p>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-3 flex gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start gap-2">
+                  <p class="text-2xl font-bold text-slate-900 tabular-nums">67%</p>
+                  <span class="text-[10px] uppercase tracking-wider text-slate-500 pt-1">Atual</span>
+                </div>
+                <p class="text-[11px] text-slate-500 mt-0.5">Volume: 4 200 hm³</p>
+                <div class="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div class="h-full bg-brand-500 rounded-full" style="width: 67%"></div>
+                </div>
+              </div>
+              <div class="flex flex-col gap-1.5 shrink-0">
+                <div class="rounded-lg bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 text-center">
+                  <p class="text-[9px] text-slate-600">1 mês</p>
+                  <p class="text-xs font-semibold text-emerald-700">↑ +4%</p>
+                </div>
+                <div class="rounded-lg bg-rose-50 border border-rose-100 px-2.5 py-1.5 text-center">
+                  <p class="text-[9px] text-slate-600">1 ano</p>
+                  <p class="text-xs font-semibold text-rose-700">↓ −2%</p>
+                </div>
+              </div>
+            </div>
+            <div class="px-3 pb-3">
+              <div class="inline-flex rounded-full bg-slate-100 p-0.5 text-xs text-slate-600">
+                <button type="button" class="rounded-full px-2.5 py-1 bg-white shadow-sm">Barragens</button>
+                <button type="button" class="rounded-full px-2.5 py-1">Evolução</button>
+              </div>
+            </div>
+            <div class="border-t border-slate-100 px-2 pb-2 max-h-[32vh] overflow-y-auto">
+              <table class="w-full text-xs">
+                <thead class="bg-slate-50/80 text-slate-500">
+                  <tr>
+                    <th class="px-2 py-1 text-left">Nome</th>
+                    <th class="px-2 py-1 text-right">Atual</th>
+                    <th class="px-2 py-1 text-right">Hist.</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr class="hover:bg-slate-50/50">
+                    <td class="px-2 py-1"><a href="#" class="text-brand-600">Alqueva</a><span
+                        class="block text-[9px] text-slate-500">09/02/2025</span></td>
+                    <td class="px-2 py-1 text-right align-top"><span
+                        class="rounded-full bg-amber-100 px-1.5 py-0.5 text-amber-700">45%</span></td>
+                    <td class="px-2 py-1 text-right text-slate-600 align-top">42%</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50">
+                    <td class="px-2 py-1"><a href="#" class="text-brand-600">Pedrógão</a><span
+                        class="block text-[9px] text-slate-500">09/02/2025</span></td>
+                    <td class="px-2 py-1 text-right align-top"><span
+                        class="rounded-full bg-emerald-100 px-1.5 py-0.5 text-emerald-700">78%</span></td>
+                    <td class="px-2 py-1 text-right text-slate-600 align-top">72%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- D -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">D — Frase + lista</p>
+          <div
+            class="w-full max-w-[360px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <p class="text-sm font-semibold text-slate-900">Bacia do Tejo</p>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-3">
+              <p class="text-xs text-slate-600 leading-relaxed">
+                <span class="font-bold text-slate-900">67%</span> de enchimento atualmente · <span
+                  class="tabular-nums">4 200 hm³</span> armazenados.
+                <span class="text-emerald-600 font-medium">Subiu 4%</span> em relação há 1 mês e <span
+                  class="text-rose-600 font-medium">desceu 2%</span> há 1 ano.
+              </p>
+              <div class="mt-2 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 67%"></div>
+              </div>
+            </div>
+            <div class="px-3 pb-3">
+              <div class="inline-flex rounded-full bg-slate-100 p-0.5 text-xs text-slate-600">
+                <button type="button" class="rounded-full px-2.5 py-1 bg-white shadow-sm">Barragens</button>
+                <button type="button" class="rounded-full px-2.5 py-1">Evolução</button>
+              </div>
+            </div>
+            <div class="border-t border-slate-100 px-3 py-2 max-h-[36vh] overflow-y-auto space-y-1.5">
+              <p class="text-[10px] uppercase tracking-wider text-slate-500">Barragens</p>
+              <a href="#"
+                class="flex items-center justify-between gap-2 py-1.5 rounded-lg hover:bg-slate-50 px-2 -mx-2 text-brand-600">
+                <span class="font-medium truncate">Alqueva</span>
+                <span class="flex items-center gap-1.5 shrink-0 text-xs">
+                  <span class="rounded-full bg-amber-100 px-1.5 py-0.5 text-amber-700 text-xs">45%</span>
+                  <span class="text-[9px] text-slate-500">09/02</span>
+                  <span class="text-slate-400">·</span>
+                  <span class="text-slate-500">hist. 42%</span>
+                </span>
+              </a>
+              <a href="#"
+                class="flex items-center justify-between gap-2 py-1.5 rounded-lg hover:bg-slate-50 px-2 -mx-2 text-brand-600">
+                <span class="font-medium truncate">Pedrógão</span>
+                <span class="flex items-center gap-1.5 shrink-0 text-xs">
+                  <span class="rounded-full bg-emerald-100 px-1.5 py-0.5 text-emerald-700 text-xs">78%</span>
+                  <span class="text-[9px] text-slate-500">09/02</span>
+                  <span class="text-slate-400">·</span>
+                  <span class="text-slate-500">hist. 72%</span>
+                </span>
+              </a>
+              <a href="#"
+                class="flex items-center justify-between gap-2 py-1.5 rounded-lg hover:bg-slate-50 px-2 -mx-2 text-brand-600">
+                <span class="font-medium truncate">Maranhão</span>
+                <span class="flex items-center gap-1.5 shrink-0 text-xs">
+                  <span class="rounded-full bg-lime-100 px-1.5 py-0.5 text-lime-700 text-xs">62%</span>
+                  <span class="text-[9px] text-slate-500">08/02</span>
+                  <span class="text-slate-400">·</span>
+                  <span class="text-slate-500">hist. 58%</span>
+                </span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Página Badges: badges de capacidade (hex de color.ex) -->
+    <div class="page-content" data-page="badges" id="page-badges">
+      <p class="text-sm text-slate-600 mb-4">Classes Tailwind/CSS para badges de % de enchimento. Estilo: fundo pastel
+        (hex do color.ex), borda ligeiramente mais escura, texto mais carregado e vivo. Uso: <code
+          class="bg-slate-200 px-1 rounded">badge-capacity badge-capacity-p0</code> … <code
+          class="bg-slate-200 px-1 rounded">badge-capacity-p5</code>.</p>
+      <div class="flex flex-wrap items-baseline gap-4 gap-y-6">
+        <div class="flex flex-col items-center gap-2">
+          <span class="badge-capacity badge-capacity-p0">Badge</span>
+          <span class="text-xs text-slate-500">0–20% · #FFADAD</span>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+          <span class="badge-capacity badge-capacity-p1">Badge</span>
+          <span class="text-xs text-slate-500">21–41% · #FFD6A5</span>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+          <span class="badge-capacity badge-capacity-p2">Badge</span>
+          <span class="text-xs text-slate-500">41–51% · #FDFFB6</span>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+          <span class="badge-capacity badge-capacity-p3">Badge</span>
+          <span class="text-xs text-slate-500">51–61% · #CAFFBF</span>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+          <span class="badge-capacity badge-capacity-p4">Badge</span>
+          <span class="text-xs text-slate-500">61–81% · #A6D8FF</span>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+          <span class="badge-capacity badge-capacity-p5">Badge</span>
+          <span class="text-xs text-slate-500">81–100% · #72B6F9</span>
+        </div>
+      </div>
+      <div class="mt-8 pt-6 border-t border-slate-200">
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Exemplo em linha (como na
+          pesquisa)</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="badge-capacity badge-capacity-p0">12%</span>
+          <span class="badge-capacity badge-capacity-p1">35%</span>
+          <span class="badge-capacity badge-capacity-p3">58%</span>
+          <span class="badge-capacity badge-capacity-p4">72%</span>
+          <span class="badge-capacity badge-capacity-p5">94%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Página Cards: estilos visuais de cards (só aspeto) -->
+    <div class="page-content" data-page="cards" id="page-cards">
+      <p class="text-sm text-slate-600 mb-4">Vários estilos de cards — apenas o aspeto visual. Conteúdo é placeholder.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- 1 — Flat / minimal -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">1 — Flat</p>
+          <div class="w-full max-w-[280px] bg-white rounded-xl border border-slate-200 p-4">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-1">Conteúdo placeholder.</p>
+          </div>
+        </div>
+        <!-- 2 — Float shadow (atual) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">2 — Float</p>
+          <div class="w-full max-w-[280px] bg-white/95 rounded-2xl shadow-float border border-slate-200 p-4">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-1">Conteúdo placeholder.</p>
+          </div>
+        </div>
+        <!-- 3 — Borda forte, sem sombra -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">3 — Borda forte</p>
+          <div class="w-full max-w-[280px] bg-white rounded-xl border-2 border-slate-300 p-4">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-1">Conteúdo placeholder.</p>
+          </div>
+        </div>
+        <!-- 4 — Rounded grande + sombra suave -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">4 — Rounded + sombra</p>
+          <div class="w-full max-w-[280px] bg-white rounded-3xl shadow-lg border border-slate-100 p-4">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-1">Conteúdo placeholder.</p>
+          </div>
+        </div>
+        <!-- 5 — Glass / frosted -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">5 — Glass</p>
+          <div class="w-full max-w-[280px] bg-white/70 backdrop-blur-md rounded-2xl border border-white/50 shadow-float p-4">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-1">Conteúdo placeholder.</p>
+          </div>
+        </div>
+        <!-- 6 — Elevado (sombra mais marcada) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">6 — Elevado</p>
+          <div class="w-full max-w-[280px] bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 p-4">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-1">Conteúdo placeholder.</p>
+          </div>
+        </div>
+        <!-- 7 — Outlined (borda, fundo quase neutro) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">7 — Outlined</p>
+          <div class="w-full max-w-[280px] bg-slate-50/80 rounded-xl border-2 border-slate-200 p-4">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-1">Conteúdo placeholder.</p>
+          </div>
+        </div>
+        <!-- 8 — Soft / pastel (fundo brand suave) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">8 — Soft brand</p>
+          <div class="w-full max-w-[280px] bg-brand-50 rounded-2xl border border-brand-100 p-4">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-1">Conteúdo placeholder.</p>
+          </div>
+        </div>
+        <!-- 9 — Header destacado -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">9 — Header destacado</p>
+          <div class="w-full max-w-[280px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden">
+            <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
+              <p class="text-sm font-semibold text-slate-900">Título</p>
+            </div>
+            <div class="p-4">
+              <p class="text-xs text-slate-500">Conteúdo placeholder.</p>
+            </div>
+          </div>
+        </div>
+        <!-- 9b — Header bem destacado (slate) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">9b — Header slate</p>
+          <div class="w-full max-w-[280px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden">
+            <div class="px-4 py-3 bg-slate-800 text-white rounded-t-2xl">
+              <p class="text-sm font-semibold">Título</p>
+            </div>
+            <div class="p-4">
+              <p class="text-xs text-slate-500">Conteúdo placeholder.</p>
+            </div>
+          </div>
+        </div>
+        <!-- 9c — Header brand -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">9c — Header brand</p>
+          <div class="w-full max-w-[280px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden">
+            <div class="px-4 py-3 bg-brand-600 text-white rounded-t-2xl">
+              <p class="text-sm font-semibold">Título</p>
+            </div>
+            <div class="p-4">
+              <p class="text-xs text-slate-500">Conteúdo placeholder.</p>
+            </div>
+          </div>
+        </div>
+        <!-- 9d — Header emerald -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">9d — Header emerald</p>
+          <div class="w-full max-w-[280px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden">
+            <div class="px-4 py-3 bg-emerald-600 text-white rounded-t-2xl">
+              <p class="text-sm font-semibold">Título</p>
+            </div>
+            <div class="p-4">
+              <p class="text-xs text-slate-500">Conteúdo placeholder.</p>
+            </div>
+          </div>
+        </div>
+        <!-- 9e — Header amber -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">9e — Header amber</p>
+          <div class="w-full max-w-[280px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden">
+            <div class="px-4 py-3 bg-amber-600 text-white rounded-t-2xl">
+              <p class="text-sm font-semibold">Título</p>
+            </div>
+            <div class="p-4">
+              <p class="text-xs text-slate-500">Conteúdo placeholder.</p>
+            </div>
+          </div>
+        </div>
+        <!-- 9f — Header rose -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">9f — Header rose</p>
+          <div class="w-full max-w-[280px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden">
+            <div class="px-4 py-3 bg-rose-600 text-white rounded-t-2xl">
+              <p class="text-sm font-semibold">Título</p>
+            </div>
+            <div class="p-4">
+              <p class="text-xs text-slate-500">Conteúdo placeholder.</p>
+            </div>
+          </div>
+        </div>
+        <!-- 10 — Borda esquerda colorida -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">10 — Borda esquerda</p>
+          <div class="w-full max-w-[280px] bg-white rounded-xl border border-slate-200 border-l-4 border-l-brand-500 shadow-card p-4">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-1">Conteúdo placeholder.</p>
+          </div>
+        </div>
+        <!-- 11 — Compacto, cantos pouco arredondados -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">11 — Compacto</p>
+          <div class="w-full max-w-[280px] bg-white rounded-lg border border-slate-200 shadow-sm p-3">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-0.5">Conteúdo placeholder.</p>
+          </div>
+        </div>
+        <!-- 12 — Sombra interna (inset) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">12 — Inset</p>
+          <div class="w-full max-w-[280px] bg-slate-100 rounded-2xl border border-slate-200 shadow-[inset_0_2px_4px_rgb(0,0,0,0.06)] p-4">
+            <p class="text-sm font-semibold text-slate-900">Título</p>
+            <p class="text-xs text-slate-500 mt-1">Conteúdo placeholder.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Página Homepage: 4 alternativas de layout da homepage (sidebar + mapa + painel) -->
+    <div class="page-content" data-page="homepage" id="page-homepage">
+      <p class="text-sm text-slate-600 mb-6">Quatro alternativas de layout para a homepage (sidebar, mapa, painel de bacia/barragem). Mockups estáticos para comparação.</p>
+      <div class="space-y-12">
+        <!-- Alternativa 1: Atual refinado — sidebar esquerda, mapa central, card flutuante direita -->
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">1 — Atual refinado</p>
+          <div class="rounded-2xl border-2 border-slate-200 overflow-hidden bg-slate-50" style="aspect-ratio: 16/10; min-height: 320px;">
+            <div class="h-full flex relative">
+              <aside class="w-[280px] shrink-0 bg-slate-100/95 border-r border-slate-200 p-3 flex flex-col gap-2 text-xs">
+                <div class="font-bold text-brand-500 text-sm">BARRAGENS.PT</div>
+                <div class="rounded-lg bg-white border border-slate-200 px-2 py-1.5 text-slate-500">Pesquisar...</div>
+                <div class="rounded-lg bg-white border border-slate-200 p-2 space-y-1">
+                  <p class="font-semibold text-slate-700">Camadas</p>
+                  <p class="text-slate-500">Bacias · Barragens · Espanha</p>
+                </div>
+                <div class="rounded-lg bg-white border border-slate-200 p-2">
+                  <p class="font-semibold text-slate-700">% Armazenamento</p>
+                  <div class="flex gap-1 mt-1 flex-wrap">
+                    <span class="w-3 h-3 rounded-full bg-red-300"></span>
+                    <span class="w-3 h-3 rounded-full bg-amber-300"></span>
+                    <span class="w-3 h-3 rounded-full bg-brand-400"></span>
+                  </div>
+                </div>
+              </aside>
+              <main class="flex-1 relative bg-gradient-to-br from-slate-100 to-brand-50 flex items-center justify-center text-slate-400 text-sm">
+                Mapa
+              </main>
+              <div class="absolute right-4 top-1/2 -translate-y-1/2 w-[280px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden">
+                <div class="h-10 px-4 bg-slate-100/95 border-b border-slate-200 flex items-center justify-between text-sm font-semibold text-slate-800">
+                  Douro <span class="text-xs font-normal text-slate-500">Fechar</span>
+                </div>
+                <div class="p-4 text-xs space-y-2">
+                  <p class="text-2xl font-bold text-slate-900">90.2%</p>
+                  <p class="text-slate-500">Volume: 947 121 hm³</p>
+                  <div class="flex gap-1.5">
+                    <span class="rounded-full px-2 py-0.5 bg-rose-50 text-rose-700">Há 1 mês: -3.5%</span>
+                    <span class="rounded-full px-2 py-0.5 bg-emerald-50 text-emerald-700">Há 1 ano: +0.5%</span>
+                  </div>
+                  <div class="flex rounded-full bg-slate-100 p-0.5"><span class="rounded-full bg-white px-3 py-1 text-slate-700">Barragens</span><span class="px-3 py-1 text-slate-500">Evolução</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alternativa 2: Top bar + mapa full + bottom sheet para camadas e detalhe -->
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">2 — Top bar + bottom sheet</p>
+          <div class="rounded-2xl border-2 border-slate-200 overflow-hidden bg-slate-50" style="aspect-ratio: 16/10; min-height: 320px;">
+            <div class="h-full flex flex-col">
+              <header class="h-12 shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-4">
+                <span class="font-bold text-brand-500">BARRAGENS.PT</span>
+                <div class="flex items-center gap-2">
+                  <div class="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-500 w-48">Pesquisar...</div>
+                  <span class="text-xs text-slate-500">Camadas ▾</span>
+                </div>
+              </header>
+              <main class="flex-1 relative bg-gradient-to-br from-slate-100 to-brand-50 flex items-center justify-center text-slate-400 text-sm">
+                Mapa (full width)
+              </main>
+              <div class="absolute bottom-0 left-0 right-0 h-24 bg-white/95 backdrop-blur border-t border-slate-200 rounded-t-2xl flex items-center justify-between px-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+                <div class="flex gap-4 text-sm">
+                  <span class="font-semibold text-slate-800">Douro</span>
+                  <span class="text-slate-600">90.2%</span>
+                  <span class="rounded-full px-2 py-0.5 bg-rose-50 text-rose-700 text-xs">-3.5% 1m</span>
+                  <span class="rounded-full px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs">+0.5% 1a</span>
+                </div>
+                <span class="text-xs text-slate-500">Barragens · Evolução</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alternativa 3: Sidebar direita + faixa esquerda mínima (só toggles) -->
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">3 — Sidebar direita + faixa esquerda</p>
+          <div class="rounded-2xl border-2 border-slate-200 overflow-hidden bg-slate-50" style="aspect-ratio: 16/10; min-height: 320px;">
+            <div class="h-full flex">
+              <aside class="w-14 shrink-0 bg-slate-800 flex flex-col items-center py-3 gap-3">
+                <span class="text-white text-[10px] font-medium">B</span>
+                <span class="text-white text-[10px] font-medium">D</span>
+                <span class="text-white text-[10px] font-medium">P</span>
+                <div class="mt-auto flex flex-col gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-red-400" title="0-20%"></span>
+                  <span class="w-2 h-2 rounded-full bg-amber-400" title="21-50%"></span>
+                  <span class="w-2 h-2 rounded-full bg-brand-400" title="51-100%"></span>
+                </div>
+              </aside>
+              <main class="flex-1 relative bg-gradient-to-br from-slate-100 to-brand-50 flex items-center justify-center text-slate-400 text-sm">
+                Mapa
+              </main>
+              <aside class="w-[260px] shrink-0 bg-white border-l border-slate-200 p-3 flex flex-col gap-2 text-xs">
+                <div class="font-bold text-brand-500">BARRAGENS.PT</div>
+                <div class="rounded-lg border border-slate-200 px-2 py-1.5 text-slate-500">Pesquisar...</div>
+                <div class="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                  <p class="font-semibold text-slate-700">Douro</p>
+                  <p class="text-lg font-bold text-slate-900">90.2%</p>
+                  <p class="text-slate-500">Há 1 mês: -3.5% · Há 1 ano: +0.5%</p>
+                </div>
+                <div class="rounded-lg border border-slate-200 p-2 space-y-1 text-slate-600">
+                  <p>Azibo 94% · Bemposta 95% · Carrapatelo 84%...</p>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alternativa 4: Split — lista de bacias à esquerda, mapa + detalhe à direita -->
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">4 — Split: lista bacias + mapa</p>
+          <div class="rounded-2xl border-2 border-slate-200 overflow-hidden bg-slate-50" style="aspect-ratio: 16/10; min-height: 320px;">
+            <div class="h-full flex">
+              <aside class="w-[220px] shrink-0 bg-white border-r border-slate-200 flex flex-col">
+                <div class="p-3 border-b border-slate-100">
+                  <span class="font-bold text-brand-500 text-sm">BARRAGENS.PT</span>
+                  <div class="rounded-lg border border-slate-200 px-2 py-1.5 mt-2 text-slate-500 text-xs">Pesquisar...</div>
+                </div>
+                <div class="flex-1 overflow-auto p-2 space-y-1 text-xs">
+                  <div class="rounded-lg bg-brand-50 border border-brand-200 px-3 py-2 font-semibold text-slate-800">Douro 90.2%</div>
+                  <div class="rounded-lg bg-slate-50 px-3 py-2 text-slate-600">Tejo 67%</div>
+                  <div class="rounded-lg bg-slate-50 px-3 py-2 text-slate-600">Guadiana 45%</div>
+                  <div class="rounded-lg bg-slate-50 px-3 py-2 text-slate-600">Mondego 72%</div>
+                </div>
+              </aside>
+              <main class="flex-1 relative flex">
+                <div class="flex-1 bg-gradient-to-br from-slate-100 to-brand-50 flex items-center justify-center text-slate-400 text-sm">
+                  Mapa
+                </div>
+                <div class="w-[260px] shrink-0 bg-white border-l border-slate-200 p-3 text-xs">
+                  <p class="font-semibold text-slate-800">Douro</p>
+                  <p class="text-xl font-bold text-slate-900 mt-1">90.2%</p>
+                  <p class="text-slate-500 mt-1">Volume: 947 121 hm³</p>
+                  <div class="flex gap-1.5 mt-2">
+                    <span class="rounded-full px-2 py-0.5 bg-rose-50 text-rose-700">-3.5% 1m</span>
+                    <span class="rounded-full px-2 py-0.5 bg-emerald-50 text-emerald-700">+0.5% 1a</span>
+                  </div>
+                  <div class="mt-3 pt-3 border-t border-slate-100 space-y-1 text-slate-600">
+                    <p>Azibo 94.4%</p>
+                    <p>Bemposta 95.2%</p>
+                    <p>Carrapatelo 83.9%</p>
+                  </div>
+                </div>
+              </main>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Página Dam cards: alternativas de design só do card (sem gráficos) -->
+    <div class="page-content" data-page="dam-cards" id="page-dam-cards">
+      <p class="text-sm text-slate-600 mb-4">Alternativas de layout e estilo para o dam card. Dados: Alqueva, 45%, 1 240 hm³, 152,4 m, 09/02/2025.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Alt A: Barra lateral brand no header -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">A — Barra lateral brand</p>
+          <div class="w-full max-w-[340px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px] border-l-4 border-l-brand-500">
+            <div class="px-4 py-3 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-4 space-y-2 border-t border-slate-100">
+              <div class="grid grid-cols-3 gap-1.5">
+                <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Enchimento</p>
+                  <p class="text-sm font-bold text-brand-600 tabular-nums">45%</p>
+                </div>
+                <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Volume</p>
+                  <p class="text-sm font-bold text-slate-800 tabular-nums">1 240 <span class="text-[10px] font-normal text-slate-500">hm³</span></p>
+                </div>
+                <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Cota</p>
+                  <p class="text-sm font-bold text-slate-800 tabular-nums">152,4 m</p>
+                </div>
+              </div>
+              <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <p class="text-[10px] text-slate-500">Atualizado em <span class="tabular-nums">09/02/2025</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alt B: Header escuro -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">B — Header escuro</p>
+          <div class="w-full max-w-[340px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 bg-slate-800 text-white rounded-t-2xl flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold">Alqueva</p>
+                <p class="text-xs text-slate-300">Bacia do Guadiana</p>
+              </div>
+              <a href="#" class="text-slate-400 hover:text-white text-xs">Fechar</a>
+            </div>
+            <div class="p-4 space-y-2">
+              <div class="grid grid-cols-3 gap-1.5">
+                <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Enchimento</p>
+                  <p class="text-sm font-bold text-brand-600 tabular-nums">45%</p>
+                </div>
+                <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Volume</p>
+                  <p class="text-sm font-bold text-slate-800 tabular-nums">1 240 <span class="text-[10px] font-normal text-slate-500">hm³</span></p>
+                </div>
+                <div class="rounded-lg bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Cota</p>
+                  <p class="text-sm font-bold text-slate-800 tabular-nums">152,4 m</p>
+                </div>
+              </div>
+              <div class="h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <p class="text-[10px] text-slate-500">Atualizado em <span class="tabular-nums">09/02/2025</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alt C: Minimal — só % grande + barra + data -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">C — Minimal</p>
+          <div class="w-full max-w-[340px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-4">
+              <p class="text-3xl font-bold text-brand-600 tabular-nums">45%</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">Enchimento</p>
+              <div class="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <p class="text-[10px] text-slate-500 mt-2">Atualizado em <span class="tabular-nums">09/02/2025</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alt D: Métricas em linha (pills) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">D — Pills em linha</p>
+          <div class="w-full max-w-[340px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="h-12 px-4 rounded-t-2xl flex items-center justify-between bg-slate-100/95 border-b border-slate-200/70">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-4 space-y-2">
+              <div class="flex flex-wrap gap-2">
+                <span class="inline-flex items-center rounded-full bg-brand-100 px-3 py-1 text-sm font-bold text-brand-700 tabular-nums">45%</span>
+                <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700 tabular-nums">1 240 hm³</span>
+                <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700 tabular-nums">152,4 m</span>
+              </div>
+              <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <p class="text-[10px] text-slate-500">Atualizado em <span class="tabular-nums">09/02/2025</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alt E: Uma linha resumo + barra -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">E — Uma linha + barra</p>
+          <div class="w-full max-w-[340px] bg-white rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-4 space-y-2">
+              <p class="text-xs text-slate-700">
+                <span class="font-bold text-brand-600 tabular-nums">45%</span>
+                <span class="text-slate-400 mx-1">·</span>
+                <span class="tabular-nums">1 240 hm³</span>
+                <span class="text-slate-400 mx-1">·</span>
+                <span class="tabular-nums font-medium">152,4 m</span>
+              </p>
+              <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <p class="text-[10px] text-slate-500">Atualizado em <span class="tabular-nums">09/02/2025</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alt F: Fundo slate-50, blocos brancos -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">F — Corpo slate-50</p>
+          <div class="w-full max-w-[340px] bg-slate-50 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="h-12 px-4 rounded-t-2xl flex items-center justify-between bg-slate-100/95 border-b border-slate-200/70">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <a href="#" class="text-xs text-slate-500 hover:text-slate-700">Fechar</a>
+            </div>
+            <div class="p-4 space-y-2">
+              <div class="grid grid-cols-3 gap-1.5">
+                <div class="rounded-lg bg-white border border-slate-100 p-2 text-center shadow-sm">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Enchimento</p>
+                  <p class="text-sm font-bold text-brand-600 tabular-nums">45%</p>
+                </div>
+                <div class="rounded-lg bg-white border border-slate-100 p-2 text-center shadow-sm">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Volume</p>
+                  <p class="text-sm font-bold text-slate-800 tabular-nums">1 240 <span class="text-[10px] font-normal text-slate-500">hm³</span></p>
+                </div>
+                <div class="rounded-lg bg-white border border-slate-100 p-2 text-center shadow-sm">
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">Cota</p>
+                  <p class="text-sm font-bold text-slate-800 tabular-nums">152,4 m</p>
+                </div>
+              </div>
+              <div class="h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <p class="text-[10px] text-slate-500">Atualizado em <span class="tabular-nums">09/02/2025</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Página Sidebar: 6 variações de estilo dos cards (interiores) -->
+    <div class="page-content" data-page="sidebar" id="page-sidebar">
+      <p class="text-sm text-slate-600 mb-4">Seis variações no estilo dos cards da sidebar (Pesquisar, Camadas, Índices). Sidebar base igual; só muda o tratamento visual dos blocos. Toggles em vez de checkboxes.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- 1 — Atual: shadow-card, borda suave -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">1 — Sombra + borda suave</p>
+          <aside class="w-[280px] rounded-2xl shadow-float border border-slate-200/70 bg-slate-100/95 px-4 py-4 space-y-3 text-[13px]">
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-xl bg-slate-300 shrink-0"></div>
+              <p class="text-xl font-semibold text-slate-700">BARRAGENS.PT</p>
+            </div>
+            <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Pesquisar</h3>
+              <input type="text" placeholder="Barragens ou rios..." class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm" readonly>
+            </div>
+            <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Bacias</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Barragens</span><input type="checkbox" class="toggle" checked></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Espanha</span><input type="checkbox" class="toggle"></label>
+            </div>
+            <div class="rounded-xl border border-slate-100 p-2.5 space-y-1.5 shadow-card bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>PDSI</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Água no solo</span><input type="checkbox" class="toggle"></label>
+            </div>
+          </aside>
+        </div>
+
+        <!-- 2 — Flat: sem sombra, borda fina -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">2 — Flat (sem sombra)</p>
+          <aside class="w-[280px] rounded-2xl shadow-float border border-slate-200/70 bg-slate-100/95 px-4 py-4 space-y-3 text-[13px]">
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-xl bg-slate-300 shrink-0"></div>
+              <p class="text-xl font-semibold text-slate-700">BARRAGENS.PT</p>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-2.5 space-y-1.5 bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Pesquisar</h3>
+              <input type="text" placeholder="Barragens ou rios..." class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm" readonly>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-2.5 space-y-1.5 bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Bacias</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Barragens</span><input type="checkbox" class="toggle" checked></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Espanha</span><input type="checkbox" class="toggle"></label>
+            </div>
+            <div class="rounded-lg border border-slate-200 p-2.5 space-y-1.5 bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>PDSI</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Água no solo</span><input type="checkbox" class="toggle"></label>
+            </div>
+          </aside>
+        </div>
+
+        <!-- 3 — Borda esquerda brand (accent) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">3 — Borda esquerda brand</p>
+          <aside class="w-[280px] rounded-2xl shadow-float border border-slate-200/70 bg-slate-100/95 px-4 py-4 space-y-3 text-[13px]">
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-xl bg-slate-300 shrink-0"></div>
+              <p class="text-xl font-semibold text-slate-700">BARRAGENS.PT</p>
+            </div>
+            <div class="rounded-r-xl border border-slate-200 border-l-4 border-l-brand-500 p-2.5 space-y-1.5 bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Pesquisar</h3>
+              <input type="text" placeholder="Barragens ou rios..." class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm" readonly>
+            </div>
+            <div class="rounded-r-xl border border-slate-200 border-l-4 border-l-brand-500 p-2.5 space-y-1.5 bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Bacias</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Barragens</span><input type="checkbox" class="toggle" checked></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Espanha</span><input type="checkbox" class="toggle"></label>
+            </div>
+            <div class="rounded-r-xl border border-slate-200 border-l-4 border-l-brand-500 p-2.5 space-y-1.5 bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>PDSI</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Água no solo</span><input type="checkbox" class="toggle"></label>
+            </div>
+          </aside>
+        </div>
+
+        <!-- 4 — Borda forte -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">4 — Borda forte</p>
+          <aside class="w-[280px] rounded-2xl shadow-float border border-slate-200/70 bg-slate-100/95 px-4 py-4 space-y-3 text-[13px]">
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-xl bg-slate-300 shrink-0"></div>
+              <p class="text-xl font-semibold text-slate-700">BARRAGENS.PT</p>
+            </div>
+            <div class="rounded-xl border-2 border-slate-300 p-2.5 space-y-1.5 bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Pesquisar</h3>
+              <input type="text" placeholder="Barragens ou rios..." class="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm" readonly>
+            </div>
+            <div class="rounded-xl border-2 border-slate-300 p-2.5 space-y-1.5 bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Bacias</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Barragens</span><input type="checkbox" class="toggle" checked></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Espanha</span><input type="checkbox" class="toggle"></label>
+            </div>
+            <div class="rounded-xl border-2 border-slate-300 p-2.5 space-y-1.5 bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>PDSI</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Água no solo</span><input type="checkbox" class="toggle"></label>
+            </div>
+          </aside>
+        </div>
+
+        <!-- 5 — Fundo suave (cards integrados) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">5 — Fundo suave (cards integrados)</p>
+          <aside class="w-[280px] rounded-2xl shadow-float border border-slate-200/70 bg-slate-100/95 px-4 py-4 space-y-3 text-[13px]">
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-xl bg-slate-300 shrink-0"></div>
+              <p class="text-xl font-semibold text-slate-700">BARRAGENS.PT</p>
+            </div>
+            <div class="rounded-xl border border-slate-200/80 p-2.5 space-y-1.5 bg-slate-50">
+              <h3 class="text-sm font-semibold text-slate-800">Pesquisar</h3>
+              <input type="text" placeholder="Barragens ou rios..." class="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm" readonly>
+            </div>
+            <div class="rounded-xl border border-slate-200/80 p-2.5 space-y-1.5 bg-slate-50">
+              <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Bacias</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Barragens</span><input type="checkbox" class="toggle" checked></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Espanha</span><input type="checkbox" class="toggle"></label>
+            </div>
+            <div class="rounded-xl border border-slate-200/80 p-2.5 space-y-1.5 bg-slate-50">
+              <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>PDSI</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Água no solo</span><input type="checkbox" class="toggle"></label>
+            </div>
+          </aside>
+        </div>
+
+        <!-- 6 — Rounded grande + sombra suave -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">6 — Rounded grande</p>
+          <aside class="w-[280px] rounded-2xl shadow-float border border-slate-200/70 bg-slate-100/95 px-4 py-4 space-y-3 text-[13px]">
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-xl bg-slate-300 shrink-0"></div>
+              <p class="text-xl font-semibold text-slate-700">BARRAGENS.PT</p>
+            </div>
+            <div class="rounded-2xl border border-slate-100 p-2.5 space-y-1.5 shadow-sm bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Pesquisar</h3>
+              <input type="text" placeholder="Barragens ou rios..." class="w-full rounded-xl border border-slate-200 px-2.5 py-1.5 text-sm" readonly>
+            </div>
+            <div class="rounded-2xl border border-slate-100 p-2.5 space-y-1.5 shadow-sm bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Camadas</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Bacias</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Barragens</span><input type="checkbox" class="toggle" checked></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Espanha</span><input type="checkbox" class="toggle"></label>
+            </div>
+            <div class="rounded-2xl border border-slate-100 p-2.5 space-y-1.5 shadow-sm bg-white">
+              <h3 class="text-sm font-semibold text-slate-800">Índices Meteorológicos</h3>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>PDSI</span><input type="checkbox" class="toggle"></label>
+              <label class="flex items-center justify-between text-sm text-slate-700"><span>Água no solo</span><input type="checkbox" class="toggle"></label>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- Página Preview cards (Twitter / LinkedIn): 6 Bacia + 6 Barragem — informação = basin/dam cards app -->
+    <div class="page-content" data-page="preview-cards" id="page-preview-cards">
+      <p class="text-sm text-slate-500 mb-6">Designs para partilha (og:image 1200×628). Mesma informação que os basin/dam cards da aplicação; 6 estilos visuais por tipo.</p>
+
+      <h2 class="text-lg font-bold text-slate-800 mt-8 mb-4">Preview Bacia (6)</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-2">
+        <!-- Bacia 1: Card claro (estilo app) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Bacia 1 — Card claro</p>
+          <div class="og-preview-frame bg-slate-100 flex items-center justify-center p-1.5">
+            <div class="w-full h-full max-w-[95%] max-h-[95%] bg-slate-50 rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col text-[10px]">
+              <div class="bg-slate-800 text-white px-3 py-1.5 flex items-center justify-between shrink-0">
+                <span class="font-semibold text-xs">Bacia do Tejo</span>
+                <span class="text-slate-400 text-[9px]">Fechar</span>
+              </div>
+              <div class="p-2 flex-1 flex flex-col gap-1">
+                <div class="flex items-baseline gap-1.5">
+                  <p class="text-xl font-bold text-slate-900 tabular-nums">67%</p>
+                  <span class="text-[9px] uppercase tracking-wider text-slate-500">Atual</span>
+                </div>
+                <p class="text-[9px] text-slate-500">Volume armazenado: <span class="font-medium text-slate-700 tabular-nums">2 450 hm³</span></p>
+                <div class="h-1 rounded-full bg-slate-200 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:67%"></div></div>
+                <div class="flex flex-wrap gap-1">
+                  <span class="inline-flex rounded-full px-1.5 py-0.5 text-[8px] font-medium bg-emerald-50 text-emerald-700">Há 1 mês: +4%</span>
+                  <span class="inline-flex rounded-full px-1.5 py-0.5 text-[8px] font-medium bg-rose-50 text-rose-700">Há 1 ano: −2%</span>
+                </div>
+                <div class="inline-flex rounded-full bg-slate-200/80 p-0.5 text-[8px] font-medium text-slate-600 w-fit mt-0.5">
+                  <span class="rounded-full px-2 py-0.5 bg-white text-slate-700 shadow-sm">Barragens</span>
+                  <span class="rounded-full px-2 py-0.5">Evolução</span>
+                </div>
+                <p class="text-[8px] uppercase tracking-wider text-slate-400 mt-0.5">Barragens</p>
+                <div class="rounded border border-slate-200 bg-slate-100/60 overflow-hidden flex-1 min-h-0">
+                  <table class="w-full text-[8px]">
+                    <thead class="bg-slate-200/60 text-slate-500"><tr><th class="px-1 py-0.5 text-left font-medium">Nome</th><th class="px-1 py-0.5 text-right">Atual</th><th class="px-1 py-0.5 text-right">Hist.</th></tr></thead>
+                    <tbody class="divide-y divide-slate-200 text-slate-600">
+                      <tr><td class="px-1 py-0.5 text-brand-600">Castelo de Bode</td><td class="px-1 py-0.5 text-right">72%</td><td class="px-1 py-0.5 text-right">68%</td></tr>
+                      <tr><td class="px-1 py-0.5 text-brand-600">Fratel</td><td class="px-1 py-0.5 text-right">65%</td><td class="px-1 py-0.5 text-right">62%</td></tr>
+                      <tr><td class="px-1 py-0.5 text-brand-600">Belver</td><td class="px-1 py-0.5 text-right">58%</td><td class="px-1 py-0.5 text-right">55%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="text-[8px] text-slate-400">barragens.pt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Bacia 2: Dark (mesma info) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Bacia 2 — Dark</p>
+          <div class="og-preview-frame bg-slate-900 flex items-center justify-center p-1.5">
+            <div class="w-full h-full max-w-[95%] max-h-[95%] bg-slate-800 rounded-2xl border border-slate-600 overflow-hidden flex flex-col text-[10px]">
+              <div class="px-3 py-1.5 border-b border-slate-600 shrink-0">
+                <span class="font-semibold text-xs text-slate-100">Bacia do Douro</span>
+              </div>
+              <div class="p-2 flex-1 flex flex-col gap-1 text-slate-300">
+                <div class="flex items-baseline gap-1.5">
+                  <p class="text-xl font-bold text-white tabular-nums">72%</p>
+                  <span class="text-[9px] uppercase text-slate-400">Atual</span>
+                </div>
+                <p class="text-[9px] text-slate-400">Volume armazenado: <span class="font-medium text-slate-200 tabular-nums">3 120 hm³</span></p>
+                <div class="h-1 rounded-full bg-slate-600 overflow-hidden"><div class="h-full bg-brand-400 rounded-full" style="width:72%"></div></div>
+                <div class="flex flex-wrap gap-1">
+                  <span class="rounded-full px-1.5 py-0.5 text-[8px] font-medium bg-emerald-900/40 text-emerald-300">Há 1 mês: +3%</span>
+                  <span class="rounded-full px-1.5 py-0.5 text-[8px] font-medium bg-rose-900/40 text-rose-300">Há 1 ano: −5%</span>
+                </div>
+                <div class="inline-flex rounded-full bg-slate-600 p-0.5 text-[8px] font-medium text-slate-300 w-fit mt-0.5">
+                  <span class="rounded-full px-2 py-0.5 bg-slate-700 text-slate-200 shadow-sm">Barragens</span>
+                  <span class="rounded-full px-2 py-0.5">Evolução</span>
+                </div>
+                <p class="text-[8px] uppercase tracking-wider text-slate-500 mt-0.5">Barragens</p>
+                <div class="rounded border border-slate-600 bg-slate-700/60 overflow-hidden flex-1 min-h-0">
+                  <table class="w-full text-[8px]">
+                    <thead class="bg-slate-600/80 text-slate-400"><tr><th class="px-1 py-0.5 text-left font-medium">Nome</th><th class="px-1 py-0.5 text-right">Atual</th><th class="px-1 py-0.5 text-right">Hist.</th></tr></thead>
+                    <tbody class="divide-y divide-slate-600 text-slate-300">
+                      <tr><td class="px-1 py-0.5 text-brand-400">Bemposta</td><td class="px-1 py-0.5 text-right">98%</td><td class="px-1 py-0.5 text-right">91%</td></tr>
+                      <tr><td class="px-1 py-0.5 text-brand-400">Alto Lindoso</td><td class="px-1 py-0.5 text-right">85%</td><td class="px-1 py-0.5 text-right">82%</td></tr>
+                      <tr><td class="px-1 py-0.5 text-brand-400">Vilar</td><td class="px-1 py-0.5 text-right">62%</td><td class="px-1 py-0.5 text-right">58%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="text-[8px] text-slate-500">barragens.pt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Bacia 3: Minimal layout mas mesma info -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Bacia 3 — Compacto</p>
+          <div class="og-preview-frame bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-1.5">
+            <div class="w-full h-full max-w-[95%] max-h-[95%] bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col text-[10px]">
+              <div class="bg-slate-800 text-white px-3 py-1 shrink-0"><span class="font-semibold text-xs">Bacia do Tejo</span></div>
+              <div class="p-2 flex-1 flex flex-col gap-0.5">
+                <div class="flex items-baseline gap-2">
+                  <p class="text-2xl font-bold text-slate-900 tabular-nums">67%</p>
+                  <span class="text-[9px] uppercase text-slate-500">Atual</span>
+                </div>
+                <p class="text-[9px] text-slate-500">Volume: <span class="font-medium text-slate-700">2 450 hm³</span></p>
+                <div class="h-1 rounded-full bg-slate-200 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:67%"></div></div>
+                <div class="flex gap-1 flex-wrap">
+                  <span class="text-[8px] rounded-full bg-emerald-50 text-emerald-700 px-1.5 py-0.5">Há 1 mês: +4%</span>
+                  <span class="text-[8px] rounded-full bg-rose-50 text-rose-700 px-1.5 py-0.5">Há 1 ano: −2%</span>
+                </div>
+                <div class="flex rounded-full bg-slate-200/80 p-0.5 w-fit mt-0.5">
+                  <span class="rounded-full px-2 py-0.5 bg-white text-slate-700 text-[8px] shadow-sm">Barragens</span>
+                  <span class="rounded-full px-2 py-0.5 text-slate-600 text-[8px]">Evolução</span>
+                </div>
+                <div class="mt-1 rounded border border-slate-200 overflow-hidden flex-1 min-h-0">
+                  <table class="w-full text-[8px] text-slate-600">
+                    <thead class="bg-slate-100 text-slate-500"><tr><th class="px-1 py-0.5 text-left">Nome</th><th class="px-1 py-0.5 text-right">Atual</th><th class="px-1 py-0.5 text-right">Hist.</th></tr></thead>
+                    <tbody class="divide-y divide-slate-100">
+                      <tr><td class="px-1 py-0.5 text-brand-600">Castelo de Bode</td><td class="px-1 py-0.5 text-right">72%</td><td class="px-1 py-0.5 text-right">68%</td></tr>
+                      <tr><td class="px-1 py-0.5 text-brand-600">Fratel</td><td class="px-1 py-0.5 text-right">65%</td><td class="px-1 py-0.5 text-right">62%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="text-[8px] text-slate-400">barragens.pt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Bacia 4: Split (barra + tabela à direita) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Bacia 4 — Split</p>
+          <div class="og-preview-frame bg-white border border-slate-200 flex p-1.5">
+            <div class="w-2/5 flex flex-col justify-center pr-2 border-r border-slate-200 shrink-0">
+              <p class="font-semibold text-slate-900 text-xs">Bacia do Tejo</p>
+              <p class="text-2xl font-bold text-brand-600 tabular-nums mt-0.5">67%</p>
+              <p class="text-[9px] text-slate-500 mt-0.5">Volume: 2 450 hm³</p>
+              <div class="h-1.5 rounded-full bg-slate-200 overflow-hidden mt-1"><div class="h-full bg-brand-500 rounded-full" style="width:67%"></div></div>
+              <div class="flex flex-wrap gap-0.5 mt-1">
+                <span class="text-[8px] rounded-full bg-emerald-50 text-emerald-700 px-1 py-0.5">+4% 1m</span>
+                <span class="text-[8px] rounded-full bg-rose-50 text-rose-700 px-1 py-0.5">−2% 1a</span>
+              </div>
+            </div>
+            <div class="flex-1 flex flex-col min-w-0">
+              <p class="text-[8px] uppercase text-slate-400 mb-0.5">Barragens</p>
+              <table class="w-full text-[8px] text-slate-600">
+                <thead class="text-slate-500"><tr><th class="text-left font-medium">Nome</th><th class="text-right">Atual</th><th class="text-right">Hist.</th></tr></thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr><td class="text-brand-600">Castelo de Bode</td><td class="text-right">72%</td><td class="text-right">68%</td></tr>
+                  <tr><td class="text-brand-600">Fratel</td><td class="text-right">65%</td><td class="text-right">62%</td></tr>
+                  <tr><td class="text-brand-600">Belver</td><td class="text-right">58%</td><td class="text-right">55%</td></tr>
+                </tbody>
+              </table>
+              <div class="flex rounded-full bg-slate-100 p-0.5 w-fit mt-1 text-[8px]"><span class="rounded-full px-2 py-0.5 bg-white shadow-sm">Barragens</span><span class="rounded-full px-2 py-0.5">Evolução</span></div>
+              <p class="text-[8px] text-slate-400 mt-1">barragens.pt</p>
+            </div>
+          </div>
+        </div>
+        <!-- Bacia 5: Gradient overlay (mesma info) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Bacia 5 — Gradient</p>
+          <div class="og-preview-frame bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center p-1.5 relative overflow-hidden">
+            <div class="absolute inset-0 bg-slate-900/20"></div>
+            <div class="relative z-10 w-full h-full max-w-[95%] max-h-[95%] bg-white/95 rounded-xl border border-slate-200/80 flex flex-col overflow-hidden backdrop-blur-sm text-[10px]">
+              <div class="bg-slate-800 text-white px-3 py-1 shrink-0"><span class="font-semibold text-xs">Bacia do Tejo</span></div>
+              <div class="p-2 flex-1 flex flex-col gap-0.5">
+                <p class="text-xl font-bold text-slate-900 tabular-nums">67%</p>
+                <p class="text-[9px] text-slate-500">Volume armazenado: 2 450 hm³</p>
+                <div class="h-1 rounded-full bg-slate-200 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:67%"></div></div>
+                <div class="flex gap-1 flex-wrap"><span class="text-[8px] rounded-full bg-emerald-50 text-emerald-700 px-1.5 py-0.5">Há 1 mês: +4%</span><span class="text-[8px] rounded-full bg-rose-50 text-rose-700 px-1.5 py-0.5">Há 1 ano: −2%</span></div>
+                <div class="flex rounded-full bg-slate-200/80 p-0.5 w-fit"><span class="rounded-full px-2 py-0.5 bg-white text-slate-700 text-[8px] shadow-sm">Barragens</span><span class="rounded-full px-2 py-0.5 text-slate-600 text-[8px]">Evolução</span></div>
+                <div class="rounded border border-slate-200 overflow-hidden flex-1 min-h-0 mt-0.5">
+                  <table class="w-full text-[8px] text-slate-600">
+                    <thead class="bg-slate-100 text-slate-500"><tr><th class="px-1 py-0.5 text-left">Nome</th><th class="px-1 py-0.5 text-right">Atual</th><th class="px-1 py-0.5 text-right">Hist.</th></tr></thead>
+                    <tbody class="divide-y divide-slate-100"><tr><td class="px-1 py-0.5 text-brand-600">Castelo de Bode</td><td class="px-1 py-0.5 text-right">72%</td><td class="px-1 py-0.5 text-right">68%</td></tr><tr><td class="px-1 py-0.5 text-brand-600">Fratel</td><td class="px-1 py-0.5 text-right">65%</td><td class="px-1 py-0.5 text-right">62%</td></tr></tbody>
+                  </table>
+                </div>
+                <p class="text-[8px] text-slate-400">barragens.pt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Bacia 6: Full bleed dark -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Bacia 6 — Full bleed</p>
+          <div class="og-preview-frame bg-slate-800 flex flex-col p-3 text-[10px]">
+            <p class="font-semibold text-white text-sm">Bacia do Tejo</p>
+            <div class="flex items-baseline gap-2 mt-1">
+              <p class="text-3xl font-bold text-white tabular-nums">67%</p>
+              <span class="text-slate-400 text-[9px] uppercase">Atual</span>
+            </div>
+            <p class="text-slate-400 text-[9px] mt-0.5">Volume armazenado: <span class="text-slate-200 font-medium">2 450 hm³</span></p>
+            <div class="h-1.5 rounded-full bg-slate-600 overflow-hidden mt-1"><div class="h-full bg-brand-400 rounded-full" style="width:67%"></div></div>
+            <div class="flex flex-wrap gap-1 mt-1">
+              <span class="text-[8px] rounded-full bg-emerald-500/30 text-emerald-200 px-1.5 py-0.5">Há 1 mês: +4%</span>
+              <span class="text-[8px] rounded-full bg-rose-500/30 text-rose-200 px-1.5 py-0.5">Há 1 ano: −2%</span>
+            </div>
+            <div class="flex rounded-full bg-slate-600 p-0.5 w-fit mt-1 text-[8px] text-slate-300"><span class="rounded-full px-2 py-0.5 bg-slate-700 text-white">Barragens</span><span class="rounded-full px-2 py-0.5">Evolução</span></div>
+            <div class="mt-2 rounded border border-slate-600 overflow-hidden flex-1 min-h-0">
+              <table class="w-full text-[8px] text-slate-300">
+                <thead class="bg-slate-600/80 text-slate-400"><tr><th class="px-1 py-0.5 text-left">Nome</th><th class="px-1 py-0.5 text-right">Atual</th><th class="px-1 py-0.5 text-right">Hist.</th></tr></thead>
+                <tbody class="divide-y divide-slate-600"><tr><td class="px-1 py-0.5 text-brand-400">Castelo de Bode</td><td class="px-1 py-0.5 text-right">72%</td><td class="px-1 py-0.5 text-right">68%</td></tr><tr><td class="px-1 py-0.5 text-brand-400">Fratel</td><td class="px-1 py-0.5 text-right">65%</td><td class="px-1 py-0.5 text-right">62%</td></tr></tbody>
+              </table>
+            </div>
+            <p class="text-[8px] text-slate-500 mt-1">barragens.pt</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="text-lg font-bold text-slate-800 mt-10 mb-4">Preview Barragem (6)</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-2">
+        <!-- Barragem 1: Card estilo app completo -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Barragem 1 — Card app</p>
+          <div class="og-preview-frame bg-slate-100 flex items-center justify-center p-1.5">
+            <div class="w-full h-full max-w-[95%] max-h-[95%] bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col text-[10px]">
+              <div class="bg-slate-800 text-white px-3 py-1.5 shrink-0">
+                <p class="font-semibold text-xs">Albufeira da Bemposta</p>
+                <p class="text-[9px] text-slate-400">Bacia do Douro</p>
+              </div>
+              <div class="p-2 flex-1 flex flex-col gap-1">
+                <div class="grid grid-cols-3 gap-1">
+                  <div class="rounded-lg bg-slate-50 border border-slate-100 p-1.5 text-center">
+                    <p class="text-[8px] text-slate-500 uppercase font-medium">Enchimento</p>
+                    <p class="text-sm font-bold text-brand-600 tabular-nums">98.68%</p>
+                  </div>
+                  <div class="rounded-lg bg-slate-50 border border-slate-100 p-1.5 text-center">
+                    <p class="text-[8px] text-slate-500 uppercase font-medium">Volume</p>
+                    <p class="text-xs font-bold text-slate-800 tabular-nums">122 <span class="text-[8px] font-normal text-slate-500">hm³</span></p>
+                  </div>
+                  <div class="rounded-lg bg-slate-50 border border-slate-100 p-1.5 text-center">
+                    <p class="text-[8px] text-slate-500 uppercase font-medium">Cota</p>
+                    <p class="text-xs font-bold text-slate-800 tabular-nums">401.61 m</p>
+                  </div>
+                </div>
+                <div class="h-1 rounded-full bg-slate-200 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:98.68%"></div></div>
+                <p class="text-[9px] text-slate-500">Atualizado em <span class="tabular-nums">17/02/2026 12:00</span></p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="inline-flex rounded-full px-1.5 py-0.5 text-[8px] font-medium bg-slate-100 text-slate-600">Há 1 mês: −2.9%</span>
+                  <span class="inline-flex rounded-full px-1.5 py-0.5 text-[8px] font-medium bg-slate-100 text-slate-600">Há 1 ano: −7.4%</span>
+                </div>
+                <div class="inline-flex rounded-full bg-slate-200/80 p-0.5 text-[8px] font-medium text-slate-600 w-fit">
+                  <span class="rounded-full px-2 py-0.5">Realtime</span>
+                  <span class="rounded-full px-2 py-0.5 bg-white text-slate-700 shadow-sm">Armazenamento</span>
+                  <span class="rounded-full px-2 py-0.5">Caudais</span>
+                  <span class="rounded-full px-2 py-0.5">Info</span>
+                </div>
+                <p class="text-[8px] text-slate-400 mt-auto">barragens.pt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Barragem 2: Dark -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Barragem 2 — Dark</p>
+          <div class="og-preview-frame bg-slate-900 flex items-center justify-center p-1.5">
+            <div class="w-full h-full max-w-[95%] max-h-[95%] bg-slate-800 rounded-2xl border border-slate-600 overflow-hidden flex flex-col text-[10px]">
+              <div class="px-3 py-1.5 border-b border-slate-600 shrink-0">
+                <p class="font-semibold text-xs text-white">Alqueva</p>
+                <p class="text-[9px] text-slate-400">Bacia do Guadiana</p>
+              </div>
+              <div class="p-2 flex-1 flex flex-col gap-1 text-slate-300">
+                <div class="grid grid-cols-3 gap-1">
+                  <div class="rounded-lg bg-slate-700/80 border border-slate-600 p-1.5 text-center">
+                    <p class="text-[8px] text-slate-400 uppercase">Enchimento</p>
+                    <p class="text-sm font-bold text-brand-400 tabular-nums">45%</p>
+                  </div>
+                  <div class="rounded-lg bg-slate-700/80 border border-slate-600 p-1.5 text-center">
+                    <p class="text-[8px] text-slate-400 uppercase">Volume</p>
+                    <p class="text-xs font-bold text-slate-200 tabular-nums">1 240 hm³</p>
+                  </div>
+                  <div class="rounded-lg bg-slate-700/80 border border-slate-600 p-1.5 text-center">
+                    <p class="text-[8px] text-slate-400 uppercase">Cota</p>
+                    <p class="text-xs font-bold text-slate-200 tabular-nums">152.4 m</p>
+                  </div>
+                </div>
+                <div class="h-1 rounded-full bg-slate-600 overflow-hidden"><div class="h-full bg-brand-400 rounded-full" style="width:45%"></div></div>
+                <p class="text-[9px] text-slate-400">Atualizado em 09/02/2025</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="text-[8px] rounded-full bg-emerald-900/40 text-emerald-300 px-1.5 py-0.5">Há 1 mês: +4%</span>
+                  <span class="text-[8px] rounded-full bg-rose-900/40 text-rose-300 px-1.5 py-0.5">Há 1 ano: −2%</span>
+                </div>
+                <div class="flex rounded-full bg-slate-600 p-0.5 w-fit text-[8px]"><span class="rounded-full px-2 py-0.5 bg-slate-700 text-slate-200">Armazenamento</span><span class="rounded-full px-2 py-0.5">Caudais</span><span class="rounded-full px-2 py-0.5">Info</span></div>
+                <p class="text-[8px] text-slate-500 mt-auto">barragens.pt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Barragem 3: Compacto (mesma info) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Barragem 3 — Compacto</p>
+          <div class="og-preview-frame bg-slate-50 flex items-center justify-center p-1.5">
+            <div class="w-full h-full max-w-[95%] max-h-[95%] bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col text-[10px]">
+              <div class="bg-slate-800 text-white px-3 py-1 shrink-0"><p class="font-semibold text-xs">Albufeira da Bemposta</p><p class="text-[9px] text-slate-400">Bacia do Douro</p></div>
+              <div class="p-2 flex-1 flex flex-col gap-0.5">
+                <div class="grid grid-cols-3 gap-1">
+                  <div class="rounded bg-slate-50 border border-slate-100 p-1 text-center"><p class="text-[8px] text-slate-500 uppercase">Enchimento</p><p class="text-xs font-bold text-brand-600">98%</p></div>
+                  <div class="rounded bg-slate-50 border border-slate-100 p-1 text-center"><p class="text-[8px] text-slate-500 uppercase">Volume</p><p class="text-[10px] font-bold text-slate-800">122 hm³</p></div>
+                  <div class="rounded bg-slate-50 border border-slate-100 p-1 text-center"><p class="text-[8px] text-slate-500 uppercase">Cota</p><p class="text-[10px] font-bold text-slate-800">401 m</p></div>
+                </div>
+                <div class="h-1 rounded-full bg-slate-200 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:98%"></div></div>
+                <p class="text-[9px] text-slate-500">Atualizado em 17/02/2026</p>
+                <div class="flex gap-1 flex-wrap"><span class="text-[8px] rounded-full bg-slate-100 text-slate-600 px-1.5 py-0.5">Há 1 mês: −2.9%</span><span class="text-[8px] rounded-full bg-slate-100 text-slate-600 px-1.5 py-0.5">Há 1 ano: −7.4%</span></div>
+                <div class="flex rounded-full bg-slate-200/80 p-0.5 w-fit text-[8px]"><span class="rounded-full px-2 py-0.5">Realtime</span><span class="rounded-full px-2 py-0.5 bg-white shadow-sm">Armazenamento</span><span class="rounded-full px-2 py-0.5">Caudais</span><span class="rounded-full px-2 py-0.5">Info</span></div>
+                <p class="text-[8px] text-slate-400 mt-auto">barragens.pt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Barragem 4: Com tendências coloridas -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Barragem 4 — Tendências</p>
+          <div class="og-preview-frame bg-white border border-slate-200 flex items-center justify-center p-1.5">
+            <div class="w-full h-full max-w-[95%] max-h-[95%] rounded-2xl border border-slate-200 overflow-hidden flex flex-col text-[10px] bg-white shadow-lg">
+              <div class="bg-slate-800 text-white px-3 py-1.5 shrink-0"><p class="font-semibold text-xs">Alqueva</p><p class="text-[9px] text-slate-400">Bacia do Guadiana</p></div>
+              <div class="p-2 flex-1 flex flex-col gap-1">
+                <div class="grid grid-cols-3 gap-1">
+                  <div class="rounded-lg bg-slate-50 border border-slate-100 p-1 text-center"><p class="text-[8px] text-slate-500 uppercase">Enchimento</p><p class="text-sm font-bold text-brand-600">45%</p></div>
+                  <div class="rounded-lg bg-slate-50 border border-slate-100 p-1 text-center"><p class="text-[8px] text-slate-500 uppercase">Volume</p><p class="text-[10px] font-bold text-slate-800">1 240 hm³</p></div>
+                  <div class="rounded-lg bg-slate-50 border border-slate-100 p-1 text-center"><p class="text-[8px] text-slate-500 uppercase">Cota</p><p class="text-[10px] font-bold text-slate-800">152.4 m</p></div>
+                </div>
+                <div class="h-1 rounded-full bg-slate-200 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:45%"></div></div>
+                <p class="text-[9px] text-slate-500">Atualizado em 09/02/2025</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="text-[8px] rounded-full bg-emerald-50 text-emerald-700 px-1.5 py-0.5">Há 1 mês: +4%</span>
+                  <span class="text-[8px] rounded-full bg-rose-50 text-rose-700 px-1.5 py-0.5">Há 1 ano: −2%</span>
+                </div>
+                <div class="flex rounded-full bg-slate-200/80 p-0.5 w-fit text-[8px]"><span class="rounded-full px-2 py-0.5 bg-white shadow-sm">Armazenamento</span><span class="rounded-full px-2 py-0.5">Caudais</span><span class="rounded-full px-2 py-0.5">Info</span></div>
+                <p class="text-[8px] text-slate-400 mt-auto">barragens.pt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Barragem 5: Gradient + card -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Barragem 5 — Gradient</p>
+          <div class="og-preview-frame bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center p-1.5">
+            <div class="w-full h-full max-w-[95%] max-h-[95%] bg-white/95 rounded-2xl shadow-xl border border-slate-200/80 flex flex-col overflow-hidden backdrop-blur-sm text-[10px]">
+              <div class="px-3 py-1.5 bg-slate-800 text-white shrink-0"><p class="font-semibold text-xs">Albufeira da Bemposta · Bacia do Douro</p></div>
+              <div class="p-2 flex-1 flex flex-col gap-1">
+                <div class="grid grid-cols-3 gap-1">
+                  <div class="rounded-lg bg-slate-50 border border-slate-100 p-1 text-center"><p class="text-[8px] text-slate-500 uppercase">Enchimento</p><p class="text-sm font-bold text-brand-600">98%</p></div>
+                  <div class="rounded-lg bg-slate-50 border border-slate-100 p-1 text-center"><p class="text-[8px] text-slate-500 uppercase">Volume</p><p class="text-[10px] font-bold text-slate-800">122 hm³</p></div>
+                  <div class="rounded-lg bg-slate-50 border border-slate-100 p-1 text-center"><p class="text-[8px] text-slate-500 uppercase">Cota</p><p class="text-[10px] font-bold text-slate-800">401 m</p></div>
+                </div>
+                <div class="h-1 rounded-full bg-slate-200 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:98%"></div></div>
+                <p class="text-[9px] text-slate-500">Atualizado em 17/02/2026</p>
+                <div class="flex gap-1 flex-wrap"><span class="text-[8px] rounded-full bg-slate-100 text-slate-600 px-1.5 py-0.5">Há 1 mês: −2.9%</span><span class="text-[8px] rounded-full bg-slate-100 text-slate-600 px-1.5 py-0.5">Há 1 ano: −7.4%</span></div>
+                <div class="flex rounded-full bg-slate-200/80 p-0.5 w-fit text-[8px]"><span class="rounded-full px-2 py-0.5">Realtime</span><span class="rounded-full px-2 py-0.5 bg-white shadow-sm">Armazenamento</span><span class="rounded-full px-2 py-0.5">Caudais</span><span class="rounded-full px-2 py-0.5">Info</span></div>
+                <p class="text-[8px] text-slate-400 mt-auto">barragens.pt</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Barragem 6: Duas colunas (mesma info) -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Barragem 6 — Duas colunas</p>
+          <div class="og-preview-frame bg-slate-800 flex text-[10px]">
+            <div class="w-1/2 p-2.5 flex flex-col justify-center border-r border-slate-600 shrink-0">
+              <p class="font-semibold text-white text-xs">Albufeira da Bemposta</p>
+              <p class="text-[9px] text-slate-400">Bacia do Douro</p>
+              <div class="grid grid-cols-3 gap-1 mt-1.5">
+                <div><p class="text-[8px] text-slate-500">Enchimento</p><p class="text-sm font-bold text-brand-400">98%</p></div>
+                <div><p class="text-[8px] text-slate-500">Volume</p><p class="text-[10px] font-bold text-slate-200">122 hm³</p></div>
+                <div><p class="text-[8px] text-slate-500">Cota</p><p class="text-[10px] font-bold text-slate-200">401 m</p></div>
+              </div>
+              <div class="h-1 rounded-full bg-slate-600 overflow-hidden mt-1"><div class="h-full bg-brand-400 rounded-full" style="width:98%"></div></div>
+              <p class="text-[9px] text-slate-400 mt-0.5">Atualizado em 17/02/2026</p>
+              <div class="flex gap-0.5 mt-0.5 flex-wrap"><span class="text-[8px] rounded-full bg-slate-600 text-slate-300 px-1 py-0.5">Há 1 mês: −2.9%</span><span class="text-[8px] rounded-full bg-slate-600 text-slate-300 px-1 py-0.5">Há 1 ano: −7.4%</span></div>
+            </div>
+            <div class="flex-1 p-2.5 flex flex-col justify-center min-w-0">
+              <div class="flex rounded-full bg-slate-600 p-0.5 w-fit text-[8px] text-slate-300 mb-1"><span class="rounded-full px-2 py-0.5 bg-slate-700 text-white">Armazenamento</span><span class="rounded-full px-2 py-0.5">Caudais</span><span class="rounded-full px-2 py-0.5">Info</span></div>
+              <p class="text-slate-300 text-[9px]">Estado de armazenamento das barragens em Portugal. Dados em tempo real e históricos.</p>
+              <p class="text-slate-500 text-[8px] mt-1">barragens.pt</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Página Barragens: % enchimento, volume, cota, data, gráfico 3 séries + seletor -->
+    <div class="page-content" data-page="barragens" id="page-barragens">
+      <p class="text-xs text-slate-500 mb-4">Dados dummy: 45%, 1 240 hm³, 152,4 m, atualizado 09/02/2025. Gráfico:
+        observado, média, descarga; seletor 7 / 30 / 90 dias.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- 1: Hero % + métricas + gráfico -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">1 — Hero % + métricas + gráfico
+          </p>
+          <div
+            class="w-full max-w-[340px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <button class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Fechar">✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="flex items-baseline gap-2">
+                <p class="text-3xl font-bold text-slate-900 tabular-nums">45%</p>
+                <span class="text-[10px] uppercase tracking-wider text-slate-500">Enchimento</span>
+              </div>
+              <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <ul class="space-y-1.5 text-xs text-slate-600">
+                <li><span class="text-slate-500">Volume armazenado:</span> <span class="font-medium tabular-nums">1 240
+                    hm³</span></li>
+                <li><span class="text-slate-500">Cota atual:</span> <span class="font-medium tabular-nums">152,4
+                    m</span></li>
+                <li><span class="text-slate-500">Última atualização:</span> <span class="tabular-nums">09/02/2025</span>
+                </li>
+              </ul>
+              <div class="flex justify-between items-center pt-1">
+                <span class="text-xs font-medium text-slate-600">Evolução</span>
+                <select class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+                  <option>7 dias</option>
+                  <option selected>30 dias</option>
+                  <option>90 dias</option>
+                </select>
+              </div>
+              <div class="h-28 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden"
+                style="position:relative">
+                <canvas id="dam-chart-1" class="dam-chart" width="280" height="112"></canvas>
+              </div>
+              <div class="flex flex-wrap gap-2 text-[10px] text-slate-500">
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2: 3 blocos (%, volume, cota) + data + gráfico -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">2 — 3 blocos + data + gráfico
+          </p>
+          <div
+            class="w-full max-w-[340px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <button class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Fechar">✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="grid grid-cols-3 gap-2">
+                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[9px] text-slate-500 uppercase">Enchimento</p>
+                  <p class="text-base font-bold text-brand-600 tabular-nums">45%</p>
+                </div>
+                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[9px] text-slate-500 uppercase">Volume</p>
+                  <p class="text-sm font-bold text-slate-800"><span class="tabular-nums">1 240</span> <span
+                      class="text-[9px] font-normal text-slate-500">hm³</span></p>
+                </div>
+                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[9px] text-slate-500 uppercase">Cota</p>
+                  <p class="text-sm font-bold text-slate-800 tabular-nums">152,4 m</p>
+                </div>
+              </div>
+              <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <p class="text-[10px] text-slate-500">Atualizado em <span class="tabular-nums">09/02/2025</span></p>
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-slate-600">Evolução</span>
+                <select class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+                  <option>7 dias</option>
+                  <option selected>30 dias</option>
+                  <option>90 dias</option>
+                </select>
+              </div>
+              <div class="h-24 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden"
+                style="position:relative">
+                <canvas id="dam-chart-2" class="dam-chart" width="280" height="96"></canvas>
+              </div>
+              <div class="flex gap-2 text-[10px] text-slate-500">
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2a: Igual ao 2 sem progress bar -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">2a — 3 blocos (sem barra) +
+            gráfico</p>
+          <div
+            class="w-full max-w-[340px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <button class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Fechar">✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="grid grid-cols-3 gap-2">
+                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[9px] text-slate-500 uppercase">Enchimento</p>
+                  <p class="text-base font-bold text-brand-600 tabular-nums">45%</p>
+                </div>
+                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[9px] text-slate-500 uppercase">Volume</p>
+                  <p class="text-sm font-bold text-slate-800"><span class="tabular-nums">1 240</span> <span
+                      class="text-[9px] font-normal text-slate-500">hm³</span></p>
+                </div>
+                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[9px] text-slate-500 uppercase">Cota</p>
+                  <p class="text-sm font-bold text-slate-800 tabular-nums">152,4 m</p>
+                </div>
+              </div>
+              <p class="text-[10px] text-slate-500">Atualizado em <span class="tabular-nums">09/02/2025</span></p>
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-slate-600">Evolução</span>
+                <select class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+                  <option>7 dias</option>
+                  <option selected>30 dias</option>
+                  <option>90 dias</option>
+                </select>
+              </div>
+              <div class="h-24 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden"
+                style="position:relative">
+                <canvas id="dam-chart-7" class="dam-chart" width="280" height="96"></canvas>
+              </div>
+              <div class="flex gap-2 text-[10px] text-slate-500">
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2b: Igual ao 2 sem progress bar + % em circular -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">2b — 3 blocos (circular %) +
+            gráfico</p>
+          <div
+            class="w-full max-w-[340px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <button class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Fechar">✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="grid grid-cols-3 gap-2">
+                <div
+                  class="rounded-xl bg-slate-50 border border-slate-100 p-2 flex flex-col items-center justify-center">
+                  <p class="text-[9px] text-slate-500 uppercase mb-1">Enchimento</p>
+                  <div class="relative h-10 w-10">
+                    <svg viewBox="0 0 36 36" class="h-10 w-10 -rotate-90">
+                      <path class="text-slate-200" stroke="currentColor" stroke-width="3" fill="none"
+                        d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+                      <path class="text-brand-500" stroke="currentColor" stroke-width="3" fill="none"
+                        stroke-linecap="round" stroke-dasharray="45, 100"
+                        d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+                    </svg>
+                    <div
+                      class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-700 tabular-nums">
+                      45%</div>
+                  </div>
+                </div>
+                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[9px] text-slate-500 uppercase">Volume</p>
+                  <p class="text-sm font-bold text-slate-800"><span class="tabular-nums">1 240</span> <span
+                      class="text-[9px] font-normal text-slate-500">hm³</span></p>
+                </div>
+                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2 text-center">
+                  <p class="text-[9px] text-slate-500 uppercase">Cota</p>
+                  <p class="text-sm font-bold text-slate-800 tabular-nums">152,4 m</p>
+                </div>
+              </div>
+              <p class="text-[10px] text-slate-500">Atualizado em <span class="tabular-nums">09/02/2025</span></p>
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-slate-600">Evolução</span>
+                <select class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+                  <option>7 dias</option>
+                  <option selected>30 dias</option>
+                  <option>90 dias</option>
+                </select>
+              </div>
+              <div class="h-24 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden"
+                style="position:relative">
+                <canvas id="dam-chart-8" class="dam-chart" width="280" height="96"></canvas>
+              </div>
+              <div class="flex gap-2 text-[10px] text-slate-500">
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2c: Igual ao 2b com os 3 blocos maiores -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">2c — 3 blocos (circular %,
+            maiores) + gráfico</p>
+          <div
+            class="w-full max-w-[340px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <button class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Fechar">✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="grid grid-cols-3 gap-3">
+                <div
+                  class="rounded-xl bg-slate-50 border border-slate-100 py-1.5 px-3 flex flex-col items-center justify-center min-h-[52px]">
+                  <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider">Enchimento</p>
+                  <div class="relative h-12 w-12">
+                    <svg viewBox="0 0 36 36" class="h-12 w-12 -rotate-90">
+                      <path class="text-slate-200" stroke="currentColor" stroke-width="3" fill="none"
+                        d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+                      <path class="text-brand-500" stroke="currentColor" stroke-width="3" fill="none"
+                        stroke-linecap="round" stroke-dasharray="45, 100"
+                        d="M18 2.0845 a 15.9155 15.9155 0 1 1 0 31.831 a 15.9155 15.9155 0 1 1 0 -31.831" />
+                    </svg>
+                    <div
+                      class="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-700 tabular-nums">
+                      45%</div>
+                  </div>
+                </div>
+                <div
+                  class="rounded-xl bg-slate-50 border border-slate-100 py-1.5 px-3 text-center flex flex-col justify-center min-h-[52px]">
+                  <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider">Volume</p>
+                  <p class="text-base font-bold text-slate-800"><span class="tabular-nums">1 240</span> <span
+                      class="text-xs font-normal text-slate-500">hm³</span></p>
+                </div>
+                <div
+                  class="rounded-xl bg-slate-50 border border-slate-100 py-1.5 px-3 text-center flex flex-col justify-center min-h-[52px]">
+                  <p class="text-[10px] text-slate-500 uppercase mb-0.5 tracking-wider">Cota</p>
+                  <p class="text-base font-bold text-slate-800 tabular-nums">152,4 m</p>
+                </div>
+              </div>
+              <p class="text-[10px] text-slate-500">Atualizado em <span class="tabular-nums">09/02/2025</span></p>
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-slate-600">Evolução</span>
+                <select class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+                  <option>7 dias</option>
+                  <option selected>30 dias</option>
+                  <option>90 dias</option>
+                </select>
+              </div>
+              <div class="h-24 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden"
+                style="position:relative">
+                <canvas id="dam-chart-9" class="dam-chart" width="280" height="96"></canvas>
+              </div>
+              <div class="flex gap-2 text-[10px] text-slate-500">
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3: Uma linha resumo + barra + “Ver evolução” -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">3 — Resumo em linha + gráfico
+          </p>
+          <div
+            class="w-full max-w-[340px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <button class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Fechar">✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <p class="text-xs text-slate-600">
+                <span class="font-bold text-slate-900 tabular-nums">45%</span>
+                <span class="text-slate-400 mx-1">·</span>
+                <span class="tabular-nums">1 240 hm³</span>
+                <span class="text-slate-400 mx-1">·</span>
+                <span class="tabular-nums font-medium">152,4 m</span>
+              </p>
+              <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <p class="text-[10px] text-slate-500">Última atualização: <span class="tabular-nums">09/02/2025</span></p>
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-slate-600">Evolução</span>
+                <select class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+                  <option>7 dias</option>
+                  <option selected>30 dias</option>
+                  <option>90 dias</option>
+                </select>
+              </div>
+              <div class="h-32 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden"
+                style="position:relative">
+                <canvas id="dam-chart-3" class="dam-chart" width="280" height="128"></canvas>
+              </div>
+              <div class="flex gap-2 text-[10px] text-slate-500">
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4: Tabela métricas + data + gráfico -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">4 — Tabela métricas + gráfico
+          </p>
+          <div
+            class="w-full max-w-[340px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <button class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Fechar">✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <table class="w-full text-xs">
+                <tr>
+                  <td class="py-1 text-slate-500">% enchimento</td>
+                  <td class="py-1 text-right font-semibold tabular-nums text-brand-600">45%</td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-slate-500">Volume armazenado</td>
+                  <td class="py-1 text-right font-medium tabular-nums">1 240 hm³</td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-slate-500">Cota atual</td>
+                  <td class="py-1 text-right font-medium tabular-nums">152,4 m</td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-slate-500">Última atualização</td>
+                  <td class="py-1 text-right tabular-nums">09/02/2025</td>
+                </tr>
+              </table>
+              <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-slate-600">Evolução</span>
+                <select class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+                  <option>7 dias</option>
+                  <option selected>30 dias</option>
+                  <option>90 dias</option>
+                </select>
+              </div>
+              <div class="h-24 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden"
+                style="position:relative">
+                <canvas id="dam-chart-4" class="dam-chart" width="280" height="96"></canvas>
+              </div>
+              <div class="flex gap-2 text-[10px] text-slate-500">
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5: % + coluna métricas + gráfico -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">5 — % + coluna métricas</p>
+          <div
+            class="w-full max-w-[340px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <button class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Fechar">✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="flex gap-4 items-start">
+                <div>
+                  <p class="text-2xl font-bold text-slate-900 tabular-nums">45%</p>
+                  <p class="text-[10px] text-slate-500">Enchimento</p>
+                </div>
+                <div class="flex-1 space-y-0.5 text-xs text-slate-600">
+                  <p>Volume: <span class="font-medium tabular-nums">1 240 hm³</span></p>
+                  <p>Cota: <span class="font-medium tabular-nums">152,4 m</span></p>
+                  <p class="text-slate-500">Atualizado: <span class="tabular-nums">09/02/2025</span></p>
+                </div>
+              </div>
+              <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-slate-600">Evolução</span>
+                <select class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+                  <option>7 dias</option>
+                  <option selected>30 dias</option>
+                  <option>90 dias</option>
+                </select>
+              </div>
+              <div class="h-28 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden"
+                style="position:relative">
+                <canvas id="dam-chart-5" class="dam-chart" width="280" height="112"></canvas>
+              </div>
+              <div class="flex gap-2 text-[10px] text-slate-500">
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6: Gráfico em destaque + métricas em baixo -->
+        <div class="flex flex-col">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">6 — Gráfico em destaque</p>
+          <div
+            class="w-full max-w-[340px] bg-white/95 rounded-2xl shadow-float border border-slate-200 overflow-hidden text-[13px]">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold text-slate-900">Alqueva</p>
+                <p class="text-xs text-slate-500">Bacia do Guadiana</p>
+              </div>
+              <button class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" aria-label="Fechar">✕</button>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-slate-600">Evolução</span>
+                <select class="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white">
+                  <option>7 dias</option>
+                  <option selected>30 dias</option>
+                  <option>90 dias</option>
+                </select>
+              </div>
+              <div class="h-36 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden"
+                style="position:relative">
+                <canvas id="dam-chart-6" class="dam-chart" width="280" height="144"></canvas>
+              </div>
+              <div class="flex gap-2 text-[10px] text-slate-500">
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>Observado</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Média</span>
+                <span class="inline-flex items-center gap-1"><span
+                    class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Descarga</span>
+              </div>
+              <div class="pt-2 border-t border-slate-100 space-y-1 text-xs text-slate-600">
+                <p><span class="text-slate-500">% enchimento:</span> <span
+                    class="font-semibold tabular-nums text-brand-600">45%</span></p>
+                <p><span class="text-slate-500">Volume:</span> <span class="tabular-nums">1 240 hm³</span> · <span
+                    class="text-slate-500">Cota:</span> <span class="tabular-nums">152,4 m</span></p>
+                <p class="text-slate-500">Última atualização: <span class="tabular-nums">09/02/2025</span></p>
+              </div>
+              <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                <div class="h-full bg-brand-500 rounded-full" style="width: 45%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-8 pt-4 border-t border-slate-200 text-xs text-slate-500">
+      Novas secções: adicionar um botão <code>.top-tab</code> com <code>data-page="id"</code> e um
+      <code>.page-content</code> com <code>data-page="id"</code>.
+    </footer>
+  </div>
+
+  <script>
+      (function () {
+        var topTabs = document.querySelectorAll('.top-tab');
+        var pages = document.querySelectorAll('.page-content');
+        topTabs.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var id = this.getAttribute('data-page');
+            topTabs.forEach(function (t) { t.classList.remove('active'); });
+            pages.forEach(function (p) {
+              p.classList.toggle('is-active', p.getAttribute('data-page') === id);
+            });
+            this.classList.add('active');
+          });
+        });
+      })();
+
+    // Dummy data: 30 dias (labels + 3 séries)
+    function dummyChartData() {
+      var labels = [];
+      var observado = [];
+      var media = [];
+      var descarga = [];
+      var d = new Date();
+      d.setDate(d.getDate() - 29);
+      for (var i = 0; i < 30; i++) {
+        labels.push(d.getDate() + '/' + (d.getMonth() + 1));
+        observado.push(38 + Math.random() * 4 + (i / 30) * 5);
+        media.push(46 + (i % 5) * 0.5 - 0.5);
+        descarga.push(14 + Math.sin(i / 4) * 4 + (i / 30) * 3);
+        d.setDate(d.getDate() + 1);
+      }
+      return { labels: labels, observado: observado, media: media, descarga: descarga };
+    }
+
+    function createDamChart(canvasId) {
+      var ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+      var data = dummyChartData();
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: [
+            { label: 'Observado', data: data.observado, borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.08)', fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 3 },
+            { label: 'Média', data: data.media, borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.06)', fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 3 },
+            { label: 'Descarga', data: data.descarga, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.06)', fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 3 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { intersect: false, mode: 'index' },
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              display: true,
+              grid: { display: false },
+              ticks: { maxTicksLimit: 6, font: { size: 9 }, color: '#94a3b8' }
+            },
+            y: {
+              display: true,
+              min: 0,
+              max: 60,
+              grid: { color: 'rgba(148, 163, 184, 0.2)' },
+              ticks: { maxTicksLimit: 4, font: { size: 9 }, color: '#94a3b8' }
+            }
+          }
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      for (var i = 1; i <= 9; i++) createDamChart('dam-chart-' + i);
+    });
+  </script>
+</body>
+
+</html>

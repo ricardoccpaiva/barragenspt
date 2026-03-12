@@ -1,4 +1,6 @@
 defmodule Barragenspt.Geo.Coordinates do
+  use Nebulex.Caching
+  alias Barragenspt.Cache
   alias Barragenspt.Hydrometrics.Dams
 
   def bounding_box(site_id) do
@@ -16,25 +18,25 @@ defmodule Barragenspt.Geo.Coordinates do
       |> Enum.to_list()
       |> Geocalc.bounding_box_for_points()
     else
-      %{lat: lat, lon: lon} = from_dam(site_id)
+      %{lat: lat, lon: lon} = from_dam_site_id(site_id)
       Geocalc.bounding_box([lon, lat], 10)
     end
   end
 
-  def from_dam(id) when is_binary(id) do
-    dam = Dams.get(id)
-
-    %{
-      lat: parse(dam.metadata["Identificação"]["Latitude (m)"], "N"),
-      lon: parse(dam.metadata["Identificação"]["Longitude (m)"], "W")
-    }
-  end
-
+  @decorate cacheable(
+              cache: Cache,
+              key: "coordinates_from_dam_#{dam.site_id}",
+              ttl: :timer.hours(24)
+            )
   def from_dam(dam) do
     %{
       lat: parse(dam.metadata["Identificação"]["Latitude (m)"], "N"),
       lon: parse(dam.metadata["Identificação"]["Longitude (m)"], "W")
     }
+  end
+
+  def from_dam_site_id(id) do
+    id |> Dams.get() |> from_dam()
   end
 
   def parse(coord, dir) do
@@ -46,6 +48,6 @@ defmodule Barragenspt.Geo.Coordinates do
     |> then(fn [d, m, {s, ""}] -> [d, m, s] end)
     |> then(fn [d, m, s] -> [abs(d), m, s] end)
     |> then(fn [d, m, s] -> %Geocalc.DMS{hours: d, minutes: m, seconds: s, direction: dir} end)
-    |> Geocalc.DMS.to_decimal()
+    |> Geocalc.DMS.to_degrees()
   end
 end

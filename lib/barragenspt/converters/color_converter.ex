@@ -5,16 +5,16 @@ defmodule Barragenspt.Converters.ColorConverter do
   alias Barragenspt.Cache
   import Ecto.Query
 
-  @ttl :timer.hours(720)
+  def get_hex_color(meteo_index, color_xyz, variant \\ nil)
 
-  def get_hex_color(_mi, "rgb(100%,100%,100%)", _variant \\ nil) do
+  def get_hex_color(_mi, "rgb(100%,100%,100%)", _variant) do
     "#FFFFFF"
   end
 
   @decorate cacheable(
               cache: Cache,
               key: "legend_mapping_#{meteo_index}_#{color_xyz}",
-              ttl: @ttl
+              ttl: :timer.hours(720)
             )
   def get_hex_color(meteo_index, color_xyz, nil) do
     query =
@@ -33,7 +33,7 @@ defmodule Barragenspt.Converters.ColorConverter do
   @decorate cacheable(
               cache: Cache,
               key: "legend_mapping_#{meteo_index}_#{color_xyz}_#{variant}",
-              ttl: @ttl
+              ttl: :timer.hours(720)
             )
   def get_hex_color(meteo_index, color_xyz, variant) do
     query =

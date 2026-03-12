@@ -26,7 +26,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
     years = [
       {1990, 2000},
       {2001, 2010},
-      {2011, 2023}
+      {2011, 2026}
     ]
 
     from(d in Dam, where: not is_nil(d.metadata))

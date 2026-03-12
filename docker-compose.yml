@@ -1,0 +1,122 @@
+version: '3.2'
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: barragenspt
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  barragenspt:
+    build:
+      context: .
+      tags:
+        - barragenspt:main
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=ecto://postgres:${POSTGRES_PASSWORD}@postgres/barragenspt
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - GRAFANA_AUTH_TOKEN=${GRAFANA_AUTH_TOKEN}
+      - GRAFANA_HOST=${GRAFANA_HOST}
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      - PHX_HOST=${PHX_HOST}
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=barragens.pt,service.version=1.0,deployment.environment=production
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT}
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_LOGS_EXPORTER=otlp
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - BUGSNAG_API_KEY=${BUGSNAG_API_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - SNIRH_PROXY=${SNIRH_PROXY}
+    ports:
+      - "4000:4000"
+    command: ["/bin/sh", "-c", "/app/bin/migrate && exec /app/bin/server"]
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    restart: unless-stopped
+    devices:
+      - "/dev/kmsg:/dev/kmsg"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8088:8080"
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+
+  promtail:
+    image: grafana/promtail:latest
+    environment:
+      - LOKI_URL=${LOKI_URL}
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log:/var/log
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        cat > /tmp/promtail.yaml << 'CONFIG'
+        server:
+          http_listen_port: 9080
+          grpc_listen_port: 0
+        positions:
+          filename: /tmp/positions.yaml
+        clients:
+          - url: REPLACE_LOKI_URL
+            tenant_id: tenant1
+        scrape_configs:
+          - job_name: containers
+            docker_sd_configs:
+              - host: unix:///var/run/docker.sock
+                refresh_interval: 5s
+            relabel_configs:
+              - source_labels: ["__meta_docker_container_name"]
+                regex: "/(.*)"
+                target_label: "container"
+        CONFIG
+        sed -i "s|REPLACE_LOKI_URL|$$LOKI_URL|g" /tmp/promtail.yaml
+        exec /usr/bin/promtail -config.file=/tmp/promtail.yaml
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:latest
+    restart: always
+    container_name: postgres-exporter
+    depends_on:
+      - postgres
+    environment:
+      - DATA_SOURCE_NAME=postgresql://postgres:${POSTGRES_PASSWORD}@postgres/barragenspt
+    ports:
+      - '9187:9187'
+    labels:
+      - "traefik.enable=false"
+
+volumes:
+  postgres_data:

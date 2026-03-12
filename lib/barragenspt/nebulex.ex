@@ -9,3 +9,9 @@ defmodule Barragenspt.MeteoDataCache do
     otp_app: :barragenspt,
     adapter: Nebulex.Adapters.Local
 end
+
+defmodule Barragenspt.RealtimeDataPointsCache do
+  use Nebulex.Cache,
+    otp_app: :barragenspt,
+    adapter: Nebulex.Adapters.Local
+end

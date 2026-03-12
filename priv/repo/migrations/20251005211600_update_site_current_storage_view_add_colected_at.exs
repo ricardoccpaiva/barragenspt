@@ -2,7 +2,15 @@ defmodule Barragenspt.Repo.Migrations.UpdateSiteCurrentStorageViewAddColectedAt 
   use Ecto.Migration
 
   def up do
-    execute("DROP VIEW IF EXISTS site_current_storage;")
+    execute("""
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM pg_matviews WHERE schemaname = 'public' AND matviewname = 'site_current_storage') THEN
+        DROP MATERIALIZED VIEW site_current_storage;
+      ELSIF EXISTS (SELECT 1 FROM pg_views WHERE schemaname = 'public' AND viewname = 'site_current_storage') THEN
+        DROP VIEW site_current_storage;
+      END IF;
+    END $$;
+    """)
 
     execute("""
     CREATE VIEW site_current_storage AS
@@ -22,7 +30,15 @@ defmodule Barragenspt.Repo.Migrations.UpdateSiteCurrentStorageViewAddColectedAt 
   end
 
   def down do
-    execute("DROP VIEW IF EXISTS site_current_storage;")
+    execute("""
+    DO $$ BEGIN
+      IF EXISTS (SELECT 1 FROM pg_matviews WHERE schemaname = 'public' AND matviewname = 'site_current_storage') THEN
+        DROP MATERIALIZED VIEW site_current_storage;
+      ELSIF EXISTS (SELECT 1 FROM pg_views WHERE schemaname = 'public' AND viewname = 'site_current_storage') THEN
+        DROP VIEW site_current_storage;
+      END IF;
+    END $$;
+    """)
 
     execute("""
     CREATE VIEW site_current_storage AS

@@ -1,6 +1,8 @@
 defmodule Barragenspt.Workers.InfoaguaAlertsRefresh do
-  use Oban.Worker, queue: :meteo_data
+  use Oban.Worker, queue: :data_points_update
   require Logger
+
+  import Ecto.Query
 
   alias Barragenspt.Repo
   alias Barragenspt.Models.Infoagua.Alert
@@ -29,6 +31,13 @@ defmodule Barragenspt.Workers.InfoaguaAlertsRefresh do
 
       {:ok, _} ->
         Logger.warning("Infoagua alerts refresh returned unexpected payload")
+        :ok
+
+      # DATA_AlertsMap not found in page => no alerts active; clear all records
+      {:error, :data_alerts_map_not_found} ->
+        result = Repo.delete_all(from(Alert))
+        deleted = if is_tuple(result), do: elem(result, 0), else: result
+        Logger.info("Infoagua: no alerts map (no active alerts), deleted #{deleted} records")
         :ok
 
       {:error, reason} ->

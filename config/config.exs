@@ -17,6 +17,17 @@ config :barragenspt, BarragensptWeb.Endpoint,
   pubsub_server: Barragenspt.PubSub,
   live_view: [signing_salt: "r91nm81s"]
 
+# Configure Tailwind (paths relative to project root)
+config :tailwind,
+  version: "4.1.10",
+  default: [
+    args: ~w(
+      --input=assets/css/app.css
+      --output=priv/static/assets/app.css
+    ),
+    cd: Path.expand("..", __DIR__)
+  ]
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.0",
@@ -46,7 +57,8 @@ config :barragenspt, Oban,
      crontab: [
        {"0 4 * * *", Barragenspt.Workers.DataPointsUpdate,
         args: %{jcid: unique_id}, max_attempts: 50},
-       {"*/15 * * * *", Barragenspt.Workers.InfoaguaAlertsRefresh, args: %{}, max_attempts: 1},
+       {"*/15 * * * *", Barragenspt.Workers.RealtimeDataPointsUpdate, args: %{}, max_attempts: 3},
+       {"*/30 * * * *", Barragenspt.Workers.InfoaguaAlertsRefresh, args: %{}, max_attempts: 1},
        {"0 5 * * *", Barragenspt.Workers.RefreshMaterializedViews, args: %{}, max_attempts: 3}
      ]}
   ],
@@ -59,7 +71,8 @@ config :barragenspt, Oban,
   ]
 
 config :barragenspt, :snirh,
-  csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php"
+  csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php",
+  proxy: nil
 
 config :ex_aws, :s3,
   scheme: "https://",
