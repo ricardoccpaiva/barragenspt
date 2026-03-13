@@ -5,6 +5,8 @@ services:
     restart: unless-stopped
     environment:
       - MBTILES_URL=${MBTILES_URL:-}
+      - NODE_ENV=production
+      - CACHE_SIZE=500m
     volumes:
       - .:/data
     ports:
