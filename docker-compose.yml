@@ -124,5 +124,13 @@ services:
     labels:
       - "traefik.enable=false"
 
+  tileserver-gl:
+    image: maptiler/tileserver-gl:latest
+    restart: unless-stopped
+    volumes:
+      - ./tileserver_data:/data
+    ports:
+      - "8090:8080"
+
 volumes:
   postgres_data:
