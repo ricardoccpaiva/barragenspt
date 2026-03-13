@@ -108,6 +108,9 @@ COPY --from=builder --chown=nobody:root /app/resources/basins_pt.csv ./bin/resou
 
 USER nobody
 
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=60s \
+  CMD curl -f http://localhost:4000/health || exit 1
+
 CMD ["/app/bin/server"]
 
 # Appended by flyctl
