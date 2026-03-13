@@ -124,28 +124,5 @@ services:
     labels:
       - "traefik.enable=false"
 
-  tileserver-gl:
-    image: maptiler/tileserver-gl:latest
-    restart: unless-stopped
-    environment:
-      - MBTILES_URL=${MBTILES_URL:-}
-    volumes:
-      - tileserver_data:/data
-      - ./tileserver_data/config.json:/data/config.json:ro
-    ports:
-      - "8090:8080"
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        if [ -n "$$MBTILES_URL" ]; then
-          f=$$(echo "$$MBTILES_URL" | sed 's/\?.*//;s/.*\///')
-          if [ ! -f "/data/$$f" ]; then
-            echo "Downloading MBTiles from $$MBTILES_URL..."
-            wget -q -O "/data/$$f" "$$MBTILES_URL" || curl -sL -o "/data/$$f" "$$MBTILES_URL" || true
-          fi
-        fi
-        exec /usr/src/app/docker-entrypoint.sh
-
 volumes:
   postgres_data:
-  tileserver_data:
