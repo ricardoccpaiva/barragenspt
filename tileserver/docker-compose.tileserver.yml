@@ -29,6 +29,3 @@ services:
           fi
         fi
         exec /usr/src/app/docker-entrypoint.sh
-
-volumes:
-  tileserver_data:
