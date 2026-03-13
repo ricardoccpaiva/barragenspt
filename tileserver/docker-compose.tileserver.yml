@@ -6,8 +6,7 @@ services:
     environment:
       - MBTILES_URL=${MBTILES_URL:-}
     volumes:
-      - tileserver_data:/data
-      - ./tileserver_data/config.json:/data/config.json:ro
+      - .:/data
     ports:
       - "8090:8080"
     entrypoint: ["/bin/sh", "-c"]
