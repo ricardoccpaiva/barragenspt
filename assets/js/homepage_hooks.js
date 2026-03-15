@@ -221,6 +221,42 @@ const InfoModalCloseButton = {
   }
 }
 
+const ChatPanel = {
+  mounted() {
+    this.scrollToBottom()
+    this.bindFormClear()
+    this.bindEnterToSubmit()
+  },
+  updated() {
+    this.scrollToBottom()
+  },
+  scrollToBottom() {
+    const messages = document.getElementById("chat-messages")
+    if (messages) messages.scrollTop = messages.scrollHeight
+  },
+  bindFormClear() {
+    const form = this.el.querySelector("form")
+    const textarea = form && form.querySelector('textarea[name="content"]')
+    if (form && textarea) {
+      form.addEventListener("submit", () => {
+        setTimeout(() => { textarea.value = "" }, 0)
+      })
+    }
+  },
+  bindEnterToSubmit() {
+    const form = this.el.querySelector("form")
+    const textarea = form && form.querySelector('textarea[name="content"]')
+    if (form && textarea) {
+      textarea.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault()
+          form.requestSubmit()
+        }
+      })
+    }
+  }
+}
+
 const ExportDamCard = {
   mounted() {
     this.el.addEventListener("click", (e) => {
@@ -267,6 +303,7 @@ const ExportBasinCard = {
 }
 
 export const Hooks = {
+  ChatPanel,
   CapacityColor,
   BasinChartTimeWindow,
   DamChartTimeWindow,

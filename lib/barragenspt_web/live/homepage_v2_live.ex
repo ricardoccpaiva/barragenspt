@@ -6,9 +6,18 @@ defmodule BarragensptWeb.HomepageV2Live do
   alias Barragenspt.Geo.Coordinates
   alias Barragenspt.Hydrometrics.{Basins, Dams, DamChartSeries, EmbalsesNet}
   alias Barragenspt.Models.Infoagua.Alert
+  alias Barragenspt.Search.CerebrasAgent
   require Logger
 
+  def render_markdown(text) when is_binary(text) do
+    Earmark.as_html!(text)
+  rescue
+    _ -> Plug.HTML.html_escape_to_iodata(text) |> to_string()
+  end
+
   def mount(_, _session, socket) do
+    client_ip = get_client_ip(socket)
+
     dams =
       []
       |> Dams.current_storage()
@@ -21,6 +30,7 @@ defmodule BarragensptWeb.HomepageV2Live do
     socket =
       socket
       |> assign(
+        client_ip: client_ip,
         rivers: rivers,
         usage_types: usage_types,
         selected_usage_types: [],
@@ -31,6 +41,9 @@ defmodule BarragensptWeb.HomepageV2Live do
         search_rivers: [],
         search_term: "",
         settings_modal_open: false,
+        chat_open: false,
+        chat_messages: [],
+        chat_loading: false,
         logo_path: Routes.static_path(socket.endpoint, "/images/droplets.svg")
       )
       |> push_event("draw_map_layers", %{basins: basins, dams: dams})
@@ -662,6 +675,84 @@ defmodule BarragensptWeb.HomepageV2Live do
 
   def handle_event("close_settings_modal", _, socket) do
     {:noreply, assign(socket, settings_modal_open: false)}
+  end
+
+  def handle_event("open_chat", _, socket) do
+    {:noreply, assign(socket, chat_open: !socket.assigns.chat_open)}
+  end
+
+  def handle_event("close_chat", _, socket) do
+    {:noreply, assign(socket, chat_open: false)}
+  end
+
+  def handle_event("send_chat_message", %{"content" => content}, socket) do
+    content = String.trim(content)
+    if content == "" do
+      {:noreply, socket}
+    else
+      # Rate limit: 5 messages per minute per IP
+      ip = socket.assigns.client_ip || "unknown"
+      if chat_rate_limited?(ip) do
+        err_msg = %{role: "assistant", content: "Limite de mensagens atingido. Aguarde um minuto antes de enviar novamente."}
+        new_messages = socket.assigns.chat_messages ++ [err_msg]
+        {:noreply, assign(socket, chat_messages: new_messages)}
+      else
+        # Validate length (max 1000 chars)
+        content = String.slice(content, 0, 1000)
+
+        messages = socket.assigns.chat_messages
+        user_msg = %{role: "user", content: content}
+        new_messages = messages ++ [user_msg]
+
+        socket =
+          socket
+          |> assign(chat_messages: new_messages, chat_loading: true)
+
+        pid = self()
+
+        Task.start(fn ->
+          result = CerebrasAgent.chat(new_messages, [])
+          send(pid, {:chat_result, result})
+        end)
+
+        {:noreply, socket}
+      end
+    end
+  end
+
+  defp get_client_ip(socket) do
+    case get_connect_info(socket, :peer_data) do
+      %{address: addr} when is_tuple(addr) -> addr |> :inet.ntoa() |> to_string()
+      _ -> nil
+    end
+  end
+
+  defp chat_rate_limited?(ip) do
+    key = "chat_rate:#{ip}"
+    count = Barragenspt.Cache.get(key) || 0
+    if count >= 5 do
+      true
+    else
+      Barragenspt.Cache.put(key, count + 1, [ttl: 60_000])
+      false
+    end
+  end
+
+  def handle_info({:chat_result, result}, socket) do
+    socket =
+      case result do
+        {:ok, text} ->
+          assistant_msg = %{role: "assistant", content: text}
+          new_messages = socket.assigns.chat_messages ++ [assistant_msg]
+          assign(socket, chat_messages: new_messages, chat_loading: false)
+
+        {:error, err} ->
+          err_msg = %{role: "assistant", content: "Erro: #{err}"}
+          new_messages = socket.assigns.chat_messages ++ [err_msg]
+          assign(socket, chat_messages: new_messages, chat_loading: false)
+      end
+
+    {:noreply, socket}
   end
 
   def handle_event(

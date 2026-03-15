@@ -56,6 +56,36 @@ defmodule Barragenspt.Hydrometrics.Dams do
   end
 
   @decorate cacheable(
+              cache: Cache,
+              key: "dams.summary_stats",
+              ttl: :timer.hours(1)
+            )
+  def summary_stats() do
+    query =
+      from(d in subquery(daily_average_storage_by_site_query(nil, [])),
+        join: b in subquery(sites_current_storage_query(nil, [])),
+        on: d.site_id == b.site_id,
+        join: du in DamUsage,
+        on: b.site_id == du.site_id,
+        join: dd in Dam,
+        on: d.site_id == dd.site_id,
+        select: %{
+          site_id: d.site_id,
+          site_name: dd.name,
+          basin_name: dd.basin,
+          observed_value: fragment("round((?/?)*100, 1)", b.value, dd.total_capacity),
+          historical_average: fragment("round(?, 1)", d.value),
+          colected_at: b.colected_at,
+          total_capacity: dd.total_capacity
+        }
+      )
+
+    query
+    |> distinct(true)
+    |> Repo.all()
+  end
+
+  @decorate cacheable(
               cache: RealtimeDataPointsCache,
               key: "realtime_series_#{site_id}",
               ttl: :timer.hours(1)

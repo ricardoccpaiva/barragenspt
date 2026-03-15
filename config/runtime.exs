@@ -2,6 +2,10 @@ import Config
 
 config :barragenspt, :resend_api_key, System.get_env("RESEND_API_KEY")
 
+config :barragenspt, :cerebras,
+  base_url: System.get_env("CEREBRAS_BASE_URL", "https://api.cerebras.ai/v1"),
+  api_key: System.get_env("CEREBRAS_API_KEY")
+
 config :barragenspt, :snirh, proxy: System.get_env("SNIRH_PROXY")
 
 # config/runtime.exs is executed for all environments, including

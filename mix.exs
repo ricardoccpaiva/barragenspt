@@ -81,7 +81,9 @@ defmodule Barragenspt.MixProject do
       {:bugsnag, "~> 3.0.2"},
       {:resend, "~> 0.4"},
       {:swoosh, "~> 1.6"},
-      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev}
+      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
+      {:req, "~> 0.5"},
+      {:earmark, "~> 1.4"}
     ]
   end
 
