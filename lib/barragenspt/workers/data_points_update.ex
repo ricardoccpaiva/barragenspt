@@ -90,6 +90,7 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
 
     if rows == 0 do
       Logger.info("DataPointsUpdate coordinator job has finished. parent_jcid = '#{jcid}'")
+      Barragenspt.Cache.flush()
 
       :ok
     else
