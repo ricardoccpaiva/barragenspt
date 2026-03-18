@@ -76,7 +76,7 @@
                     <span id={"dam-search-badge-#{d.id}"}
                       class="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-medium text-white dark:ring-1 dark:ring-white/20"
                       phx-hook="CapacityColor" data-observed={d.current_storage}>
-                      <%= if is_number(d.current_storage), do: "#{round(d.current_storage)}%" , else: "—" %>
+                      <%= if is_number(d.current_storage), do: "#{:erlang.float_to_binary(d.current_storage, decimals: 1)}%", else: "—" %>
                     </span>
                   </a>
                 </li>
