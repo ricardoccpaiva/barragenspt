@@ -69,6 +69,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
         on: b.site_id == du.site_id,
         join: dd in Dam,
         on: d.site_id == dd.site_id,
+        where: d.period == ^"#{Timex.now().day}-#{Timex.now().month}",
         select: %{
           site_id: d.site_id,
           site_name: dd.name,

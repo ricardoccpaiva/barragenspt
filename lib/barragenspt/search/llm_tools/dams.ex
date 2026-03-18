@@ -5,6 +5,7 @@ defmodule Barragenspt.Search.LLMTools.Dams do
   alias Barragenspt.Search.LLMTools.Helpers
 
   def exec("get_dam_storage", args), do: exec_get_dam_storage(args)
+  def exec("get_dams_summary_stats", args), do: exec_get_dams_summary_stats(args)
   def exec("search_dams", args), do: exec_search_dams(args)
   def exec("get_dam_info", args), do: exec_get_dam_info(args)
   def exec("get_dams_by_usage_type", args), do: exec_get_dams_by_usage_type(args)
@@ -12,6 +13,25 @@ defmodule Barragenspt.Search.LLMTools.Dams do
   def exec("get_dam_realtime", args), do: exec_get_dam_realtime(args)
   def exec("compare_dams", args), do: exec_compare_dams(args)
   def exec(_, _), do: nil
+
+  def exec_get_dams_summary_stats(_) do
+    stats = Dams.summary_stats()
+    {:ok,
+     %{
+       dams:
+         Enum.map(stats, fn s ->
+           %{
+             dam_id: s.site_id,
+             dam_name: s.site_name,
+             basin_name: s.basin_name,
+             current_storage_pct: Helpers.to_float(s.observed_value),
+             historical_average_pct: Helpers.to_float(s.historical_average),
+             total_capacity: s.total_capacity,
+             colected_at: Helpers.format_datetime(s.colected_at)
+           }
+         end)
+     }}
+  end
 
   def exec_get_dam_storage(%{"dam_name" => name}) when is_binary(name) and name != "" do
     case Helpers.resolve_dam_by_name(name) do

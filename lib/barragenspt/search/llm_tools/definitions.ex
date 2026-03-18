@@ -189,6 +189,12 @@ defmodule Barragenspt.Search.LLMTools.Definitions do
         },
         []
       ),
+      tool(
+        "get_dams_summary_stats",
+        "List ALL dams with storage %. Use for: top N fullest/emptiest, ranking, discovery, 'quais as mais cheias', 'barragens com mais água'. Sort results by current_storage_pct to answer ranking questions.",
+        %{},
+        []
+      ),
       tool("get_site_info", "About barragens.pt: mission, data sources, features.", %{}, [])
     ]
   end
