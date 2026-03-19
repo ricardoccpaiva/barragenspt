@@ -1,5 +1,7 @@
 defmodule BarragensptWeb.Router do
   use BarragensptWeb, :router
+
+  import BarragensptWeb.UserAuth
   import Oban.Web.Router
   import Plug.BasicAuth
 
@@ -10,6 +12,11 @@ defmodule BarragensptWeb.Router do
     plug(:put_root_layout, {BarragensptWeb.LayoutView, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
+    plug(:fetch_current_scope_for_user)
+  end
+
+  pipeline :authenticated do
+    plug(:require_authenticated_user)
   end
 
   pipeline :private do
@@ -32,7 +39,8 @@ defmodule BarragensptWeb.Router do
   scope "/", BarragensptWeb do
     pipe_through(:browser)
 
-    live_session :default do
+    live_session :default,
+      on_mount: [{BarragensptWeb.UserAuth, :mount_current_scope}] do
       live("/", HomepageV2Live, :index)
       live("/basins/:basin_id", HomepageV2Live, :index)
       live("/basins/:basin_id/dams/:dam_id", HomepageV2Live, :index)
@@ -52,7 +60,7 @@ defmodule BarragensptWeb.Router do
     scope "/" do
       pipe_through(:browser)
 
-      live_dashboard("/dashboard", metrics: BarragensptWeb.Telemetry)
+      live_dashboard("/dev/dashboard", metrics: BarragensptWeb.Telemetry)
     end
   end
 
@@ -66,5 +74,34 @@ defmodule BarragensptWeb.Router do
 
       forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
+  end
+
+  ## Authentication routes
+
+  scope "/", BarragensptWeb do
+    pipe_through [:browser, :authenticated]
+
+    live_session :authenticated,
+      on_mount: [{BarragensptWeb.UserAuth, :require_authenticated}] do
+      live "/dashboard", DashboardLive, :index
+      live "/users/settings", UserLive.Settings, :edit
+      live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+    end
+
+    post "/users/update-password", UserSessionController, :update_password
+  end
+
+  scope "/", BarragensptWeb do
+    pipe_through [:browser]
+
+    live_session :current_user,
+      on_mount: [{BarragensptWeb.UserAuth, :mount_current_scope}] do
+      live "/users/register", UserLive.Registration, :new
+      live "/users/log-in", UserLive.Login, :new
+      live "/users/log-in/:token", UserLive.Confirmation, :new
+    end
+
+    post "/users/log-in", UserSessionController, :create
+    delete "/users/log-out", UserSessionController, :delete
   end
 end
