@@ -2,7 +2,10 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
   @moduledoc """
   Evaluates active user alerts after materialized views are fresh.
   """
-  use Oban.Worker, queue: :notifications, max_attempts: 3
+  use Oban.Worker,
+    queue: :notifications,
+    max_attempts: 3,
+    unique: [period: 14 * 60, fields: [:worker], states: [:available, :scheduled, :executing]]
 
   require Logger
 

@@ -91,15 +91,38 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
   defp subject_emoji(_), do: "•"
 
   defp condition_summary(a) do
-    m = metric_label(a.metric)
+    m = condition_metric_label(a.metric)
     op = if a.operator == "lt", do: "inferior a", else: "superior a"
-    "#{m} #{op} #{a.threshold}"
+    "#{m} #{op} #{threshold_with_unit(a.metric, a.threshold)}"
   end
 
   defp metric_label("storage_pct"), do: "Ocupação %"
   defp metric_label("month_change_pct"), do: "Var. 1 mês (pp)"
   defp metric_label("year_change_pct"), do: "Var. 1 ano (pp)"
+  defp metric_label("realtime_level"), do: "Cota (m, realtime)"
+  defp metric_label("realtime_inflow"), do: "Caudal afluente (m3/s, realtime)"
+  defp metric_label("realtime_outflow"), do: "Caudal efluente (m3/s, realtime)"
+  defp metric_label("realtime_storage"), do: "Volume armazenado (%, realtime)"
   defp metric_label(_), do: "?"
+
+  defp condition_metric_label("storage_pct"), do: "Ocupação"
+  defp condition_metric_label("month_change_pct"), do: "Var. 1 mês"
+  defp condition_metric_label("year_change_pct"), do: "Var. 1 ano"
+  defp condition_metric_label("realtime_level"), do: "Cota (realtime)"
+  defp condition_metric_label("realtime_inflow"), do: "Caudal afluente (realtime)"
+  defp condition_metric_label("realtime_outflow"), do: "Caudal efluente (realtime)"
+  defp condition_metric_label("realtime_storage"), do: "Volume armazenado (realtime)"
+  defp condition_metric_label(metric), do: metric_label(metric)
+
+  defp threshold_with_unit(metric, threshold) when metric in ["realtime_inflow", "realtime_outflow"],
+    do: "#{threshold} m3/s"
+
+  defp threshold_with_unit("realtime_level", threshold), do: "#{threshold} m"
+  defp threshold_with_unit("storage_pct", threshold), do: "#{threshold}%"
+  defp threshold_with_unit("month_change_pct", threshold), do: "#{threshold} pp"
+  defp threshold_with_unit("year_change_pct", threshold), do: "#{threshold} pp"
+  defp threshold_with_unit("realtime_storage", threshold), do: "#{threshold}%"
+  defp threshold_with_unit(_, threshold), do: to_string(threshold)
 
   defp format_triggered_at(%DateTime{} = dt) do
     Calendar.strftime(dt, "%Y-%m-%d %H:%M:%S UTC")
@@ -119,6 +142,11 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
        when is_float(v) and metric in ["month_change_pct", "year_change_pct"] do
     "#{Float.round(v, 2)} pp"
   end
+
+  defp format_metric_value("realtime_level", v) when is_float(v), do: "#{Float.round(v, 2)} m"
+  defp format_metric_value("realtime_inflow", v) when is_float(v), do: "#{Float.round(v, 2)} m3/s"
+  defp format_metric_value("realtime_outflow", v) when is_float(v), do: "#{Float.round(v, 2)} m3/s"
+  defp format_metric_value("realtime_storage", v) when is_float(v), do: "#{Float.round(v, 2)}%"
 
   defp format_metric_value(_metric, v) when is_float(v) do
     "#{Float.round(v, 2)}"

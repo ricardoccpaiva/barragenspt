@@ -5,7 +5,8 @@ defmodule Barragenspt.Notifications.UserAlert do
   alias Barragenspt.Accounts.User
 
   @subject_types ~w(dam basin national)
-  @metrics ~w(storage_pct month_change_pct year_change_pct)
+  @realtime_metrics ~w(realtime_level realtime_inflow realtime_outflow realtime_storage)
+  @metrics ~w(storage_pct month_change_pct year_change_pct) ++ @realtime_metrics
   @operators ~w(lt gt)
   @repeat_modes_base ~w(once_per_event cooldown)
 
@@ -61,9 +62,10 @@ defmodule Barragenspt.Notifications.UserAlert do
     |> validate_inclusion(:metric, @metrics)
     |> validate_inclusion(:operator, @operators)
     |> validate_inclusion(:repeat_mode, repeat_modes())
-    |> validate_number(:threshold, greater_than: -500, less_than: 500)
+    |> validate_threshold_for_metric()
     |> validate_number(:cooldown_hours, greater_than: 0, less_than: 8760)
     |> validate_subject_id()
+    |> validate_metric_subject_compatibility()
     |> foreign_key_constraint(:user_id)
   end
 
@@ -85,8 +87,36 @@ defmodule Barragenspt.Notifications.UserAlert do
   defp present?(s) when is_binary(s), do: String.trim(s) != ""
   defp present?(_), do: false
 
+  defp validate_metric_subject_compatibility(changeset) do
+    metric = get_field(changeset, :metric)
+    subject_type = get_field(changeset, :subject_type)
+
+    if metric in @realtime_metrics and subject_type != "dam" do
+      add_error(changeset, :metric, "is only available for dam alerts")
+    else
+      changeset
+    end
+  end
+
+  defp validate_threshold_for_metric(changeset) do
+    metric = get_field(changeset, :metric)
+
+    case metric do
+      m when m in ["storage_pct", "month_change_pct", "year_change_pct"] ->
+        validate_number(changeset, :threshold, greater_than: -500, less_than: 500)
+
+      _ ->
+        validate_number(changeset, :threshold,
+          greater_than: -1_000_000,
+          less_than: 1_000_000
+        )
+    end
+  end
+
   def subject_types, do: @subject_types
   def metrics, do: @metrics
+  def realtime_metrics, do: @realtime_metrics
+  def realtime_metric?(metric), do: metric in @realtime_metrics
   def operators, do: @operators
   @doc """
   Allowed `repeat_mode` values. Includes `"always"` only when `MIX_ENV=dev` (`Application.get_env(:barragenspt, :env) == :dev`).

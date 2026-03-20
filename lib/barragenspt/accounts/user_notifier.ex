@@ -178,14 +178,27 @@ defmodule Barragenspt.Accounts.UserNotifier do
 
   defp describe_condition(%UserAlert{} = a) do
     op = if a.operator == "lt", do: "inferior a", else: "superior a"
-    metric = format_metric(a.metric)
-    "Condição: #{metric} #{op} #{a.threshold}"
+    metric = condition_metric_label(a.metric)
+    "Condição: #{metric} #{op} #{threshold_with_unit(a.metric, a.threshold)}"
   end
 
   defp format_metric("storage_pct"), do: "Ocupação (%)"
   defp format_metric("month_change_pct"), do: "Variação vs 1 mês (p.p.)"
   defp format_metric("year_change_pct"), do: "Variação vs 1 ano (p.p.)"
+  defp format_metric("realtime_level"), do: "Cota (m, realtime)"
+  defp format_metric("realtime_inflow"), do: "Caudal afluente (m3/s, realtime)"
+  defp format_metric("realtime_outflow"), do: "Caudal efluente (m3/s, realtime)"
+  defp format_metric("realtime_storage"), do: "Volume armazenado (%, realtime)"
   defp format_metric(_), do: "Indicador"
+
+  defp condition_metric_label("storage_pct"), do: "Ocupação"
+  defp condition_metric_label("month_change_pct"), do: "Variação vs 1 mês"
+  defp condition_metric_label("year_change_pct"), do: "Variação vs 1 ano"
+  defp condition_metric_label("realtime_level"), do: "Cota (realtime)"
+  defp condition_metric_label("realtime_inflow"), do: "Caudal afluente (realtime)"
+  defp condition_metric_label("realtime_outflow"), do: "Caudal efluente (realtime)"
+  defp condition_metric_label("realtime_storage"), do: "Volume armazenado (realtime)"
+  defp condition_metric_label(metric), do: format_metric(metric)
 
   defp subject_type_pt("dam"), do: "Barragem"
   defp subject_type_pt("basin"), do: "Bacia"
@@ -200,12 +213,35 @@ defmodule Barragenspt.Accounts.UserNotifier do
     "#{Float.round(value * 1.0, 2)} p.p."
   end
 
+  defp format_value_for_email("realtime_level", value) do
+    "#{Float.round(value * 1.0, 2)} m"
+  end
+
+  defp format_value_for_email(metric, value)
+       when metric in ["realtime_inflow", "realtime_outflow"] do
+    "#{Float.round(value * 1.0, 2)} m3/s"
+  end
+
+  defp format_value_for_email("realtime_storage", value) do
+    "#{Float.round(value * 1.0, 2)}%"
+  end
+
   defp format_value_for_email(_metric, value) do
     to_string(Float.round(value * 1.0, 2))
   end
 
   defp format_alert_label(%UserAlert{metric: m, operator: op, threshold: t}) do
     o = if op == "lt", do: "<", else: ">"
-    "#{format_metric(m)} #{o} #{t}"
+    "#{condition_metric_label(m)} #{o} #{threshold_with_unit(m, t)}"
   end
+
+  defp threshold_with_unit(metric, threshold) when metric in ["realtime_inflow", "realtime_outflow"],
+    do: "#{threshold} m3/s"
+
+  defp threshold_with_unit("realtime_level", threshold), do: "#{threshold} m"
+  defp threshold_with_unit("storage_pct", threshold), do: "#{threshold}%"
+  defp threshold_with_unit("month_change_pct", threshold), do: "#{threshold} p.p."
+  defp threshold_with_unit("year_change_pct", threshold), do: "#{threshold} p.p."
+  defp threshold_with_unit("realtime_storage", threshold), do: "#{threshold}%"
+  defp threshold_with_unit(_, threshold), do: to_string(threshold)
 end

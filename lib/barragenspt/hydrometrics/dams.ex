@@ -80,6 +80,22 @@ defmodule Barragenspt.Hydrometrics.Dams do
     end)
   end
 
+  @decorate cacheable(
+              cache: RealtimeDataPointsCache,
+              key: "realtime_latest_#{site_id}_#{param_name}",
+              ttl: :timer.minutes(15)
+            )
+  def realtime_latest_value(site_id, param_name) when is_binary(site_id) and is_binary(param_name) do
+    from(d in DataPointRealtime,
+      where: d.site_id == ^site_id and d.param_name == ^param_name,
+      order_by: [desc: d.colected_at],
+      limit: 1,
+      select: d.value
+    )
+    |> Repo.one()
+    |> decimal_to_float()
+  end
+
   defp decimal_to_float(%Decimal{} = d), do: Decimal.to_float(d)
   defp decimal_to_float(n) when is_number(n), do: n * 1.0
   defp decimal_to_float(_), do: nil

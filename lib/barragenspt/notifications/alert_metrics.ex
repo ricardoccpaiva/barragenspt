@@ -46,6 +46,22 @@ defmodule Barragenspt.Notifications.AlertMetrics do
     site_id |> Dams.monthly_stats(2) |> period_change(365, 45)
   end
 
+  defp dam_value(site_id, "realtime_level") do
+    Dams.realtime_latest_value(site_id, "cota")
+  end
+
+  defp dam_value(site_id, "realtime_inflow") do
+    Dams.realtime_latest_value(site_id, "caudal_afluente")
+  end
+
+  defp dam_value(site_id, "realtime_outflow") do
+    Dams.realtime_latest_value(site_id, "caudal_efluente")
+  end
+
+  defp dam_value(site_id, "realtime_storage") do
+    Dams.realtime_latest_value(site_id, "volume_armazenado")
+  end
+
   defp dam_value(_, _), do: nil
 
   defp basin_value(nil, _), do: nil

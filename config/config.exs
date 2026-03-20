@@ -76,6 +76,8 @@ config :barragenspt, Oban,
        {"0 4 * * *", Barragenspt.Workers.DataPointsUpdate,
         args: %{jcid: unique_id}, max_attempts: 50},
        {"*/15 * * * *", Barragenspt.Workers.RealtimeDataPointsUpdate, args: %{}, max_attempts: 3},
+       {"*/15 * * * *", Barragenspt.Workers.EvaluateAlerts,
+        args: %{id: "cron-15m"}, max_attempts: 1},
        {"*/30 * * * *", Barragenspt.Workers.InfoaguaAlertsRefresh, args: %{}, max_attempts: 1},
        {"0 5 * * *", Barragenspt.Workers.RefreshMaterializedViews, args: %{}, max_attempts: 3}
      ]}

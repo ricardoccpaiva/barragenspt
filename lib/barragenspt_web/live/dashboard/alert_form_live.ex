@@ -5,6 +5,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
   alias Barragenspt.Notifications
   alias Barragenspt.Notifications.AlertMetrics
+  alias Barragenspt.Notifications.UserAlert
   alias Barragenspt.Hydrometrics.{Dams, Basins}
 
   @impl true
@@ -161,16 +162,15 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                       name="metric"
                       class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
                     >
-                      <option value="storage_pct" selected={@metric == "storage_pct"}>
-                        Ocupação (%)
-                      </option>
-                      <option value="month_change_pct" selected={@metric == "month_change_pct"}>
-                        Variação vs 1 mês (pp)
-                      </option>
-                      <option value="year_change_pct" selected={@metric == "year_change_pct"}>
-                        Variação vs 1 ano (pp)
-                      </option>
+                      <%= for {value, label} <- metric_options(@subject_type) do %>
+                        <option value={value} selected={@metric == value}>
+                          {label}
+                        </option>
+                      <% end %>
                     </select>
+                    <p :if={@subject_type == "dam"} class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      Métricas realtime disponíveis: cota, caudal afluente/efluente e volume armazenado.
+                    </p>
                   </div>
                   <div>
                     <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
@@ -406,12 +406,15 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
         _ -> {nil, nil, []}
       end
 
+    metric = normalize_metric_for_subject(socket.assigns.metric, t)
+
     {:noreply,
      socket
      |> assign(
        subject_type: t,
        subject_id: id,
        subject_name: name,
+       metric: metric,
        search_term: "",
        search_results: results
      )
@@ -471,7 +474,10 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
   @impl true
   def handle_event("field", params, socket) do
-    metric = pick_field(params, "metric", socket.assigns.metric)
+    metric =
+      pick_field(params, "metric", socket.assigns.metric)
+      |> normalize_metric_for_subject(socket.assigns.subject_type)
+
     operator = pick_field(params, "operator", socket.assigns.operator)
     threshold = pick_field(params, "threshold", socket.assigns.threshold)
     cooldown_hours = pick_field(params, "cooldown_hours", socket.assigns.cooldown_hours)
@@ -527,11 +533,13 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   end
 
   defp do_save(socket, user_id, t, ch) do
+    metric = normalize_metric_for_subject(socket.assigns.metric, socket.assigns.subject_type)
+
     base = %{
       subject_type: socket.assigns.subject_type,
       subject_id: normalize_subject_id(socket.assigns.subject_type, socket.assigns.subject_id),
       subject_name: socket.assigns.subject_name || "—",
-      metric: socket.assigns.metric,
+      metric: metric,
       operator: socket.assigns.operator,
       threshold: t,
       repeat_mode: socket.assigns.repeat_mode,
@@ -604,6 +612,8 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   end
 
   defp assign_from_alert(socket, alert) do
+    metric = normalize_metric_for_subject(alert.metric, alert.subject_type)
+
     sid =
       case alert.subject_id do
         nil ->
@@ -630,7 +640,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
           else: ""
         ),
       search_results: [],
-      metric: alert.metric,
+      metric: metric,
       operator: alert.operator,
       threshold: format_threshold_field(alert.threshold),
       repeat_mode: alert.repeat_mode,
@@ -685,6 +695,34 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     do: subject_id_present?(id)
 
   defp ready_subject?(_), do: false
+
+  defp metric_options(subject_type) when subject_type == "dam" do
+    [
+      {"storage_pct", "Ocupação (%)"},
+      {"month_change_pct", "Variação vs 1 mês (pp)"},
+      {"year_change_pct", "Variação vs 1 ano (pp)"},
+      {"realtime_level", "Cota (m, realtime)"},
+      {"realtime_inflow", "Caudal afluente (m3/s, realtime)"},
+      {"realtime_outflow", "Caudal efluente (m3/s, realtime)"},
+      {"realtime_storage", "Volume armazenado (%, realtime)"}
+    ]
+  end
+
+  defp metric_options(_subject_type) do
+    [
+      {"storage_pct", "Ocupação (%)"},
+      {"month_change_pct", "Variação vs 1 mês (pp)"},
+      {"year_change_pct", "Variação vs 1 ano (pp)"}
+    ]
+  end
+
+  defp normalize_metric_for_subject(metric, subject_type) do
+    if UserAlert.realtime_metric?(metric) and subject_type != "dam" do
+      "storage_pct"
+    else
+      metric
+    end
+  end
 
   defp pick_field(params, key, fallback) do
     params = stringify_form_params(params)
