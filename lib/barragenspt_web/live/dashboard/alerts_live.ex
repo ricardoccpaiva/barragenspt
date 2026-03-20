@@ -72,14 +72,28 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                       <td class="px-4 py-3">
                         <.status_badge row={row} />
                       </td>
-                      <td class="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                    <td class="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                      <.link
+                        navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
+                        class="font-medium text-brand-600 hover:underline dark:text-brand-400"
+                        title="View trigger history"
+                      >
                         {row.triggered_count}×
-                      </td>
+                      </.link>
+                    </td>
                       <td class="px-4 py-3 text-slate-600 dark:text-slate-400">
                         {format_last(row.triggered_at)}
                       </td>
                       <td class="px-4 py-3 text-right">
                         <div class="inline-flex items-center justify-end gap-0.5">
+                          <.link
+                            navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
+                            class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
+                            aria-label="Trigger history"
+                            title="Trigger history"
+                          >
+                            <.icon name="hero-clock" class="size-5" />
+                          </.link>
                           <.link
                             navigate={~p"/dashboard/alerts/#{row.alert.id}/edit"}
                             class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
