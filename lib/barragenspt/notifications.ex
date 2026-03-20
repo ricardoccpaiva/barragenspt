@@ -37,6 +37,24 @@ defmodule Barragenspt.Notifications do
   end
 
   @doc """
+  Loads an alert and its trigger events (newest first). Returns `{:error, :not_found}` if the alert
+  does not belong to the user.
+  """
+  def fetch_alert_with_events(id, user_id) do
+    with {:ok, alert} <- get_alert(id, user_id) do
+      events =
+        Repo.all(
+          from(e in AlertEvent,
+            where: e.alert_id == ^alert.id,
+            order_by: [desc: e.triggered_at]
+          )
+        )
+
+      {:ok, alert, events}
+    end
+  end
+
+  @doc """
   Fetches a single alert for the user, or `{:error, :not_found}`.
   `id` may be a string (from URL params) or integer.
   """
