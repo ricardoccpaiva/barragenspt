@@ -13,24 +13,24 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
         <div class="w-[110%] -mx-[5%] space-y-6">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <.header>
-              Alerts
+              Alertas
               <:subtitle>
-                Manage conditions that email you when they are met.
+                Gerir condições que lhe enviam e-mail quando são cumpridas.
               </:subtitle>
             </.header>
             <.link
               navigate={~p"/dashboard/alerts/new"}
               class="inline-flex rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
             >
-              Create alert
+              Criar alerta
             </.link>
           </div>
 
           <%= if @rows == [] do %>
             <p class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-              You don’t have any alerts yet.
+              Ainda não tem alertas.
               <.link navigate={~p"/dashboard/alerts/new"} class="font-semibold text-brand-600 dark:text-brand-400">
-                Create the first one
+                Criar o primeiro
               </.link>
             </p>
           <% else %>
@@ -39,22 +39,22 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                 <thead class="bg-slate-50 dark:bg-slate-800/80">
                   <tr>
                     <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                      Subject
+                      Alvo
                     </th>
                     <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                      Condition
+                      Condição
                     </th>
                     <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                      Status
+                      Estado
                     </th>
                     <th class="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
-                      Triggered
+                      Disparos
                     </th>
                     <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                      Last fired
+                      Último disparo
                     </th>
                     <th class="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
-                      Actions
+                      Ações
                     </th>
                   </tr>
                 </thead>
@@ -76,7 +76,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                       <.link
                         navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
                         class="font-medium text-brand-600 hover:underline dark:text-brand-400"
-                        title="View trigger history"
+                        title="Ver histórico de disparos"
                       >
                         {row.triggered_count}×
                       </.link>
@@ -89,16 +89,16 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                           <.link
                             navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
                             class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
-                            aria-label="Trigger history"
-                            title="Trigger history"
+                            aria-label="Histórico de disparos"
+                            title="Histórico de disparos"
                           >
                             <.icon name="hero-clock" class="size-5" />
                           </.link>
                           <.link
                             navigate={~p"/dashboard/alerts/#{row.alert.id}/edit"}
                             class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
-                            aria-label="Edit alert"
-                            title="Edit"
+                            aria-label="Editar alerta"
+                            title="Editar"
                           >
                             <.icon name="hero-pencil-square" class="size-5" />
                           </.link>
@@ -107,8 +107,8 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                             phx-click="toggle"
                             phx-value-id={row.alert.id}
                             class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
-                            aria-label={if row.alert.active, do: "Pause alert", else: "Resume alert"}
-                            title={if row.alert.active, do: "Pause", else: "Resume"}
+                            aria-label={if row.alert.active, do: "Pausar alerta", else: "Retomar alerta"}
+                            title={if row.alert.active, do: "Pausar", else: "Retomar"}
                           >
                             <%= if row.alert.active do %>
                               <.icon name="hero-pause" class="size-5" />
@@ -120,10 +120,10 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                             type="button"
                             phx-click="delete"
                             phx-value-id={row.alert.id}
-                            data-confirm="Remove this alert?"
+                            data-confirm="Remover este alerta?"
                             class="inline-flex rounded-lg p-1.5 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-900/25"
-                            aria-label="Delete alert"
-                            title="Delete"
+                            aria-label="Eliminar alerta"
+                            title="Eliminar"
                           >
                             <.icon name="hero-trash" class="size-5" />
                           </button>
@@ -141,7 +141,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
           navigate={~p"/dashboard"}
           class="inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
         >
-          ← Dashboard
+          ← Painel
         </.link>
       </div>
     </Layouts.app>
@@ -157,7 +157,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
         {:noreply, assign(socket, rows: load_rows(user_id))}
 
       _ ->
-        {:noreply, put_flash(socket, :error, "Could not update alert.")}
+        {:noreply, put_flash(socket, :error, "Não foi possível atualizar o alerta.")}
     end
   end
 
@@ -169,11 +169,11 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
       {:ok, _} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Alert removed.")
+         |> put_flash(:info, "Alerta removido.")
          |> assign(rows: load_rows(user_id))}
 
       _ ->
-        {:noreply, put_flash(socket, :error, "Could not remove alert.")}
+        {:noreply, put_flash(socket, :error, "Não foi possível remover o alerta.")}
     end
   end
 
@@ -199,13 +199,13 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
 
   defp condition_row(a) do
     m = metric_label(a.metric)
-    op = if a.operator == "lt", do: "below", else: "above"
+    op = if a.operator == "lt", do: "inferior a", else: "superior a"
     "#{m} #{op} #{a.threshold}"
   end
 
-  defp metric_label("storage_pct"), do: "Storage %"
-  defp metric_label("month_change_pct"), do: "Δ 1 month (pp)"
-  defp metric_label("year_change_pct"), do: "Δ 1 year (pp)"
+  defp metric_label("storage_pct"), do: "Ocupação %"
+  defp metric_label("month_change_pct"), do: "Var. 1 mês (pp)"
+  defp metric_label("year_change_pct"), do: "Var. 1 ano (pp)"
   defp metric_label(_), do: "?"
 
   attr :row, :map, required: true
@@ -224,11 +224,11 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
     <%= case @kind do %>
       <% :paused -> %>
         <span class="inline-flex rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-600 dark:text-slate-100">
-          Paused
+          Pausado
         </span>
       <% :active -> %>
         <span class="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200">
-          Active
+          Ativo
         </span>
       <% :ok -> %>
         <span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
@@ -238,7 +238,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
     """
   end
 
-  defp format_last(nil), do: "Never"
+  defp format_last(nil), do: "Nunca"
 
   defp format_last(%DateTime{} = dt) do
     Calendar.strftime(dt, "%Y-%m-%d %H:%M UTC")

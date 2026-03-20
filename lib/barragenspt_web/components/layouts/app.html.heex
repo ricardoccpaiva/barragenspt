@@ -9,32 +9,32 @@
             type="checkbox"
             class="toggle"
             phx-hook="DarkModeToggle"
-            aria-label="Toggle dark mode"
+            aria-label="Alternar modo escuro"
           />
-          <span class="text-slate-600 dark:text-slate-400 max-sm:sr-only">Dark</span>
+          <span class="text-slate-600 dark:text-slate-400 max-sm:sr-only">Escuro</span>
         </label>
         <%= if @current_scope && @current_scope.user do %>
           <span class="text-slate-600 dark:text-slate-400 truncate max-w-[14rem]">
             {@current_scope.user.email}
           </span>
           <.link navigate={~p"/dashboard"} class="text-brand-600 dark:text-brand-400 hover:underline">
-            Dashboard
+            Painel
           </.link>
           <.link navigate={~p"/dashboard/alerts"} class="text-brand-600 dark:text-brand-400 hover:underline">
-            Alerts
+            Alertas
           </.link>
           <.link navigate={~p"/users/settings"} class="text-brand-600 dark:text-brand-400 hover:underline">
-            Settings
+            Definições
           </.link>
           <.link href={~p"/users/log-out"} method="delete" class="text-brand-600 dark:text-brand-400 hover:underline">
-            Log out
+            Sair
           </.link>
         <% else %>
           <.link navigate={~p"/users/register"} class="text-brand-600 dark:text-brand-400 hover:underline">
-            Register
+            Registo
           </.link>
           <.link navigate={~p"/users/log-in"} class="text-brand-600 dark:text-brand-400 hover:underline">
-            Log in
+            Iniciar sessão
           </.link>
         <% end %>
       </nav>
