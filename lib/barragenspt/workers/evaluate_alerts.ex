@@ -13,6 +13,16 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
   alias Barragenspt.Notifications
   alias Barragenspt.Notifications.{UserAlert, AlertMetrics}
 
+  @doc """
+  Enqueue a full pass over active alerts (same as after a materialized-view refresh).
+  `id_prefix` is stored in job args for logs (e.g. `\"navbar\"`, `\"manual\"`).
+  """
+  def schedule_manual(id_prefix \\ "manual") do
+    %{"id" => "#{id_prefix}-#{:erlang.unique_integer([:positive])}"}
+    |> new()
+    |> Oban.insert()
+  end
+
   @impl Oban.Worker
   def perform(%Oban.Job{attempt: 1, args: %{"id" => job_id}}) do
     Logger.info("EvaluateAlerts starting oban_job_id=#{job_id}")
@@ -68,6 +78,9 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
             nil -> true
             t -> DateTime.diff(DateTime.utc_now(), t, :second) >= alert.cooldown_hours * 3600
           end
+
+        "always" ->
+          true
 
         other ->
           Logger.warning(

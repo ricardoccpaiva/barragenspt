@@ -26,6 +26,14 @@ defmodule BarragensptWeb.DashboardLive do
           >
             Alertas
           </.link>
+          <%= if Mix.env() in [:dev, :test] do %>
+            <.link
+              navigate={~p"/dashboard/test/force-dam-value"}
+              class="inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+            >
+              Ferramentas de teste
+            </.link>
+          <% end %>
           <.link
             navigate={~p"/"}
             class="inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"

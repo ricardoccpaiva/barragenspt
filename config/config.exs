@@ -23,6 +23,9 @@ config :barragenspt, :scopes,
 config :barragenspt,
   ecto_repos: [Barragenspt.Repo]
 
+# Mirrors MIX_ENV via `config_env()` (available at runtime as Application.get_env(:barragenspt, :env))
+config :barragenspt, :env, :dev
+
 config :barragenspt, Barragenspt.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configures the endpoint

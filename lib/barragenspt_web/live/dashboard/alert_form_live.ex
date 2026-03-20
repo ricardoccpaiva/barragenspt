@@ -254,6 +254,26 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                       class="mt-2 w-24 rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800"
                     />
                   </div>
+                  <div :if={Application.get_env(:barragenspt, :env) == :dev}>
+                    <p class="mb-1 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
+                      Apenas desenvolvimento
+                    </p>
+                    <label class="block text-sm">
+                      <input
+                        type="radio"
+                        name="repeat_mode"
+                        value="always"
+                        checked={@repeat_mode == "always"}
+                        phx-click="repeat"
+                        phx-value-mode="always"
+                        class="mr-2 align-middle"
+                      />
+                      <span class="font-medium text-amber-900 dark:text-amber-200">
+                        Sempre
+                      </span>
+                      — envia e-mail em cada avaliação (ex.: a cada minuto) enquanto a condição se mantiver
+                    </label>
+                  </div>
                 </div>
               <% end %>
             </div>

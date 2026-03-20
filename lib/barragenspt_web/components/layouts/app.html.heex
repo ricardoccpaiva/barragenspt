@@ -23,6 +23,7 @@
           <.link navigate={~p"/dashboard/alerts"} class="text-brand-600 dark:text-brand-400 hover:underline">
             Alertas
           </.link>
+          <.live_component module={BarragensptWeb.EvaluateAlertsShortcutComponent} id="navbar-evaluate-alerts" />
           <%= if Mix.env() in [:dev, :test] do %>
             <.link navigate={~p"/dashboard/test/force-dam-value"}
               class="font-medium text-amber-800 hover:underline dark:text-amber-300">

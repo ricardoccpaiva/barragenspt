@@ -7,7 +7,7 @@ defmodule Barragenspt.Notifications.UserAlert do
   @subject_types ~w(dam basin national)
   @metrics ~w(storage_pct month_change_pct year_change_pct)
   @operators ~w(lt gt)
-  @repeat_modes ~w(once_per_event cooldown)
+  @repeat_modes_base ~w(once_per_event cooldown)
 
   schema "user_alerts" do
     field :subject_type, :string
@@ -60,7 +60,7 @@ defmodule Barragenspt.Notifications.UserAlert do
     |> validate_inclusion(:subject_type, @subject_types)
     |> validate_inclusion(:metric, @metrics)
     |> validate_inclusion(:operator, @operators)
-    |> validate_inclusion(:repeat_mode, @repeat_modes)
+    |> validate_inclusion(:repeat_mode, repeat_modes())
     |> validate_number(:threshold, greater_than: -500, less_than: 500)
     |> validate_number(:cooldown_hours, greater_than: 0, less_than: 8760)
     |> validate_subject_id()
@@ -88,5 +88,14 @@ defmodule Barragenspt.Notifications.UserAlert do
   def subject_types, do: @subject_types
   def metrics, do: @metrics
   def operators, do: @operators
-  def repeat_modes, do: @repeat_modes
+  @doc """
+  Allowed `repeat_mode` values. Includes `"always"` only when `MIX_ENV=dev` (`Application.get_env(:barragenspt, :env) == :dev`).
+  """
+  def repeat_modes do
+    if Application.get_env(:barragenspt, :env) == :dev do
+      @repeat_modes_base ++ ~w(always)
+    else
+      @repeat_modes_base
+    end
+  end
 end
