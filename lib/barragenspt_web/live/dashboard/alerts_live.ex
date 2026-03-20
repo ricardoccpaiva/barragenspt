@@ -10,7 +10,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="space-y-6">
-        <div class="w-[110%] -mx-[5%] space-y-6">
+        <div class="w-[120%] -mx-[10%] space-y-6">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <.header>
               Alertas
@@ -47,13 +47,13 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                     <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
                       Estado
                     </th>
-                    <th class="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
+                    <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
                       Disparos
                     </th>
                     <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
                       Último disparo
                     </th>
-                    <th class="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
+                    <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
                       Ações
                     </th>
                   </tr>
@@ -72,7 +72,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                       <td class="px-4 py-3">
                         <.status_badge row={row} />
                       </td>
-                      <td class="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                      <td class="px-4 py-3 text-left tabular-nums text-slate-700 dark:text-slate-300">
                         <.link
                           navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
                           class="font-medium text-brand-600 hover:underline dark:text-brand-400"
@@ -84,8 +84,8 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                       <td class="px-4 py-3 text-slate-600 dark:text-slate-400">
                         {format_last(row.triggered_at)}
                       </td>
-                      <td class="px-4 py-3 text-right">
-                        <div class="inline-flex items-center justify-end gap-0.5">
+                      <td class="px-4 py-3 text-left">
+                        <div class="inline-flex items-center justify-start gap-0.5">
                           <.link
                             navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
                             class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
