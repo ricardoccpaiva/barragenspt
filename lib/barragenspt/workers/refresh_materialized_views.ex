@@ -3,7 +3,7 @@ defmodule Barragenspt.Workers.RefreshMaterializedViews do
   require Logger
 
   @impl Oban.Worker
-  def perform(_args) do
+  def perform(%Oban.Job{} = job) do
     Barragenspt.Repo.query!("REFRESH MATERIALIZED VIEW CONCURRENTLY site_current_storage")
 
     Barragenspt.Repo.query!(
@@ -13,6 +13,10 @@ defmodule Barragenspt.Workers.RefreshMaterializedViews do
     Barragenspt.Repo.query!(
       "REFRESH MATERIALIZED VIEW CONCURRENTLY monthly_average_storage_by_site"
     )
+
+    Barragenspt.Cache.flush()
+
+    _ = Oban.insert(Barragenspt.Workers.EvaluateAlerts.new(%{"id" => job.id}))
 
     :ok
   end

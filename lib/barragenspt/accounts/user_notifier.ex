@@ -3,6 +3,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
 
   alias Barragenspt.Mailer
   alias Barragenspt.Accounts.User
+  alias Barragenspt.Notifications.UserAlert
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do
@@ -80,5 +81,47 @@ defmodule Barragenspt.Accounts.UserNotifier do
 
     ==============================
     """)
+  end
+
+  @doc """
+  Email when a user alert condition is met (storage / change thresholds).
+  """
+  def deliver_alert_triggered(%User{} = user, %UserAlert{} = alert, value)
+      when is_number(value) do
+    base = BarragensptWeb.Endpoint.url()
+    path = "#{base}/dashboard/alerts"
+    subject = "Alert: #{alert.subject_name} — #{format_alert_label(alert)}"
+    condition = describe_condition(alert)
+
+    deliver(user.email, subject, """
+
+    ==============================
+
+    A configured alert on barragens.pt was triggered.
+
+    Subject: #{alert.subject_name} (#{alert.subject_type})
+    #{condition}
+    Current value: #{Float.round(value * 1.0, 1)}
+
+    Manage your alerts: #{path}
+
+    ==============================
+    """)
+  end
+
+  defp describe_condition(%UserAlert{} = a) do
+    op = if a.operator == "lt", do: "below", else: "above"
+    metric = format_metric(a.metric)
+    "Condition: #{metric} is #{op} #{a.threshold}"
+  end
+
+  defp format_metric("storage_pct"), do: "Storage %"
+  defp format_metric("month_change_pct"), do: "Change vs 1 month (percentage points)"
+  defp format_metric("year_change_pct"), do: "Change vs 1 year (percentage points)"
+  defp format_metric(_), do: "Metric"
+
+  defp format_alert_label(%UserAlert{metric: m, operator: op, threshold: t}) do
+    o = if op == "lt", do: "<", else: ">"
+    "#{format_metric(m)} #{o} #{t}"
   end
 end

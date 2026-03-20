@@ -1,0 +1,124 @@
+defmodule Barragenspt.Workers.EvaluateAlerts do
+  @moduledoc """
+  Evaluates active user alerts after materialized views are fresh.
+  """
+  use Oban.Worker, queue: :notifications, max_attempts: 3
+
+  require Logger
+
+  import Ecto.Query
+
+  alias Barragenspt.Repo
+  alias Barragenspt.Accounts.{User, UserNotifier}
+  alias Barragenspt.Notifications
+  alias Barragenspt.Notifications.{UserAlert, AlertMetrics}
+
+  @impl Oban.Worker
+  def perform(%Oban.Job{attempt: 1, args: %{"id" => job_id}}) do
+    Logger.info("EvaluateAlerts starting oban_job_id=#{job_id}")
+
+    alerts = Repo.all(from(a in UserAlert, where: a.active == true))
+    Logger.info("EvaluateAlerts loaded #{length(alerts)} active alert(s)")
+
+    Enum.each(alerts, &evaluate_alert(&1, job_id))
+
+    Logger.info("EvaluateAlerts finished oban_job_id=#{job_id}")
+
+    :ok
+  end
+
+  defp evaluate_alert(alert, oban_job_id) do
+    user = Repo.get(User, alert.user_id)
+    value = AlertMetrics.current_value(alert)
+    met? = AlertMetrics.condition_met?(value, alert.operator, alert.threshold)
+
+    Logger.debug(
+      "----> EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id} " <>
+        "subject=#{inspect(alert.subject_name)} type=#{alert.subject_type} " <>
+        "metric=#{alert.metric} value=#{inspect(value)} " <>
+        "check=(#{alert.operator} #{inspect(alert.threshold)}) met=#{met?}"
+    )
+
+    cond do
+      user == nil ->
+        Logger.warning(
+          "EvaluateAlerts alert_id=#{alert.id}: no user for user_id=#{alert.user_id}, skipping"
+        )
+
+      met? ->
+        maybe_fire(alert, user, value, oban_job_id)
+
+      true ->
+        Notifications.clear_breach_state_if_needed(alert, false)
+
+        Logger.debug(
+          "EvaluateAlerts alert_id=#{alert.id}: condition not met, cleared breach state if needed"
+        )
+    end
+  end
+
+  defp maybe_fire(alert, user, value, oban_job_id) do
+    should? =
+      case alert.repeat_mode do
+        "once_per_event" ->
+          !alert.breach_notification_sent
+
+        "cooldown" ->
+          case alert.last_notified_at do
+            nil -> true
+            t -> DateTime.diff(DateTime.utc_now(), t, :second) >= alert.cooldown_hours * 3600
+          end
+
+        other ->
+          Logger.warning(
+            "EvaluateAlerts alert_id=#{alert.id}: unknown repeat_mode=#{inspect(other)}, will not notify"
+          )
+
+          false
+      end
+
+    if should? do
+      fire(alert, user, value, oban_job_id)
+    else
+      Logger.debug(
+        "EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id}: " <>
+          "condition met but notification suppressed " <>
+          "(repeat_mode=#{alert.repeat_mode}, breach_notification_sent=#{alert.breach_notification_sent}, " <>
+          "last_notified_at=#{inspect(alert.last_notified_at)}, cooldown_hours=#{alert.cooldown_hours})"
+      )
+    end
+  end
+
+  defp fire(alert, user, value, oban_job_id) do
+    now = DateTime.utc_now()
+
+    case UserNotifier.deliver_alert_triggered(user, alert, value) do
+      {:ok, _} ->
+        Logger.info(
+          "EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id} " <>
+            "user_id=#{user.id}: email sent for triggered alert value=#{inspect(value)}"
+        )
+
+        Notifications.create_event!(%{
+          alert_id: alert.id,
+          triggered_at: now,
+          value_at_trigger: value,
+          notified: true
+        })
+
+        attrs =
+          if alert.repeat_mode == "once_per_event" do
+            %{breach_notification_sent: true, last_notified_at: now}
+          else
+            %{last_notified_at: now}
+          end
+
+        Notifications.update_after_notification(alert, attrs)
+
+      {:error, reason} ->
+        Logger.warning(
+          "EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id}: email failed #{inspect(reason)}"
+        )
+    end
+  end
+end

@@ -84,6 +84,9 @@ defmodule BarragensptWeb.Router do
     live_session :authenticated,
       on_mount: [{BarragensptWeb.UserAuth, :require_authenticated}] do
       live "/dashboard", DashboardLive, :index
+      live "/dashboard/alerts", Dashboard.AlertsLive, :index
+      live "/dashboard/alerts/new", Dashboard.AlertFormLive, :new
+      live "/dashboard/alerts/:id/edit", Dashboard.AlertFormLive, :edit
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end

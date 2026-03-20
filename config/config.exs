@@ -7,8 +7,23 @@
 # General application configuration
 import Config
 
+config :barragenspt, :scopes,
+  user: [
+    default: true,
+    module: Barragenspt.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: Barragenspt.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :barragenspt,
   ecto_repos: [Barragenspt.Repo]
+
+config :barragenspt, Barragenspt.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configures the endpoint
 config :barragenspt, BarragensptWeb.Endpoint,
@@ -67,7 +82,8 @@ config :barragenspt, Oban,
     dam_levels: 5,
     stats_cacher: 5,
     data_points_update: 1,
-    meteo_data: 5
+    meteo_data: 5,
+    notifications: 2
   ]
 
 config :barragenspt, :snirh,
