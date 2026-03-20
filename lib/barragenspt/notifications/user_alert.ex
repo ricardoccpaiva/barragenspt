@@ -1,0 +1,92 @@
+defmodule Barragenspt.Notifications.UserAlert do
+  use Ecto.Schema
+  import Ecto.Changeset
+
+  alias Barragenspt.Accounts.User
+
+  @subject_types ~w(dam basin national)
+  @metrics ~w(storage_pct month_change_pct year_change_pct)
+  @operators ~w(lt gt)
+  @repeat_modes ~w(once_per_event cooldown)
+
+  schema "user_alerts" do
+    field :subject_type, :string
+    field :subject_id, :string
+    field :subject_name, :string
+    field :metric, :string
+    field :operator, :string
+    field :threshold, :float
+    field :repeat_mode, :string, default: "cooldown"
+    field :cooldown_hours, :integer, default: 24
+    field :active, :boolean, default: true
+    field :breach_notification_sent, :boolean, default: false
+    field :last_notified_at, :utc_datetime_usec
+
+    belongs_to :user, User
+
+    has_many :alert_events, Barragenspt.Notifications.AlertEvent, foreign_key: :alert_id
+
+    timestamps()
+  end
+
+  def update_changeset(alert, attrs) do
+    cast(alert, attrs, [:active, :breach_notification_sent, :last_notified_at])
+  end
+
+  def changeset(alert, attrs) do
+    alert
+    |> cast(attrs, [
+      :subject_type,
+      :subject_id,
+      :subject_name,
+      :metric,
+      :operator,
+      :threshold,
+      :repeat_mode,
+      :cooldown_hours,
+      :active,
+      :breach_notification_sent,
+      :last_notified_at,
+      :user_id
+    ])
+    |> validate_required([
+      :subject_type,
+      :subject_name,
+      :metric,
+      :operator,
+      :threshold,
+      :user_id
+    ])
+    |> validate_inclusion(:subject_type, @subject_types)
+    |> validate_inclusion(:metric, @metrics)
+    |> validate_inclusion(:operator, @operators)
+    |> validate_inclusion(:repeat_mode, @repeat_modes)
+    |> validate_number(:threshold, greater_than: -500, less_than: 500)
+    |> validate_number(:cooldown_hours, greater_than: 0, less_than: 8760)
+    |> validate_subject_id()
+    |> foreign_key_constraint(:user_id)
+  end
+
+  defp validate_subject_id(changeset) do
+    case get_field(changeset, :subject_type) do
+      "national" ->
+        changeset
+        |> put_change(:subject_id, nil)
+
+      _ ->
+        if present?(get_field(changeset, :subject_id)) do
+          changeset
+        else
+          add_error(changeset, :subject_id, "can't be blank")
+        end
+    end
+  end
+
+  defp present?(s) when is_binary(s), do: String.trim(s) != ""
+  defp present?(_), do: false
+
+  def subject_types, do: @subject_types
+  def metrics, do: @metrics
+  def operators, do: @operators
+  def repeat_modes, do: @repeat_modes
+end

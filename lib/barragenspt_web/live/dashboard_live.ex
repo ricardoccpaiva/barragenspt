@@ -11,20 +11,28 @@ defmodule BarragensptWeb.DashboardLive do
         <.header>
           Dashboard
           <:subtitle>
-            Área reservada a utilizadores com sessão iniciada.
+            Signed-in user area.
           </:subtitle>
         </.header>
         <p class="text-sm text-slate-600 dark:text-slate-400">
-          Olá, <span class="font-medium text-slate-800 dark:text-slate-200">
+          Hello, <span class="font-medium text-slate-800 dark:text-slate-200">
             {@current_scope.user.email}
-          </span>. Esta secção está preparada para funcionalidades futuras (favoritos, alertas, etc.).
+          </span>. This section is ready for future features (favorites, alerts, etc.).
         </p>
-        <.link
-          navigate={~p"/"}
-          class="inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
-        >
-          ← Voltar ao mapa
-        </.link>
+        <div class="flex flex-wrap gap-4">
+          <.link
+            navigate={~p"/dashboard/alerts"}
+            class="inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+          >
+            Alerts
+          </.link>
+          <.link
+            navigate={~p"/"}
+            class="inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+          >
+            ← Back to map
+          </.link>
+        </div>
       </div>
     </Layouts.app>
     """

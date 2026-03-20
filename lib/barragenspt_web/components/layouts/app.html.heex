@@ -3,12 +3,25 @@
     <div class="mx-auto max-w-4xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <a href="/" class="font-semibold text-brand-600 dark:text-brand-400">barragens.pt</a>
       <nav class="flex flex-wrap items-center gap-3 text-sm">
+        <label class="inline-flex cursor-pointer items-center gap-2 select-none">
+          <input
+            id="app-layout-dark-toggle"
+            type="checkbox"
+            class="toggle"
+            phx-hook="DarkModeToggle"
+            aria-label="Toggle dark mode"
+          />
+          <span class="text-slate-600 dark:text-slate-400 max-sm:sr-only">Dark</span>
+        </label>
         <%= if @current_scope && @current_scope.user do %>
           <span class="text-slate-600 dark:text-slate-400 truncate max-w-[14rem]">
             {@current_scope.user.email}
           </span>
           <.link navigate={~p"/dashboard"} class="text-brand-600 dark:text-brand-400 hover:underline">
             Dashboard
+          </.link>
+          <.link navigate={~p"/dashboard/alerts"} class="text-brand-600 dark:text-brand-400 hover:underline">
+            Alerts
           </.link>
           <.link navigate={~p"/users/settings"} class="text-brand-600 dark:text-brand-400 hover:underline">
             Settings

@@ -138,6 +138,41 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Repo.all()
   end
 
+  @doc """
+  Name search for UI pickers (e.g. alert subject). Same filters as `search/2` but does **not**
+  require a `SiteCurrentStorage` row, so dams still appear before matviews are populated.
+  """
+  def search_for_picker(name, usage_types \\ []) when is_binary(name) do
+    name = String.trim(name)
+    if name == "" do
+      []
+    else
+      like = "%#{name}%"
+
+      filter = dynamic([d, _du], ilike(d.name, ^like))
+
+      filter =
+        if usage_types != [] do
+          dynamic([_d, du], ^filter and du.usage_name in ^usage_types)
+        else
+          filter
+        end
+
+      from(d in Dam,
+        join: du in DamUsage,
+        on: d.site_id == du.site_id,
+        where: ^filter,
+        select: %{
+          id: d.site_id,
+          name: d.name,
+          basin_id: d.basin_id
+        }
+      )
+      |> distinct(true)
+      |> Repo.all()
+    end
+  end
+
   @decorate cacheable(
               cache: Cache,
               key: "river_names",
