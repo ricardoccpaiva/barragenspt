@@ -1,6 +1,9 @@
 import Config
 
-config :barragenspt, :resend_api_key, System.get_env("RESEND_API_KEY")
+resend_api_key = System.get_env("RESEND_API_KEY")
+
+config :barragenspt, :resend_api_key, resend_api_key
+config :barragenspt, Barragenspt.Mailer, api_key: resend_api_key
 
 config :barragenspt, :snirh, proxy: System.get_env("SNIRH_PROXY")
 

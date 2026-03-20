@@ -10,7 +10,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"Barragenspt", "contact@example.com"})
+      |> from({"Barragenspt", "contact@barragens.pt"})
       |> subject(subject)
       |> text_body(body)
 
@@ -24,7 +24,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"Barragenspt", "contact@example.com"})
+      |> from({"Barragenspt", "contact@barragens.pt"})
       |> subject(subject)
       |> text_body(text)
       |> html_body(html)
@@ -108,6 +108,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
     subject = "Alerta: #{alert.subject_name} — #{format_alert_label(alert)}"
     condition = describe_condition(alert)
     value_str = format_value_for_email(alert.metric, value)
+
     text_body = """
 
     ==============================
@@ -209,7 +210,8 @@ defmodule Barragenspt.Accounts.UserNotifier do
     "#{Float.round(value * 1.0, 1)}%"
   end
 
-  defp format_value_for_email(metric, value) when metric in ["month_change_pct", "year_change_pct"] do
+  defp format_value_for_email(metric, value)
+       when metric in ["month_change_pct", "year_change_pct"] do
     "#{Float.round(value * 1.0, 2)} p.p."
   end
 
@@ -235,8 +237,9 @@ defmodule Barragenspt.Accounts.UserNotifier do
     "#{condition_metric_label(m)} #{o} #{threshold_with_unit(m, t)}"
   end
 
-  defp threshold_with_unit(metric, threshold) when metric in ["realtime_inflow", "realtime_outflow"],
-    do: "#{threshold} m3/s"
+  defp threshold_with_unit(metric, threshold)
+       when metric in ["realtime_inflow", "realtime_outflow"],
+       do: "#{threshold} m3/s"
 
   defp threshold_with_unit("realtime_level", threshold), do: "#{threshold} m"
   defp threshold_with_unit("storage_pct", threshold), do: "#{threshold}%"

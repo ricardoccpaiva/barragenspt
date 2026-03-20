@@ -26,7 +26,7 @@ config :barragenspt,
 # Mirrors MIX_ENV via `config_env()` (available at runtime as Application.get_env(:barragenspt, :env))
 config :barragenspt, :env, :dev
 
-config :barragenspt, Barragenspt.Mailer, adapter: Swoosh.Adapters.Local
+config :barragenspt, Barragenspt.Mailer, adapter: Resend.Swoosh.Adapter
 
 # Configures the endpoint
 config :barragenspt, BarragensptWeb.Endpoint,
