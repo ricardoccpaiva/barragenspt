@@ -90,35 +90,35 @@ defmodule Barragenspt.Accounts.UserNotifier do
       when is_number(value) do
     base = BarragensptWeb.Endpoint.url()
     path = "#{base}/dashboard/alerts"
-    subject = "Alert: #{alert.subject_name} — #{format_alert_label(alert)}"
+    subject = "Alerta: #{alert.subject_name} — #{format_alert_label(alert)}"
     condition = describe_condition(alert)
 
     deliver(user.email, subject, """
 
     ==============================
 
-    A configured alert on barragens.pt was triggered.
+    Foi disparado um alerta configurado em barragens.pt.
 
-    Subject: #{alert.subject_name} (#{alert.subject_type})
+    Alvo: #{alert.subject_name} (#{alert.subject_type})
     #{condition}
-    Current value: #{Float.round(value * 1.0, 1)}
+    Valor atual: #{Float.round(value * 1.0, 1)}
 
-    Manage your alerts: #{path}
+    Gerir os seus alertas: #{path}
 
     ==============================
     """)
   end
 
   defp describe_condition(%UserAlert{} = a) do
-    op = if a.operator == "lt", do: "below", else: "above"
+    op = if a.operator == "lt", do: "inferior a", else: "superior a"
     metric = format_metric(a.metric)
-    "Condition: #{metric} is #{op} #{a.threshold}"
+    "Condição: #{metric} #{op} #{a.threshold}"
   end
 
-  defp format_metric("storage_pct"), do: "Storage %"
-  defp format_metric("month_change_pct"), do: "Change vs 1 month (percentage points)"
-  defp format_metric("year_change_pct"), do: "Change vs 1 year (percentage points)"
-  defp format_metric(_), do: "Metric"
+  defp format_metric("storage_pct"), do: "Ocupação (%)"
+  defp format_metric("month_change_pct"), do: "Variação vs 1 mês (p.p.)"
+  defp format_metric("year_change_pct"), do: "Variação vs 1 ano (p.p.)"
+  defp format_metric(_), do: "Indicador"
 
   defp format_alert_label(%UserAlert{metric: m, operator: op, threshold: t}) do
     o = if op == "lt", do: "<", else: ">"

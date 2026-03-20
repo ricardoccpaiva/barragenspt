@@ -13,14 +13,14 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="mx-auto max-w-lg space-y-6">
         <.header>
-          {if @editing_alert_id, do: "Edit alert", else: "New alert"}
+          {if @editing_alert_id, do: "Editar alerta", else: "Novo alerta"}
           <:subtitle>
-            Step {@step} of 3
+            Passo {@step} de 3
           </:subtitle>
         </.header>
 
         <%= if @step == 1 do %>
-          <p class="text-sm text-slate-600 dark:text-slate-400">What do you want to watch?</p>
+          <p class="text-sm text-slate-600 dark:text-slate-400">O que pretende monitorizar?</p>
           <div class="grid gap-3">
             <button
               type="button"
@@ -28,7 +28,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
               phx-value-type="dam"
               class={"rounded-xl border p-4 text-left transition #{if @subject_type == "dam", do: "border-brand-500 bg-brand-50 dark:bg-brand-900/20", else: "border-slate-200 dark:border-slate-600"}"}
             >
-              💧 Specific dam
+              💧 Barragem específica
             </button>
             <button
               type="button"
@@ -36,7 +36,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
               phx-value-type="basin"
               class={"rounded-xl border p-4 text-left transition #{if @subject_type == "basin", do: "border-brand-500 bg-brand-50 dark:bg-brand-900/20", else: "border-slate-200 dark:border-slate-600"}"}
             >
-              🏞 River basin
+              🏞 Bacia hidrográfica
             </button>
             <button
               type="button"
@@ -44,7 +44,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
               phx-value-type="national"
               class={"rounded-xl border p-4 text-left transition #{if @subject_type == "national", do: "border-brand-500 bg-brand-50 dark:bg-brand-900/20", else: "border-slate-200 dark:border-slate-600"}"}
             >
-              🇵🇹 Portugal (basin average)
+              🇵🇹 Portugal (média das bacias)
             </button>
           </div>
 
@@ -52,7 +52,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
             <%!-- form wrapper so phx-change serializes field "q" (bare inputs outside forms often omit it) --%>
             <form phx-change="search" phx-submit="search" class="pt-2" id="alert-subject-search-form">
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="alert-subject-q">
-                Search
+                Pesquisar
               </label>
               <input
                 id="alert-subject-q"
@@ -62,7 +62,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                 phx-debounce="300"
                 autocomplete="off"
                 class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-                placeholder={if @subject_type == "dam", do: "Dam name…", else: "Basin name…"}
+                placeholder={if @subject_type == "dam", do: "Nome da barragem…", else: "Nome da bacia…"}
               />
             </form>
             <ul class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600">
@@ -84,13 +84,13 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
           <%= if @subject_type == "national" or (@subject_id != nil and @subject_name != nil) do %>
             <p class="text-sm text-emerald-700 dark:text-emerald-300">
-              Selection: <span class="font-semibold">{@subject_name}</span>
+              Selecionado: <span class="font-semibold">{@subject_name}</span>
             </p>
           <% end %>
         <% end %>
 
         <%= if @step == 2 do %>
-          <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Condition</p>
+          <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Condição</p>
           <%!-- One form so phx-change always sends metric, operator, and threshold together (avoids losing % threshold). --%>
           <form
             phx-change="field"
@@ -98,32 +98,32 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
             class="space-y-3 rounded-xl border border-slate-200 p-4 dark:border-slate-600"
           >
             <div>
-              <label class="text-xs font-medium text-slate-500">Metric</label>
+              <label class="text-xs font-medium text-slate-500">Indicador</label>
               <select
                 name="metric"
                 class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
               >
-                <option value="storage_pct" selected={@metric == "storage_pct"}>Storage %</option>
+                <option value="storage_pct" selected={@metric == "storage_pct"}>Ocupação (%)</option>
                 <option value="month_change_pct" selected={@metric == "month_change_pct"}>
-                  Change vs 1 month (pp)
+                  Variação vs 1 mês (pp)
                 </option>
                 <option value="year_change_pct" selected={@metric == "year_change_pct"}>
-                  Change vs 1 year (pp)
+                  Variação vs 1 ano (pp)
                 </option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-medium text-slate-500">Operator</label>
+              <label class="text-xs font-medium text-slate-500">Operador</label>
               <select
                 name="operator"
                 class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
               >
-                <option value="lt" selected={@operator == "lt"}>Less than (&lt;)</option>
-                <option value="gt" selected={@operator == "gt"}>Greater than (&gt;)</option>
+                <option value="lt" selected={@operator == "lt"}>Inferior a (&lt;)</option>
+                <option value="gt" selected={@operator == "gt"}>Superior a (&gt;)</option>
               </select>
             </div>
             <div>
-              <label class="text-xs font-medium text-slate-500">Threshold</label>
+              <label class="text-xs font-medium text-slate-500">Limiar</label>
               <input
                 type="number"
                 step="any"
@@ -134,18 +134,18 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
             </div>
           </form>
           <p :if={@preview_value != nil} class="text-sm text-slate-600 dark:text-slate-400">
-            Current value (approx.): <span class="font-mono font-semibold">{format_num(@preview_value)}</span>
+            Valor atual (aprox.): <span class="font-mono font-semibold">{format_num(@preview_value)}</span>
           </p>
           <p :if={@preview_value == nil} class="text-sm text-amber-700 dark:text-amber-300">
-            Could not load the current value — you can still save <%= if @editing_alert_id, do: "changes.", else: "the alert." %>
+            Não foi possível carregar o valor atual — pode guardar <%= if @editing_alert_id, do: "as alterações.", else: "o alerta." %>
           </p>
         <% end %>
 
         <%= if @step == 3 do %>
-          <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Notifications</p>
+          <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Notificações</p>
           <div class="space-y-3 rounded-xl border border-slate-200 p-4 dark:border-slate-600">
             <p class="text-sm text-slate-600 dark:text-slate-400">
-              Email: <span class="font-medium">{@current_scope.user.email}</span>
+              E-mail: <span class="font-medium">{@current_scope.user.email}</span>
             </p>
             <div>
               <label class="block text-sm">
@@ -158,7 +158,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                   phx-value-mode="once_per_event"
                   class="mr-2"
                 />
-                Once per period while the condition holds (notify again after it returns to OK and fails later)
+                Uma vez por evento: notifica enquanto a condição se mantém; só volta a notificar depois de voltar a OK e a condição falhar novamente
               </label>
             </div>
             <div>
@@ -172,7 +172,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                   phx-value-mode="cooldown"
                   class="mr-2"
                 />
-                Re-notify every X hours while the condition holds
+                Voltar a notificar a cada X horas enquanto a condição se mantiver
               </label>
               <input
                 :if={@repeat_mode == "cooldown"}
@@ -195,7 +195,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
             phx-click="back"
             class="rounded-lg border border-slate-300 px-4 py-2 text-sm dark:border-slate-600"
           >
-            Back
+            Anterior
           </button>
           <button
             :if={@step < 3}
@@ -204,7 +204,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
             disabled={!can_next?(@step, @subject_type, @subject_id, @subject_name)}
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
           >
-            Next
+            Seguinte
           </button>
           <button
             :if={@step == 3}
@@ -212,13 +212,13 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
             phx-click="save"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
-            <%= if @editing_alert_id, do: "Save changes", else: "Save alert" %>
+            <%= if @editing_alert_id, do: "Guardar alterações", else: "Guardar alerta" %>
           </button>
           <.link
             navigate={~p"/dashboard/alerts"}
             class="rounded-lg px-4 py-2 text-sm text-slate-600 hover:underline dark:text-slate-400"
           >
-            Cancel
+            Cancelar
           </.link>
         </div>
       </div>
@@ -241,7 +241,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
           case Notifications.get_alert(params["id"], user_id) do
             {:error, _} ->
               socket
-              |> put_flash(:error, "Alert not found.")
+              |> put_flash(:error, "Alerta não encontrado.")
               |> push_navigate(to: ~p"/dashboard/alerts")
 
             {:ok, alert} ->
@@ -259,7 +259,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   def handle_event("subject_type", %{"type" => t}, socket) do
     {id, name, results} =
       case t do
-        "national" -> {nil, "Portugal (basin average)", []}
+        "national" -> {nil, "Portugal (média das bacias)", []}
         _ -> {nil, nil, []}
       end
 
@@ -371,7 +371,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     ch = parse_int(ch_raw) || 24
 
     if t == nil do
-      {:noreply, put_flash(socket, :error, "Enter a valid numeric threshold.")}
+      {:noreply, put_flash(socket, :error, "Introduza um limiar numérico válido.")}
     else
       do_save(socket, user_id, t, ch)
     end
@@ -397,7 +397,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
           {:ok, _} ->
             {:noreply,
              socket
-             |> put_flash(:info, "Alert created.")
+             |> put_flash(:info, "Alerta criado.")
              |> push_navigate(to: ~p"/dashboard/alerts")}
 
           {:error, cs} ->
@@ -416,7 +416,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
           {:ok, _} ->
             {:noreply,
              socket
-             |> put_flash(:info, "Alert updated.")
+             |> put_flash(:info, "Alerta atualizado.")
              |> push_navigate(to: ~p"/dashboard/alerts")}
 
           {:error, cs} ->

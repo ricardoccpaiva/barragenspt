@@ -12,7 +12,7 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
       <div class="w-[110%] -mx-[5%] space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <.header>
-            Trigger history
+            Histórico de disparos
             <:subtitle>
               {subject_emoji(@alert.subject_type)} {@alert.subject_name} — {condition_summary(@alert)}
             </:subtitle>
@@ -21,7 +21,7 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
 
         <%= if @events == [] do %>
           <p class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-            This alert has not fired yet.
+            Este alerta ainda não disparou.
           </p>
         <% else %>
           <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-600">
@@ -29,13 +29,13 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
               <thead class="bg-slate-50 dark:bg-slate-800/80">
                 <tr>
                   <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                    Triggered at (UTC)
+                    Disparo (UTC)
                   </th>
                   <th class="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
-                    Value
+                    Valor
                   </th>
                   <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                    Emailed
+                    E-mail enviado
                   </th>
                 </tr>
               </thead>
@@ -49,7 +49,7 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
                       {format_metric_value(@alert.metric, event.value_at_trigger)}
                     </td>
                     <td class="px-4 py-3 text-slate-700 dark:text-slate-300">
-                      {if event.notified, do: "Yes", else: "No"}
+                      {if event.notified, do: "Sim", else: "Não"}
                     </td>
                   </tr>
                 <% end %>
@@ -62,7 +62,7 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
           navigate={~p"/dashboard/alerts"}
           class="inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
         >
-          ← Back to alerts
+          ← Voltar aos alertas
         </.link>
       </div>
     </Layouts.app>
@@ -80,7 +80,7 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
       {:error, :not_found} ->
         {:ok,
          socket
-         |> put_flash(:error, "Alert not found.")
+         |> put_flash(:error, "Alerta não encontrado.")
          |> push_navigate(to: ~p"/dashboard/alerts")}
     end
   end
@@ -92,13 +92,13 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
 
   defp condition_summary(a) do
     m = metric_label(a.metric)
-    op = if a.operator == "lt", do: "below", else: "above"
+    op = if a.operator == "lt", do: "inferior a", else: "superior a"
     "#{m} #{op} #{a.threshold}"
   end
 
-  defp metric_label("storage_pct"), do: "Storage %"
-  defp metric_label("month_change_pct"), do: "Δ 1 month (pp)"
-  defp metric_label("year_change_pct"), do: "Δ 1 year (pp)"
+  defp metric_label("storage_pct"), do: "Ocupação %"
+  defp metric_label("month_change_pct"), do: "Var. 1 mês (pp)"
+  defp metric_label("year_change_pct"), do: "Var. 1 ano (pp)"
   defp metric_label(_), do: "?"
 
   defp format_triggered_at(%DateTime{} = dt) do
