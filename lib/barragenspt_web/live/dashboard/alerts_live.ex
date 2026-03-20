@@ -187,8 +187,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   defp load_rows(user_id) do
     Notifications.list_alerts_with_stats(user_id)
     |> Enum.map(fn %{alert: a, triggered_count: c, last_triggered_at: t} ->
-      {met?, val} = if a.active, do: Notifications.compute_status(a), else: {false, nil}
-      %{alert: a, triggered_count: c, triggered_at: t, met?: met?, current_value: val}
+      %{alert: a, triggered_count: c, triggered_at: t}
     end)
   end
 
@@ -211,28 +210,16 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   attr :row, :map, required: true
 
   def status_badge(assigns) do
-    kind =
-      cond do
-        !assigns.row.alert.active -> :paused
-        assigns.row.met? -> :active
-        true -> :ok
-      end
-
-    assigns = assign(assigns, :kind, kind)
+    assigns = assign(assigns, :paused?, !assigns.row.alert.active)
 
     ~H"""
-    <%= case @kind do %>
-      <% :paused -> %>
-        <span class="inline-flex rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-600 dark:text-slate-100">
-          Pausado
-        </span>
-      <% :active -> %>
+    <%= if @paused? do %>
+      <span class="inline-flex rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-600 dark:text-slate-100">
+        Pausado
+      </span>
+    <% else %>
         <span class="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200">
           Ativo
-        </span>
-      <% :ok -> %>
-        <span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
-          OK
         </span>
     <% end %>
     """
