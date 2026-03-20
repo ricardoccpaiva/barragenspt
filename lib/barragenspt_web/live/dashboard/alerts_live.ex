@@ -72,15 +72,15 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                       <td class="px-4 py-3">
                         <.status_badge row={row} />
                       </td>
-                    <td class="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
-                      <.link
-                        navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
-                        class="font-medium text-brand-600 hover:underline dark:text-brand-400"
-                        title="Ver histórico de disparos"
-                      >
-                        {row.triggered_count}×
-                      </.link>
-                    </td>
+                      <td class="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                        <.link
+                          navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
+                          class="font-medium text-brand-600 hover:underline dark:text-brand-400"
+                          title="Ver histórico de disparos"
+                        >
+                          {row.triggered_count}×
+                        </.link>
+                      </td>
                       <td class="px-4 py-3 text-slate-600 dark:text-slate-400">
                         {format_last(row.triggered_at)}
                       </td>

@@ -11,219 +11,342 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-lg space-y-6">
-        <.header>
-          {if @editing_alert_id, do: "Editar alerta", else: "Novo alerta"}
-          <:subtitle>
-            Passo {@step} de 3
-          </:subtitle>
-        </.header>
-
-        <%= if @step == 1 do %>
-          <p class="text-sm text-slate-600 dark:text-slate-400">O que pretende monitorizar?</p>
-          <div class="grid gap-3">
-            <button
-              type="button"
-              phx-click="subject_type"
-              phx-value-type="dam"
-              class={"rounded-xl border p-4 text-left transition #{if @subject_type == "dam", do: "border-brand-500 bg-brand-50 dark:bg-brand-900/20", else: "border-slate-200 dark:border-slate-600"}"}
-            >
-              💧 Barragem específica
-            </button>
-            <button
-              type="button"
-              phx-click="subject_type"
-              phx-value-type="basin"
-              class={"rounded-xl border p-4 text-left transition #{if @subject_type == "basin", do: "border-brand-500 bg-brand-50 dark:bg-brand-900/20", else: "border-slate-200 dark:border-slate-600"}"}
-            >
-              🏞 Bacia hidrográfica
-            </button>
-            <button
-              type="button"
-              phx-click="subject_type"
-              phx-value-type="national"
-              class={"rounded-xl border p-4 text-left transition #{if @subject_type == "national", do: "border-brand-500 bg-brand-50 dark:bg-brand-900/20", else: "border-slate-200 dark:border-slate-600"}"}
-            >
-              🇵🇹 Portugal (média das bacias)
-            </button>
-          </div>
-
-          <%= if @subject_type in ["dam", "basin"] do %>
-            <%!-- form wrapper so phx-change serializes field "q" (bare inputs outside forms often omit it) --%>
-            <form phx-change="search" phx-submit="search" class="pt-2" id="alert-subject-search-form">
-              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="alert-subject-q">
-                Pesquisar
-              </label>
-              <input
-                id="alert-subject-q"
-                type="text"
-                name="q"
-                value={@search_term}
-                phx-debounce="300"
-                autocomplete="off"
-                class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-                placeholder={if @subject_type == "dam", do: "Nome da barragem…", else: "Nome da bacia…"}
+      <div class="mx-auto max-w-4xl px-4 py-4 sm:px-6 sm:py-6">
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-800/50 md:grid md:min-h-[26rem] md:grid-cols-[minmax(0,148px)_1fr]">
+          <%!-- Rail vertical (mock alternativa F) --%>
+          <aside class="border-b border-slate-200 bg-gradient-to-b from-sky-50 to-stone-50 px-4 py-4 dark:border-slate-600 dark:from-slate-800/90 dark:to-slate-900/90 md:border-b-0 md:border-r md:px-3 md:py-5">
+            <p class="text-[0.65rem] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Assistente
+            </p>
+            <div class="mt-3 flex flex-row flex-wrap gap-x-4 gap-y-3 md:mt-4 md:flex-col md:flex-nowrap md:gap-y-0">
+              <.wizard_rail_step
+                num={1}
+                title="Alvo"
+                subtitle="Barragem, bacia ou país"
+                active={@step == 1}
+                done={@step > 1}
+                show_line={true}
               />
-            </form>
-            <ul class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600">
-              <%= for r <- @search_results do %>
-                <li>
+              <.wizard_rail_step
+                num={2}
+                title="Condição"
+                subtitle="Indicador e limiar"
+                active={@step == 2}
+                done={@step > 2}
+                show_line={true}
+              />
+              <.wizard_rail_step
+                num={3}
+                title="Notificações"
+                subtitle="E-mail e repetição"
+                active={@step == 3}
+                done={false}
+                show_line={false}
+              />
+            </div>
+          </aside>
+
+          <div class="flex min-h-0 flex-col p-4 sm:p-6">
+            <h1 class="text-lg font-bold text-slate-900 dark:text-slate-100">
+              {if @editing_alert_id, do: "Editar alerta", else: "Novo alerta"}
+            </h1>
+            <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Passo {@step} de 3</p>
+
+            <div class="mt-5 flex-1 space-y-5">
+              <%= if @step == 1 do %>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  O que pretende monitorizar?
+                </p>
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <button
                     type="button"
-                    phx-click="pick"
-                    phx-value-id={r.id}
-                    phx-value-name={r.name}
-                    class="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700"
+                    phx-click="subject_type"
+                    phx-value-type="dam"
+                    class={subject_type_tile_class(@subject_type == "dam")}
                   >
-                    {r.name}
+                    <span class="text-xl leading-none">💧</span>
+                    <span class="flex min-w-0 flex-col gap-0.5">
+                      <span class="text-sm font-semibold">Barragem específica</span>
+                      <span class="text-xs font-normal text-slate-500 dark:text-slate-400">
+                        Uma albufeira
+                      </span>
+                    </span>
                   </button>
-                </li>
+                  <button
+                    type="button"
+                    phx-click="subject_type"
+                    phx-value-type="basin"
+                    class={subject_type_tile_class(@subject_type == "basin")}
+                  >
+                    <span class="text-xl leading-none">🏞</span>
+                    <span class="flex min-w-0 flex-col gap-0.5">
+                      <span class="text-sm font-semibold">Bacia hidrográfica</span>
+                      <span class="text-xs font-normal text-slate-500 dark:text-slate-400">
+                        Área de drenagem
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    phx-click="subject_type"
+                    phx-value-type="national"
+                    class={subject_type_tile_class(@subject_type == "national") <> " sm:col-span-2"}
+                  >
+                    <span class="text-xl leading-none">🇵🇹</span>
+                    <span class="flex min-w-0 flex-col gap-0.5">
+                      <span class="text-sm font-semibold">Portugal (média das bacias)</span>
+                      <span class="text-xs font-normal text-slate-500 dark:text-slate-400">
+                        Vista agregada nacional
+                      </span>
+                    </span>
+                  </button>
+                </div>
+
+                <%= if @subject_type in ["dam", "basin"] do %>
+                  <form
+                    phx-change="search"
+                    phx-submit="search"
+                    class="space-y-2"
+                    id="alert-subject-search-form"
+                  >
+                    <label
+                      class="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                      for="alert-subject-q"
+                    >
+                      Pesquisar
+                    </label>
+                    <input
+                      id="alert-subject-q"
+                      type="text"
+                      name="q"
+                      value={@search_term}
+                      phx-debounce="300"
+                      autocomplete="off"
+                      class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                      placeholder={
+                        if @subject_type == "dam", do: "Nome da barragem…", else: "Nome da bacia…"
+                      }
+                    />
+                  </form>
+                  <ul class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600">
+                    <%= for r <- @search_results do %>
+                      <li>
+                        <button
+                          type="button"
+                          phx-click="pick"
+                          phx-value-id={r.id}
+                          phx-value-name={r.name}
+                          class="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700"
+                        >
+                          {r.name}
+                        </button>
+                      </li>
+                    <% end %>
+                  </ul>
+                <% end %>
               <% end %>
-            </ul>
-          <% end %>
 
-          <%= if @subject_type == "national" or (@subject_id != nil and @subject_name != nil) do %>
-            <p class="text-sm text-emerald-700 dark:text-emerald-300">
-              Selecionado: <span class="font-semibold">{@subject_name}</span>
-            </p>
-          <% end %>
-        <% end %>
+              <%= if @step == 2 do %>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Condição</p>
+                <form
+                  phx-change="field"
+                  id="alert-condition-form"
+                  class="space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 dark:border-slate-600 dark:bg-slate-900/30"
+                >
+                  <div>
+                    <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
+                      Indicador
+                    </label>
+                    <select
+                      name="metric"
+                      class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                    >
+                      <option value="storage_pct" selected={@metric == "storage_pct"}>
+                        Ocupação (%)
+                      </option>
+                      <option value="month_change_pct" selected={@metric == "month_change_pct"}>
+                        Variação vs 1 mês (pp)
+                      </option>
+                      <option value="year_change_pct" selected={@metric == "year_change_pct"}>
+                        Variação vs 1 ano (pp)
+                      </option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
+                      Operador
+                    </label>
+                    <select
+                      name="operator"
+                      class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                    >
+                      <option value="lt" selected={@operator == "lt"}>Inferior a (&lt;)</option>
+                      <option value="gt" selected={@operator == "gt"}>Superior a (&gt;)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
+                      Limiar
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      name="threshold"
+                      value={@threshold}
+                      class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                    />
+                  </div>
+                </form>
+                <p :if={@preview_value != nil} class="text-sm text-slate-600 dark:text-slate-400">
+                  Valor atual (aprox.):
+                  <span class="font-mono font-semibold">{format_num(@preview_value)}</span>
+                </p>
+                <p :if={@preview_value == nil} class="text-sm text-amber-700 dark:text-amber-300">
+                  Não foi possível carregar o valor atual — pode guardar {if @editing_alert_id,
+                    do: "as alterações.",
+                    else: "o alerta."}
+                </p>
+              <% end %>
 
-        <%= if @step == 2 do %>
-          <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Condição</p>
-          <%!-- One form so phx-change always sends metric, operator, and threshold together (avoids losing % threshold). --%>
-          <form
-            phx-change="field"
-            id="alert-condition-form"
-            class="space-y-3 rounded-xl border border-slate-200 p-4 dark:border-slate-600"
-          >
-            <div>
-              <label class="text-xs font-medium text-slate-500">Indicador</label>
-              <select
-                name="metric"
-                class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+              <%= if @step == 3 do %>
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Notificações</p>
+                <div class="space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 dark:border-slate-600 dark:bg-slate-900/30">
+                  <p class="text-sm text-slate-600 dark:text-slate-400">
+                    E-mail:
+                    <span class="font-medium text-slate-800 dark:text-slate-200">
+                      {@current_scope.user.email}
+                    </span>
+                  </p>
+                  <div>
+                    <label class="block text-sm">
+                      <input
+                        type="radio"
+                        name="repeat_mode"
+                        value="once_per_event"
+                        checked={@repeat_mode == "once_per_event"}
+                        phx-click="repeat"
+                        phx-value-mode="once_per_event"
+                        class="mr-2 align-middle"
+                      />
+                      Uma vez por evento: notifica enquanto a condição se mantém; só volta a notificar depois de voltar a OK e a condição falhar novamente
+                    </label>
+                  </div>
+                  <div>
+                    <label class="block text-sm">
+                      <input
+                        type="radio"
+                        name="repeat_mode"
+                        value="cooldown"
+                        checked={@repeat_mode == "cooldown"}
+                        phx-click="repeat"
+                        phx-value-mode="cooldown"
+                        class="mr-2 align-middle"
+                      /> Voltar a notificar a cada X horas enquanto a condição se mantiver
+                    </label>
+                    <input
+                      :if={@repeat_mode == "cooldown"}
+                      type="number"
+                      min="1"
+                      max="168"
+                      name="cooldown_hours"
+                      value={@cooldown_hours}
+                      phx-change="field"
+                      class="mt-2 w-24 rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800"
+                    />
+                  </div>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="mt-8 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5 dark:border-slate-700">
+              <.link
+                navigate={~p"/dashboard/alerts"}
+                class="mr-auto text-sm font-semibold text-slate-600 underline decoration-slate-300 decoration-1 underline-offset-2 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
               >
-                <option value="storage_pct" selected={@metric == "storage_pct"}>Ocupação (%)</option>
-                <option value="month_change_pct" selected={@metric == "month_change_pct"}>
-                  Variação vs 1 mês (pp)
-                </option>
-                <option value="year_change_pct" selected={@metric == "year_change_pct"}>
-                  Variação vs 1 ano (pp)
-                </option>
-              </select>
-            </div>
-            <div>
-              <label class="text-xs font-medium text-slate-500">Operador</label>
-              <select
-                name="operator"
-                class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                Cancelar
+              </.link>
+              <button
+                :if={@step > 1}
+                type="button"
+                phx-click="back"
+                class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50"
               >
-                <option value="lt" selected={@operator == "lt"}>Inferior a (&lt;)</option>
-                <option value="gt" selected={@operator == "gt"}>Superior a (&gt;)</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-xs font-medium text-slate-500">Limiar</label>
-              <input
-                type="number"
-                step="any"
-                name="threshold"
-                value={@threshold}
-                class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-              />
-            </div>
-          </form>
-          <p :if={@preview_value != nil} class="text-sm text-slate-600 dark:text-slate-400">
-            Valor atual (aprox.): <span class="font-mono font-semibold">{format_num(@preview_value)}</span>
-          </p>
-          <p :if={@preview_value == nil} class="text-sm text-amber-700 dark:text-amber-300">
-            Não foi possível carregar o valor atual — pode guardar <%= if @editing_alert_id, do: "as alterações.", else: "o alerta." %>
-          </p>
-        <% end %>
-
-        <%= if @step == 3 do %>
-          <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Notificações</p>
-          <div class="space-y-3 rounded-xl border border-slate-200 p-4 dark:border-slate-600">
-            <p class="text-sm text-slate-600 dark:text-slate-400">
-              E-mail: <span class="font-medium">{@current_scope.user.email}</span>
-            </p>
-            <div>
-              <label class="block text-sm">
-                <input
-                  type="radio"
-                  name="repeat_mode"
-                  value="once_per_event"
-                  checked={@repeat_mode == "once_per_event"}
-                  phx-click="repeat"
-                  phx-value-mode="once_per_event"
-                  class="mr-2"
-                />
-                Uma vez por evento: notifica enquanto a condição se mantém; só volta a notificar depois de voltar a OK e a condição falhar novamente
-              </label>
-            </div>
-            <div>
-              <label class="block text-sm">
-                <input
-                  type="radio"
-                  name="repeat_mode"
-                  value="cooldown"
-                  checked={@repeat_mode == "cooldown"}
-                  phx-click="repeat"
-                  phx-value-mode="cooldown"
-                  class="mr-2"
-                />
-                Voltar a notificar a cada X horas enquanto a condição se mantiver
-              </label>
-              <input
-                :if={@repeat_mode == "cooldown"}
-                type="number"
-                min="1"
-                max="168"
-                name="cooldown_hours"
-                value={@cooldown_hours}
-                phx-change="field"
-                class="mt-2 w-24 rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800"
-              />
+                Anterior
+              </button>
+              <button
+                :if={@step < 3}
+                type="button"
+                phx-click="next"
+                disabled={!can_next?(@step, @subject_type, @subject_id, @subject_name)}
+                class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Seguinte
+              </button>
+              <button
+                :if={@step == 3}
+                type="button"
+                phx-click="save"
+                class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"
+              >
+                {if @editing_alert_id, do: "Guardar alterações", else: "Guardar alerta"}
+              </button>
             </div>
           </div>
-        <% end %>
-
-        <div class="flex flex-wrap gap-2 pt-2">
-          <button
-            :if={@step > 1}
-            type="button"
-            phx-click="back"
-            class="rounded-lg border border-slate-300 px-4 py-2 text-sm dark:border-slate-600"
-          >
-            Anterior
-          </button>
-          <button
-            :if={@step < 3}
-            type="button"
-            phx-click="next"
-            disabled={!can_next?(@step, @subject_type, @subject_id, @subject_name)}
-            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
-          >
-            Seguinte
-          </button>
-          <button
-            :if={@step == 3}
-            type="button"
-            phx-click="save"
-            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-          >
-            <%= if @editing_alert_id, do: "Guardar alterações", else: "Guardar alerta" %>
-          </button>
-          <.link
-            navigate={~p"/dashboard/alerts"}
-            class="rounded-lg px-4 py-2 text-sm text-slate-600 hover:underline dark:text-slate-400"
-          >
-            Cancelar
-          </.link>
         </div>
       </div>
     </Layouts.app>
     """
+  end
+
+  attr :num, :integer, required: true
+  attr :title, :string, required: true
+  attr :subtitle, :string, required: true
+  attr :active, :boolean, required: true
+  attr :done, :boolean, required: true
+  attr :show_line, :boolean, required: true
+
+  def wizard_rail_step(assigns) do
+    badge_class =
+      cond do
+        assigns.active ->
+          "bg-brand-600 text-white shadow-sm ring-2 ring-brand-500/40 ring-offset-2 ring-offset-white dark:ring-offset-slate-900"
+
+        assigns.done ->
+          "bg-emerald-600 text-white"
+
+        true ->
+          "bg-slate-200 text-slate-600 dark:bg-slate-600 dark:text-slate-200"
+      end
+
+    assigns = assign(assigns, :badge_class, badge_class)
+
+    ~H"""
+    <div class="flex min-w-[10rem] shrink-0 gap-2 md:min-w-0">
+      <div class="flex flex-col items-center">
+        <span class={"flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold #{@badge_class}"}>
+          {@num}
+        </span>
+        <div
+          :if={@show_line}
+          class="mt-1 hidden min-h-[1.25rem] w-px grow bg-slate-200 dark:bg-slate-600 md:block"
+        />
+      </div>
+      <div class={if(@show_line, do: "pb-3", else: "")}>
+        <p class="text-sm font-semibold leading-tight text-slate-900 dark:text-slate-100">{@title}</p>
+        <p class="mt-0.5 max-w-[11rem] text-xs leading-snug text-slate-500 dark:text-slate-400">
+          {@subtitle}
+        </p>
+      </div>
+    </div>
+    """
+  end
+
+  defp subject_type_tile_class(true) do
+    "flex w-full items-start gap-3 rounded-lg border-2 border-brand-500 bg-sky-50 p-3 text-left transition hover:border-brand-600 dark:border-brand-400 dark:bg-brand-900/25"
+  end
+
+  defp subject_type_tile_class(false) do
+    "flex w-full items-start gap-3 rounded-lg border-2 border-slate-200 bg-stone-50/80 p-3 text-left transition hover:border-slate-300 dark:border-slate-600 dark:bg-slate-800/50 dark:hover:border-slate-500"
   end
 
   @impl true
@@ -265,7 +388,13 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
     {:noreply,
      socket
-     |> assign(subject_type: t, subject_id: id, subject_name: name, search_term: "", search_results: results)
+     |> assign(
+       subject_type: t,
+       subject_id: id,
+       subject_name: name,
+       search_term: "",
+       search_results: results
+     )
      |> assign_preview()}
   end
 
@@ -457,9 +586,15 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   defp assign_from_alert(socket, alert) do
     sid =
       case alert.subject_id do
-        nil -> nil
-        id when is_binary(id) -> id
-        id -> to_string(id)
+        nil ->
+          nil
+
+        id when is_binary(id) ->
+          t = String.trim(id)
+          if t == "", do: nil, else: t
+
+        id ->
+          id |> to_string() |> String.trim() |> then(&if(&1 == "", do: nil, else: &1))
       end
 
     socket
@@ -484,20 +619,26 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     )
   end
 
-  defp format_threshold_field(n) when is_float(n) do
-    :erlang.float_to_binary(n, decimals: 10)
-    |> String.trim_trailing("0")
-    |> String.trim_trailing(".")
-  end
-
-  defp format_threshold_field(n) when is_integer(n), do: Integer.to_string(n)
-  defp format_threshold_field(_), do: "0"
-
   defp can_next?(2, _, _, _), do: true
-  defp can_next?(1, "national", _, name), do: name != nil
-  defp can_next?(1, type, id, _) when type in ["dam", "basin"], do: id != nil
+
+  defp can_next?(1, "national", _, name), do: subject_label_present?(name)
+
+  defp can_next?(1, type, id, _) when type in ["dam", "basin"],
+    do: subject_id_present?(id)
+
   defp can_next?(1, _, _, _), do: false
   defp can_next?(s, _, _, _) when s > 2, do: true
+
+  defp subject_id_present?(nil), do: false
+  defp subject_id_present?(""), do: false
+
+  defp subject_id_present?(s) when is_binary(s), do: String.trim(s) != ""
+
+  defp subject_id_present?(_), do: true
+
+  defp subject_label_present?(nil), do: false
+  defp subject_label_present?(s) when is_binary(s), do: String.trim(s) != ""
+  defp subject_label_present?(_), do: false
 
   defp assign_preview(socket) do
     a = %{
@@ -519,7 +660,10 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   end
 
   defp ready_subject?(%{subject_type: "national"}), do: true
-  defp ready_subject?(%{subject_type: t, subject_id: id}) when t in ["dam", "basin"], do: id != nil
+
+  defp ready_subject?(%{subject_type: t, subject_id: id}) when t in ["dam", "basin"],
+    do: subject_id_present?(id)
+
   defp ready_subject?(_), do: false
 
   defp pick_field(params, key, fallback) do
@@ -568,6 +712,15 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
   defp format_num(nil), do: "—"
   defp format_num(n), do: :erlang.float_to_binary(n * 1.0, decimals: 1)
+
+  defp format_threshold_field(n) when is_float(n) do
+    :erlang.float_to_binary(n, decimals: 10)
+    |> String.trim_trailing("0")
+    |> String.trim_trailing(".")
+  end
+
+  defp format_threshold_field(n) when is_integer(n), do: Integer.to_string(n)
+  defp format_threshold_field(_), do: "0"
 
   defp format_errors(cs) do
     Ecto.Changeset.traverse_errors(cs, fn {msg, opts} ->
