@@ -398,6 +398,46 @@ defmodule BarragensptWeb.CoreComponents do
     """
   end
 
+  def icon(%{name: "hero-sun"} = assigns) do
+    ~H"""
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class={@class}
+      aria-hidden="true"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M12 3v1.5m0 15V21m7.5-9H21m-15 0H3m14.303 5.303 1.06 1.06M5.637 5.637l1.06 1.06m10.606-1.06-1.06 1.06M5.637 18.363l1.06-1.06M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
+      />
+    </svg>
+    """
+  end
+
+  def icon(%{name: "hero-moon"} = assigns) do
+    ~H"""
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class={@class}
+      aria-hidden="true"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.313.26-2.566.732-3.709a9.75 9.75 0 1 0 12.77 12.71Z"
+      />
+    </svg>
+    """
+  end
+
   def icon(assigns) do
     ~H"""
     <span class={["inline-block", @class]} title={@name}>•</span>

@@ -126,14 +126,67 @@ const SearchDam = {
 const DarkModeToggle = {
   mounted() {
     const el = this.el
-    el.checked = document.documentElement.classList.contains("dark")
-    el.addEventListener("change", () => {
-      const on = el.checked
+    const lightBtn = el.querySelector('[data-theme-option="light"]')
+    const darkBtn = el.querySelector('[data-theme-option="dark"]')
+
+    const setButtonState = (button, active) => {
+      if (!button) return
+      button.setAttribute("aria-pressed", active ? "true" : "false")
+      button.classList.toggle("bg-slate-50", active)
+      button.classList.toggle("text-slate-900", active)
+      button.classList.toggle("shadow-[0_1px_3px_rgba(15,23,42,0.08)]", active)
+      button.classList.toggle("dark:bg-slate-700/70", active)
+      button.classList.toggle("dark:text-white", active)
+    }
+
+    const syncState = (on) => {
+      setButtonState(lightBtn, !on)
+      setButtonState(darkBtn, on)
+    }
+
+    syncState(document.documentElement.classList.contains("dark"))
+
+    this.onClick = (event) => {
+      const option = event.target.closest("[data-theme-option]")
+      if (!option || !el.contains(option)) return
+
+      const on = option.dataset.themeOption === "dark"
       gtagEvent("toggle_dark_mode", { state: on ? "on" : "off" })
       document.documentElement.classList.toggle("dark", on)
       try { localStorage.setItem("darkMode", on ? "1" : "0") } catch (e) { }
+      syncState(on)
       window.dispatchEvent(new CustomEvent("dark-mode-change", { detail: { dark: on } }))
-    })
+    }
+
+    el.addEventListener("click", this.onClick)
+  },
+
+  destroyed() {
+    this.el.removeEventListener("click", this.onClick)
+  }
+}
+
+const AvatarMenu = {
+  mounted() {
+    this.onDocumentClick = (event) => {
+      if (this.el.hasAttribute("open") && !this.el.contains(event.target)) {
+        this.el.removeAttribute("open")
+      }
+    }
+
+    this.onDocumentKeydown = (event) => {
+      if (event.key === "Escape" && this.el.hasAttribute("open")) {
+        this.el.removeAttribute("open")
+      }
+    }
+
+    document.addEventListener("click", this.onDocumentClick)
+    document.addEventListener("keydown", this.onDocumentKeydown)
+  },
+
+  destroyed() {
+    document.removeEventListener("click", this.onDocumentClick)
+    document.removeEventListener("keydown", this.onDocumentKeydown)
   }
 }
 
@@ -279,6 +332,7 @@ export const Hooks = {
   UsageTypeChanged,
   SearchDam,
   DarkModeToggle,
+  AvatarMenu,
   OpenSettingsModal,
   SettingsModalBackdrop,
   SettingsModalCloseButton,
