@@ -6,7 +6,13 @@ defmodule Barragenspt.Notifications.UserAlert do
 
   @subject_types ~w(dam)
   @realtime_metrics ~w(realtime_level realtime_inflow realtime_outflow realtime_storage)
-  @metrics ~w(storage_pct month_change_pct year_change_pct) ++ @realtime_metrics
+  @daily_flow_metrics ~w(
+    daily_discharged_flow
+    daily_tributary_flow
+    daily_effluent_flow
+    daily_turbocharged_flow
+  )
+  @metrics ~w(storage_pct month_change_pct year_change_pct) ++ @realtime_metrics ++ @daily_flow_metrics
   @operators ~w(lt gt)
   @repeat_modes_base ~w(once_per_event cooldown)
 
@@ -109,6 +115,7 @@ defmodule Barragenspt.Notifications.UserAlert do
   def subject_types, do: @subject_types
   def metrics, do: @metrics
   def realtime_metrics, do: @realtime_metrics
+  def daily_flow_metrics, do: @daily_flow_metrics
   def realtime_metric?(metric), do: metric in @realtime_metrics
   def operators, do: @operators
   @doc """

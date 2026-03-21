@@ -54,6 +54,22 @@ defmodule Barragenspt.Notifications.AlertMetrics do
     Dams.realtime_latest_value(site_id, "volume_armazenado")
   end
 
+  defp dam_value(site_id, "daily_discharged_flow") do
+    Dams.latest_data_point_value(site_id, "ouput_flow_rate_daily")
+  end
+
+  defp dam_value(site_id, "daily_tributary_flow") do
+    Dams.latest_data_point_value(site_id, "tributary_daily_flow")
+  end
+
+  defp dam_value(site_id, "daily_effluent_flow") do
+    Dams.latest_data_point_value(site_id, "effluent_daily_flow")
+  end
+
+  defp dam_value(site_id, "daily_turbocharged_flow") do
+    Dams.latest_data_point_value(site_id, "turbocharged_daily_flow")
+  end
+
   defp dam_value(_, _), do: nil
 
   defp decimal_to_float(%Decimal{} = d), do: Decimal.to_float(d)

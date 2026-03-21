@@ -148,6 +148,10 @@ defmodule Barragenspt.Accounts.UserNotifier do
   defp format_metric("realtime_inflow"), do: "Caudal afluente (m3/s, realtime)"
   defp format_metric("realtime_outflow"), do: "Caudal efluente (m3/s, realtime)"
   defp format_metric("realtime_storage"), do: "Volume armazenado (%, realtime)"
+  defp format_metric("daily_discharged_flow"), do: "Caudal descarregado médio diário (m3/s)"
+  defp format_metric("daily_tributary_flow"), do: "Caudal afluente médio diário (m3/s)"
+  defp format_metric("daily_effluent_flow"), do: "Caudal efluente médio diário (m3/s)"
+  defp format_metric("daily_turbocharged_flow"), do: "Caudal turbinado médio diário (m3/s)"
   defp format_metric(_), do: "Indicador"
 
   defp condition_metric_label("storage_pct"), do: "Ocupação"
@@ -157,6 +161,10 @@ defmodule Barragenspt.Accounts.UserNotifier do
   defp condition_metric_label("realtime_inflow"), do: "Caudal afluente (realtime)"
   defp condition_metric_label("realtime_outflow"), do: "Caudal efluente (realtime)"
   defp condition_metric_label("realtime_storage"), do: "Volume armazenado (realtime)"
+  defp condition_metric_label("daily_discharged_flow"), do: "Caudal descarregado médio diário"
+  defp condition_metric_label("daily_tributary_flow"), do: "Caudal afluente médio diário"
+  defp condition_metric_label("daily_effluent_flow"), do: "Caudal efluente médio diário"
+  defp condition_metric_label("daily_turbocharged_flow"), do: "Caudal turbinado médio diário"
   defp condition_metric_label(metric), do: format_metric(metric)
 
   defp subject_type_pt("dam"), do: "Barragem"
@@ -176,7 +184,14 @@ defmodule Barragenspt.Accounts.UserNotifier do
   end
 
   defp format_value_for_email(metric, value)
-       when metric in ["realtime_inflow", "realtime_outflow"] do
+       when metric in [
+              "realtime_inflow",
+              "realtime_outflow",
+              "daily_discharged_flow",
+              "daily_tributary_flow",
+              "daily_effluent_flow",
+              "daily_turbocharged_flow"
+            ] do
     "#{Float.round(value * 1.0, 2)} m3/s"
   end
 
@@ -194,7 +209,14 @@ defmodule Barragenspt.Accounts.UserNotifier do
   end
 
   defp threshold_with_unit(metric, threshold)
-       when metric in ["realtime_inflow", "realtime_outflow"],
+       when metric in [
+              "realtime_inflow",
+              "realtime_outflow",
+              "daily_discharged_flow",
+              "daily_tributary_flow",
+              "daily_effluent_flow",
+              "daily_turbocharged_flow"
+            ],
        do: "#{threshold} m3/s"
 
   defp threshold_with_unit("realtime_level", threshold), do: "#{threshold} m"

@@ -103,6 +103,10 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
   defp metric_label("realtime_inflow"), do: "Caudal afluente (m3/s, realtime)"
   defp metric_label("realtime_outflow"), do: "Caudal efluente (m3/s, realtime)"
   defp metric_label("realtime_storage"), do: "Volume armazenado (%, realtime)"
+  defp metric_label("daily_discharged_flow"), do: "Caudal descarregado médio diário (m3/s)"
+  defp metric_label("daily_tributary_flow"), do: "Caudal afluente médio diário (m3/s)"
+  defp metric_label("daily_effluent_flow"), do: "Caudal efluente médio diário (m3/s)"
+  defp metric_label("daily_turbocharged_flow"), do: "Caudal turbinado médio diário (m3/s)"
   defp metric_label(_), do: "?"
 
   defp condition_metric_label("storage_pct"), do: "Ocupação"
@@ -112,9 +116,21 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
   defp condition_metric_label("realtime_inflow"), do: "Caudal afluente (realtime)"
   defp condition_metric_label("realtime_outflow"), do: "Caudal efluente (realtime)"
   defp condition_metric_label("realtime_storage"), do: "Volume armazenado (realtime)"
+  defp condition_metric_label("daily_discharged_flow"), do: "Caudal descarregado médio diário"
+  defp condition_metric_label("daily_tributary_flow"), do: "Caudal afluente médio diário"
+  defp condition_metric_label("daily_effluent_flow"), do: "Caudal efluente médio diário"
+  defp condition_metric_label("daily_turbocharged_flow"), do: "Caudal turbinado médio diário"
   defp condition_metric_label(metric), do: metric_label(metric)
 
-  defp threshold_with_unit(metric, threshold) when metric in ["realtime_inflow", "realtime_outflow"],
+  defp threshold_with_unit(metric, threshold)
+       when metric in [
+              "realtime_inflow",
+              "realtime_outflow",
+              "daily_discharged_flow",
+              "daily_tributary_flow",
+              "daily_effluent_flow",
+              "daily_turbocharged_flow"
+            ],
     do: "#{threshold} m3/s"
 
   defp threshold_with_unit("realtime_level", threshold), do: "#{threshold} m"
@@ -147,6 +163,10 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
   defp format_metric_value("realtime_inflow", v) when is_float(v), do: "#{Float.round(v, 2)} m3/s"
   defp format_metric_value("realtime_outflow", v) when is_float(v), do: "#{Float.round(v, 2)} m3/s"
   defp format_metric_value("realtime_storage", v) when is_float(v), do: "#{Float.round(v, 2)}%"
+  defp format_metric_value("daily_discharged_flow", v) when is_float(v), do: "#{Float.round(v, 2)} m3/s"
+  defp format_metric_value("daily_tributary_flow", v) when is_float(v), do: "#{Float.round(v, 2)} m3/s"
+  defp format_metric_value("daily_effluent_flow", v) when is_float(v), do: "#{Float.round(v, 2)} m3/s"
+  defp format_metric_value("daily_turbocharged_flow", v) when is_float(v), do: "#{Float.round(v, 2)} m3/s"
 
   defp format_metric_value(_metric, v) when is_float(v) do
     "#{Float.round(v, 2)}"

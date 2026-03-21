@@ -137,7 +137,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                       <% end %>
                     </select>
                     <p :if={@subject_type == "dam"} class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      Métricas realtime disponíveis: cota, caudal afluente/efluente e volume armazenado.
+                      Inclui métricas de armazenamento, realtime e caudais médios diários.
                     </p>
                   </div>
                   <div>
@@ -645,7 +645,11 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       {"realtime_level", "Cota (m, realtime)"},
       {"realtime_inflow", "Caudal afluente (m3/s, realtime)"},
       {"realtime_outflow", "Caudal efluente (m3/s, realtime)"},
-      {"realtime_storage", "Volume armazenado (%, realtime)"}
+      {"realtime_storage", "Volume armazenado (%, realtime)"},
+      {"daily_discharged_flow", "Caudal descarregado médio diário (m3/s)"},
+      {"daily_tributary_flow", "Caudal afluente médio diário (m3/s)"},
+      {"daily_effluent_flow", "Caudal efluente médio diário (m3/s)"},
+      {"daily_turbocharged_flow", "Caudal turbinado médio diário (m3/s)"}
     ]
   end
 

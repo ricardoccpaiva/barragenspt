@@ -96,6 +96,18 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> decimal_to_float()
   end
 
+  def latest_data_point_value(site_id, param_name)
+      when is_binary(site_id) and is_binary(param_name) do
+    from(dp in DataPoint,
+      where: dp.site_id == ^site_id and dp.param_name == ^param_name,
+      order_by: [desc: dp.colected_at],
+      limit: 1,
+      select: dp.value
+    )
+    |> Repo.one()
+    |> decimal_to_float()
+  end
+
   defp decimal_to_float(%Decimal{} = d), do: Decimal.to_float(d)
   defp decimal_to_float(n) when is_number(n), do: n * 1.0
   defp decimal_to_float(_), do: nil
