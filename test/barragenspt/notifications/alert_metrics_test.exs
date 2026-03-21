@@ -47,10 +47,10 @@ defmodule Barragenspt.Notifications.AlertMetricsTest do
     assert value == 12.7
   end
 
-  test "returns nil for realtime metric on non-dam subject" do
+  test "returns nil for unsupported subject type" do
     value =
       AlertMetrics.current_value(%{
-        subject_type: "national",
+        subject_type: "basin",
         subject_id: nil,
         metric: "realtime_inflow"
       })

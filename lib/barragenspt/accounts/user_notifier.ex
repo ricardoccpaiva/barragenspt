@@ -160,8 +160,6 @@ defmodule Barragenspt.Accounts.UserNotifier do
   defp condition_metric_label(metric), do: format_metric(metric)
 
   defp subject_type_pt("dam"), do: "Barragem"
-  defp subject_type_pt("basin"), do: "Bacia"
-  defp subject_type_pt("national"), do: "Nacional"
   defp subject_type_pt(other), do: to_string(other)
 
   defp format_value_for_email("storage_pct", value) do

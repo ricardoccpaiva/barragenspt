@@ -6,7 +6,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   alias Barragenspt.Notifications
   alias Barragenspt.Notifications.AlertMetrics
   alias Barragenspt.Notifications.UserAlert
-  alias Barragenspt.Hydrometrics.{Dams, Basins}
+  alias Barragenspt.Hydrometrics.Dams
 
   @impl true
   def render(assigns) do
@@ -23,7 +23,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
               <.wizard_rail_step
                 num={1}
                 title="Alvo"
-                subtitle="Barragem, bacia ou país"
+                subtitle="Barragem"
                 active={@step == 1}
                 done={@step > 1}
                 show_line={true}
@@ -73,78 +73,46 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                       </span>
                     </span>
                   </button>
-                  <button
-                    type="button"
-                    phx-click="subject_type"
-                    phx-value-type="basin"
-                    class={subject_type_tile_class(@subject_type == "basin")}
-                  >
-                    <span class="text-xl leading-none">🏞</span>
-                    <span class="flex min-w-0 flex-col gap-0.5">
-                      <span class="text-sm font-semibold">Bacia hidrográfica</span>
-                      <span class="text-xs font-normal text-slate-500 dark:text-slate-400">
-                        Área de drenagem
-                      </span>
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    phx-click="subject_type"
-                    phx-value-type="national"
-                    class={subject_type_tile_class(@subject_type == "national") <> " sm:col-span-2"}
-                  >
-                    <span class="text-xl leading-none">🇵🇹</span>
-                    <span class="flex min-w-0 flex-col gap-0.5">
-                      <span class="text-sm font-semibold">Portugal (média das bacias)</span>
-                      <span class="text-xs font-normal text-slate-500 dark:text-slate-400">
-                        Vista agregada nacional
-                      </span>
-                    </span>
-                  </button>
                 </div>
 
-                <%= if @subject_type in ["dam", "basin"] do %>
-                  <form
-                    phx-change="search"
-                    phx-submit="search"
-                    class="space-y-2"
-                    id="alert-subject-search-form"
+                <form
+                  phx-change="search"
+                  phx-submit="search"
+                  class="space-y-2"
+                  id="alert-subject-search-form"
+                >
+                  <label
+                    class="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                    for="alert-subject-q"
                   >
-                    <label
-                      class="block text-sm font-medium text-slate-700 dark:text-slate-300"
-                      for="alert-subject-q"
-                    >
-                      Pesquisar
-                    </label>
-                    <input
-                      id="alert-subject-q"
-                      type="text"
-                      name="q"
-                      value={@search_term}
-                      phx-debounce="300"
-                      autocomplete="off"
-                      class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-                      placeholder={
-                        if @subject_type == "dam", do: "Nome da barragem…", else: "Nome da bacia…"
-                      }
-                    />
-                  </form>
-                  <ul class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600">
-                    <%= for r <- @search_results do %>
-                      <li>
-                        <button
-                          type="button"
-                          phx-click="pick"
-                          phx-value-id={r.id}
-                          phx-value-name={r.name}
-                          class="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700"
-                        >
-                          {r.name}
-                        </button>
-                      </li>
-                    <% end %>
-                  </ul>
-                <% end %>
+                    Pesquisar
+                  </label>
+                  <input
+                    id="alert-subject-q"
+                    type="text"
+                    name="q"
+                    value={@search_term}
+                    phx-debounce="300"
+                    autocomplete="off"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                    placeholder="Nome da barragem…"
+                  />
+                </form>
+                <ul class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600">
+                  <%= for r <- @search_results do %>
+                    <li>
+                      <button
+                        type="button"
+                        phx-click="pick"
+                        phx-value-id={r.id}
+                        phx-value-name={r.name}
+                        class="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700"
+                      >
+                        {r.name}
+                      </button>
+                    </li>
+                  <% end %>
+                </ul>
               <% end %>
 
               <%= if @step == 2 do %>
@@ -388,7 +356,13 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
               |> push_navigate(to: ~p"/dashboard/alerts")
 
             {:ok, alert} ->
-              assign_from_alert(socket, alert)
+              if alert.subject_type == "dam" do
+                assign_from_alert(socket, alert)
+              else
+                socket
+                |> put_flash(:error, "Este tipo de alerta já não é suportado.")
+                |> push_navigate(to: ~p"/dashboard/alerts")
+              end
           end
 
         :new ->
@@ -400,23 +374,17 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
   @impl true
   def handle_event("subject_type", %{"type" => t}, socket) do
-    {id, name, results} =
-      case t do
-        "national" -> {nil, "Portugal (média das bacias)", []}
-        _ -> {nil, nil, []}
-      end
-
-    metric = normalize_metric_for_subject(socket.assigns.metric, t)
+    t = if t == "dam", do: t, else: "dam"
 
     {:noreply,
      socket
      |> assign(
        subject_type: t,
-       subject_id: id,
-       subject_name: name,
-       metric: metric,
+       subject_id: nil,
+       subject_name: nil,
+       metric: normalize_metric_for_subject(socket.assigns.metric, t),
        search_term: "",
-       search_results: results
+       search_results: []
      )
      |> assign_preview()}
   end
@@ -439,21 +407,6 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
           else
             Dams.search_for_picker(q, [])
             |> Enum.map(fn d -> %{id: d.id, name: d.name} end)
-            |> Enum.take(15)
-          end
-
-        "basin" ->
-          if q == "" do
-            []
-          else
-            q_low = String.downcase(q)
-
-            Basins.all()
-            |> Enum.filter(fn b ->
-              String.contains?(String.downcase(b.name || ""), q_low) or
-                String.contains?(String.downcase(b.id || ""), q_low)
-            end)
-            |> Enum.map(fn b -> %{id: b.id, name: b.name} end)
             |> Enum.take(15)
           end
 
@@ -582,7 +535,6 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     end
   end
 
-  defp normalize_subject_id("national", _), do: nil
   defp normalize_subject_id(_, id) when id in [nil, ""], do: nil
 
   defp normalize_subject_id(_, id) do
@@ -597,7 +549,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     |> assign(
       editing_alert_id: nil,
       step: 1,
-      subject_type: nil,
+      subject_type: "dam",
       subject_id: nil,
       subject_name: nil,
       search_term: "",
@@ -635,10 +587,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       subject_id: sid,
       subject_name: alert.subject_name,
       search_term:
-        if(alert.subject_type in ["dam", "basin"],
-          do: alert.subject_name || "",
-          else: ""
-        ),
+        if(alert.subject_type == "dam", do: alert.subject_name || "", else: ""),
       search_results: [],
       metric: metric,
       operator: alert.operator,
@@ -651,9 +600,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
   defp can_next?(2, _, _, _), do: true
 
-  defp can_next?(1, "national", _, name), do: subject_label_present?(name)
-
-  defp can_next?(1, type, id, _) when type in ["dam", "basin"],
+  defp can_next?(1, "dam", id, _),
     do: subject_id_present?(id)
 
   defp can_next?(1, _, _, _), do: false
@@ -665,10 +612,6 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   defp subject_id_present?(s) when is_binary(s), do: String.trim(s) != ""
 
   defp subject_id_present?(_), do: true
-
-  defp subject_label_present?(nil), do: false
-  defp subject_label_present?(s) when is_binary(s), do: String.trim(s) != ""
-  defp subject_label_present?(_), do: false
 
   defp assign_preview(socket) do
     a = %{
@@ -689,14 +632,12 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     assign(socket, :preview_value, v)
   end
 
-  defp ready_subject?(%{subject_type: "national"}), do: true
-
-  defp ready_subject?(%{subject_type: t, subject_id: id}) when t in ["dam", "basin"],
+  defp ready_subject?(%{subject_type: "dam", subject_id: id}),
     do: subject_id_present?(id)
 
   defp ready_subject?(_), do: false
 
-  defp metric_options(subject_type) when subject_type == "dam" do
+  defp metric_options(_subject_type) do
     [
       {"storage_pct", "Ocupação (%)"},
       {"month_change_pct", "Variação vs 1 mês (pp)"},
@@ -705,14 +646,6 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       {"realtime_inflow", "Caudal afluente (m3/s, realtime)"},
       {"realtime_outflow", "Caudal efluente (m3/s, realtime)"},
       {"realtime_storage", "Volume armazenado (%, realtime)"}
-    ]
-  end
-
-  defp metric_options(_subject_type) do
-    [
-      {"storage_pct", "Ocupação (%)"},
-      {"month_change_pct", "Variação vs 1 mês (pp)"},
-      {"year_change_pct", "Variação vs 1 ano (pp)"}
     ]
   end
 

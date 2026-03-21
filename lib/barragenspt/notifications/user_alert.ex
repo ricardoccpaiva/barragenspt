@@ -4,7 +4,7 @@ defmodule Barragenspt.Notifications.UserAlert do
 
   alias Barragenspt.Accounts.User
 
-  @subject_types ~w(dam basin national)
+  @subject_types ~w(dam)
   @realtime_metrics ~w(realtime_level realtime_inflow realtime_outflow realtime_storage)
   @metrics ~w(storage_pct month_change_pct year_change_pct) ++ @realtime_metrics
   @operators ~w(lt gt)
@@ -70,17 +70,10 @@ defmodule Barragenspt.Notifications.UserAlert do
   end
 
   defp validate_subject_id(changeset) do
-    case get_field(changeset, :subject_type) do
-      "national" ->
-        changeset
-        |> put_change(:subject_id, nil)
-
-      _ ->
-        if present?(get_field(changeset, :subject_id)) do
-          changeset
-        else
-          add_error(changeset, :subject_id, "can't be blank")
-        end
+    if present?(get_field(changeset, :subject_id)) do
+      changeset
+    else
+      add_error(changeset, :subject_id, "can't be blank")
     end
   end
 

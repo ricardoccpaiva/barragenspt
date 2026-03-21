@@ -192,8 +192,6 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   end
 
   defp subject_emoji("dam"), do: "💧"
-  defp subject_emoji("basin"), do: "🏞"
-  defp subject_emoji("national"), do: "🇵🇹"
   defp subject_emoji(_), do: "•"
 
   defp condition_row(a) do
