@@ -98,7 +98,10 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                     placeholder="Nome da barragem…"
                   />
                 </form>
-                <ul class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600">
+                <ul
+                  :if={@search_results != []}
+                  class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600"
+                >
                   <%= for r <- @search_results do %>
                     <li>
                       <button
@@ -246,7 +249,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
               <% end %>
             </div>
 
-            <div class="mt-8 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5 dark:border-slate-700">
+            <div class="mt-8 flex flex-wrap items-center gap-2 pt-5">
               <.link
                 navigate={~p"/dashboard/alerts"}
                 class="mr-auto text-sm font-semibold text-slate-600 underline decoration-slate-300 decoration-1 underline-offset-2 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
