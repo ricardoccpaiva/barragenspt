@@ -4,6 +4,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
   alias Barragenspt.Mailer
   alias Barragenspt.Accounts.User
   alias Barragenspt.Notifications.UserAlert
+  alias Resend.Emails.Email
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do
@@ -13,21 +14,6 @@ defmodule Barragenspt.Accounts.UserNotifier do
       |> from({"Barragenspt", "contact@barragens.pt"})
       |> subject(subject)
       |> text_body(body)
-
-    with {:ok, _metadata} <- Mailer.deliver(email) do
-      {:ok, email}
-    end
-  end
-
-  # Delivers multipart email (text + HTML) for richer notifications.
-  defp deliver_with_html(recipient, subject, text, html) do
-    email =
-      new()
-      |> to(recipient)
-      |> from({"Barragenspt", "contact@barragens.pt"})
-      |> subject(subject)
-      |> text_body(text)
-      |> html_body(html)
 
     with {:ok, _metadata} <- Mailer.deliver(email) do
       {:ok, email}
@@ -109,72 +95,44 @@ defmodule Barragenspt.Accounts.UserNotifier do
     condition = describe_condition(alert)
     value_str = format_value_for_email(alert.metric, value)
 
-    text_body = """
+    template_variables = %{
+      brand_name: "barragens.pt",
+      alert_title: "Alerta disparado",
+      alert_message: "Uma condição configurada por si foi cumprida.",
+      subject_name: alert.subject_name,
+      subject_type: subject_type_pt(alert.subject_type),
+      condition_text: condition,
+      current_value: value_str,
+      alerts_url: path,
+      footer_text: "Está a receber este e-mail porque tem alertas ativos na sua conta."
+    }
 
-    ==============================
+    deliver_resend_template(
+      user.email,
+      subject,
+      "alert-notification",
+      template_variables
+    )
+  end
 
-    Foi disparado um alerta configurado em barragens.pt.
+  defp deliver_resend_template(recipient, subject, template_id, template_variables) do
+    case Application.get_env(:barragenspt, :resend_api_key) do
+      nil ->
+        {:error, :resend_api_key_missing}
 
-    Alvo: #{alert.subject_name} (#{subject_type_pt(alert.subject_type)})
-    #{condition}
-    Valor atual: #{value_str}
+      api_key ->
+        client = Resend.client(api_key: api_key)
 
-    Gerir os seus alertas: #{path}
-
-    ==============================
-    """
-
-    html_body = """
-    <div style="margin:0;padding:24px;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;margin:0 auto;">
-        <tr>
-          <td style="padding:0 0 14px 0;">
-            <div style="font-size:22px;font-weight:700;color:#0369a1;">barragens.pt</div>
-          </td>
-        </tr>
-        <tr>
-          <td style="background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;">
-            <div style="font-size:18px;font-weight:700;color:#111827;margin-bottom:6px;">Alerta disparado</div>
-            <div style="font-size:14px;line-height:1.6;color:#475569;margin-bottom:18px;">
-              Uma condição configurada por si foi cumprida.
-            </div>
-
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0 8px;">
-              <tr>
-                <td style="font-size:13px;color:#64748b;width:140px;">Alvo</td>
-                <td style="font-size:14px;font-weight:600;color:#0f172a;">#{alert.subject_name}</td>
-              </tr>
-              <tr>
-                <td style="font-size:13px;color:#64748b;">Tipo</td>
-                <td style="font-size:14px;color:#0f172a;">#{subject_type_pt(alert.subject_type)}</td>
-              </tr>
-              <tr>
-                <td style="font-size:13px;color:#64748b;">Condição</td>
-                <td style="font-size:14px;color:#0f172a;">#{condition}</td>
-              </tr>
-              <tr>
-                <td style="font-size:13px;color:#64748b;">Valor atual</td>
-                <td style="font-size:16px;font-weight:700;color:#166534;">#{value_str}</td>
-              </tr>
-            </table>
-
-            <div style="margin-top:24px;">
-              <a href="#{path}" style="display:inline-block;background:#0284c7;color:#ffffff;text-decoration:none;font-weight:600;font-size:14px;padding:11px 16px;border-radius:10px;">
-                Ver alertas
-              </a>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:14px 2px 0 2px;font-size:12px;color:#64748b;">
-            Está a receber este e-mail porque tem alertas ativos na sua conta.
-          </td>
-        </tr>
-      </table>
-    </div>
-    """
-
-    deliver_with_html(user.email, subject, text_body, html_body)
+        Resend.Client.post(client, Email, "/emails", %{
+          from: "Barragenspt <contact@barragens.pt>",
+          to: [recipient],
+          subject: subject,
+          template: %{
+            id: template_id,
+            variables: template_variables
+          }
+        })
+    end
   end
 
   defp describe_condition(%UserAlert{} = a) do
