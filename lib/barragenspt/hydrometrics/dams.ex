@@ -9,6 +9,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
     DailyAverageStorageBySite,
     SiteCurrentStorage,
     DataPoint,
+    DataPointWithDam,
     DataPointRealtime,
     Dam,
     DamUsage
@@ -17,6 +18,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
   alias Barragenspt.Repo
   alias Barragenspt.Cache
   alias Barragenspt.RealtimeDataPointsCache
+
+  alias Flop.{Filter, Meta}
 
   @discharge_flow_params [
     "ouput_flow_rate_daily",
@@ -85,7 +88,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
               key: "realtime_latest_#{site_id}_#{param_name}",
               ttl: :timer.minutes(15)
             )
-  def realtime_latest_value(site_id, param_name) when is_binary(site_id) and is_binary(param_name) do
+  def realtime_latest_value(site_id, param_name)
+      when is_binary(site_id) and is_binary(param_name) do
     from(d in DataPointRealtime,
       where: d.site_id == ^site_id and d.param_name == ^param_name,
       order_by: [desc: d.colected_at],
@@ -172,6 +176,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   """
   def search_for_picker(name, usage_types \\ []) when is_binary(name) do
     name = String.trim(name)
+
     if name == "" do
       []
     else
@@ -791,6 +796,155 @@ defmodule Barragenspt.Hydrometrics.Dams do
         }
       )
     )
+  end
+
+  @data_points_flop_opts [for: DataPointWithDam, repo: Repo, replace_invalid_params: true]
+
+  # Export ignores UI page size; opts `max_limit` overrides schema (100) for this call only.
+  @data_points_csv_export_max 50_000
+
+  @data_points_csv_export_flop_opts [
+    for: DataPointWithDam,
+    repo: Repo,
+    replace_invalid_params: true,
+    max_limit: @data_points_csv_export_max
+  ]
+
+  # Total-row count for Flop pagination is expensive on large tables. Cache it
+  # per filter set (not per page/order) with a short TTL; stale totals are acceptable
+  # briefly while new data_points are ingested.
+  @data_points_count_cache_ttl :timer.minutes(2)
+
+  @doc """
+  Returns true if validated Flop params include a non-empty `param_name` filter.
+
+  The data-points dashboard only loads rows when this is true.
+  """
+  @spec data_points_param_name_filter_set?(Flop.t()) :: boolean()
+  def data_points_param_name_filter_set?(%Flop{filters: filters}) do
+    Enum.any?(filters || [], &param_name_filter_has_value?/1)
+  end
+
+  defp param_name_filter_has_value?(%Filter{field: field, value: value})
+       when field in [:param_name, "param_name"] do
+    nonempty_filter_value?(value)
+  end
+
+  defp param_name_filter_has_value?(%{field: field, value: value})
+       when field in [:param_name, "param_name"] do
+    nonempty_filter_value?(value)
+  end
+
+  defp param_name_filter_has_value?(_), do: false
+
+  defp nonempty_filter_value?(v) when is_binary(v), do: v != ""
+  defp nonempty_filter_value?(v) when not is_nil(v), do: true
+  defp nonempty_filter_value?(_), do: false
+
+  @doc """
+  Lists rows from the `data_points_with_dam` view (`dam` ⋈ `data_points` on `site_id`)
+  with Flop filtering, sorting and pagination.
+
+  Rows are returned only when a `param_name` filter with a value is present; otherwise
+  the result list is empty and no query is run against the view.
+
+  The **total row count** used for pagination metadata is cached in `Barragenspt.Cache`
+  for #{div(@data_points_count_cache_ttl, 60_000)} minutes per distinct filter set
+  (same filters → same count; page and sort do not affect the cached value).
+  """
+  @spec list_data_points(map()) ::
+          {:ok, {[DataPointWithDam.t()], Meta.t()}} | {:error, Meta.t()}
+  def list_data_points(params \\ %{}) when is_map(params) do
+    case Flop.validate(params, @data_points_flop_opts) do
+      {:ok, flop} ->
+        if data_points_param_name_filter_set?(flop) do
+          count = cached_data_points_total_count(flop)
+          {:ok, Flop.run(DataPointWithDam, flop, Keyword.put(@data_points_flop_opts, :count, count))}
+        else
+          meta =
+            Flop.meta(
+              DataPointWithDam,
+              flop,
+              Keyword.put(@data_points_flop_opts, :count, 0)
+            )
+
+          {:ok, {[], meta}}
+        end
+
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+    end
+  end
+
+  @doc """
+  Returns up to #{@data_points_csv_export_max} rows from `data_points_with_dam` using the
+  same Flop filters and ordering as `list_data_points/1`, but always from page 1 with a
+  large page size (pagination params in `params` are replaced for the export).
+  """
+  @spec list_data_points_for_csv_export(map()) ::
+          {:ok, [DataPointWithDam.t()]} | {:error, Meta.t()} | {:error, :missing_param_name_filter}
+  def list_data_points_for_csv_export(params) when is_map(params) do
+    export_params =
+      params
+      |> Map.drop([
+        "page",
+        "page_size",
+        "offset",
+        "limit",
+        :page,
+        :page_size,
+        :offset,
+        :limit
+      ])
+      |> Map.put("page", 1)
+      |> Map.put("page_size", @data_points_csv_export_max)
+
+    case Flop.validate(export_params, @data_points_csv_export_flop_opts) do
+      {:ok, flop} ->
+        if data_points_param_name_filter_set?(flop) do
+          rows = Flop.all(DataPointWithDam, flop, @data_points_csv_export_flop_opts)
+          {:ok, rows}
+        else
+          {:error, :missing_param_name_filter}
+        end
+
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+    end
+  end
+
+  defp cached_data_points_total_count(%Flop{} = flop) do
+    key = data_points_count_cache_key(flop)
+
+    case Cache.get(key) do
+      nil ->
+        count = Flop.count(DataPointWithDam, flop, @data_points_flop_opts)
+        :ok = Cache.put(key, count, ttl: @data_points_count_cache_ttl)
+        count
+
+      count when is_integer(count) ->
+        count
+    end
+  end
+
+  defp data_points_count_cache_key(%Flop{filters: filters}) do
+    normalized =
+      (filters || [])
+      |> Enum.map(&filter_triple_for_cache/1)
+      |> Enum.sort()
+
+    digest = :crypto.hash(:sha256, :erlang.term_to_binary(normalized))
+    {:data_points_with_dam_flop_count, digest}
+  end
+
+  defp filter_triple_for_cache(%Filter{field: field, op: op, value: value}),
+    do: {field, op, value}
+
+  defp filter_triple_for_cache(%{} = map) do
+    field = Map.get(map, :field) || Map.get(map, "field")
+    op = Map.get(map, :op) || Map.get(map, "op")
+    value = Map.get(map, :value) || Map.get(map, "value")
+    {field, op, value}
   end
 
   defp query_limit(period) do

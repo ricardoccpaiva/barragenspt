@@ -81,9 +81,12 @@ defmodule BarragensptWeb.Router do
   scope "/", BarragensptWeb do
     pipe_through [:browser, :authenticated]
 
+    get "/dashboard/data-points/export/csv", Dashboard.DataPointsExportController, :csv
+
     live_session :authenticated,
       on_mount: [{BarragensptWeb.UserAuth, :require_authenticated}] do
       live "/dashboard", DashboardLive, :index
+      live "/dashboard/data-points", Dashboard.DataPointsLive, :index
       live "/dashboard/alerts", Dashboard.AlertsLive, :index
       live "/dashboard/alerts/new", Dashboard.AlertFormLive, :new
       live "/dashboard/alerts/:id/history", Dashboard.AlertHistoryLive, :show

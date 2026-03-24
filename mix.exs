@@ -61,6 +61,8 @@ defmodule Barragenspt.MixProject do
       {:nebulex, "~> 2.2"},
       {:decorator, "~> 1.4"},
       {:scrivener_ecto, "~> 2.7"},
+      {:flop, "~> 0.26"},
+      {:flop_phoenix, "~> 0.23"},
       {:prom_ex, "~> 1.9.0"},
       {:plug_canonical_host, "~> 2.0"},
       {:tesla, "~> 1.4"},
