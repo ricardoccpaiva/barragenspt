@@ -85,7 +85,8 @@ defmodule BarragensptWeb.CoreComponents do
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
-                multiple pattern placeholder readonly required rows size step phx-mounted)
+                multiple pattern placeholder readonly required rows size step phx-mounted phx-change
+                phx-debounce)
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
@@ -172,6 +173,36 @@ defmodule BarragensptWeb.CoreComponents do
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
+      </label>
+      <p :for={msg <- @errors} class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+        <.icon name="hero-exclamation-circle" class="size-4 shrink-0" />
+        {msg}
+      </p>
+    </div>
+    """
+  end
+
+  def input(%{type: "date"} = assigns) do
+    assigns =
+      assign(assigns, :date_value, normalize_date_input_value(Map.get(assigns, :value)))
+
+    ~H"""
+    <div class="mb-3">
+      <label class="block">
+        <span :if={@label} class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+          {@label}
+        </span>
+        <input
+          type="date"
+          name={@name}
+          id={@id}
+          value={@date_value}
+          class={[
+            @class || "block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100",
+            @errors != [] && (@error_class || "border-red-500")
+          ]}
+          {@rest}
+        />
       </label>
       <p :for={msg <- @errors} class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
         <.icon name="hero-exclamation-circle" class="size-4 shrink-0" />
@@ -443,6 +474,22 @@ defmodule BarragensptWeb.CoreComponents do
     <span class={["inline-block", @class]} title={@name}>•</span>
     """
   end
+
+  defp normalize_date_input_value(%NaiveDateTime{} = ndt) do
+    ndt |> NaiveDateTime.to_date() |> Date.to_iso8601()
+  end
+
+  defp normalize_date_input_value(%Date{} = d), do: Date.to_iso8601(d)
+
+  defp normalize_date_input_value(s) when is_binary(s) do
+    s
+    |> String.trim()
+    |> String.split(~r/[T ]/, parts: 2)
+    |> List.first()
+  end
+
+  defp normalize_date_input_value(nil), do: nil
+  defp normalize_date_input_value(_), do: nil
 
   defp translate_field_error({msg, opts}) do
     Enum.reduce(opts, msg, fn {key, value}, acc ->

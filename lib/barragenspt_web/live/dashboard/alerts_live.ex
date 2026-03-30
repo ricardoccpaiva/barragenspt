@@ -10,132 +10,130 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="space-y-6">
-        <div class="w-[120%] -mx-[10%] space-y-6">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <.header>
-              Alertas
-              <:subtitle>
-                Gerir condições que lhe enviam e-mail quando são cumpridas.
-              </:subtitle>
-            </.header>
-            <.link
-              navigate={~p"/dashboard/alerts/new"}
-              class="inline-flex rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-            >
-              Criar alerta
-            </.link>
-          </div>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <.header>
+            Alertas
+            <:subtitle>
+              Gerir condições que lhe enviam e-mail quando são cumpridas.
+            </:subtitle>
+          </.header>
+          <.link
+            navigate={~p"/dashboard/alerts/new"}
+            class="inline-flex rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+          >
+            Criar alerta
+          </.link>
+        </div>
 
-          <%= if @rows == [] do %>
-            <p class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-              Ainda não tem alertas.
-              <.link navigate={~p"/dashboard/alerts/new"} class="font-semibold text-brand-600 dark:text-brand-400">
-                Criar o primeiro
-              </.link>
-            </p>
-          <% else %>
-            <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-600">
-              <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-600">
-                <thead class="bg-slate-50 dark:bg-slate-800/80">
-                  <tr>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                      Alvo
-                    </th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                      Condição
-                    </th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                      Estado
-                    </th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                      Disparos
-                    </th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                      Último disparo
-                    </th>
-                    <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                      Ações
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-600 dark:bg-slate-800/40">
-                  <%= for row <- @rows do %>
-                    <tr class={if !row.alert.active, do: "opacity-60", else: ""}>
-                      <td class="px-4 py-3">
-                        <span class="font-medium text-slate-900 dark:text-slate-100">
-                          {subject_emoji(row.alert.subject_type)} {row.alert.subject_name}
-                        </span>
-                      </td>
-                      <td class="px-4 py-3 text-slate-700 dark:text-slate-300">
-                        {condition_row(row.alert)}
-                      </td>
-                      <td class="px-4 py-3">
-                        <.status_badge row={row} />
-                      </td>
-                      <td class="px-4 py-3 text-left tabular-nums text-slate-700 dark:text-slate-300">
+        <%= if @rows == [] do %>
+          <p class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            Ainda não tem alertas.
+            <.link navigate={~p"/dashboard/alerts/new"} class="font-semibold text-brand-600 dark:text-brand-400">
+              Criar o primeiro
+            </.link>
+          </p>
+        <% else %>
+          <div class="max-w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
+            <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-600">
+              <thead class="bg-slate-50 dark:bg-slate-800/80">
+                <tr>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                    Alvo
+                  </th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                    Condição
+                  </th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                    Estado
+                  </th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                    Disparos
+                  </th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                    Último disparo
+                  </th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-600 dark:bg-slate-800/40">
+                <%= for row <- @rows do %>
+                  <tr class={if !row.alert.active, do: "opacity-60", else: ""}>
+                    <td class="px-4 py-3">
+                      <span class="font-medium text-slate-900 dark:text-slate-100">
+                        {subject_emoji(row.alert.subject_type)} {row.alert.subject_name}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-slate-700 dark:text-slate-300">
+                      {condition_row(row.alert)}
+                    </td>
+                    <td class="px-4 py-3">
+                      <.status_badge row={row} />
+                    </td>
+                    <td class="px-4 py-3 text-left tabular-nums text-slate-700 dark:text-slate-300">
+                      <.link
+                        navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
+                        class="font-medium text-brand-600 hover:underline dark:text-brand-400"
+                        title="Ver histórico de disparos"
+                      >
+                        {row.triggered_count}×
+                      </.link>
+                    </td>
+                    <td class="px-4 py-3 text-slate-600 dark:text-slate-400">
+                      {format_last(row.triggered_at)}
+                    </td>
+                    <td class="px-4 py-3 text-left">
+                      <div class="inline-flex items-center justify-start gap-0.5">
                         <.link
                           navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
-                          class="font-medium text-brand-600 hover:underline dark:text-brand-400"
-                          title="Ver histórico de disparos"
+                          class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
+                          aria-label="Histórico de disparos"
+                          title="Histórico de disparos"
                         >
-                          {row.triggered_count}×
+                          <.icon name="hero-clock" class="size-5" />
                         </.link>
-                      </td>
-                      <td class="px-4 py-3 text-slate-600 dark:text-slate-400">
-                        {format_last(row.triggered_at)}
-                      </td>
-                      <td class="px-4 py-3 text-left">
-                        <div class="inline-flex items-center justify-start gap-0.5">
-                          <.link
-                            navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
-                            class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
-                            aria-label="Histórico de disparos"
-                            title="Histórico de disparos"
-                          >
-                            <.icon name="hero-clock" class="size-5" />
-                          </.link>
-                          <.link
-                            navigate={~p"/dashboard/alerts/#{row.alert.id}/edit"}
-                            class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
-                            aria-label="Editar alerta"
-                            title="Editar"
-                          >
-                            <.icon name="hero-pencil-square" class="size-5" />
-                          </.link>
-                          <button
-                            type="button"
-                            phx-click="toggle"
-                            phx-value-id={row.alert.id}
-                            class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
-                            aria-label={if row.alert.active, do: "Pausar alerta", else: "Retomar alerta"}
-                            title={if row.alert.active, do: "Pausar", else: "Retomar"}
-                          >
-                            <%= if row.alert.active do %>
-                              <.icon name="hero-pause" class="size-5" />
-                            <% else %>
-                              <.icon name="hero-play" class="size-5" />
-                            <% end %>
-                          </button>
-                          <button
-                            type="button"
-                            phx-click="delete"
-                            phx-value-id={row.alert.id}
-                            data-confirm="Remover este alerta?"
-                            class="inline-flex rounded-lg p-1.5 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-900/25"
-                            aria-label="Eliminar alerta"
-                            title="Eliminar"
-                          >
-                            <.icon name="hero-trash" class="size-5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-          <% end %>
-        </div>
+                        <.link
+                          navigate={~p"/dashboard/alerts/#{row.alert.id}/edit"}
+                          class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
+                          aria-label="Editar alerta"
+                          title="Editar"
+                        >
+                          <.icon name="hero-pencil-square" class="size-5" />
+                        </.link>
+                        <button
+                          type="button"
+                          phx-click="toggle"
+                          phx-value-id={row.alert.id}
+                          class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
+                          aria-label={if row.alert.active, do: "Pausar alerta", else: "Retomar alerta"}
+                          title={if row.alert.active, do: "Pausar", else: "Retomar"}
+                        >
+                          <%= if row.alert.active do %>
+                            <.icon name="hero-pause" class="size-5" />
+                          <% else %>
+                            <.icon name="hero-play" class="size-5" />
+                          <% end %>
+                        </button>
+                        <button
+                          type="button"
+                          phx-click="delete"
+                          phx-value-id={row.alert.id}
+                          data-confirm="Remover este alerta?"
+                          class="inline-flex rounded-lg p-1.5 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-900/25"
+                          aria-label="Eliminar alerta"
+                          title="Eliminar"
+                        >
+                          <.icon name="hero-trash" class="size-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
 
         <.link
           navigate={~p"/dashboard"}

@@ -161,6 +161,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
           id: d.site_id,
           name: d.name,
           basin_id: d.basin_id,
+          basin: d.basin,
           current_storage: b.current_storage_pct
         }
       )
@@ -816,6 +817,50 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @data_points_count_cache_ttl :timer.minutes(2)
 
   @doc """
+  Distinct dam names from `dam`, ordered alphabetically (for dashboard filter dropdowns).
+
+  Pass a basin name to restrict names to that basin; pass `nil` or `""` (via default)
+  for all basins.
+  """
+  @spec list_data_points_filter_dam_names(String.t() | nil) :: [String.t()]
+  def list_data_points_filter_dam_names(basin \\ nil)
+
+  def list_data_points_filter_dam_names(basin) when basin in [nil, ""] do
+    from(d in Dam,
+      where: not is_nil(d.name) and d.name != "",
+      distinct: [asc: d.name],
+      order_by: [asc: d.name],
+      select: d.name
+    )
+    |> Repo.all()
+  end
+
+  def list_data_points_filter_dam_names(basin) when is_binary(basin) do
+    from(d in Dam,
+      where: not is_nil(d.name) and d.name != "",
+      where: d.basin == ^basin,
+      distinct: [asc: d.name],
+      order_by: [asc: d.name],
+      select: d.name
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Distinct basin names from `dam`, ordered alphabetically (for dashboard filter dropdowns).
+  """
+  @spec list_data_points_filter_basins() :: [String.t()]
+  def list_data_points_filter_basins do
+    from(d in Dam,
+      where: not is_nil(d.basin) and d.basin != "",
+      distinct: [asc: d.basin],
+      order_by: [asc: d.basin],
+      select: d.basin
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Returns true if validated Flop params include a non-empty `param_name` filter.
 
   The data-points dashboard only loads rows when this is true.
@@ -855,11 +900,15 @@ defmodule Barragenspt.Hydrometrics.Dams do
   @spec list_data_points(map()) ::
           {:ok, {[DataPointWithDam.t()], Meta.t()}} | {:error, Meta.t()}
   def list_data_points(params \\ %{}) when is_map(params) do
+    params = normalize_data_points_query_params(params)
+
     case Flop.validate(params, @data_points_flop_opts) do
       {:ok, flop} ->
         if data_points_param_name_filter_set?(flop) do
           count = cached_data_points_total_count(flop)
-          {:ok, Flop.run(DataPointWithDam, flop, Keyword.put(@data_points_flop_opts, :count, count))}
+
+          {:ok,
+           Flop.run(DataPointWithDam, flop, Keyword.put(@data_points_flop_opts, :count, count))}
         else
           meta =
             Flop.meta(
@@ -882,8 +931,12 @@ defmodule Barragenspt.Hydrometrics.Dams do
   large page size (pagination params in `params` are replaced for the export).
   """
   @spec list_data_points_for_csv_export(map()) ::
-          {:ok, [DataPointWithDam.t()]} | {:error, Meta.t()} | {:error, :missing_param_name_filter}
+          {:ok, [DataPointWithDam.t()]}
+          | {:error, Meta.t()}
+          | {:error, :missing_param_name_filter}
   def list_data_points_for_csv_export(params) when is_map(params) do
+    params = normalize_data_points_query_params(params)
+
     export_params =
       params
       |> Map.drop([
@@ -925,6 +978,124 @@ defmodule Barragenspt.Hydrometrics.Dams do
       count when is_integer(count) ->
         count
     end
+  end
+
+  # Remove optional dam/basin filters when the dropdown is left blank so Flop does not
+  # build `field == ""` (or stale ilike) conditions.
+  defp normalize_data_points_query_params(params) when is_map(params) do
+    case params do
+      %{"filters" => filters} when is_map(filters) ->
+        normalized =
+          filters
+          |> drop_blank_geo_filters()
+          |> reindex_filters()
+          |> expand_colected_at_date_filters()
+
+        Map.put(params, "filters", normalized)
+
+      %{filters: filters} when is_map(filters) ->
+        normalized =
+          filters
+          |> drop_blank_geo_filters()
+          |> reindex_filters()
+          |> expand_colected_at_date_filters()
+
+        Map.put(params, :filters, normalized)
+
+      _ ->
+        params
+    end
+  end
+
+  # UI uses type="date" (YYYY-MM-DD). Expand to naive datetimes so Flop/Ecto filtering
+  # matches the full calendar days in the DB.
+  defp expand_colected_at_date_filters(filters) when is_map(filters) do
+    Map.new(filters, fn {k, f} -> {k, maybe_expand_colected_at_date_filter(f)} end)
+  end
+
+  defp maybe_expand_colected_at_date_filter(%{} = f) do
+    field = Map.get(f, "field") || Map.get(f, :field)
+    op = Map.get(f, "op") || Map.get(f, :op)
+    value = Map.get(f, "value") || Map.get(f, :value)
+
+    if colected_at_filter_field?(field) and is_binary(value) and date_only_string?(value) do
+      expanded = expand_colected_at_day_boundary(value, op)
+      put_filter_map_value(f, expanded)
+    else
+      f
+    end
+  end
+
+  defp colected_at_filter_field?(:colected_at), do: true
+  defp colected_at_filter_field?("colected_at"), do: true
+  defp colected_at_filter_field?(_), do: false
+
+  defp date_only_string?(value) do
+    Regex.match?(~r/^\d{4}-\d{2}-\d{2}$/, value)
+  end
+
+  defp expand_colected_at_day_boundary(date, op) do
+    case normalize_filter_op(op) do
+      x when x in [:>, :>=] -> "#{date} 00:00:00"
+      x when x in [:<, :<=] -> "#{date} 23:59:59"
+      _ -> "#{date} 00:00:00"
+    end
+  end
+
+  defp normalize_filter_op(op) when op in [:>, :>=, :<, :<=], do: op
+  defp normalize_filter_op(">"), do: :>
+  defp normalize_filter_op(">="), do: :>=
+  defp normalize_filter_op("<"), do: :<
+  defp normalize_filter_op("<="), do: :<=
+  defp normalize_filter_op(_), do: :>=
+
+  defp put_filter_map_value(%{} = f, new_value) do
+    cond do
+      Map.has_key?(f, "value") -> Map.put(f, "value", new_value)
+      Map.has_key?(f, :value) -> Map.put(f, :value, new_value)
+      true -> Map.put(f, "value", new_value)
+    end
+  end
+
+  defp drop_blank_geo_filters(filters) when is_map(filters) do
+    filters
+    |> Enum.reject(fn {_idx, f} -> blank_geo_filter?(f) end)
+    |> Map.new()
+  end
+
+  defp blank_geo_filter?(f) when is_map(f) do
+    field =
+      case Map.get(f, "field") || Map.get(f, :field) do
+        f when is_atom(f) -> Atom.to_string(f)
+        f when is_binary(f) -> f
+        _ -> nil
+      end
+
+    value = Map.get(f, "value") || Map.get(f, :value)
+
+    field in ["dam_name", "basin"] and geo_filter_value_blank?(value)
+  end
+
+  defp blank_geo_filter?(_), do: false
+
+  defp geo_filter_value_blank?(v) when v in [nil, ""], do: true
+  defp geo_filter_value_blank?(v) when is_list(v), do: v == []
+  defp geo_filter_value_blank?(_), do: false
+
+  defp reindex_filters(filters) when is_map(filters) and map_size(filters) == 0, do: filters
+
+  defp reindex_filters(filters) when is_map(filters) do
+    filters
+    |> Enum.sort_by(fn {k, _} -> filter_slot_index(k) end)
+    |> Enum.map(fn {_k, v} -> v end)
+    |> Enum.with_index()
+    |> Map.new(fn {v, i} -> {Integer.to_string(i), v} end)
+  end
+
+  defp filter_slot_index(k) when is_integer(k), do: k
+
+  defp filter_slot_index(k) do
+    k |> to_string() |> String.to_integer()
   end
 
   defp data_points_count_cache_key(%Flop{filters: filters}) do

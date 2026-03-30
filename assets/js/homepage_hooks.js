@@ -123,6 +123,26 @@ const SearchDam = {
   }
 }
 
+/** Client-side filter for dashboard data-points dam multi-select list (no LiveView round-trip). */
+const DamMultiselectSearch = {
+  mounted() {
+    this.panelId = this.el.dataset.msPanel
+    this.onInput = () => {
+      const q = this.el.value.trim().toLowerCase()
+      const panel = this.panelId && document.getElementById(this.panelId)
+      if (!panel) return
+      panel.querySelectorAll("[data-ms-dam]").forEach((el) => {
+        const name = (el.getAttribute("data-ms-dam") || "").toLowerCase()
+        el.classList.toggle("hidden", q !== "" && !name.includes(q))
+      })
+    }
+    this.el.addEventListener("input", this.onInput)
+  },
+  destroyed() {
+    this.el.removeEventListener("input", this.onInput)
+  }
+}
+
 const DarkModeToggle = {
   mounted() {
     const el = this.el
@@ -331,6 +351,7 @@ export const Hooks = {
   RiverChanged,
   UsageTypeChanged,
   SearchDam,
+  DamMultiselectSearch,
   DarkModeToggle,
   AvatarMenu,
   OpenSettingsModal,
