@@ -3,286 +3,382 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
   on_mount {BarragensptWeb.UserAuth, :require_authenticated}
 
+  alias Barragenspt.Hydrometrics.Dams
   alias Barragenspt.Notifications
   alias Barragenspt.Notifications.AlertMetrics
   alias Barragenspt.Notifications.UserAlert
-  alias Barragenspt.Hydrometrics.Dams
+
+  @max_step 4
 
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-4xl px-4 py-4 sm:px-6 sm:py-6">
-        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-800/50 md:grid md:min-h-[26rem] md:grid-cols-[minmax(0,148px)_1fr]">
-          <%!-- Rail vertical (mock alternativa F) --%>
-          <aside class="border-b border-slate-200 bg-gradient-to-b from-sky-50 to-stone-50 px-4 py-4 dark:border-slate-600 dark:from-slate-800/90 dark:to-slate-900/90 md:border-b-0 md:border-r md:px-3 md:py-5">
-            <p class="text-[0.65rem] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Assistente
-            </p>
-            <div class="mt-3 flex flex-row flex-wrap gap-x-4 gap-y-3 md:mt-4 md:flex-col md:flex-nowrap md:gap-y-0">
-              <.wizard_rail_step
-                num={1}
-                title="Alvo"
-                subtitle="Barragem"
-                active={@step == 1}
-                done={@step > 1}
-                show_line={true}
-              />
-              <.wizard_rail_step
-                num={2}
-                title="Condição"
-                subtitle="Indicador e limiar"
-                active={@step == 2}
-                done={@step > 2}
-                show_line={true}
-              />
-              <.wizard_rail_step
-                num={3}
-                title="Notificações"
-                subtitle="E-mail e repetição"
-                active={@step == 3}
-                done={false}
-                show_line={false}
-              />
-            </div>
-          </aside>
+      <div class="mx-auto max-w-5xl px-4 pb-4 pt-0 sm:px-6 sm:pb-6 sm:pt-1">
+        <div class="-mt-4 mb-3 sm:-mt-6 sm:mb-4">
+          <h1 class="text-lg font-semibold leading-8 text-slate-900 dark:text-slate-100">
+            {if @editing_alert_id, do: "Editar alerta", else: "Criar alerta"}
+          </h1>
+        </div>
 
-          <div class="flex min-h-0 flex-col p-4 sm:p-6">
-            <h1 class="text-lg font-bold text-slate-900 dark:text-slate-100">
-              {if @editing_alert_id, do: "Editar alerta", else: "Novo alerta"}
-            </h1>
-            <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Passo {@step} de 3</p>
+        <div class="grid gap-4 md:grid-cols-4">
+          <.step_card
+            num={1}
+            title="Alvo"
+            subtitle="Barragem"
+            active={@step == 1}
+            done={@step > 1}
+          />
+          <.step_card
+            num={2}
+            title="Condição"
+            subtitle="Indicador e limiar"
+            active={@step == 2}
+            done={@step > 2}
+          />
+          <.step_card
+            num={3}
+            title="Notificações"
+            subtitle="Repetição de e-mail"
+            active={@step == 3}
+            done={@step > 3}
+          />
+          <.step_card
+            num={4}
+            title="Revisão"
+            subtitle="Confirmar e guardar"
+            active={@step == 4}
+            done={false}
+          />
+        </div>
 
-            <div class="mt-5 flex-1 space-y-5">
-              <%= if @step == 1 do %>
-                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                  O que pretende monitorizar?
-                </p>
-                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    phx-click="subject_type"
-                    phx-value-type="dam"
-                    class={subject_type_tile_class(@subject_type == "dam")}
-                  >
-                    <span class="text-xl leading-none">💧</span>
-                    <span class="flex min-w-0 flex-col gap-0.5">
-                      <span class="text-sm font-semibold">Barragem específica</span>
-                      <span class="text-xs font-normal text-slate-500 dark:text-slate-400">
-                        Uma albufeira
-                      </span>
+        <div class="mt-4 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+          <div
+            class="h-full bg-brand-600 transition-all duration-300"
+            style={"width: #{round(@step / @max_step * 100)}%"}
+          />
+        </div>
+        <p class="mt-1 text-xs text-slate-600 dark:text-slate-400">Passo {@step} de {@max_step}</p>
+
+        <div class="mt-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-600 dark:bg-slate-800/50 sm:p-6">
+          <%= if @step == 1 do %>
+            <section class="space-y-4">
+              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Escolha o alvo do alerta
+              </h2>
+              <p class="text-sm text-slate-600 dark:text-slate-300">
+                Neste momento os alertas são configurados para uma barragem específica.
+              </p>
+
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <button
+                  type="button"
+                  phx-click="subject_type"
+                  phx-value-type="dam"
+                  class={subject_type_tile_class(@subject_type == "dam")}
+                >
+                  <span class="text-xl leading-none">💧</span>
+                  <span class="flex min-w-0 flex-col gap-0.5">
+                    <span class="text-sm font-semibold">Barragem específica</span>
+                    <span class="text-xs font-normal text-slate-500 dark:text-slate-400">
+                      Pesquisa pelo nome da albufeira
                     </span>
-                  </button>
+                  </span>
+                </button>
+              </div>
+
+              <form
+                phx-change="search"
+                phx-submit="search"
+                id="alert-search-form"
+                class="space-y-2"
+              >
+                <label
+                  for="alert-subject-q"
+                  class="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                >
+                  Pesquisar barragem
+                </label>
+                <input
+                  id="alert-subject-q"
+                  type="text"
+                  name="q"
+                  value={@search_term}
+                  phx-debounce="300"
+                  autocomplete="off"
+                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                  placeholder="Nome da barragem..."
+                />
+              </form>
+
+              <ul
+                :if={@search_results != []}
+                class="max-h-56 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600"
+              >
+                <%= for r <- @search_results do %>
+                  <li>
+                    <button
+                      type="button"
+                      phx-click="pick"
+                      phx-value-id={r.id}
+                      phx-value-name={r.name}
+                      class="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700"
+                    >
+                      {r.name}
+                    </button>
+                  </li>
+                <% end %>
+              </ul>
+
+              <p
+                :if={@subject_name}
+                class="text-sm font-medium text-emerald-700 dark:text-emerald-300"
+              >
+                Selecionado: {@subject_name}
+              </p>
+
+              <p :if={!can_next?(@step, assigns)} class="text-sm text-amber-700 dark:text-amber-300">
+                Selecione uma barragem para continuar.
+              </p>
+            </section>
+          <% end %>
+
+          <%= if @step == 2 do %>
+            <section class="space-y-4">
+              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Defina a condição
+              </h2>
+              <p class="text-sm text-slate-600 dark:text-slate-300">
+                Escolha o indicador, o operador e o valor limite.
+              </p>
+
+              <form
+                phx-change="field"
+                id="alert-condition-form"
+                class="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 dark:border-slate-600 dark:bg-slate-900/30 md:grid-cols-3"
+              >
+                <div class="md:col-span-2">
+                  <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    Indicador
+                  </label>
+                  <select
+                    name="metric"
+                    class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                  >
+                    <%= for {value, label} <- metric_options(@subject_type) do %>
+                      <option value={value} selected={@metric == value}>
+                        {label}
+                      </option>
+                    <% end %>
+                  </select>
                 </div>
 
-                <form
-                  phx-change="search"
-                  phx-submit="search"
-                  class="space-y-2"
-                  id="alert-subject-search-form"
-                >
-                  <label
-                    class="block text-sm font-medium text-slate-700 dark:text-slate-300"
-                    for="alert-subject-q"
+                <div>
+                  <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    Operador
+                  </label>
+                  <select
+                    name="operator"
+                    class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
                   >
-                    Pesquisar
+                    <option value="lt" selected={@operator == "lt"}>Inferior a (&lt;)</option>
+                    <option value="gt" selected={@operator == "gt"}>Superior a (&gt;)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="text-xs font-medium text-slate-600 dark:text-slate-400">Limiar</label>
+                  <input
+                    type="number"
+                    step="any"
+                    name="threshold"
+                    value={@threshold}
+                    class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                  />
+                </div>
+              </form>
+
+              <p
+                :if={@preview_value != nil}
+                class="rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900 dark:bg-sky-900/20 dark:text-sky-200"
+              >
+                Valor atual aproximado:
+                <span class="font-mono font-semibold">{format_num(@preview_value)}</span>
+              </p>
+
+              <p
+                :if={!valid_threshold?(@threshold)}
+                class="text-sm text-amber-700 dark:text-amber-300"
+              >
+                Introduza um limiar numérico válido para continuar.
+              </p>
+            </section>
+          <% end %>
+
+          <%= if @step == 3 do %>
+            <section class="space-y-4">
+              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Configure notificações
+              </h2>
+              <p class="text-sm text-slate-600 dark:text-slate-300">
+                O alerta envia e-mail para a sua conta: <strong>{@current_scope.user.email}</strong>
+              </p>
+
+              <div class="space-y-2">
+                <button
+                  type="button"
+                  phx-click="repeat"
+                  phx-value-mode="once_per_event"
+                  class={repeat_mode_tile_class(@repeat_mode == "once_per_event")}
+                >
+                  <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Uma vez por evento
+                  </div>
+                  <div class="text-xs text-slate-600 dark:text-slate-300">
+                    Notifica na primeira quebra e só volta a notificar após regressar a OK.
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  phx-click="repeat"
+                  phx-value-mode="cooldown"
+                  class={repeat_mode_tile_class(@repeat_mode == "cooldown")}
+                >
+                  <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Repetir com intervalo (cooldown)
+                  </div>
+                  <div class="text-xs text-slate-600 dark:text-slate-300">
+                    Volta a notificar a cada X horas enquanto a condição se mantiver.
+                  </div>
+                </button>
+
+                <div :if={@repeat_mode == "cooldown"} class="max-w-xs">
+                  <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    Intervalo em horas
                   </label>
                   <input
-                    id="alert-subject-q"
-                    type="text"
-                    name="q"
-                    value={@search_term}
-                    phx-debounce="300"
-                    autocomplete="off"
-                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-                    placeholder="Nome da barragem…"
+                    type="number"
+                    min="1"
+                    max="168"
+                    name="cooldown_hours"
+                    value={@cooldown_hours}
+                    phx-change="field"
+                    class="mt-1 w-full rounded border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
                   />
-                </form>
-                <ul
-                  :if={@search_results != []}
-                  class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-600"
-                >
-                  <%= for r <- @search_results do %>
-                    <li>
-                      <button
-                        type="button"
-                        phx-click="pick"
-                        phx-value-id={r.id}
-                        phx-value-name={r.name}
-                        class="w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-700"
-                      >
-                        {r.name}
-                      </button>
-                    </li>
-                  <% end %>
-                </ul>
-              <% end %>
-
-              <%= if @step == 2 do %>
-                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Condição</p>
-                <form
-                  phx-change="field"
-                  id="alert-condition-form"
-                  class="space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 dark:border-slate-600 dark:bg-slate-900/30"
-                >
-                  <div>
-                    <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
-                      Indicador
-                    </label>
-                    <select
-                      name="metric"
-                      class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-                    >
-                      <%= for {value, label} <- metric_options(@subject_type) do %>
-                        <option value={value} selected={@metric == value}>
-                          {label}
-                        </option>
-                      <% end %>
-                    </select>
-                    <p :if={@subject_type == "dam"} class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      Inclui métricas de armazenamento, realtime e caudais médios diários.
-                    </p>
-                  </div>
-                  <div>
-                    <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
-                      Operador
-                    </label>
-                    <select
-                      name="operator"
-                      class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-                    >
-                      <option value="lt" selected={@operator == "lt"}>Inferior a (&lt;)</option>
-                      <option value="gt" selected={@operator == "gt"}>Superior a (&gt;)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="text-xs font-medium text-slate-600 dark:text-slate-400">
-                      Limiar
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      name="threshold"
-                      value={@threshold}
-                      class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-                    />
-                  </div>
-                </form>
-                <p :if={@preview_value != nil} class="text-sm text-slate-600 dark:text-slate-400">
-                  Valor atual (aprox.):
-                  <span class="font-mono font-semibold">{format_num(@preview_value)}</span>
-                </p>
-                <p :if={@preview_value == nil} class="text-sm text-amber-700 dark:text-amber-300">
-                  Não foi possível carregar o valor atual — pode guardar {if @editing_alert_id,
-                    do: "as alterações.",
-                    else: "o alerta."}
-                </p>
-              <% end %>
-
-              <%= if @step == 3 do %>
-                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Notificações</p>
-                <div class="space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 dark:border-slate-600 dark:bg-slate-900/30">
-                  <p class="text-sm text-slate-600 dark:text-slate-400">
-                    E-mail:
-                    <span class="font-medium text-slate-800 dark:text-slate-200">
-                      {@current_scope.user.email}
-                    </span>
-                  </p>
-                  <div>
-                    <label class="block text-sm">
-                      <input
-                        type="radio"
-                        name="repeat_mode"
-                        value="once_per_event"
-                        checked={@repeat_mode == "once_per_event"}
-                        phx-click="repeat"
-                        phx-value-mode="once_per_event"
-                        class="mr-2 align-middle"
-                      />
-                      Uma vez por evento: notifica enquanto a condição se mantém; só volta a notificar depois de voltar a OK e a condição falhar novamente
-                    </label>
-                  </div>
-                  <div>
-                    <label class="block text-sm">
-                      <input
-                        type="radio"
-                        name="repeat_mode"
-                        value="cooldown"
-                        checked={@repeat_mode == "cooldown"}
-                        phx-click="repeat"
-                        phx-value-mode="cooldown"
-                        class="mr-2 align-middle"
-                      /> Voltar a notificar a cada X horas enquanto a condição se mantiver
-                    </label>
-                    <input
-                      :if={@repeat_mode == "cooldown"}
-                      type="number"
-                      min="1"
-                      max="168"
-                      name="cooldown_hours"
-                      value={@cooldown_hours}
-                      phx-change="field"
-                      class="mt-2 w-24 rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800"
-                    />
-                  </div>
-                  <div :if={Application.get_env(:barragenspt, :env) == :dev}>
-                    <p class="mb-1 text-[0.65rem] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
-                      Apenas desenvolvimento
-                    </p>
-                    <label class="block text-sm">
-                      <input
-                        type="radio"
-                        name="repeat_mode"
-                        value="always"
-                        checked={@repeat_mode == "always"}
-                        phx-click="repeat"
-                        phx-value-mode="always"
-                        class="mr-2 align-middle"
-                      />
-                      <span class="font-medium text-amber-900 dark:text-amber-200">
-                        Sempre
-                      </span>
-                      — envia e-mail em cada avaliação (ex.: a cada minuto) enquanto a condição se mantiver
-                    </label>
-                  </div>
                 </div>
-              <% end %>
-            </div>
 
-            <div class="mt-8 flex flex-wrap items-center gap-2 pt-5">
-              <.link
-                navigate={~p"/dashboard/alerts"}
-                class="mr-auto text-sm font-semibold text-slate-600 underline decoration-slate-300 decoration-1 underline-offset-2 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+                <div :if={Application.get_env(:barragenspt, :env) == :dev}>
+                  <button
+                    type="button"
+                    phx-click="repeat"
+                    phx-value-mode="always"
+                    class={repeat_mode_tile_class(@repeat_mode == "always")}
+                  >
+                    <div class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                      Sempre (dev only)
+                    </div>
+                    <div class="text-xs text-amber-700 dark:text-amber-300">
+                      Envia em todas as avaliações enquanto a condição for verdadeira.
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <p
+                :if={!cooldown_valid?(@repeat_mode, @cooldown_hours)}
+                class="text-sm text-amber-700 dark:text-amber-300"
               >
-                Cancelar
-              </.link>
-              <button
-                :if={@step > 1}
-                type="button"
-                phx-click="back"
-                class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50"
-              >
-                Anterior
-              </button>
-              <button
-                :if={@step < 3}
-                type="button"
-                phx-click="next"
-                disabled={!can_next?(@step, @subject_type, @subject_id, @subject_name)}
-                class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Seguinte
-              </button>
-              <button
-                :if={@step == 3}
-                type="button"
-                phx-click="save"
-                class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"
-              >
-                {if @editing_alert_id, do: "Guardar alterações", else: "Guardar alerta"}
-              </button>
-            </div>
-          </div>
+                Defina um intervalo entre 1 e 168 horas.
+              </p>
+            </section>
+          <% end %>
+
+          <%= if @step == 4 do %>
+            <section class="space-y-4">
+              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Rever configuração
+              </h2>
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-600 dark:bg-slate-900/40">
+                <dl class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <div>
+                    <dt class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Alvo
+                    </dt>
+                    <dd class="font-medium text-slate-900 dark:text-slate-100">
+                      {@subject_name || "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Condição
+                    </dt>
+                    <dd class="font-medium text-slate-900 dark:text-slate-100">
+                      {condition_sentence(@metric, @operator, @threshold)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Repetição
+                    </dt>
+                    <dd class="font-medium text-slate-900 dark:text-slate-100">
+                      {repeat_mode_sentence(@repeat_mode, @cooldown_hours)}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Destino
+                    </dt>
+                    <dd class="font-medium text-slate-900 dark:text-slate-100">
+                      {@current_scope.user.email}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              <p :if={@preview_value != nil} class="text-sm text-slate-600 dark:text-slate-300">
+                Valor atual aproximado:
+                <span class="font-mono font-semibold">{format_num(@preview_value)}</span>
+              </p>
+            </section>
+          <% end %>
+        </div>
+
+        <div class="sticky bottom-0 mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white/95 p-3 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95">
+          <.link
+            navigate={~p"/dashboard/alerts"}
+            class="mr-auto text-sm font-semibold text-slate-600 underline decoration-slate-300 decoration-1 underline-offset-2 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
+          >
+            Cancelar
+          </.link>
+
+          <button
+            :if={@step > 1}
+            type="button"
+            phx-click="back"
+            class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50"
+          >
+            Anterior
+          </button>
+
+          <button
+            :if={@step < @max_step}
+            type="button"
+            phx-click="next"
+            disabled={!can_next?(@step, assigns)}
+            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Seguinte
+          </button>
+
+          <button
+            :if={@step == @max_step}
+            type="button"
+            phx-click="save"
+            class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"
+          >
+            {if @editing_alert_id, do: "Guardar alterações", else: "Guardar alerta"}
+          </button>
         </div>
       </div>
     </Layouts.app>
@@ -294,50 +390,23 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   attr :subtitle, :string, required: true
   attr :active, :boolean, required: true
   attr :done, :boolean, required: true
-  attr :show_line, :boolean, required: true
 
-  def wizard_rail_step(assigns) do
-    badge_class =
-      cond do
-        assigns.active ->
-          "bg-brand-600 text-white shadow-sm ring-2 ring-brand-500/40 ring-offset-2 ring-offset-white dark:ring-offset-slate-900"
-
-        assigns.done ->
-          "bg-emerald-600 text-white"
-
-        true ->
-          "bg-slate-200 text-slate-600 dark:bg-slate-600 dark:text-slate-200"
-      end
-
-    assigns = assign(assigns, :badge_class, badge_class)
-
+  def step_card(assigns) do
     ~H"""
-    <div class="flex min-w-[10rem] shrink-0 gap-2 md:min-w-0">
-      <div class="flex flex-col items-center">
-        <span class={"flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold #{@badge_class}"}>
-          {@num}
-        </span>
-        <div
-          :if={@show_line}
-          class="mt-1 hidden min-h-[1.25rem] w-px grow bg-slate-200 dark:bg-slate-600 md:block"
-        />
-      </div>
-      <div class={if(@show_line, do: "pb-3", else: "")}>
-        <p class="text-sm font-semibold leading-tight text-slate-900 dark:text-slate-100">{@title}</p>
-        <p class="mt-0.5 max-w-[11rem] text-xs leading-snug text-slate-500 dark:text-slate-400">
-          {@subtitle}
-        </p>
-      </div>
+    <div class={[
+      "rounded-xl border p-3 transition",
+      @active && "border-brand-500 bg-brand-50/60 dark:border-brand-400 dark:bg-brand-900/20",
+      @done && !@active &&
+        "border-emerald-500 bg-emerald-50/50 dark:border-emerald-500 dark:bg-emerald-900/20",
+      !@active && !@done && "border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-800/50"
+    ]}>
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        Passo {@num}
+      </p>
+      <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{@title}</p>
+      <p class="text-xs text-slate-600 dark:text-slate-300">{@subtitle}</p>
     </div>
     """
-  end
-
-  defp subject_type_tile_class(true) do
-    "flex w-full items-start gap-3 rounded-lg border-2 border-brand-500 bg-sky-50 p-3 text-left transition hover:border-brand-600 dark:border-brand-400 dark:bg-brand-900/25"
-  end
-
-  defp subject_type_tile_class(false) do
-    "flex w-full items-start gap-3 rounded-lg border-2 border-slate-200 bg-stone-50/80 p-3 text-left transition hover:border-slate-300 dark:border-slate-600 dark:bg-slate-800/50 dark:hover:border-slate-500"
   end
 
   @impl true
@@ -456,7 +525,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
   @impl true
   def handle_event("next", _, socket) do
-    step = min(3, socket.assigns.step + 1)
+    step = min(@max_step, socket.assigns.step + 1)
     {:noreply, socket |> assign(:step, step) |> assign_preview()}
   end
 
@@ -538,20 +607,12 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     end
   end
 
-  defp normalize_subject_id(_, id) when id in [nil, ""], do: nil
-
-  defp normalize_subject_id(_, id) do
-    cond do
-      is_binary(id) -> id
-      true -> to_string(id)
-    end
-  end
-
   defp new_form_socket(socket) do
     socket
     |> assign(
       editing_alert_id: nil,
       step: 1,
+      max_step: @max_step,
       subject_type: "dam",
       subject_id: nil,
       subject_name: nil,
@@ -586,11 +647,11 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     |> assign(
       editing_alert_id: alert.id,
       step: 1,
+      max_step: @max_step,
       subject_type: alert.subject_type,
       subject_id: sid,
       subject_name: alert.subject_name,
-      search_term:
-        if(alert.subject_type == "dam", do: alert.subject_name || "", else: ""),
+      search_term: if(alert.subject_type == "dam", do: alert.subject_name || "", else: ""),
       search_results: [],
       metric: metric,
       operator: alert.operator,
@@ -600,21 +661,6 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       preview_value: nil
     )
   end
-
-  defp can_next?(2, _, _, _), do: true
-
-  defp can_next?(1, "dam", id, _),
-    do: subject_id_present?(id)
-
-  defp can_next?(1, _, _, _), do: false
-  defp can_next?(s, _, _, _) when s > 2, do: true
-
-  defp subject_id_present?(nil), do: false
-  defp subject_id_present?(""), do: false
-
-  defp subject_id_present?(s) when is_binary(s), do: String.trim(s) != ""
-
-  defp subject_id_present?(_), do: true
 
   defp assign_preview(socket) do
     a = %{
@@ -635,10 +681,29 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     assign(socket, :preview_value, v)
   end
 
-  defp ready_subject?(%{subject_type: "dam", subject_id: id}),
-    do: subject_id_present?(id)
+  defp can_next?(1, assigns), do: ready_subject?(assigns)
+  defp can_next?(2, assigns), do: valid_threshold?(assigns.threshold)
+  defp can_next?(3, assigns), do: cooldown_valid?(assigns.repeat_mode, assigns.cooldown_hours)
+  defp can_next?(_, _), do: true
 
+  defp ready_subject?(%{subject_type: "dam", subject_id: id}), do: subject_id_present?(id)
   defp ready_subject?(_), do: false
+
+  defp valid_threshold?(threshold), do: parse_float(threshold) != nil
+
+  defp cooldown_valid?("cooldown", v) do
+    case parse_int(v) do
+      i when is_integer(i) -> i >= 1 and i <= 168
+      _ -> false
+    end
+  end
+
+  defp cooldown_valid?(_, _), do: true
+
+  defp subject_id_present?(nil), do: false
+  defp subject_id_present?(""), do: false
+  defp subject_id_present?(s) when is_binary(s), do: String.trim(s) != ""
+  defp subject_id_present?(_), do: true
 
   defp metric_options(_subject_type) do
     [
@@ -655,6 +720,66 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       {"daily_turbocharged_flow", "Caudal turbinado médio diário (m3/s)"}
     ]
   end
+
+  defp condition_sentence(metric, operator, threshold) do
+    op = if operator == "lt", do: "inferior a", else: "superior a"
+    "#{metric_label(metric)} #{op} #{threshold_with_unit(metric, threshold)}"
+  end
+
+  defp repeat_mode_sentence("once_per_event", _), do: "Uma vez por evento"
+
+  defp repeat_mode_sentence("cooldown", cooldown_hours),
+    do: "Repetir a cada #{cooldown_hours || "24"}h enquanto se mantiver"
+
+  defp repeat_mode_sentence("always", _), do: "Sempre (dev only)"
+  defp repeat_mode_sentence(_, _), do: "—"
+
+  defp repeat_mode_tile_class(true) do
+    "w-full rounded-lg border-2 border-brand-500 bg-brand-50 p-3 text-left dark:border-brand-400 dark:bg-brand-900/25"
+  end
+
+  defp repeat_mode_tile_class(false) do
+    "w-full rounded-lg border border-slate-300 p-3 text-left hover:border-slate-400 dark:border-slate-600 dark:hover:border-slate-500"
+  end
+
+  defp subject_type_tile_class(true) do
+    "flex w-full items-start gap-3 rounded-lg border-2 border-brand-500 bg-sky-50 p-3 text-left transition hover:border-brand-600 dark:border-brand-400 dark:bg-brand-900/25"
+  end
+
+  defp subject_type_tile_class(false) do
+    "flex w-full items-start gap-3 rounded-lg border-2 border-slate-200 bg-stone-50/80 p-3 text-left transition hover:border-slate-300 dark:border-slate-600 dark:bg-slate-800/50 dark:hover:border-slate-500"
+  end
+
+  defp metric_label("storage_pct"), do: "Ocupação"
+  defp metric_label("month_change_pct"), do: "Var. 1 mês"
+  defp metric_label("year_change_pct"), do: "Var. 1 ano"
+  defp metric_label("realtime_level"), do: "Cota (realtime)"
+  defp metric_label("realtime_inflow"), do: "Caudal afluente (realtime)"
+  defp metric_label("realtime_outflow"), do: "Caudal efluente (realtime)"
+  defp metric_label("realtime_storage"), do: "Volume armazenado (realtime)"
+  defp metric_label("daily_discharged_flow"), do: "Caudal descarregado médio diário"
+  defp metric_label("daily_tributary_flow"), do: "Caudal afluente médio diário"
+  defp metric_label("daily_effluent_flow"), do: "Caudal efluente médio diário"
+  defp metric_label("daily_turbocharged_flow"), do: "Caudal turbinado médio diário"
+  defp metric_label(_), do: "Indicador"
+
+  defp threshold_with_unit(metric, threshold)
+       when metric in [
+              "realtime_inflow",
+              "realtime_outflow",
+              "daily_discharged_flow",
+              "daily_tributary_flow",
+              "daily_effluent_flow",
+              "daily_turbocharged_flow"
+            ],
+       do: "#{threshold} m3/s"
+
+  defp threshold_with_unit("realtime_level", threshold), do: "#{threshold} m"
+  defp threshold_with_unit("storage_pct", threshold), do: "#{threshold}%"
+  defp threshold_with_unit("month_change_pct", threshold), do: "#{threshold} pp"
+  defp threshold_with_unit("year_change_pct", threshold), do: "#{threshold} pp"
+  defp threshold_with_unit("realtime_storage", threshold), do: "#{threshold}%"
+  defp threshold_with_unit(_, threshold), do: to_string(threshold)
 
   defp normalize_metric_for_subject(metric, subject_type) do
     if UserAlert.realtime_metric?(metric) and subject_type != "dam" do
@@ -679,6 +804,15 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       {k, v} when is_atom(k) -> {Atom.to_string(k), v}
       {k, v} -> {to_string(k), v}
     end)
+  end
+
+  defp normalize_subject_id(_, id) when id in [nil, ""], do: nil
+
+  defp normalize_subject_id(_, id) do
+    cond do
+      is_binary(id) -> id
+      true -> to_string(id)
+    end
   end
 
   defp normalize_threshold_string(v) when is_binary(v) do
@@ -706,6 +840,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     end
   end
 
+  defp parse_int(i) when is_integer(i), do: i
   defp parse_int(_), do: nil
 
   defp format_num(nil), do: "—"

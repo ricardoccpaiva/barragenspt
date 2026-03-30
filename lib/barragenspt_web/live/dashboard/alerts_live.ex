@@ -28,7 +28,10 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
         <%= if @rows == [] do %>
           <p class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
             Ainda não tem alertas.
-            <.link navigate={~p"/dashboard/alerts/new"} class="font-semibold text-brand-600 dark:text-brand-400">
+            <.link
+              navigate={~p"/dashboard/alerts/new"}
+              class="font-semibold text-brand-600 dark:text-brand-400"
+            >
               Criar o primeiro
             </.link>
           </p>
@@ -106,7 +109,9 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                           phx-click="toggle"
                           phx-value-id={row.alert.id}
                           class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
-                          aria-label={if row.alert.active, do: "Pausar alerta", else: "Retomar alerta"}
+                          aria-label={
+                            if row.alert.active, do: "Pausar alerta", else: "Retomar alerta"
+                          }
                           title={if row.alert.active, do: "Pausar", else: "Retomar"}
                         >
                           <%= if row.alert.active do %>
@@ -233,7 +238,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
               "daily_effluent_flow",
               "daily_turbocharged_flow"
             ],
-    do: "#{threshold} m3/s"
+       do: "#{threshold} m3/s"
 
   defp threshold_with_unit("realtime_level", threshold), do: "#{threshold} m"
   defp threshold_with_unit("storage_pct", threshold), do: "#{threshold}%"
@@ -253,9 +258,9 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
         Pausado
       </span>
     <% else %>
-        <span class="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200">
-          Ativo
-        </span>
+      <span class="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200">
+        Ativo
+      </span>
     <% end %>
     """
   end
