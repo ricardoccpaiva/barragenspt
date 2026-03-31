@@ -127,18 +127,23 @@ defmodule Barragenspt.Accounts.UserNotifier do
          :ok <- validate_telegram_chat_id(chat_id) do
       base = BarragensptWeb.Endpoint.url()
       path = "#{base}/dashboard/alerts"
-      condition = describe_condition(alert)
+      condition = describe_condition(alert) |> String.replace_prefix("Condição: ", "")
       value_str = format_value_for_email(alert.metric, value)
 
       text = """
-      Alerta disparado
-      Alvo: #{alert.subject_name}
-      #{condition}
-      Valor atual: #{value_str}
-      Ver alertas: #{path}
+      <b>🚨 Alerta disparado</b>
+
+      <b>Alvo:</b> #{escape_html(alert.subject_name)}
+      <b>Condição:</b> #{escape_html(condition)}
+      <b>Valor atual:</b> <code>#{escape_html(value_str)}</code>
+      <b>Dashboard:</b>
+      #{path}
       """
 
-      telegram_client_module().send_message(chat_id, text)
+      telegram_client_module().send_message(chat_id, text,
+        parse_mode: "HTML",
+        disable_web_page_preview: true
+      )
     else
       false -> {:error, :telegram_disabled}
       nil -> {:error, :telegram_chat_id_missing}
@@ -178,6 +183,16 @@ defmodule Barragenspt.Accounts.UserNotifier do
       {:error, :telegram_chat_id_invalid}
     end
   end
+
+  defp escape_html(v) when is_binary(v) do
+    v
+    |> String.replace("&", "&amp;")
+    |> String.replace("<", "&lt;")
+    |> String.replace(">", "&gt;")
+    |> String.replace("\"", "&quot;")
+  end
+
+  defp escape_html(v), do: v |> to_string() |> escape_html()
 
   defp describe_condition(%UserAlert{} = a) do
     op = if a.operator == "lt", do: "inferior a", else: "superior a"
