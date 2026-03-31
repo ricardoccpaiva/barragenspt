@@ -1,8 +1,14 @@
 import Config
 
 resend_api_key = System.get_env("RESEND_API_KEY")
+telegram_bot_token = System.get_env("TELEGRAM_BOT_TOKEN")
+telegram_bot_username = System.get_env("TELEGRAM_BOT_USERNAME")
+telegram_webhook_secret = System.get_env("TELEGRAM_WEBHOOK_SECRET")
 
 config :barragenspt, :resend_api_key, resend_api_key
+config :barragenspt, :telegram_bot_token, telegram_bot_token
+config :barragenspt, :telegram_bot_username, telegram_bot_username
+config :barragenspt, :telegram_webhook_secret, telegram_webhook_secret
 config :barragenspt, Barragenspt.Mailer, api_key: resend_api_key
 
 config :barragenspt, :snirh, proxy: System.get_env("SNIRH_PROXY")

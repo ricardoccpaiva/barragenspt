@@ -6,7 +6,9 @@ defmodule Barragenspt.Accounts do
   import Ecto.Query, warn: false
   alias Barragenspt.Repo
 
-  alias Barragenspt.Accounts.{User, UserToken, UserNotifier}
+  alias Barragenspt.Accounts.{User, UserToken, UserNotifier, TelegramLinkToken}
+
+  @telegram_link_validity_in_minutes 10
 
   ## Database getters
 
@@ -145,6 +147,133 @@ defmodule Barragenspt.Accounts do
   """
   def change_user_password(user, attrs \\ %{}, opts \\ []) do
     User.password_changeset(user, attrs, opts)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for Telegram delivery settings.
+  """
+  def change_user_telegram_settings(user, attrs \\ %{}) do
+    User.telegram_settings_changeset(user, attrs)
+  end
+
+  @doc """
+  Updates Telegram delivery settings for the given user.
+  """
+  def update_user_telegram_settings(user, attrs) do
+    user
+    |> User.telegram_settings_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Creates a short-lived token used to link a Telegram chat.
+  """
+  def create_telegram_link_token(%User{} = user) do
+    now = DateTime.utc_now()
+    expires_at = DateTime.add(now, @telegram_link_validity_in_minutes * 60, :second)
+    token = TelegramLinkToken.generate_token()
+
+    Repo.transact(fn ->
+      Repo.update_all(
+        from(t in TelegramLinkToken, where: t.user_id == ^user.id and t.status == "pending"),
+        set: [status: "expired"]
+      )
+
+      case %TelegramLinkToken{}
+           |> TelegramLinkToken.changeset(%{
+             token: token,
+             status: "pending",
+             expires_at: expires_at,
+             user_id: user.id
+           })
+           |> Repo.insert() do
+        {:ok, link_token} -> {:ok, link_token}
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
+  end
+
+  @doc """
+  Returns the latest pending Telegram link token for a user, if not expired.
+  """
+  def get_pending_telegram_link_token(%User{} = user) do
+    now = DateTime.utc_now()
+
+    case Repo.one(
+           from(t in TelegramLinkToken,
+             where: t.user_id == ^user.id and t.status == "pending" and t.expires_at > ^now,
+             order_by: [desc: t.inserted_at],
+             limit: 1
+           )
+         ) do
+      nil -> {:error, :not_found}
+      token -> {:ok, token}
+    end
+  end
+
+  @doc """
+  Gets a Telegram link token scoped to the given user.
+  """
+  def get_telegram_link_token_for_user(%User{} = user, token) when is_binary(token) do
+    case Repo.get_by(TelegramLinkToken, user_id: user.id, token: token) do
+      nil -> {:error, :not_found}
+      link_token -> {:ok, link_token}
+    end
+  end
+
+  @doc """
+  Marks a Telegram link token as expired.
+  """
+  def expire_telegram_link_token(%TelegramLinkToken{} = link_token) do
+    link_token
+    |> TelegramLinkToken.changeset(%{status: "expired"})
+    |> Repo.update()
+  end
+
+  @doc """
+  Consumes a Telegram link token and links the chat id to the user.
+  """
+  def consume_telegram_link_token(token, chat_id)
+      when is_binary(token) and is_binary(chat_id) do
+    now = DateTime.utc_now()
+
+    Repo.transact(fn ->
+      case Repo.get_by(TelegramLinkToken, token: token) do
+        nil ->
+          Repo.rollback(:not_found)
+
+        %TelegramLinkToken{} = link_token ->
+          cond do
+            link_token.status != "pending" ->
+              Repo.rollback(:already_used)
+
+            DateTime.compare(link_token.expires_at, now) != :gt ->
+              _ = expire_telegram_link_token(link_token)
+              Repo.rollback(:expired)
+
+            true ->
+              user = get_user!(link_token.user_id)
+
+              with {:ok, _updated_user} <-
+                     update_user_telegram_settings(user, %{
+                       telegram_enabled: true,
+                       telegram_chat_id: chat_id
+                     }),
+                   {:ok, updated_token} <-
+                     link_token
+                     |> TelegramLinkToken.changeset(%{
+                       status: "linked",
+                       used_at: now,
+                       chat_id: chat_id
+                     })
+                     |> Repo.update() do
+                {:ok, updated_token}
+              else
+                {:error, reason} -> Repo.rollback(reason)
+              end
+          end
+      end
+    end)
   end
 
   @doc """

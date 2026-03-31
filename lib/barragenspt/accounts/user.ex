@@ -4,6 +4,8 @@ defmodule Barragenspt.Accounts.User do
 
   schema "users" do
     field :email, :string
+    field :telegram_chat_id, :string
+    field :telegram_enabled, :boolean, default: false
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
@@ -112,6 +114,38 @@ defmodule Barragenspt.Accounts.User do
   def confirm_changeset(user) do
     now = NaiveDateTime.utc_now(:second)
     change(user, confirmed_at: now)
+  end
+
+  @doc """
+  Changeset for Telegram delivery preferences.
+  """
+  def telegram_settings_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:telegram_enabled, :telegram_chat_id])
+    |> update_change(:telegram_chat_id, &normalize_chat_id/1)
+    |> validate_length(:telegram_chat_id, max: 64)
+    |> validate_format(:telegram_chat_id, ~r/^-?\d+$/,
+      message: "must be a numeric Telegram chat id"
+    )
+    |> validate_chat_id_if_enabled()
+  end
+
+  defp normalize_chat_id(nil), do: nil
+  defp normalize_chat_id(v) when is_binary(v), do: v |> String.trim() |> blank_to_nil()
+  defp normalize_chat_id(v), do: v |> to_string() |> String.trim() |> blank_to_nil()
+
+  defp blank_to_nil(""), do: nil
+  defp blank_to_nil(v), do: v
+
+  defp validate_chat_id_if_enabled(changeset) do
+    enabled? = get_field(changeset, :telegram_enabled)
+    chat_id = get_field(changeset, :telegram_chat_id)
+
+    if enabled? && is_nil(chat_id) do
+      add_error(changeset, :telegram_chat_id, "can't be blank when Telegram is enabled")
+    else
+      changeset
+    end
   end
 
   @doc """

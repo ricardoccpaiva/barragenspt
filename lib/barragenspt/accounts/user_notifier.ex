@@ -4,6 +4,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
   alias Barragenspt.Mailer
   alias Barragenspt.Accounts.User
   alias Barragenspt.Notifications.UserAlert
+  alias Barragenspt.Notifications.TelegramClient
   alias Resend.Emails.Email
 
   # Delivers the email using the application mailer.
@@ -115,6 +116,37 @@ defmodule Barragenspt.Accounts.UserNotifier do
     )
   end
 
+  @doc """
+  Telegram message when a user alert condition is met.
+  """
+  def deliver_alert_triggered_telegram(%User{} = user, %UserAlert{} = alert, value)
+      when is_number(value) do
+    with true <- user.telegram_enabled || {:error, :telegram_disabled},
+         chat_id when is_binary(chat_id) <- user.telegram_chat_id,
+         chat_id when chat_id != "" <- String.trim(chat_id),
+         :ok <- validate_telegram_chat_id(chat_id) do
+      base = BarragensptWeb.Endpoint.url()
+      path = "#{base}/dashboard/alerts"
+      condition = describe_condition(alert)
+      value_str = format_value_for_email(alert.metric, value)
+
+      text = """
+      Alerta disparado
+      Alvo: #{alert.subject_name}
+      #{condition}
+      Valor atual: #{value_str}
+      Ver alertas: #{path}
+      """
+
+      telegram_client_module().send_message(chat_id, text)
+    else
+      false -> {:error, :telegram_disabled}
+      nil -> {:error, :telegram_chat_id_missing}
+      "" -> {:error, :telegram_chat_id_missing}
+      {:error, _} = error -> error
+    end
+  end
+
   defp deliver_resend_template(recipient, subject, template_id, template_variables) do
     case Application.get_env(:barragenspt, :resend_api_key) do
       nil ->
@@ -132,6 +164,18 @@ defmodule Barragenspt.Accounts.UserNotifier do
             variables: template_variables
           }
         })
+    end
+  end
+
+  defp telegram_client_module do
+    Application.get_env(:barragenspt, :telegram_client_module, TelegramClient)
+  end
+
+  defp validate_telegram_chat_id(chat_id) do
+    if Regex.match?(~r/^-?\d+$/, chat_id) do
+      :ok
+    else
+      {:error, :telegram_chat_id_invalid}
     end
   end
 

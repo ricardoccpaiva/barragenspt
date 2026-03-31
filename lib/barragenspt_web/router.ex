@@ -29,6 +29,12 @@ defmodule BarragensptWeb.Router do
     plug(:accepts, ["json"])
   end
 
+  scope "/telegram", BarragensptWeb do
+    pipe_through(:api)
+
+    post("/webhook", TelegramWebhookController, :create)
+  end
+
   scope "/oban", BarragensptWeb do
     pipe_through(:browser)
     pipe_through(:private)
@@ -91,9 +97,11 @@ defmodule BarragensptWeb.Router do
       live "/dashboard/alerts/new", Dashboard.AlertFormLive, :new
       live "/dashboard/alerts/:id/history", Dashboard.AlertHistoryLive, :show
       live "/dashboard/alerts/:id/edit", Dashboard.AlertFormLive, :edit
+
       if Mix.env() in [:dev, :test] do
         live "/dashboard/test/force-dam-value", Dashboard.TestDataPointsLive, :index
       end
+
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end

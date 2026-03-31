@@ -108,33 +108,65 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
   defp fire(alert, user, value, oban_job_id) do
     now = DateTime.utc_now()
 
-    case UserNotifier.deliver_alert_triggered(user, alert, value) do
-      {:ok, _} ->
-        Logger.info(
-          "EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id} " <>
-            "user_id=#{user.id}: email sent for triggered alert value=#{inspect(value)}"
-        )
+    email_result = UserNotifier.deliver_alert_triggered(user, alert, value)
+    telegram_result = maybe_deliver_telegram(user, alert, value)
+    notified? = delivered?(email_result) or delivered?(telegram_result)
 
-        Notifications.create_event!(%{
-          alert_id: alert.id,
-          triggered_at: now,
-          value_at_trigger: value,
-          notified: true
-        })
+    log_delivery_result("email", email_result, alert, user, value, oban_job_id)
+    log_delivery_result("telegram", telegram_result, alert, user, value, oban_job_id)
 
-        attrs =
-          if alert.repeat_mode == "once_per_event" do
-            %{breach_notification_sent: true, last_notified_at: now}
-          else
-            %{last_notified_at: now}
-          end
+    if notified? do
+      Notifications.create_event!(%{
+        alert_id: alert.id,
+        triggered_at: now,
+        value_at_trigger: value,
+        notified: true
+      })
 
-        Notifications.update_after_notification(alert, attrs)
+      attrs =
+        if alert.repeat_mode == "once_per_event" do
+          %{breach_notification_sent: true, last_notified_at: now}
+        else
+          %{last_notified_at: now}
+        end
 
-      {:error, reason} ->
-        Logger.warning(
-          "EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id}: email failed #{inspect(reason)}"
-        )
+      Notifications.update_after_notification(alert, attrs)
+    else
+      Logger.warning(
+        "EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id}: all notification channels failed"
+      )
     end
+  end
+
+  defp maybe_deliver_telegram(user, alert, value) do
+    if user.telegram_enabled do
+      UserNotifier.deliver_alert_triggered_telegram(user, alert, value)
+    else
+      {:skipped, :telegram_disabled}
+    end
+  end
+
+  defp delivered?({:ok, _}), do: true
+  defp delivered?(_), do: false
+
+  defp log_delivery_result(channel, {:ok, _}, alert, user, value, oban_job_id) do
+    Logger.info(
+      "EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id} " <>
+        "user_id=#{user.id}: #{channel} sent for triggered alert value=#{inspect(value)}"
+    )
+  end
+
+  defp log_delivery_result(channel, {:skipped, reason}, alert, user, _value, oban_job_id) do
+    Logger.debug(
+      "EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id} " <>
+        "user_id=#{user.id}: #{channel} skipped #{inspect(reason)}"
+    )
+  end
+
+  defp log_delivery_result(channel, {:error, reason}, alert, user, _value, oban_job_id) do
+    Logger.warning(
+      "EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id} " <>
+        "user_id=#{user.id}: #{channel} failed #{inspect(reason)}"
+    )
   end
 end
