@@ -18,42 +18,140 @@ defmodule BarragensptWeb.UserLive.Settings do
       <div class="space-y-6">
         <section class="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
           <div class="mb-3 border-b border-slate-200 pb-3 dark:border-slate-600">
-            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Alertas via Telegram</h2>
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">
+              Tipos de Notificação
+            </h2>
             <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              Liga a tua conta Telegram para receber notificações de alertas.
+              Ative ou pause cada canal de entrega de alertas.
             </p>
           </div>
 
-          <%= if telegram_connected?(@current_scope.user) do %>
-            <p class="text-sm text-emerald-700 dark:text-emerald-300">
-              Ligado ({mask_chat_id(@current_scope.user.telegram_chat_id)})
-            </p>
-            <button
-              id="unlink_telegram"
-              type="button"
-              phx-click="unlink_telegram"
-              class="mt-3 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50"
-            >
-              Desligar Telegram
-            </button>
-          <% else %>
-            <p class="text-sm text-slate-700 dark:text-slate-300">
-              Clique em <strong>Ligar Telegram</strong> e envie <code>/start</code> no bot.
-              A ligação é confirmada automaticamente.
-            </p>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-700">
+              <thead>
+                <tr class="text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  <th class="py-2 pr-3 font-medium">Canal</th>
+                  <th class="px-3 py-2 font-medium">Destino</th>
+                  <th class="px-3 py-2 font-medium">Estado</th>
+                  <th class="px-3 py-2 font-medium text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
+                <tr>
+                  <td class="py-3 pr-3 font-semibold text-slate-900 dark:text-slate-100">E-mail</td>
+                  <td class="px-3 py-3 text-slate-600 dark:text-slate-300">{@current_scope.user.email}</td>
+                  <td class="px-3 py-3">
+                    <span class={[
+                      "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
+                      @current_scope.user.email_notifications_enabled &&
+                        "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200",
+                      !@current_scope.user.email_notifications_enabled &&
+                        "bg-slate-200 text-slate-800 dark:bg-slate-600 dark:text-slate-100"
+                    ]}>
+                      {if @current_scope.user.email_notifications_enabled, do: "Ativo", else: "Pausado"}
+                    </span>
+                  </td>
+                  <td class="px-3 py-3">
+                    <div class="inline-flex w-full items-center justify-end gap-1">
+                      <button
+                        id="toggle_email_notifications"
+                        type="button"
+                        phx-click="toggle_email_notifications"
+                        class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
+                        aria-label={
+                          if @current_scope.user.email_notifications_enabled,
+                            do: "Pausar notificações por e-mail",
+                            else: "Retomar notificações por e-mail"
+                        }
+                        title={
+                          if @current_scope.user.email_notifications_enabled, do: "Pausar", else: "Retomar"
+                        }
+                      >
+                        <%= if @current_scope.user.email_notifications_enabled do %>
+                          <.icon name="hero-pause" class="size-5" />
+                        <% else %>
+                          <.icon name="hero-play" class="size-5" />
+                        <% end %>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
 
-            <div class="mt-4 flex flex-wrap gap-2">
-              <a
-                id="start_telegram_link"
-                href={@telegram_deep_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-              >
-                Ligar Telegram
-              </a>
-            </div>
-          <% end %>
+                <tr>
+                  <td class="py-3 pr-3 font-semibold text-slate-900 dark:text-slate-100">Telegram</td>
+                  <td class="px-3 py-3 text-slate-600 dark:text-slate-300">
+                    <%= if telegram_connected?(@current_scope.user) do %>
+                      {@current_scope.user.telegram_chat_id}
+                    <% else %>
+                      Conta não ligada
+                    <% end %>
+                  </td>
+                  <td class="px-3 py-3">
+                    <span class={[
+                      "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
+                      telegram_active?(@current_scope.user) &&
+                        "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200",
+                      !telegram_active?(@current_scope.user) &&
+                        "bg-slate-200 text-slate-800 dark:bg-slate-600 dark:text-slate-100"
+                    ]}>
+                      <%= cond do %>
+                        <% telegram_active?(@current_scope.user) -> %>
+                          Ativo
+                        <% telegram_connected?(@current_scope.user) -> %>
+                          Pausado
+                        <% true -> %>
+                          Desligado
+                      <% end %>
+                    </span>
+                  </td>
+                  <td class="px-3 py-3">
+                    <div class="inline-flex w-full items-center justify-end gap-1">
+                      <%= if telegram_connected?(@current_scope.user) do %>
+                        <button
+                          id="unlink_telegram"
+                          type="button"
+                          phx-click="unlink_telegram"
+                          class="inline-flex rounded-lg p-1.5 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-900/25"
+                          aria-label="Desligar conta Telegram"
+                          title="Desligar conta"
+                        >
+                          <.icon name="hero-trash" class="size-5" />
+                        </button>
+                        <button
+                          id="toggle_telegram_notifications"
+                          type="button"
+                          phx-click="toggle_telegram_notifications"
+                          class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
+                          aria-label={
+                            if telegram_active?(@current_scope.user),
+                              do: "Pausar notificações por Telegram",
+                              else: "Retomar notificações por Telegram"
+                          }
+                          title={if telegram_active?(@current_scope.user), do: "Pausar", else: "Retomar"}
+                        >
+                          <%= if telegram_active?(@current_scope.user) do %>
+                            <.icon name="hero-pause" class="size-5" />
+                          <% else %>
+                            <.icon name="hero-play" class="size-5" />
+                          <% end %>
+                        </button>
+                      <% else %>
+                        <a
+                          id="start_telegram_link"
+                          href={@telegram_deep_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+                        >
+                          Ligar Telegram
+                        </a>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
@@ -119,7 +217,6 @@ defmodule BarragensptWeb.UserLive.Settings do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
-    telegram_changeset = Accounts.change_user_telegram_settings(user, %{})
     password_changeset = Accounts.change_user_password(user, %{}, hash_password: false)
 
     {telegram_link_token, telegram_deep_link} = ensure_telegram_link(user)
@@ -127,7 +224,6 @@ defmodule BarragensptWeb.UserLive.Settings do
     socket =
       socket
       |> assign(:current_email, user.email)
-      |> assign(:telegram_form, to_form(telegram_changeset))
       |> assign(:telegram_bot_username, Application.get_env(:barragenspt, :telegram_bot_username))
       |> assign(:telegram_link_token, telegram_link_token)
       |> assign(:telegram_deep_link, telegram_deep_link)
@@ -139,42 +235,49 @@ defmodule BarragensptWeb.UserLive.Settings do
   end
 
   @impl true
-  def handle_event("validate_telegram", params, socket) do
-    %{"user" => user_params} = params
-
-    telegram_form =
-      socket.assigns.current_scope.user
-      |> Accounts.change_user_telegram_settings(user_params)
-      |> Map.put(:action, :validate)
-      |> to_form()
-
-    {:noreply, assign(socket, telegram_form: telegram_form)}
-  end
-
-  def handle_event("update_telegram", params, socket) do
-    %{"user" => user_params} = params
+  def handle_event("toggle_email_notifications", _params, socket) do
     user = socket.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
+    true = Accounts.sudo_mode?(user, -sudo_mode_validity_minutes())
 
-    case Accounts.update_user_telegram_settings(user, user_params) do
+    case Accounts.update_user_telegram_settings(user, %{
+           email_notifications_enabled: !user.email_notifications_enabled
+         }) do
       {:ok, updated_user} ->
         {:noreply,
          socket
          |> assign(:current_scope, Scope.for_user(updated_user))
-         |> assign(
-           :telegram_form,
-           to_form(Accounts.change_user_telegram_settings(updated_user, %{}))
-         )
-         |> put_flash(:info, "Telegram settings updated successfully.")}
+         |> put_flash(:info, "Notificações por e-mail atualizadas.")}
 
-      {:error, changeset} ->
-        {:noreply, assign(socket, telegram_form: to_form(changeset, action: :insert))}
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, "Não foi possível atualizar notificações por e-mail.")}
+    end
+  end
+
+  @impl true
+  def handle_event("toggle_telegram_notifications", _params, socket) do
+    user = socket.assigns.current_scope.user
+    true = Accounts.sudo_mode?(user, -sudo_mode_validity_minutes())
+
+    if telegram_connected?(user) do
+      case Accounts.update_user_telegram_settings(user, %{telegram_enabled: !user.telegram_enabled}) do
+        {:ok, updated_user} ->
+          {:noreply,
+           socket
+           |> assign(:current_scope, Scope.for_user(updated_user))
+           |> put_flash(:info, "Notificações por Telegram atualizadas.")}
+
+        {:error, _changeset} ->
+          {:noreply,
+           put_flash(socket, :error, "Não foi possível atualizar notificações por Telegram.")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "Primeiro ligue a conta Telegram.")}
     end
   end
 
   def handle_event("unlink_telegram", _params, socket) do
     user = socket.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
+    true = Accounts.sudo_mode?(user, -sudo_mode_validity_minutes())
 
     case Accounts.update_user_telegram_settings(user, %{
            telegram_enabled: false,
@@ -184,14 +287,10 @@ defmodule BarragensptWeb.UserLive.Settings do
         {:noreply,
          socket
          |> assign(:current_scope, Scope.for_user(updated_user))
-         |> assign(
-           :telegram_form,
-           to_form(Accounts.change_user_telegram_settings(updated_user, %{}))
-         )
          |> put_flash(:info, "Telegram desligado.")}
 
-      {:error, changeset} ->
-        {:noreply, assign(socket, telegram_form: to_form(changeset, action: :insert))}
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, "Não foi possível desligar o Telegram.")}
     end
   end
 
@@ -210,7 +309,7 @@ defmodule BarragensptWeb.UserLive.Settings do
   def handle_event("update_password", params, socket) do
     %{"user" => user_params} = params
     user = socket.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
+    true = Accounts.sudo_mode?(user, -sudo_mode_validity_minutes())
 
     case Accounts.change_user_password(user, user_params) do
       %{valid?: true} = changeset ->
@@ -239,10 +338,6 @@ defmodule BarragensptWeb.UserLive.Settings do
               {:noreply,
                socket
                |> assign(:current_scope, Scope.for_user(updated_user))
-               |> assign(
-                 :telegram_form,
-                 to_form(Accounts.change_user_telegram_settings(updated_user, %{}))
-               )
                |> assign(:telegram_link_token, nil)
                |> assign(:telegram_deep_link, nil)
                |> put_flash(:info, "Telegram ligado com sucesso.")}
@@ -319,17 +414,15 @@ defmodule BarragensptWeb.UserLive.Settings do
   end
 
   defp telegram_connected?(user),
-    do: user.telegram_enabled && is_binary(user.telegram_chat_id) && user.telegram_chat_id != ""
+    do: is_binary(user.telegram_chat_id) && user.telegram_chat_id != ""
 
-  defp mask_chat_id(nil), do: "chat desconhecido"
+  defp telegram_active?(user),
+    do: telegram_connected?(user) && user.telegram_enabled
 
-  defp mask_chat_id(chat_id) when is_binary(chat_id) do
-    size = String.length(chat_id)
-
-    if size <= 6 do
-      chat_id
-    else
-      String.slice(chat_id, 0, 3) <> "..." <> String.slice(chat_id, -3, 3)
+  defp sudo_mode_validity_minutes do
+    case Application.get_env(:barragenspt, :sudo_mode_validity_minutes, 1440) do
+      m when is_integer(m) and m > 0 -> m
+      _ -> 1440
     end
   end
 end

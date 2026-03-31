@@ -4,6 +4,7 @@ defmodule Barragenspt.Accounts.User do
 
   schema "users" do
     field :email, :string
+    field :email_notifications_enabled, :boolean, default: true
     field :telegram_chat_id, :string
     field :telegram_enabled, :boolean, default: false
     field :password, :string, virtual: true, redact: true
@@ -121,7 +122,7 @@ defmodule Barragenspt.Accounts.User do
   """
   def telegram_settings_changeset(user, attrs) do
     user
-    |> cast(attrs, [:telegram_enabled, :telegram_chat_id])
+    |> cast(attrs, [:email_notifications_enabled, :telegram_enabled, :telegram_chat_id])
     |> update_change(:telegram_chat_id, &normalize_chat_id/1)
     |> validate_length(:telegram_chat_id, max: 64)
     |> validate_format(:telegram_chat_id, ~r/^-?\d+$/,

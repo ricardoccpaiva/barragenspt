@@ -108,7 +108,7 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
   defp fire(alert, user, value, oban_job_id) do
     now = DateTime.utc_now()
 
-    email_result = UserNotifier.deliver_alert_triggered(user, alert, value)
+    email_result = maybe_deliver_email(user, alert, value)
     telegram_result = maybe_deliver_telegram(user, alert, value)
     notified? = delivered?(email_result) or delivered?(telegram_result)
 
@@ -138,6 +138,14 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
     end
   end
 
+  defp maybe_deliver_email(user, alert, value) do
+    if user_email_notifications_enabled?(user) do
+      UserNotifier.deliver_alert_triggered(user, alert, value)
+    else
+      {:skipped, :email_disabled}
+    end
+  end
+
   defp maybe_deliver_telegram(user, alert, value) do
     if user.telegram_enabled do
       UserNotifier.deliver_alert_triggered_telegram(user, alert, value)
@@ -145,6 +153,9 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
       {:skipped, :telegram_disabled}
     end
   end
+
+  defp user_email_notifications_enabled?(user),
+    do: Map.get(user, :email_notifications_enabled, true) != false
 
   defp delivered?({:ok, _}), do: true
   defp delivered?(_), do: false
