@@ -136,8 +136,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
       <b>Alvo:</b> #{escape_html(alert.subject_name)}
       <b>Condição:</b> #{escape_html(condition)}
       <b>Valor atual:</b> <code>#{escape_html(value_str)}</code>
-      <b>Dashboard:</b>
-      #{path}
+      <a href="#{escape_html(path)}">Abrir alertas no dashboard</a>
       """
 
       telegram_client_module().send_message(chat_id, text,

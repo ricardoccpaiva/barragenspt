@@ -13,7 +13,6 @@ defmodule BarragensptWeb.UserLive.Settings do
       <div class="text-center">
         <.header>
           Definições da Conta
-          <:subtitle>Gira as definições de Telegram e da palavra-passe</:subtitle>
         </.header>
       </div>
       <div class="space-y-6">
