@@ -12,7 +12,7 @@ defmodule BarragensptWeb.UserLive.SettingsTest do
         |> log_in_user(user_fixture())
         |> live(~p"/users/settings")
 
-      assert html =~ "Change Email"
+      refute html =~ "Change Email"
       assert html =~ "Save Password"
     end
 
@@ -34,58 +34,6 @@ defmodule BarragensptWeb.UserLive.SettingsTest do
         |> follow_redirect(conn, ~p"/users/log-in")
 
       assert conn.resp_body =~ "You must re-authenticate to access this page."
-    end
-  end
-
-  describe "update email form" do
-    setup %{conn: conn} do
-      user = user_fixture()
-      %{conn: log_in_user(conn, user), user: user}
-    end
-
-    test "updates the user email", %{conn: conn, user: user} do
-      new_email = unique_user_email()
-
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
-
-      result =
-        lv
-        |> form("#email_form", %{
-          "user" => %{"email" => new_email}
-        })
-        |> render_submit()
-
-      assert result =~ "A link to confirm your email"
-      assert Accounts.get_user_by_email(user.email)
-    end
-
-    test "renders errors with invalid data (phx-change)", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
-
-      result =
-        lv
-        |> element("#email_form")
-        |> render_change(%{
-          "action" => "update_email",
-          "user" => %{"email" => "with spaces"}
-        })
-
-      assert result =~ "Change Email"
-      assert result =~ "must have the @ sign and no spaces"
-    end
-
-    test "renders errors with invalid data (phx-submit)", %{conn: conn, user: user} do
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
-
-      result =
-        lv
-        |> form("#email_form", %{
-          "user" => %{"email" => user.email}
-        })
-        |> render_submit()
-
-      assert result =~ "Change Email"
-      assert result =~ "did not change"
     end
   end
 

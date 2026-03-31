@@ -12,97 +12,94 @@ defmodule BarragensptWeb.UserLive.Settings do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="text-center">
         <.header>
-          Account Settings
-          <:subtitle>Manage your account email address and password settings</:subtitle>
+          Definições da Conta
+          <:subtitle>Gira as definições de Telegram e da palavra-passe</:subtitle>
         </.header>
       </div>
-
-      <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
-        <.input
-          field={@email_form[:email]}
-          type="email"
-          label="Email"
-          autocomplete="username"
-          required
-        />
-        <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
-      </.form>
-
-      <div class="my-6 h-px w-full bg-slate-200 dark:bg-slate-600" />
-
-      <section class="rounded-xl border border-slate-200 bg-white p-4 text-left dark:border-slate-600 dark:bg-slate-800/40">
-        <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Telegram</h2>
-
-        <%= if telegram_connected?(@current_scope.user) do %>
-          <p class="mt-2 text-sm text-emerald-700 dark:text-emerald-300">
-            Ligado ({mask_chat_id(@current_scope.user.telegram_chat_id)})
-          </p>
-          <button
-            id="unlink_telegram"
-            type="button"
-            phx-click="unlink_telegram"
-            class="mt-3 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50"
-          >
-            Desligar Telegram
-          </button>
-        <% else %>
-          <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Ainda não está ligado.</p>
-
-          <p class="mt-3 text-sm text-slate-700 dark:text-slate-300">
-            Clique em <strong>Ligar Telegram</strong> e envie <code>/start</code> no bot.
-            A ligação é confirmada automaticamente.
-          </p>
-
-          <div class="mt-4 flex flex-wrap gap-2">
-            <a
-              id="start_telegram_link"
-              href={@telegram_deep_link}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-            >
-              Ligar Telegram
-            </a>
+      <div class="space-y-6">
+        <section class="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
+          <div class="mb-3 border-b border-slate-200 pb-3 dark:border-slate-600">
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Alertas via Telegram</h2>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              Liga a tua conta Telegram para receber notificações de alertas.
+            </p>
           </div>
-        <% end %>
 
-      </section>
+          <%= if telegram_connected?(@current_scope.user) do %>
+            <p class="text-sm text-emerald-700 dark:text-emerald-300">
+              Ligado ({mask_chat_id(@current_scope.user.telegram_chat_id)})
+            </p>
+            <button
+              id="unlink_telegram"
+              type="button"
+              phx-click="unlink_telegram"
+              class="mt-3 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50"
+            >
+              Desligar Telegram
+            </button>
+          <% else %>
+            <p class="text-sm text-slate-700 dark:text-slate-300">
+              Clique em <strong>Ligar Telegram</strong> e envie <code>/start</code> no bot.
+              A ligação é confirmada automaticamente.
+            </p>
 
-      <div class="my-6 h-px w-full bg-slate-200 dark:bg-slate-600" />
+            <div class="mt-4 flex flex-wrap gap-2">
+              <a
+                id="start_telegram_link"
+                href={@telegram_deep_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+              >
+                Ligar Telegram
+              </a>
+            </div>
+          <% end %>
+        </section>
 
-      <.form
-        for={@password_form}
-        id="password_form"
-        action={~p"/users/update-password"}
-        method="post"
-        phx-change="validate_password"
-        phx-submit="update_password"
-        phx-trigger-action={@trigger_submit}
-      >
-        <input
-          name={@password_form[:email].name}
-          type="hidden"
-          id="hidden_user_email"
-          autocomplete="username"
-          value={@current_email}
-        />
-        <.input
-          field={@password_form[:password]}
-          type="password"
-          label="New password"
-          autocomplete="new-password"
-          required
-        />
-        <.input
-          field={@password_form[:password_confirmation]}
-          type="password"
-          label="Confirm new password"
-          autocomplete="new-password"
-        />
-        <.button variant="primary" phx-disable-with="Saving...">
-          Save Password
-        </.button>
-      </.form>
+        <section class="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
+          <div class="mb-3 border-b border-slate-200 pb-3 dark:border-slate-600">
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Segurança</h2>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              Atualize a sua palavra-passe para manter a conta segura.
+            </p>
+          </div>
+
+          <.form
+            for={@password_form}
+            id="password_form"
+            action={~p"/users/update-password"}
+            method="post"
+            phx-change="validate_password"
+            phx-submit="update_password"
+            phx-trigger-action={@trigger_submit}
+          >
+            <input
+              name={@password_form[:email].name}
+              type="hidden"
+              id="hidden_user_email"
+              autocomplete="username"
+              value={@current_email}
+            />
+            <.input
+              field={@password_form[:password]}
+              type="password"
+              label="New password"
+              autocomplete="new-password"
+              required
+            />
+            <.input
+              field={@password_form[:password_confirmation]}
+              type="password"
+              label="Confirm new password"
+              autocomplete="new-password"
+            />
+            <.button variant="primary" phx-disable-with="Saving...">
+              Save Password
+            </.button>
+          </.form>
+        </section>
+      </div>
     </Layouts.app>
     """
   end
@@ -123,7 +120,6 @@ defmodule BarragensptWeb.UserLive.Settings do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
-    email_changeset = Accounts.change_user_email(user, %{}, validate_unique: false)
     telegram_changeset = Accounts.change_user_telegram_settings(user, %{})
     password_changeset = Accounts.change_user_password(user, %{}, hash_password: false)
 
@@ -132,7 +128,6 @@ defmodule BarragensptWeb.UserLive.Settings do
     socket =
       socket
       |> assign(:current_email, user.email)
-      |> assign(:email_form, to_form(email_changeset))
       |> assign(:telegram_form, to_form(telegram_changeset))
       |> assign(:telegram_bot_username, Application.get_env(:barragenspt, :telegram_bot_username))
       |> assign(:telegram_link_token, telegram_link_token)
@@ -145,39 +140,6 @@ defmodule BarragensptWeb.UserLive.Settings do
   end
 
   @impl true
-  def handle_event("validate_email", params, socket) do
-    %{"user" => user_params} = params
-
-    email_form =
-      socket.assigns.current_scope.user
-      |> Accounts.change_user_email(user_params, validate_unique: false)
-      |> Map.put(:action, :validate)
-      |> to_form()
-
-    {:noreply, assign(socket, email_form: email_form)}
-  end
-
-  def handle_event("update_email", params, socket) do
-    %{"user" => user_params} = params
-    user = socket.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
-
-    case Accounts.change_user_email(user, user_params) do
-      %{valid?: true} = changeset ->
-        Accounts.deliver_user_update_email_instructions(
-          Ecto.Changeset.apply_action!(changeset, :insert),
-          user.email,
-          &url(~p"/users/settings/confirm-email/#{&1}")
-        )
-
-        info = "A link to confirm your email change has been sent to the new address."
-        {:noreply, socket |> put_flash(:info, info)}
-
-      changeset ->
-        {:noreply, assign(socket, :email_form, to_form(changeset, action: :insert))}
-    end
-  end
-
   def handle_event("validate_telegram", params, socket) do
     %{"user" => user_params} = params
 
