@@ -9,7 +9,7 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="w-[110%] -mx-[5%] space-y-6">
+      <div class="space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <.header>
             Histórico de disparos
@@ -24,7 +24,7 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
             Este alerta ainda não disparou.
           </p>
         <% else %>
-          <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-600">
+          <div class="max-w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
             <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-600">
               <thead class="bg-slate-50 dark:bg-slate-800/80">
                 <tr>
@@ -34,9 +34,7 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
                   <th class="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">
                     Valor
                   </th>
-                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
-                    E-mail enviado
-                  </th>
+                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">Canais</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-600 dark:bg-slate-800/40">
@@ -49,7 +47,20 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
                       {format_metric_value(@alert.metric, event.value_at_trigger)}
                     </td>
                     <td class="px-4 py-3 text-slate-700 dark:text-slate-300">
-                      {if event.notified, do: "Sim", else: "Não"}
+                      <div class="inline-flex flex-wrap items-center gap-1.5">
+                        <%= for channel <- event_channels(event) do %>
+                          <span
+                            class="inline-flex rounded-lg p-1.5 text-brand-600 dark:text-brand-400"
+                            title={channel_label(channel)}
+                            aria-label={channel_label(channel)}
+                          >
+                            <.icon name={channel_icon(channel)} class="size-5" />
+                          </span>
+                        <% end %>
+                        <%= if event_channels(event) == [] do %>
+                          <span class="text-xs text-slate-500 dark:text-slate-400">—</span>
+                        <% end %>
+                      </div>
                     </td>
                   </tr>
                 <% end %>
@@ -175,4 +186,17 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
   defp format_metric_value(_metric, v) when is_integer(v), do: Integer.to_string(v)
   defp format_metric_value(_metric, nil), do: "—"
   defp format_metric_value(_metric, v), do: inspect(v)
+
+  defp event_channels(%{notification_channels: channels}) when is_list(channels), do: channels
+  defp event_channels(%{notified: true}), do: []
+  defp event_channels(_), do: []
+
+  defp channel_label("email"), do: "E-mail"
+  defp channel_label("telegram"), do: "Telegram"
+  defp channel_label(other) when is_binary(other), do: other
+  defp channel_label(_), do: "Canal"
+
+  defp channel_icon("email"), do: "hero-envelope"
+  defp channel_icon("telegram"), do: "hero-paper-airplane"
+  defp channel_icon(_), do: "hero-bell"
 end

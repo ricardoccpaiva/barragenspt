@@ -110,6 +110,7 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
 
     email_result = maybe_deliver_email(user, alert, value)
     telegram_result = maybe_deliver_telegram(user, alert, value)
+    channels = delivered_channels(email_result, telegram_result)
     notified? = delivered?(email_result) or delivered?(telegram_result)
 
     log_delivery_result("email", email_result, alert, user, value, oban_job_id)
@@ -120,7 +121,8 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
         alert_id: alert.id,
         triggered_at: now,
         value_at_trigger: value,
-        notified: true
+        notified: true,
+        notification_channels: channels
       })
 
       attrs =
@@ -156,6 +158,17 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
 
   defp user_email_notifications_enabled?(user),
     do: Map.get(user, :email_notifications_enabled, true) != false
+
+  defp delivered_channels(email_result, telegram_result) do
+    []
+    |> maybe_add_channel("email", email_result)
+    |> maybe_add_channel("telegram", telegram_result)
+    |> Enum.reverse()
+  end
+
+  defp maybe_add_channel(channels, channel, result) do
+    if delivered?(result), do: [channel | channels], else: channels
+  end
 
   defp delivered?({:ok, _}), do: true
   defp delivered?(_), do: false

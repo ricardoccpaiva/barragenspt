@@ -6,13 +6,14 @@ defmodule Barragenspt.Notifications.AlertEvent do
     field :triggered_at, :utc_datetime_usec
     field :value_at_trigger, :float
     field :notified, :boolean, default: false
+    field :notification_channels, {:array, :string}, default: []
 
     belongs_to :alert, Barragenspt.Notifications.UserAlert, foreign_key: :alert_id
   end
 
   def changeset(event, attrs) do
     event
-    |> cast(attrs, [:triggered_at, :value_at_trigger, :notified, :alert_id])
+    |> cast(attrs, [:triggered_at, :value_at_trigger, :notified, :notification_channels, :alert_id])
     |> validate_required([:triggered_at, :value_at_trigger, :alert_id])
     |> foreign_key_constraint(:alert_id)
   end
