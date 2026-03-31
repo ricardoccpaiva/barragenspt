@@ -235,7 +235,7 @@ defmodule BarragensptWeb.UserAuth do
   def on_mount(:require_sudo_mode, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
-    if Accounts.sudo_mode?(socket.assigns.current_scope.user, -10) do
+    if Accounts.sudo_mode?(socket.assigns.current_scope.user, -sudo_mode_validity_minutes()) do
       {:cont, socket}
     else
       socket =
@@ -289,4 +289,11 @@ defmodule BarragensptWeb.UserAuth do
   end
 
   defp maybe_store_return_to(conn), do: conn
+
+  defp sudo_mode_validity_minutes do
+    case Application.get_env(:barragenspt, :sudo_mode_validity_minutes, 1440) do
+      m when is_integer(m) and m > 0 -> m
+      _ -> 1440
+    end
+  end
 end
