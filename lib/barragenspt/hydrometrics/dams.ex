@@ -804,6 +804,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
   # Export ignores UI page size; opts `max_limit` overrides schema (100) for this call only.
   @data_points_csv_export_max 50_000
 
+  @data_points_chart_max_points 2_000
+
   @data_points_csv_export_flop_opts [
     for: DataPointWithDam,
     repo: Repo,
@@ -883,6 +885,14 @@ defmodule Barragenspt.Hydrometrics.Dams do
   defp param_name_filter_has_value?(_), do: false
 
   defp nonempty_filter_value?(v) when is_binary(v), do: v != ""
+
+  defp nonempty_filter_value?(v) when is_list(v) do
+    Enum.any?(v, fn
+      s when is_binary(s) -> s != ""
+      _ -> false
+    end)
+  end
+
   defp nonempty_filter_value?(v) when not is_nil(v), do: true
   defp nonempty_filter_value?(_), do: false
 
@@ -965,6 +975,290 @@ defmodule Barragenspt.Hydrometrics.Dams do
         {:error, meta}
     end
   end
+
+  @doc """
+  Aggregates `data_points_with_dam` rows by a Postgres `date_trunc` bucket and `dam_name`,
+  using the same Flop filters as `list_data_points/1` (no table pagination).
+
+  Returns `avg(value)` per `(bucket, dam_name)`. Use `data_points_chart_series_for_ui/2` to
+  pick a default grain and optionally coarsen when the series exceeds a cap.
+  """
+  @spec data_points_chart_series(map(), :hour | :day | :week | :month) ::
+          {:ok, [map()]}
+          | {:error, Meta.t()}
+          | {:error, :missing_param_name_filter}
+  def data_points_chart_series(params, grain) when grain in [:hour, :day, :week, :month] do
+    params = normalize_data_points_query_params(params)
+    chart_params = prepare_data_points_chart_flop_params(params)
+
+    case Flop.validate(chart_params, @data_points_flop_opts) do
+      {:ok, flop} ->
+        if data_points_param_name_filter_set?(flop) do
+          rows = data_points_chart_aggregated_rows(flop, grain)
+          {:ok, rows}
+        else
+          {:error, :missing_param_name_filter}
+        end
+
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+    end
+  end
+
+  @doc """
+  Like `data_points_chart_series/2`, but chooses `preferred_grain` or a heuristic from date
+  filters, then coarsens (`hour` → `day` → `week` → `month`) until row count is ≤
+  #{@data_points_chart_max_points} (or `:month` is reached).
+
+  Each row map has string keys for JSON: `"bucket"`, `"dam_name"`, `"avg_value"` (float).
+  """
+  @spec data_points_chart_series_for_ui(map(), :hour | :day | :week | :month | nil) ::
+          {:ok, [map()], map()}
+          | {:error, Meta.t()}
+          | {:error, :missing_param_name_filter}
+  def data_points_chart_series_for_ui(params, preferred_grain \\ nil) do
+    params = normalize_data_points_query_params(params)
+    chart_params = prepare_data_points_chart_flop_params(params)
+
+    case Flop.validate(chart_params, @data_points_flop_opts) do
+      {:ok, flop} ->
+        if data_points_param_name_filter_set?(flop) do
+          start_grain = preferred_grain || default_chart_grain_from_flop(flop)
+          start_grain = normalize_chart_grain(start_grain)
+          chain = chart_grain_escalation_chain(start_grain)
+
+          result =
+            Enum.reduce_while(chain, nil, fn grain, _ ->
+              rows = data_points_chart_aggregated_rows(flop, grain)
+
+              cond do
+                rows == [] ->
+                  {:halt, {:empty, grain}}
+
+                length(rows) <= @data_points_chart_max_points ->
+                  {:halt, {:ok, rows, grain, grain != start_grain, false}}
+
+                grain == :month ->
+                  {:halt, {:ok, rows, grain, grain != start_grain, true}}
+
+                true ->
+                  {:cont, nil}
+              end
+            end)
+
+          case result do
+            {:empty, grain} ->
+              json_rows = []
+              meta = chart_response_meta(grain, start_grain, false, false)
+              {:ok, json_rows, meta}
+
+            {:ok, rows, used_grain, escalated, over_cap} ->
+              json_rows = Enum.map(rows, &chart_row_to_json_map/1)
+
+              meta =
+                chart_response_meta(used_grain, start_grain, escalated, over_cap)
+
+              {:ok, json_rows, meta}
+          end
+        else
+          {:error, :missing_param_name_filter}
+        end
+
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+    end
+  end
+
+  @doc """
+  Heuristic default chart bucket from `colected_at` filter span (fallback: last 60 days).
+  """
+  @spec default_chart_grain_from_flop(Flop.t()) :: :hour | :day | :week | :month
+  def default_chart_grain_from_flop(%Flop{} = flop) do
+    {from_ndt, to_ndt} = colected_at_range_from_flop_filters(flop.filters || [])
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+    {from_ndt, to_ndt} =
+      case {from_ndt, to_ndt} do
+        {nil, nil} -> {NaiveDateTime.add(now, -60, :day), now}
+        {nil, t} -> {NaiveDateTime.add(t, -60, :day), t}
+        {f, nil} -> {f, now}
+        {f, t} -> {f, t}
+      end
+
+    seconds = NaiveDateTime.diff(to_ndt, from_ndt, :second)
+
+    cond do
+      seconds <= 48 * 3600 -> :hour
+      seconds <= 60 * 86400 -> :day
+      seconds <= 550 * 86400 -> :week
+      true -> :month
+    end
+  end
+
+  defp chart_response_meta(used_grain, start_grain, escalated, over_cap) do
+    %{
+      grain: used_grain,
+      grain_label: chart_grain_label_pt(used_grain),
+      grain_auto_adjusted: escalated,
+      over_point_cap: over_cap,
+      start_grain: start_grain
+    }
+  end
+
+  defp chart_grain_label_pt(:hour), do: "hora"
+  defp chart_grain_label_pt(:day), do: "dia"
+  defp chart_grain_label_pt(:week), do: "semana"
+  defp chart_grain_label_pt(:month), do: "mês"
+
+  defp normalize_chart_grain(g) when g in [:hour, :day, :week, :month], do: g
+  defp normalize_chart_grain(_), do: :day
+
+  defp chart_grain_escalation_chain(:hour), do: [:hour, :day, :week, :month]
+  defp chart_grain_escalation_chain(:day), do: [:day, :week, :month]
+  defp chart_grain_escalation_chain(:week), do: [:week, :month]
+  defp chart_grain_escalation_chain(:month), do: [:month]
+
+  defp prepare_data_points_chart_flop_params(params) do
+    params
+    |> Map.drop([
+      "page",
+      "page_size",
+      "offset",
+      "limit",
+      :page,
+      :page_size,
+      :offset,
+      :limit
+    ])
+    |> Map.put("page", 1)
+    |> Map.put("page_size", 1)
+  end
+
+  defp chart_grain_to_pg_string(:hour), do: "hour"
+  defp chart_grain_to_pg_string(:day), do: "day"
+  defp chart_grain_to_pg_string(:week), do: "week"
+  defp chart_grain_to_pg_string(:month), do: "month"
+
+  defp data_points_chart_aggregated_rows(%Flop{} = flop, grain) do
+    pg = chart_grain_to_pg_string(grain)
+    base = from(d in DataPointWithDam, as: :data_point_with_dam)
+    filtered = Flop.filter(base, flop, @data_points_flop_opts)
+
+    # Two-step aggregation: PostgreSQL rejects GROUP BY when SELECT uses
+    # date_trunc($1, ...) and GROUP BY date_trunc($3, ...) — different params
+    # are not considered the same expression. Here the outer query groups by
+    # bucket/dam_name columns projected once in the inner query.
+    bucketed =
+      from(d in subquery(filtered),
+        select: %{
+          bucket: fragment("date_trunc(?, ?)", ^pg, d.colected_at),
+          dam_name: d.dam_name,
+          param_name: d.param_name,
+          value: d.value
+        }
+      )
+
+    from(r in subquery(bucketed),
+      group_by: [r.bucket, r.dam_name, r.param_name],
+      order_by: [asc: r.bucket, asc: r.dam_name, asc: r.param_name],
+      select: %{
+        bucket: r.bucket,
+        dam_name: r.dam_name,
+        param_name: r.param_name,
+        avg_value: avg(r.value)
+      }
+    )
+    |> Repo.all()
+  end
+
+  defp chart_row_to_json_map(%{bucket: bucket, dam_name: dam_name, param_name: param_name, avg_value: avg}) do
+    %{
+      "bucket" => naive_bucket_to_iso(bucket),
+      "dam_name" => dam_name,
+      "param_name" => param_name,
+      "avg_value" => decimal_avg_to_float(avg)
+    }
+  end
+
+  defp naive_bucket_to_iso(%NaiveDateTime{} = ndt),
+    do: NaiveDateTime.to_iso8601(ndt)
+
+  defp naive_bucket_to_iso(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
+
+  defp naive_bucket_to_iso(_), do: nil
+
+  defp decimal_avg_to_float(nil), do: nil
+  defp decimal_avg_to_float(%Decimal{} = d), do: Decimal.to_float(d)
+  defp decimal_avg_to_float(n) when is_number(n), do: n * 1.0
+
+  defp colected_at_range_from_flop_filters(filters) when is_list(filters) do
+    lower =
+      filters
+      |> Enum.find_value(fn f -> colected_at_bound_value(f, [:>=, :>, ">=", ">"]) end)
+
+    upper =
+      filters
+      |> Enum.find_value(fn f -> colected_at_bound_value(f, [:<=, :<, "<=", "<"]) end)
+
+    {parse_filter_naive_datetime(lower), parse_filter_naive_datetime(upper)}
+  end
+
+  defp colected_at_bound_value(%Filter{field: field, op: op, value: v}, ops) do
+    if colected_at_field?(field) and op in ops, do: v, else: nil
+  end
+
+  defp colected_at_bound_value(%{"field" => field, "op" => op, "value" => v}, ops) do
+    atom_op = op_to_atom(op)
+    if colected_at_field?(field) and atom_op in ops, do: v, else: nil
+  end
+
+  defp colected_at_bound_value(%{field: field, op: op, value: v}, ops) do
+    atom_op = op_to_atom(op)
+    if colected_at_field?(field) and atom_op in ops, do: v, else: nil
+  end
+
+  defp colected_at_bound_value(_, _), do: nil
+
+  defp colected_at_field?(field),
+    do: field in [:colected_at, "colected_at"]
+
+  defp op_to_atom(op) when is_atom(op), do: op
+
+  defp op_to_atom(op) when is_binary(op) do
+    case op do
+      "==" -> :==
+      ">=" -> :>=
+      "<=" -> :<=
+      ">" -> :>
+      "<" -> :<
+      other ->
+        try do
+          String.to_existing_atom(other)
+        rescue
+          ArgumentError -> op
+        end
+    end
+  end
+
+  defp parse_filter_naive_datetime(nil), do: nil
+
+  defp parse_filter_naive_datetime(%NaiveDateTime{} = ndt), do: ndt
+
+  defp parse_filter_naive_datetime(s) when is_binary(s) do
+    case NaiveDateTime.from_iso8601(s) do
+      {:ok, dt} -> dt
+      _ -> parse_filter_naive_datetime_from_date_only(s)
+    end
+  end
+
+  defp parse_filter_naive_datetime_from_date_only(<<_::binary-size(10)>> = date_only) do
+    case Date.from_iso8601(date_only) do
+      {:ok, %Date{} = date} -> NaiveDateTime.new!(date, ~T[00:00:00])
+      _ -> nil
+    end
+  end
+
+  defp parse_filter_naive_datetime_from_date_only(_), do: nil
 
   defp cached_data_points_total_count(%Flop{} = flop) do
     key = data_points_count_cache_key(flop)
@@ -1073,7 +1367,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
     value = Map.get(f, "value") || Map.get(f, :value)
 
-    field in ["dam_name", "basin"] and geo_filter_value_blank?(value)
+    field in ["dam_name", "basin", "param_name"] and geo_filter_value_blank?(value)
   end
 
   defp blank_geo_filter?(_), do: false

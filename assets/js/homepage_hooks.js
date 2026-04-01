@@ -131,9 +131,10 @@ const DamMultiselectSearch = {
       const q = this.el.value.trim().toLowerCase()
       const panel = this.panelId && document.getElementById(this.panelId)
       if (!panel) return
-      panel.querySelectorAll("[data-ms-dam]").forEach((el) => {
-        const name = (el.getAttribute("data-ms-dam") || "").toLowerCase()
-        el.classList.toggle("hidden", q !== "" && !name.includes(q))
+      panel.querySelectorAll("[data-ms-filter-text], [data-ms-dam]").forEach((el) => {
+        const hay =
+          (el.getAttribute("data-ms-filter-text") || el.getAttribute("data-ms-dam") || "").toLowerCase()
+        el.classList.toggle("hidden", q !== "" && !hay.includes(q))
       })
     }
     this.el.addEventListener("input", this.onInput)
@@ -316,6 +317,70 @@ const ExportDamCard = {
   }
 }
 
+const DataPointsChart = {
+  mounted() {
+    this.chart = null
+    this.canvas = this.el.querySelector("canvas")
+    if (!this.canvas) return
+
+    this.handleEvent("data-points-chart-data", (payload) => {
+      if (typeof window.Chart === "undefined") return
+
+      const chart = payload && payload.chart
+      if (this.chart) {
+        this.chart.destroy()
+        this.chart = null
+      }
+      if (!chart || !this.canvas) return
+
+      const labels = chart.labels || []
+      const datasets = chart.datasets || []
+      if (labels.length === 0 || datasets.length === 0) return
+
+      const isDark = document.documentElement.classList.contains("dark")
+      const tickColor = isDark ? "#94a3b8" : "#64748b"
+      const gridColor = isDark ? "rgba(148, 163, 184, 0.14)" : "rgba(100, 116, 139, 0.18)"
+
+      this.chart = new window.Chart(this.canvas, {
+        type: "line",
+        data: {
+          labels,
+          datasets: datasets.map((ds) => ({ ...ds, fill: false }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { color: tickColor, boxWidth: 12, padding: 12 }
+            }
+          },
+          scales: {
+            x: {
+              type: "category",
+              ticks: { color: tickColor, maxRotation: 45, autoSkip: true, maxTicksLimit: 14 },
+              grid: { color: gridColor }
+            },
+            y: {
+              ticks: { color: tickColor },
+              grid: { color: gridColor }
+            }
+          }
+        }
+      })
+    })
+  },
+
+  destroyed() {
+    if (this.chart) {
+      this.chart.destroy()
+      this.chart = null
+    }
+  }
+}
+
 const ExportBasinCard = {
   mounted() {
     this.el.addEventListener("click", (e) => {
@@ -346,6 +411,7 @@ export const Hooks = {
   DamChartMount,
   DischargeChartMount,
   DamRealtimeChartMount,
+  DataPointsChart,
   ExportDamCard,
   ExportBasinCard,
   RiverChanged,

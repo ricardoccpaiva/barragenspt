@@ -1,30 +1,27 @@
-defmodule BarragensptWeb.DataPointsDamMultiselect do
+defmodule BarragensptWeb.DataPointsParamMultiselect do
   @moduledoc false
   use Phoenix.Component
 
-  attr :options, :list, required: true
+  attr :options, :list, required: true, doc: "list of {label, slug} tuples"
   attr :selected, :list, default: []
   attr :open?, :boolean, default: false
-  attr :panel_id, :string, default: "data-points-dam-ms-panel"
-  attr :search_input_id, :string, default: "data-points-dam-ms-search"
+  attr :panel_id, :string, default: "data-points-param-ms-panel"
+  attr :search_input_id, :string, default: "data-points-param-ms-search"
 
-  def data_points_dam_multiselect(assigns) do
+  def data_points_param_multiselect(assigns) do
     n = length(assigns.selected)
-    summary = dam_multiselect_summary(n)
+    summary = param_multiselect_summary(n)
 
-    assigns =
-      assigns
-      |> assign(:summary, summary)
-      |> assign(:empty?, n == 0)
+    assigns = assign(assigns, :summary, summary)
 
     ~H"""
     <div
       class="relative w-full min-w-0"
-      phx-click-away={if(@open?, do: "dam_multiselect_close")}
+      phx-click-away={if(@open?, do: "param_multiselect_close")}
     >
       <button
         type="button"
-        phx-click="dam_multiselect_toggle"
+        phx-click="param_multiselect_toggle"
         aria-expanded={to_string(@open?)}
         class="flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500"
       >
@@ -59,16 +56,16 @@ defmodule BarragensptWeb.DataPointsDamMultiselect do
         </div>
         <div class="max-h-52 overflow-y-auto border-t border-slate-100 px-1 pt-1 dark:border-slate-700">
           <%= if @options == [] do %>
-            <p class="px-2 py-2 text-center text-xs text-slate-500 dark:text-slate-400">Sem barragens na lista.</p>
+            <p class="px-2 py-2 text-center text-xs text-slate-500 dark:text-slate-400">Sem parâmetros na lista.</p>
           <% else %>
-            <%= for name <- @options do %>
-              <% selected? = name in @selected %>
+            <%= for {label, slug} <- @options do %>
+              <% selected? = slug in @selected %>
+              <% f = String.downcase(label) %>
               <button
                 type="button"
-                data-ms-dam={name}
-                data-ms-filter-text={String.downcase(name)}
-                phx-click="toggle_data_points_dam"
-                phx-value-name={name}
+                data-ms-filter-text={f}
+                phx-click="toggle_data_points_param"
+                phx-value-slug={slug}
                 class="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80"
               >
                 <span class={[
@@ -82,7 +79,7 @@ defmodule BarragensptWeb.DataPointsDamMultiselect do
                     </svg>
                   <% end %>
                 </span>
-                <span class="min-w-0 flex-1 truncate">{name}</span>
+                <span class="min-w-0 flex-1 truncate">{label}</span>
               </button>
             <% end %>
           <% end %>
@@ -92,7 +89,7 @@ defmodule BarragensptWeb.DataPointsDamMultiselect do
     """
   end
 
-  defp dam_multiselect_summary(0), do: "Todas as barragens"
-  defp dam_multiselect_summary(1), do: "1 barragem selecionada"
-  defp dam_multiselect_summary(n), do: "#{n} barragens selecionadas"
+  defp param_multiselect_summary(0), do: "Escolher parâmetros…"
+  defp param_multiselect_summary(1), do: "1 parâmetro selecionado"
+  defp param_multiselect_summary(n) when is_integer(n), do: "#{n} parâmetros selecionados"
 end
