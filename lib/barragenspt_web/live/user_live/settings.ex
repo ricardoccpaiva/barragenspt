@@ -170,6 +170,7 @@ defmodule BarragensptWeb.UserLive.Settings do
             phx-change="validate_password"
             phx-submit="update_password"
             phx-trigger-action={@trigger_submit}
+            class="max-w-[18rem]"
           >
             <input
               name={@password_form[:email].name}
@@ -183,6 +184,7 @@ defmodule BarragensptWeb.UserLive.Settings do
               type="password"
               label="New password"
               autocomplete="new-password"
+              class="text-sm"
               required
             />
             <.input
@@ -190,6 +192,7 @@ defmodule BarragensptWeb.UserLive.Settings do
               type="password"
               label="Confirm new password"
               autocomplete="new-password"
+              class="text-sm"
             />
             <.button variant="primary" phx-disable-with="Saving...">
               Save Password

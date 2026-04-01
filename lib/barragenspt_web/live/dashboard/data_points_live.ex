@@ -34,6 +34,7 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
       |> assign(:data_points_dam_names, Dams.list_data_points_filter_dam_names())
       |> assign(:dam_multiselect_open, false)
       |> assign(:data_points_single_select_open, nil)
+      |> assign(:data_points_table_menu_open, false)
 
     {:ok,
      socket
@@ -64,7 +65,8 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
              |> assign(:awaiting_param_filter, awaiting)
              |> assign(:data_points_export_enabled, param_set?)
              |> assign(:data_points_dam_names, dam_names)
-             |> assign(:table_opts, table_opts_flex_fill(awaiting))}
+             |> assign(:table_opts, table_opts_flex_fill(awaiting))
+             |> assign(:data_points_table_menu_open, false)}
         end
 
       {:error, meta} ->
@@ -78,7 +80,8 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
          |> assign(:awaiting_param_filter, true)
          |> assign(:data_points_export_enabled, false)
          |> assign(:data_points_dam_names, dam_names)
-         |> assign(:table_opts, table_opts_flex_fill(true))}
+         |> assign(:table_opts, table_opts_flex_fill(true))
+         |> assign(:data_points_table_menu_open, false)}
     end
   end
 
@@ -116,6 +119,17 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
     else
       {:noreply, socket}
     end
+  end
+
+  @impl true
+  def handle_event("data_points_table_menu_toggle", _, socket) do
+    {:noreply,
+     update(socket, :data_points_table_menu_open, fn open? -> not open? end)}
+  end
+
+  @impl true
+  def handle_event("data_points_table_menu_close", _, socket) do
+    {:noreply, assign(socket, :data_points_table_menu_open, false)}
   end
 
   def handle_event("data_points_single_select_close", _, socket), do: {:noreply, socket}

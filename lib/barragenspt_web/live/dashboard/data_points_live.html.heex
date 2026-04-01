@@ -1,186 +1,145 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
-  <div class="grid grid-cols-1 gap-6 lg:grid-cols-[19.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-8 xl:grid-cols-[21.5rem_minmax(0,1fr)]">
+  <div
+    class="grid grid-cols-1 gap-6 lg:grid-cols-[19.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-8 xl:grid-cols-[21.5rem_minmax(0,1fr)]">
     <aside class="w-full self-start lg:sticky lg:top-4">
-      <.form
-        for={@form}
-        id="data-points-filter-form"
+      <.form for={@form} id="data-points-filter-form"
         class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-600 dark:bg-slate-800 sm:p-4"
-        phx-submit="update-filter"
-      >
+        phx-submit="update-filter">
         <p class="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
           Filtros
         </p>
         <div class="flex flex-col gap-3">
           <.filter_fields :let={i} form={@form} fields={@filter_fields}>
-            <div
-              :if={date_filter_row_start?(i)}
-              class="mt-1 border-t border-slate-100 pt-3 dark:border-slate-700/80"
-              aria-hidden="true"
-            >
+            <div :if={date_filter_row_start?(i)} class="mt-1 border-t border-slate-100 pt-3 dark:border-slate-700/80"
+              aria-hidden="true">
             </div>
-            <div
-              :if={i.label == "Barragem"}
-              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium"
-            >
+            <div :if={i.label=="Barragem" }
+              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
               <p class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Barragem
               </p>
-              <.data_points_dam_multiselect
-                options={@data_points_dam_names}
-                selected={dam_names_from_flop(@meta)}
-                open?={@dam_multiselect_open}
-              />
-              <%= if dam_names_from_flop(@meta) != [] do %>
+              <.data_points_dam_multiselect options={@data_points_dam_names} selected={dam_names_from_flop(@meta)}
+                open?={@dam_multiselect_open} />
+              <%= if dam_names_from_flop(@meta) !=[] do %>
                 <p class="mt-1.5 text-xs text-slate-600 dark:text-slate-400">
-                  <button
-                    type="button"
-                    phx-click="clear_data_points_dams"
-                    class="font-semibold text-brand-600 hover:underline dark:text-brand-400"
-                  >
+                  <button type="button" phx-click="clear_data_points_dams"
+                    class="font-semibold text-brand-600 hover:underline dark:text-brand-400">
                     Limpar seleção de barragens
                   </button>
                 </p>
-              <% end %>
+                <% end %>
             </div>
-            <div
-              :if={i.label == "Parâmetro"}
-              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium"
-            >
+            <div :if={i.label=="Parâmetro" }
+              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
               <p class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 {i.label}
               </p>
               <input type="hidden" name={i.field.name} id={i.field.id} value={param_value_from_flop(@meta)} />
-              <.data_points_filter_single_select
-                id="data-points-filter-param-panel"
-                field="param_name"
-                options={param_filter_options()}
-                value={param_value_from_flop(@meta)}
-                open?={@data_points_single_select_open == "param_name"}
-              />
+              <.data_points_filter_single_select id="data-points-filter-param-panel" field="param_name"
+                options={param_filter_options()} value={param_value_from_flop(@meta)}
+                open?={@data_points_single_select_open=="param_name" } />
             </div>
-            <div
-              :if={i.label == "Bacia"}
-              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium"
-            >
+            <div :if={i.label=="Bacia" }
+              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
               <p class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 {i.label}
               </p>
               <input type="hidden" name={i.field.name} id={i.field.id} value={basin_value_from_flop(@meta)} />
-              <.data_points_filter_single_select
-                id="data-points-filter-basin-panel"
-                field="basin"
-                options={basin_filter_options(@data_points_basins)}
-                value={basin_value_from_flop(@meta)}
-                open?={@data_points_single_select_open == "basin"}
-              />
+              <.data_points_filter_single_select id="data-points-filter-basin-panel" field="basin"
+                options={basin_filter_options(@data_points_basins)} value={basin_value_from_flop(@meta)}
+                open?={@data_points_single_select_open=="basin" } />
             </div>
-            <div
-              :if={
-                i.label not in ["Barragem", "Parâmetro", "Bacia"] && i.type == "select"
-              }
-              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium"
-            >
-              <.input
-                field={i.field}
-                label={i.label}
-                type="select"
-                options={Keyword.get(i.rest, :options, [])}
-                phx-change="update-filter"
-                phx-debounce="300"
-                {Keyword.drop(i.rest, [:options])}
-              />
+            <div :if={ i.label not in ["Barragem", "Parâmetro" , "Bacia" ] && i.type=="select" }
+              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
+              <.input field={i.field} label={i.label} type="select" options={Keyword.get(i.rest, :options, [])}
+                phx-change="update-filter" phx-debounce="300" {Keyword.drop(i.rest, [:options])} />
             </div>
-            <div
-              :if={i.label != "Barragem" && i.type != "select"}
-              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium"
-            >
-              <.input
-                field={i.field}
-                label={i.label}
-                type={i.type}
-                phx-change="update-filter"
-                phx-debounce="300"
-                class={DataPointsFilterDateClass.class()}
-                {i.rest}
-              />
+            <div :if={i.label !="Barragem" && i.type !="select" }
+              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
+              <.input field={i.field} label={i.label} type={i.type} phx-change="update-filter" phx-debounce="300"
+                class={DataPointsFilterDateClass.class()} {i.rest} />
             </div>
           </.filter_fields>
         </div>
 
         <div class="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 dark:border-slate-700/80">
-          <button
-            type="submit"
-            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
-          >
+          <button type="submit"
+            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
             Aplicar
           </button>
-          <.link
-            patch={~p"/dashboard/data-points"}
-            class="inline-flex w-full justify-center rounded-md border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50"
-          >
+          <.link patch={~p"/dashboard/data-points"}
+            class="inline-flex w-full justify-center rounded-md border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50">
             Limpar
           </.link>
-          <%= if @data_points_export_enabled do %>
-            <a
-              href={@data_points_export_href}
-              class="inline-flex w-full justify-center rounded-md border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50"
-            >
-              Exportar CSV
-            </a>
-          <% else %>
-            <span
-              class="inline-flex w-full cursor-not-allowed justify-center rounded-md border border-dashed border-slate-300 px-3 py-2 text-center text-sm font-semibold text-slate-400 dark:border-slate-600 dark:text-slate-500"
-              title="Escolha um parâmetro, aplique os filtros e volte a exportar."
-            >
-              Exportar CSV
-            </span>
-          <% end %>
         </div>
       </.form>
     </aside>
 
     <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4 lg:h-full">
-      <.table
-        id="data-points-table"
-        items={@data_points}
-        meta={@meta}
-        path={~p"/dashboard/data-points"}
-        opts={@table_opts}
-      >
-        <:col :let={row} label="Barragem" field={:dam_name}>
-          <span class="text-slate-900 dark:text-slate-100">{row.dam_name}</span>
-        </:col>
-        <:col :let={row} label="Bacia" field={:basin}>
-          <span class="text-slate-600 dark:text-slate-400">{row.basin}</span>
-        </:col>
-        <:col :let={row} label="Valor" field={:value}>
-          <span class="tabular-nums text-slate-900 dark:text-slate-100">
-            {format_decimal(row.value)}
-          </span>
-        </:col>
-        <:col :let={row} label="Recolhido" field={:colected_at}>
-          <.data_points_colected_at_cell at={row.colected_at} />
-        </:col>
-      </.table>
+      <div class="relative min-h-0 flex-1 w-full" phx-click-away={if(@data_points_table_menu_open,
+        do: "data_points_table_menu_close" )}>
+        <div class="pointer-events-none absolute right-3 top-2 z-30">
+          <div class="pointer-events-auto relative">
+            <button id="data-points-table-menu-trigger" type="button" phx-click="data_points_table_menu_toggle"
+              aria-expanded={to_string(@data_points_table_menu_open)} aria-haspopup="menu"
+              aria-controls="data-points-table-actions-menu"
+              class="inline-flex size-8 items-center justify-center rounded-md p-0 text-slate-500 hover:bg-slate-100/90 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100 dark:focus-visible:ring-offset-slate-900"
+              title="Mais opções">
+              <span class="sr-only">Abrir menu</span>
+              <.icon name="hero-ellipsis-vertical" class="block size-5 shrink-0" />
+            </button>
+
+            <div
+              id="data-points-table-actions-menu"
+              role="menu"
+              aria-labelledby="data-points-table-menu-trigger"
+              class={[
+                "absolute right-0 top-full z-40 mt-1 w-44 origin-top-right overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-600 dark:bg-slate-800",
+                !@data_points_table_menu_open && "hidden"
+              ]}
+            >
+              <%= if @data_points_export_enabled do %>
+                <a href={@data_points_export_href} role="menuitem" phx-click="data_points_table_menu_close"
+                  class="block px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80">
+                  Exportar CSV
+                </a>
+                <% else %>
+                  <span role="menuitem" aria-disabled="true"
+                    class="block cursor-not-allowed px-3 py-2 text-sm text-slate-400 dark:text-slate-500"
+                    title="Escolha um parâmetro, aplique os filtros e volte a exportar.">
+                    Exportar CSV
+                  </span>
+                  <% end %>
+            </div>
+          </div>
+        </div>
+
+        <.table id="data-points-table" items={@data_points} meta={@meta} path={~p"/dashboard/data-points"}
+          opts={@table_opts}>
+          <:col :let={row} label="Barragem" field={:dam_name}>
+            <span class="text-slate-900 dark:text-slate-100">{row.dam_name}</span>
+          </:col>
+          <:col :let={row} label="Bacia" field={:basin}>
+            <span class="text-slate-600 dark:text-slate-400">{row.basin}</span>
+          </:col>
+          <:col :let={row} label="Valor" field={:value}>
+            <span class="tabular-nums text-slate-900 dark:text-slate-100">
+              {format_decimal(row.value)}
+            </span>
+          </:col>
+          <:col :let={row} label="Recolhido" field={:colected_at}>
+            <.data_points_colected_at_cell at={row.colected_at} />
+          </:col>
+        </.table>
+      </div>
 
       <div class="flex shrink-0 justify-center py-2">
-        <.pagination
-          meta={@meta}
-          path={~p"/dashboard/data-points"}
-          page_links={5}
-          class="flex flex-wrap items-center justify-center gap-1.5"
-          aria-label="Paginação"
-          page_list_attrs={[
-            class:
-              "order-2 m-0 flex list-none flex-wrap items-center justify-center gap-1.5 p-0"
-          ]}
-          page_list_item_attrs={[
-            class: "m-0 flex list-none items-center justify-center p-0"
-          ]}
-          page_link_attrs={flop_pagination_page_link_attrs()}
-          current_page_link_attrs={flop_pagination_current_attrs()}
-          disabled_link_attrs={flop_pagination_disabled_attrs()}
-        >
+        <.pagination meta={@meta} path={~p"/dashboard/data-points"} page_links={5}
+          class="flex flex-wrap items-center justify-center gap-1.5" aria-label="Paginação" page_list_attrs={[
+          class: "order-2 m-0 flex list-none flex-wrap items-center justify-center gap-1.5 p-0" ]}
+          page_list_item_attrs={[ class: "m-0 flex list-none items-center justify-center p-0" ]}
+          page_link_attrs={flop_pagination_page_link_attrs()} current_page_link_attrs={flop_pagination_current_attrs()}
+          disabled_link_attrs={flop_pagination_disabled_attrs()}>
           <:previous attrs={flop_pagination_prev_attrs()}>
             ← Anterior
           </:previous>

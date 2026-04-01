@@ -225,7 +225,8 @@ defmodule BarragensptWeb.CoreComponents do
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            @class || "block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100",
+            "block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100",
+            @class,
             @errors != [] && (@error_class || "border-red-500")
           ]}
           {@rest}
@@ -329,6 +330,22 @@ defmodule BarragensptWeb.CoreComponents do
       aria-hidden="true"
     >
       <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+    </svg>
+    """
+  end
+
+  def icon(%{name: "hero-ellipsis-vertical"} = assigns) do
+    ~H"""
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      class={@class}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="6" r="1.5" />
+      <circle cx="12" cy="12" r="1.5" />
+      <circle cx="12" cy="18" r="1.5" />
     </svg>
     """
   end
