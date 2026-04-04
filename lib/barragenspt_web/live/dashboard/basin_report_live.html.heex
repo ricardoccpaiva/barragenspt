@@ -1,0 +1,214 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div
+    class="grid grid-cols-1 gap-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-stretch lg:gap-8 xl:grid-cols-[18rem_minmax(0,1fr)]">
+    <aside class="w-full self-start lg:sticky lg:top-4">
+      <form id="basin-report-form" phx-submit="generate"
+        class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-600 dark:bg-slate-800 sm:p-4">
+        <p class="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
+          Parâmetros
+        </p>
+        <div class="flex flex-col gap-3">
+          <div class="space-y-1">
+            <label for="basin-report-basin" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Bacia hidrográfica
+            </label>
+            <div class="relative">
+              <select id="basin-report-basin" name="basin"
+                class="w-full appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-9 text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500 disabled:opacity-60"
+                disabled={@basins==[] or @loading}>
+                <%= if @basins==[] do %>
+                  <option value="">— Sem bacias na base de dados —</option>
+                  <% else %>
+                    <option value={BasinReport.all_basins_option_value()}
+                      selected={@selected_basin==BasinReport.all_basins_option_value()}>
+                      Todas as bacias (síntese)
+                    </option>
+                    <%= for b <- @basins do %>
+                      <option value={b} selected={b==@selected_basin}>{b}</option>
+                      <% end %>
+                        <% end %>
+              </select>
+              <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5" aria-hidden="true">
+                <svg class="size-4 shrink-0 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <label for="basin-report-period" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Período (UTC)
+            </label>
+            <div class="relative">
+              <select id="basin-report-period" name="period"
+                class="w-full appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-9 text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500 disabled:opacity-60"
+                disabled={@loading}>
+                <option value="week" selected={@period==:week}>Últimos 7 dias</option>
+                <option value="30" selected={@period==:month}>Últimos 30 dias</option>
+                <option value="3m" selected={@period==:months_3}>Últimos 3 meses</option>
+                <option value="6m" selected={@period==:months_6}>Últimos 6 meses</option>
+              </select>
+              <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5" aria-hidden="true">
+                <svg class="size-4 shrink-0 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-1 border-t border-slate-100 pt-3 dark:border-slate-700/80">
+            <div class="flex items-center gap-1.5">
+              <label for="basin-report-compare" class="text-sm font-medium text-slate-800 dark:text-slate-200">
+                Comparação
+              </label>
+              <button type="button"
+                phx-click={
+                  JS.remove_class("hidden", to: "#basin-report-compare-help-modal")
+                  |> JS.add_class("flex", to: "#basin-report-compare-help-modal")
+                }
+                class="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-white text-[10px] font-bold leading-none text-slate-600 shadow-sm hover:bg-slate-50 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
+                aria-label="Explicação das opções de comparação">
+                i
+              </button>
+            </div>
+            <div class="relative">
+              <select id="basin-report-compare" name="compare"
+                class="w-full appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-9 text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500 disabled:opacity-60"
+                disabled={@loading}>
+                <option value="none" selected={@compare_mode==:none}>Sem comparação</option>
+                <option value="homologous" selected={@compare_mode==:homologous}>
+                  Período homólogo
+                </option>
+                <option value="previous" selected={@compare_mode==:previous}>
+                  Período anterior
+                </option>
+              </select>
+              <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5" aria-hidden="true">
+                <svg class="size-4 shrink-0 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 dark:border-slate-700/80">
+          <button type="submit" disabled={@basins==[] or @loading or not @cerebras_configured}
+            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60">
+            <%= if @loading do %>
+              A gerar…
+              <% else %>
+                Gerar relatório
+                <% end %>
+          </button>
+        </div>
+      </form>
+    </aside>
+
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
+      <%= if not @cerebras_configured do %>
+        <p
+          class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
+          O serviço de relatório não está configurado (<code
+            class="rounded bg-amber-100/80 px-1 dark:bg-amber-900/60">CEREBRAS_API_KEY</code> em falta).
+        </p>
+        <% end %>
+
+          <%= if @error_message do %>
+            <p
+              class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-100">
+              {@error_message}
+            </p>
+            <% end %>
+
+              <%= cond do %>
+                <% @loading -> %>
+                  <div
+                    class="flex min-h-[12rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-12 text-center dark:border-slate-600 dark:bg-slate-800/30">
+                    <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
+                      A gerar o relatório…
+                    </p>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      Isto pode demorar um minuto, dependendo do tamanho da bacia.
+                    </p>
+                  </div>
+                  <% @report_text -> %>
+                    <section
+                      class="min-h-0 flex-1 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
+                      <div
+                        class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3 dark:border-slate-700/80">
+                        <h2 class="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                          Relatório
+                        </h2>
+                      </div>
+                      <div class="mt-3 max-h-[min(48rem,calc(100vh-12rem))] overflow-y-auto">
+                        <.safe_markdown content={@report_text} class="mt-0" />
+                      </div>
+                    </section>
+                    <% true -> %>
+                      <div
+                        class="flex min-h-[10rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-10 text-center dark:border-slate-600 dark:bg-slate-800/20">
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                          Escolha a bacia e o período na barra lateral e clique em «Gerar relatório».
+                        </p>
+                      </div>
+                      <% end %>
+    </div>
+  </div>
+
+  <div id="basin-report-compare-help-modal"
+    class="fixed inset-0 z-50 hidden items-start justify-center overflow-y-auto p-4 sm:items-center sm:p-6"
+    role="dialog" aria-modal="true" aria-labelledby="basin-report-compare-help-title">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] dark:bg-slate-950/70"
+      phx-click={
+        JS.add_class("hidden", to: "#basin-report-compare-help-modal")
+        |> JS.remove_class("flex", to: "#basin-report-compare-help-modal")
+      }>
+    </div>
+
+    <div
+      class="relative mt-4 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-4 pt-5 shadow-xl dark:border-slate-600 dark:bg-slate-800 sm:p-6 sm:pt-6">
+      <button type="button"
+        phx-click={
+          JS.add_class("hidden", to: "#basin-report-compare-help-modal")
+          |> JS.remove_class("flex", to: "#basin-report-compare-help-modal")
+        }
+        class="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:text-slate-400 dark:hover:bg-slate-700/90 dark:hover:text-white"
+        aria-label="Fechar">
+        <.icon name="hero-x-mark" class="size-5 shrink-0" />
+      </button>
+
+      <div class="min-w-0 pr-10">
+        <h2 id="basin-report-compare-help-title" class="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          Comparação
+        </h2>
+        <div class="mt-4 space-y-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+          <div>
+            <p class="font-semibold text-slate-900 dark:text-slate-100">Sem comparação</p>
+            <p class="mt-1">
+              Gera o relatório apenas com base no período principal que escolheste (bacia e intervalo de datas).
+            </p>
+          </div>
+          <div>
+            <p class="font-semibold text-slate-900 dark:text-slate-100">Período homólogo</p>
+            <p class="mt-1">
+              Compara o período analisado com o mesmo número de dias no ano anterior, em UTC, mantendo o alinhamento
+              calendarial. Útil para contrastar com a situação homóloga do ano passado.
+            </p>
+          </div>
+          <div>
+            <p class="font-semibold text-slate-900 dark:text-slate-100">Período anterior</p>
+            <p class="mt-1">
+              Compara com o intervalo que antecede imediatamente o período principal, com a mesma duração — por
+              exemplo, os 7 dias antes da tua janela de 7 dias, ou os mesmos meses relativos em janelas longas.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layouts.app>

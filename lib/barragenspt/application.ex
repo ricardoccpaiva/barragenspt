@@ -14,21 +14,22 @@ defmodule Barragenspt.Application do
     OpentelemetryOban.setup()
     OpentelemetryLoggerMetadata.setup()
 
-    children = [
-      Barragenspt.PromEx,
-      # Start the Ecto repository
-      Barragenspt.Repo,
-      # Start the Telemetry supervisor
-      BarragensptWeb.Telemetry,
-      # Start the PubSub system
-      {Phoenix.PubSub, name: Barragenspt.PubSub},
-      # Start the Endpoint (http/https)
-      BarragensptWeb.Endpoint,
-      {Oban, oban_config()},
-      Barragenspt.Cache,
-      Barragenspt.MeteoDataCache,
-      Barragenspt.RealtimeDataPointsCache
-    ]
+    children =
+      [
+        Barragenspt.PromEx,
+        # Start the Ecto repository
+        Barragenspt.Repo,
+        # Start the Telemetry supervisor
+        BarragensptWeb.Telemetry,
+        # Start the PubSub system
+        {Phoenix.PubSub, name: Barragenspt.PubSub},
+        # Start the Endpoint (http/https)
+        BarragensptWeb.Endpoint,
+        {Oban, oban_config()},
+        Barragenspt.Cache,
+        Barragenspt.MeteoDataCache,
+        Barragenspt.RealtimeDataPointsCache
+      ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

@@ -28,7 +28,8 @@ defmodule BarragensptWeb.CoreComponents do
   end
 
   attr :rest, :global,
-    include: ~w(href navigate patch method download name value disabled type role phx-disable-with formaction)
+    include:
+      ~w(href navigate patch method download name value disabled type role phx-disable-with formaction)
 
   attr :class, :string, default: nil
   attr :variant, :string, default: nil
@@ -115,12 +116,18 @@ defmodule BarragensptWeb.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class={[@class || "mt-1 size-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800"]}
+          class={[
+            @class ||
+              "mt-1 size-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800"
+          ]}
           {@rest}
         />
         <span :if={@label} class="text-sm text-slate-700 dark:text-slate-300">{@label}</span>
       </label>
-      <p :for={msg <- @errors} class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+      <p
+        :for={msg <- @errors}
+        class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
+      >
         <.icon name="hero-exclamation-circle" class="size-4 shrink-0" />
         {msg}
       </p>
@@ -139,7 +146,8 @@ defmodule BarragensptWeb.CoreComponents do
           id={@id}
           name={@name}
           class={[
-            @class || "block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100",
+            @class ||
+              "block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100",
             @errors != [] && (@error_class || "border-red-500")
           ]}
           multiple={@multiple}
@@ -149,7 +157,10 @@ defmodule BarragensptWeb.CoreComponents do
           {Phoenix.HTML.Form.options_for_select(@options || [], @value)}
         </select>
       </label>
-      <p :for={msg <- @errors} class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+      <p
+        :for={msg <- @errors}
+        class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
+      >
         <.icon name="hero-exclamation-circle" class="size-4 shrink-0" />
         {msg}
       </p>
@@ -168,13 +179,17 @@ defmodule BarragensptWeb.CoreComponents do
           id={@id}
           name={@name}
           class={[
-            @class || "block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100",
+            @class ||
+              "block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100",
             @errors != [] && (@error_class || "border-red-500")
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
       </label>
-      <p :for={msg <- @errors} class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+      <p
+        :for={msg <- @errors}
+        class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
+      >
         <.icon name="hero-exclamation-circle" class="size-4 shrink-0" />
         {msg}
       </p>
@@ -198,13 +213,17 @@ defmodule BarragensptWeb.CoreComponents do
           id={@id}
           value={@date_value}
           class={[
-            @class || "block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100",
+            @class ||
+              "block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100",
             @errors != [] && (@error_class || "border-red-500")
           ]}
           {@rest}
         />
       </label>
-      <p :for={msg <- @errors} class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+      <p
+        :for={msg <- @errors}
+        class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
+      >
         <.icon name="hero-exclamation-circle" class="size-4 shrink-0" />
         {msg}
       </p>
@@ -232,7 +251,10 @@ defmodule BarragensptWeb.CoreComponents do
           {@rest}
         />
       </label>
-      <p :for={msg <- @errors} class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+      <p
+        :for={msg <- @errors}
+        class="mt-1.5 flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
+      >
         <.icon name="hero-exclamation-circle" class="size-4 shrink-0" />
         {msg}
       </p>
@@ -529,6 +551,23 @@ defmodule BarragensptWeb.CoreComponents do
   def icon(assigns) do
     ~H"""
     <span class={["inline-block", @class]} title={@name}>•</span>
+    """
+  end
+
+  @doc """
+  Renders Markdown as sanitized HTML (for trusted-ish sources such as API-generated reports).
+  """
+  attr :content, :string, required: true
+  attr :class, :string, default: nil
+
+  def safe_markdown(assigns) do
+    html = BarragensptWeb.Markdown.to_safe_html(assigns.content)
+    assigns = assign(assigns, :html, html)
+
+    ~H"""
+    <div class={["markdown-report max-w-none", @class]}>
+      {Phoenix.HTML.raw(@html)}
+    </div>
     """
   end
 

@@ -19,7 +19,17 @@ defmodule Barragenspt.MixProject do
   def application do
     [
       mod: {Barragenspt.Application, []},
-      extra_applications: [:logger, :runtime_tools, :httpoison, :scrivener, :xmerl, :bugsnag]
+      extra_applications: [
+        :logger,
+        :runtime_tools,
+        :httpoison,
+        :scrivener,
+        :xmerl,
+        :bugsnag,
+        # Markdown preview: ensure OTP loads these in releases (not only as passive deps)
+        :earmark,
+        :html_sanitize_ex
+      ]
     ]
   end
 
@@ -84,7 +94,9 @@ defmodule Barragenspt.MixProject do
       {:bugsnag, "~> 3.0.2"},
       {:resend, "~> 0.4"},
       {:swoosh, "~> 1.6"},
-      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev}
+      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
+      {:earmark, "~> 1.4"},
+      {:html_sanitize_ex, "~> 1.4"}
     ]
   end
 

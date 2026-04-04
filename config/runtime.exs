@@ -13,6 +13,14 @@ config :barragenspt, Barragenspt.Mailer, api_key: resend_api_key
 
 config :barragenspt, :snirh, proxy: System.get_env("SNIRH_PROXY")
 
+cerebras_api_key = System.get_env("CEREBRAS_API_KEY")
+cerebras_base_url = System.get_env("CEREBRAS_BASE_URL") || "https://api.cerebras.ai/v1"
+cerebras_model = System.get_env("CEREBRAS_MODEL") || "llama3.1-8b"
+
+config :barragenspt, :cerebras_api_key, cerebras_api_key
+config :barragenspt, :cerebras_base_url, cerebras_base_url
+config :barragenspt, :cerebras_model, cerebras_model
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
@@ -96,3 +104,4 @@ if config_env() == :prod do
   # Then you can assemble a release by calling `mix release`.
   # See `mix help release` for more information.
 end
+

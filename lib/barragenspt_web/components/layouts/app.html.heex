@@ -2,81 +2,64 @@
   <header class="border-b border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
     <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3">
       <div class="flex min-w-0 items-center gap-4 sm:gap-6">
-        <a
-          href="/"
-          class="inline-flex items-center gap-2 font-semibold text-brand-600 hover:opacity-90 dark:text-brand-400"
-        >
-          <img
-            src={~p"/images/droplets.svg"}
-            alt=""
-            width="32"
-            height="32"
-            decoding="async"
-            class="h-8 w-8 shrink-0"
-            aria-hidden="true"
-          />
+        <a href="/"
+          class="inline-flex items-center gap-2 font-semibold text-brand-600 hover:opacity-90 dark:text-brand-400">
+          <img src={~p"/images/droplets.svg"} alt="" width="32" height="32" decoding="async" class="h-8 w-8 shrink-0"
+            aria-hidden="true" />
           <span>barragens.pt</span>
         </a>
 
         <%= if @current_scope && @current_scope.user do %>
           <nav class="flex flex-wrap items-center gap-1 text-sm">
-            <.link navigate={~p"/dashboard"} class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
-              Painel
+            <.link navigate={~p"/dashboard"}
+              class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
+              Início
             </.link>
-            <.link navigate={~p"/dashboard/data-points"} class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
+            <.link navigate={~p"/dashboard/data-points"}
+              class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
               Dados
             </.link>
-            <.link navigate={~p"/dashboard/alerts"} class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
+            <.link navigate={~p"/dashboard/basin-report"}
+              class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
+              Relatório IA
+            </.link>
+            <.link navigate={~p"/dashboard/alerts"}
+              class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
               Alertas
             </.link>
             <.live_component module={BarragensptWeb.EvaluateAlertsShortcutComponent} id="navbar-evaluate-alerts" />
             <%= if Mix.env() in [:dev, :test] do %>
-              <.link
-                navigate={~p"/dashboard/test/force-dam-value"}
-                class="rounded-lg px-2.5 py-1.5 font-semibold text-amber-800 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-900/25"
-              >
+              <.link navigate={~p"/dashboard/test/force-dam-value"}
+                class="rounded-lg px-2.5 py-1.5 font-semibold text-amber-800 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-900/25">
                 Teste dados
               </.link>
-            <% end %>
+              <% end %>
           </nav>
-        <% end %>
+          <% end %>
       </div>
 
       <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-        <div
-          id="app-layout-dark-toggle"
-          phx-hook="DarkModeToggle"
-          role="group"
-          aria-label="Selecionar tema"
-          class="inline-flex items-center rounded-xl border border-sky-100 bg-white p-0.5 shadow-[0_1px_6px_rgba(30,64,175,0.10)] dark:border-slate-600 dark:bg-slate-800"
-        >
-          <button
-            type="button"
-            data-theme-option="light"
-            aria-label="Modo claro"
-            aria-pressed="true"
-            class="inline-flex h-7 w-7 items-center justify-center rounded-[10px] text-slate-500 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-          >
+        <div id="app-layout-dark-toggle" phx-hook="DarkModeToggle" role="group" aria-label="Selecionar tema"
+          class="inline-flex items-center rounded-xl border border-sky-100 bg-white p-0.5 shadow-[0_1px_6px_rgba(30,64,175,0.10)] dark:border-slate-600 dark:bg-slate-800">
+          <button type="button" data-theme-option="light" aria-label="Modo claro" aria-pressed="true"
+            class="inline-flex h-7 w-7 items-center justify-center rounded-[10px] text-slate-500 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
             <.icon name="hero-sun" class="h-3.5 w-3.5" />
           </button>
-          <button
-            type="button"
-            data-theme-option="dark"
-            aria-label="Modo escuro"
-            aria-pressed="false"
-            class="inline-flex h-7 w-7 items-center justify-center rounded-[10px] text-slate-500 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-          >
+          <button type="button" data-theme-option="dark" aria-label="Modo escuro" aria-pressed="false"
+            class="inline-flex h-7 w-7 items-center justify-center rounded-[10px] text-slate-500 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
             <.icon name="hero-moon" class="h-3.5 w-3.5" />
           </button>
         </div>
 
         <%= if @current_scope && @current_scope.user do %>
           <details id="navbar-avatar-menu" class="group relative" phx-hook="AvatarMenu">
-            <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-slate-100 dark:hover:bg-slate-700/70">
-              <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-xs font-bold text-white">
+            <summary
+              class="flex cursor-pointer list-none items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-slate-100 dark:hover:bg-slate-700/70">
+              <span
+                class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-xs font-bold text-white">
                 {case @current_scope.user.email do
-                  e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
-                  _ -> "U"
+                e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
+                _ -> "U"
                 end}
               </span>
               <span class="hidden max-w-[12rem] truncate text-sm text-slate-600 dark:text-slate-400 sm:inline">
@@ -84,30 +67,28 @@
               </span>
             </summary>
 
-            <div class="absolute right-0 z-20 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-600 dark:bg-slate-800">
-              <.link
-                navigate={~p"/users/settings"}
-                class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
-              >
+            <div
+              class="absolute right-0 z-20 mt-2 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-600 dark:bg-slate-800">
+              <.link navigate={~p"/users/settings"}
+                class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
                 Definições
               </.link>
-              <.link
-                href={~p"/users/log-out"}
-                method="delete"
-                class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-900/30"
-              >
+              <.link href={~p"/users/log-out"} method="delete"
+                class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-900/30">
                 Sair
               </.link>
             </div>
           </details>
-        <% else %>
-          <.link navigate={~p"/users/register"} class="rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
-            Registo
-          </.link>
-          <.link navigate={~p"/users/log-in"} class="rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
-            Iniciar sessão
-          </.link>
-        <% end %>
+          <% else %>
+            <.link navigate={~p"/users/register"}
+              class="rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
+              Registo
+            </.link>
+            <.link navigate={~p"/users/log-in"}
+              class="rounded-lg px-2.5 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70">
+              Iniciar sessão
+            </.link>
+            <% end %>
       </div>
     </div>
   </header>
