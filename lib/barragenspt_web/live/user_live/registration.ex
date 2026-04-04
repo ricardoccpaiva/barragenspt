@@ -36,6 +36,19 @@ defmodule BarragensptWeb.UserLive.Registration do
             Create an account
           </.button>
         </.form>
+
+        <div class="my-3 flex items-center gap-4 py-2 text-center text-sm text-slate-500">
+          <div class="h-px flex-1 bg-slate-200 dark:bg-slate-600"></div>
+          <span>or</span>
+          <div class="h-px flex-1 bg-slate-200 dark:bg-slate-600"></div>
+        </div>
+
+        <.link
+          href={~p"/auth/google"}
+          class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900"
+        >
+          Continue with Google
+        </.link>
       </div>
     </Layouts.app>
     """

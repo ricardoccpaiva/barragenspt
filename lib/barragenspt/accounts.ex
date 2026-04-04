@@ -82,6 +82,40 @@ defmodule Barragenspt.Accounts do
     |> Repo.insert()
   end
 
+  @doc """
+  Finds or creates a user for Google OAuth login.
+
+  Users created from Google are marked as confirmed immediately.
+  """
+  def find_or_create_google_user(email) when is_binary(email) do
+    email = normalize_oauth_email(email)
+
+    cond do
+      email == "" ->
+        {:error, :missing_email}
+
+      user = get_user_by_email(email) ->
+        ensure_user_confirmed(user)
+
+      true ->
+        %User{}
+        |> User.email_changeset(%{email: email})
+        |> Ecto.Changeset.put_change(:confirmed_at, NaiveDateTime.utc_now(:second))
+        |> Repo.insert()
+        |> case do
+          {:ok, user} ->
+            {:ok, user}
+
+          # Handles rare race where another request inserts the same email first.
+          {:error, _changeset} ->
+            case get_user_by_email(email) do
+              %User{} = user -> ensure_user_confirmed(user)
+              nil -> {:error, :cannot_create_user}
+            end
+        end
+    end
+  end
+
   ## Settings
 
   @doc """
@@ -423,4 +457,18 @@ defmodule Barragenspt.Accounts do
       end
     end)
   end
+
+  defp normalize_oauth_email(email) do
+    email
+    |> String.trim()
+    |> String.downcase()
+  end
+
+  defp ensure_user_confirmed(%User{confirmed_at: nil} = user) do
+    user
+    |> User.confirm_changeset()
+    |> Repo.update()
+  end
+
+  defp ensure_user_confirmed(%User{} = user), do: {:ok, user}
 end

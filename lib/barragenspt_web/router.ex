@@ -112,6 +112,9 @@ defmodule BarragensptWeb.Router do
   scope "/", BarragensptWeb do
     pipe_through [:browser]
 
+    get "/auth/:provider", UserOAuthController, :request
+    get "/auth/:provider/callback", UserOAuthController, :callback
+
     live_session :current_user,
       on_mount: [{BarragensptWeb.UserAuth, :mount_current_scope}] do
       live "/users/register", UserLive.Registration, :new

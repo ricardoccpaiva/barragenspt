@@ -94,6 +94,8 @@ defmodule Barragenspt.MixProject do
       {:bugsnag, "~> 3.0.2"},
       {:resend, "~> 0.4"},
       {:swoosh, "~> 1.6"},
+      {:ueberauth, "~> 0.10"},
+      {:ueberauth_google, "~> 0.12"},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:earmark, "~> 1.4"},
       {:html_sanitize_ex, "~> 1.4"}
