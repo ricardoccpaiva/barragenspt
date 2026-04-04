@@ -53,13 +53,31 @@ let damChart = null
 let damDischargeChart = null
 
 function toggleSidebar(open) {
+  window.__homepageSidebarOpen = !!open
+  applySidebarOpenState()
+}
+
+function isMobileViewport() {
+  return window.matchMedia("(max-width: 767px)").matches
+}
+
+function applySidebarOpenState() {
   const sidebar = document.getElementById("sidebar")
   const backdrop = document.getElementById("sidebarBackdrop")
-  if (open) {
+  if (!sidebar || !backdrop) return
+
+  const mobile = isMobileViewport()
+  const shouldOpen = mobile ? !!window.__homepageSidebarOpen : true
+
+  if (shouldOpen) {
     sidebar.classList.add("open")
-    backdrop.classList.remove("hidden")
   } else {
     sidebar.classList.remove("open")
+  }
+
+  if (mobile && shouldOpen) {
+    backdrop.classList.remove("hidden")
+  } else {
     backdrop.classList.add("hidden")
   }
 }
@@ -301,9 +319,13 @@ window.addEventListener("phx:page-loading-stop", () => {
   if (elD && dischargeSeries && typeof updateDischargeChart === "function") updateDischargeChart(dischargeSeries)
   const elR = document.getElementById("damRealtimeChart")
   if (elR && realtimeChartPayload && typeof updateRealtimeChart === "function") updateRealtimeChart(realtimeChartPayload)
+  applySidebarOpenState()
 })
 
+window.addEventListener("resize", applySidebarOpenState)
+
 window.toggleSidebar = toggleSidebar
+window.applyHomepageSidebarState = applySidebarOpenState
 window.updateDamChart = updateDamChart
 window.updateDischargeChart = updateDischargeChart
 window.updateRealtimeChart = updateRealtimeChart
