@@ -18,7 +18,7 @@ defmodule BarragensptWeb.DataPointsTableOpts do
     ],
     thead_th_attrs: [
       class:
-        "px-4 py-3.5 text-left text-[11px] font-bold uppercase tracking-[0.07em] text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400"
+        "px-4 py-3 text-left text-sm font-bold uppercase tracking-[0.07em] text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400"
     ],
     tbody_attrs: [
       class:
@@ -26,7 +26,7 @@ defmodule BarragensptWeb.DataPointsTableOpts do
     ],
     tbody_td_attrs: [
       class:
-        "px-4 py-2.5 align-middle text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300"
+        "px-4 py-3 align-middle text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300"
     ],
     tbody_tr_attrs: [
       class:

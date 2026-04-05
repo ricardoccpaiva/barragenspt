@@ -150,14 +150,24 @@ const DarkModeToggle = {
     const lightBtn = el.querySelector('[data-theme-option="light"]')
     const darkBtn = el.querySelector('[data-theme-option="dark"]')
 
+    const activeThemeBtn = [
+      "bg-brand-100",
+      "text-brand-800",
+      "ring-1",
+      "ring-inset",
+      "ring-brand-400/70",
+      "shadow-sm",
+      "dark:bg-brand-900/70",
+      "dark:text-brand-100",
+      "dark:ring-brand-400/50"
+    ]
+    const inactiveThemeBtn = ["text-slate-500", "dark:text-slate-400"]
+
     const setButtonState = (button, active) => {
       if (!button) return
       button.setAttribute("aria-pressed", active ? "true" : "false")
-      button.classList.toggle("bg-slate-50", active)
-      button.classList.toggle("text-slate-900", active)
-      button.classList.toggle("shadow-[0_1px_3px_rgba(15,23,42,0.08)]", active)
-      button.classList.toggle("dark:bg-slate-700/70", active)
-      button.classList.toggle("dark:text-white", active)
+      activeThemeBtn.forEach((c) => button.classList.toggle(c, active))
+      inactiveThemeBtn.forEach((c) => button.classList.toggle(c, !active))
     }
 
     const syncState = (on) => {
@@ -208,6 +218,57 @@ const AvatarMenu = {
   destroyed() {
     document.removeEventListener("click", this.onDocumentClick)
     document.removeEventListener("keydown", this.onDocumentKeydown)
+  }
+}
+
+const NavRouteActive = {
+  mounted() {
+    this.markActive = () => {
+      const pathname = window.location.pathname || "/"
+      this.el.querySelectorAll("[data-nav-path]").forEach((link) => {
+        const target = link.getAttribute("data-nav-path") || "/"
+        const active = target === "/" ? pathname === "/" : (pathname === target || pathname.startsWith(target + "/"))
+
+        const activeNav = [
+          "bg-brand-100",
+          "text-brand-800",
+          "ring-1",
+          "ring-inset",
+          "ring-brand-400/70",
+          "shadow-sm",
+          "dark:bg-brand-900/65",
+          "dark:text-brand-100",
+          "dark:ring-brand-400/45"
+        ]
+        const mutedNav = ["text-slate-500", "dark:text-slate-400"]
+        activeNav.forEach((c) => link.classList.toggle(c, active))
+        mutedNav.forEach((c) => link.classList.toggle(c, !active))
+
+        if (active) {
+          link.setAttribute("aria-current", "page")
+        } else {
+          link.removeAttribute("aria-current")
+        }
+      })
+    }
+
+    this.toggleSidebar = (open) => {
+      const sidebar = document.getElementById("app-shell-sidebar")
+      const backdrop = document.getElementById("app-shell-backdrop")
+      if (!sidebar || !backdrop) return
+      sidebar.classList.toggle("-translate-x-full", !open)
+      backdrop.classList.toggle("hidden", !open)
+    }
+
+    window.toggleAppShellSidebar = this.toggleSidebar
+    this.markActive()
+    window.addEventListener("popstate", this.markActive)
+    window.addEventListener("phx:page-loading-stop", this.markActive)
+  },
+
+  destroyed() {
+    window.removeEventListener("popstate", this.markActive)
+    window.removeEventListener("phx:page-loading-stop", this.markActive)
   }
 }
 
@@ -420,6 +481,7 @@ export const Hooks = {
   DamMultiselectSearch,
   DarkModeToggle,
   AvatarMenu,
+  NavRouteActive,
   OpenSettingsModal,
   SettingsModalBackdrop,
   SettingsModalCloseButton,

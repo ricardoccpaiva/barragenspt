@@ -8,45 +8,10 @@
   </div>
 </div>
 
-<div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/50 z-30 hidden" onclick="toggleSidebar(false)"></div>
-
-<!-- Mapa full-screen (sempre por trás da sidebar) -->
-<main class="fixed inset-0">
-  <div id="map" phx-update="ignore"></div>
-  <div class="map-wait absolute top-4 left-4 right-14 md:right-4 flex items-start justify-start gap-2 z-10 pointer-events-none">
-    <button
-      class="pointer-events-auto md:hidden h-10 w-10 flex items-center justify-center shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card text-slate-800 dark:text-slate-100"
-      aria-label="Abrir menu" onclick="toggleSidebar(true)">
-      <svg class="w-5 h-5 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" stroke-width="2.5"
-        viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-      </svg>
-    </button>
-    <div
-      class="pointer-events-auto flex items-center gap-2 h-10 px-3 shrink-0 rounded-xl bg-white/90 dark:bg-slate-800/90 shadow-card">
-      <div role="img" aria-label="Barragens.pt"
-        class="sidebar-logo header-bar-logo w-6 h-6 shrink-0 bg-brand-600 dark:bg-brand-400" style={"--logo-url:
-        url('#{@logo_path}')"} />
-      <span
-        class="logo-type text-[22px] font-medium whitespace-nowrap text-slate-600 dark:text-slate-300">BARRAGENS.PT</span>
-    </div>
-  </div>
-</main>
-
-<!-- Sidebar (shown when map has loaded) -->
-<aside id="sidebar"
-  class="map-wait sidebar-mobile md:translate-x-0 fixed z-40 w-[80%] max-w-[279px] md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] md:inset-y-2 md:left-2 md:right-auto flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-1.5 pb-2.5 md:px-3 md:pt-1.5 md:pb-2.5 space-y-3 rounded-2xl backdrop-blur-md">
-
-
-  <div class="flex items-center gap-2 min-w-0 pb-1.5 border-b border-slate-200/80 dark:border-slate-600/80">
-    <div role="img" aria-label="Barragens.pt" class="sidebar-logo w-8 h-8 shrink-0 bg-brand-600 dark:bg-brand-400"
-      style={"--logo-url: url('#{@logo_path}')"} />
-    <div class="leading-none min-w-0 flex-1">
-      <p class="logo-type text-[38px] text-slate-600 dark:text-slate-300 font-semibold mt-[12px]">BARRAGENS.PT</p>
-    </div>
-  </div>
-
-  <div class="search-wrapper relative mt-1.5">
+<Layouts.app flash={@flash} current_scope={@current_scope} mode={:map}>
+  <:sidebar>
+    <div class="flex min-h-0 flex-1 flex-col gap-3">
+    <div class="map-wait search-wrapper relative shrink-0">
     <input id="damSearchInput" type="search" placeholder="Pesquisar barragens ou rios..." phx-hook="SearchDam"
       class="w-full rounded-lg border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 px-2.5 py-2 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
     <div id="damSearchResults" class={"absolute left-0 right-0 top-full mt-0.5 z-50 max-h-60 overflow-y-auto rounded-lg
@@ -88,11 +53,11 @@
             <% end %>
               <% end %>
     </div>
-  </div>
+    </div>
 
-  <div class={"flex flex-col flex-1 min-h-0 transition-all duration-200 #{if @search_term !="" ,
+    <div class={"map-wait flex min-h-0 flex-1 flex-col gap-3 transition-all duration-200 #{if @search_term !="" ,
     do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
-    <div class="flex-1 min-h-0 overflow-y-auto space-y-3">
+      <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
       <div
         class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section"
         id="camadas-section" phx-update="ignore">
@@ -226,46 +191,52 @@
           <input id="toggleAlerts" type="checkbox" class="toggle" phx-hook="AlertsToggle">
         </label>
       </div>
-    </div>
+      </div>
 
-    <div
-      class="shrink-0 w-full pt-2 mt-2 border-t border-slate-200/80 dark:border-slate-600 flex items-center justify-between">
-      <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer" class="shrink-0"
-        aria-label="Ajudar o projeto">
-        <img class="h-7 w-auto object-contain" alt=""
-          src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
-      </a>
-      <div class="flex items-center gap-0.5 -mr-1">
-        <button type="button" id="open-info-modal-btn" phx-hook="OpenInfoModal" aria-label="Informações"
-          class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-            aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </button>
-        <button type="button" id="open-contact-modal-btn" phx-hook="OpenContactModal" aria-label="Contacto"
-          class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
-            aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-        </button>
-        <button type="button" phx-click="open_settings_modal" phx-hook="OpenSettingsModal" id="open-settings-modal-btn"
-          aria-label="Definições"
-          class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
+      <div
+        class="flex shrink-0 w-full items-center justify-between border-t border-slate-200/80 pt-3 dark:border-slate-600">
+        <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer" class="shrink-0"
+          aria-label="Ajudar o projeto">
+          <img class="h-7 w-auto object-contain" alt=""
+            src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
+        </a>
+        <div class="flex items-center gap-0.5 -mr-1">
+          <button type="button" id="open-info-modal-btn" phx-hook="OpenInfoModal" aria-label="Informações"
+            class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+              aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+          <button type="button" id="open-contact-modal-btn" phx-hook="OpenContactModal" aria-label="Contacto"
+            class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+              aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </button>
+          <button type="button" phx-click="open_settings_modal" phx-hook="OpenSettingsModal" id="open-settings-modal-btn"
+            aria-label="Definições"
+            class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-600 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-</aside>
+    </div>
+  </:sidebar>
+
+  <!-- Mapa full-screen -->
+  <main class="fixed inset-0">
+    <div id="map" phx-update="ignore"></div>
+  </main>
 
 <!-- Legendas fora da sidebar para position:fixed funcionar em mobile (sidebar com transform corta o containing block) -->
 <div id="legend-storage" class="map-wait legend-card">
@@ -456,3 +427,4 @@
       <img class="h-8 w-auto object-contain" alt=""
         src="https://img.buymeacoffee.com/button-api/?text=Ajudar o projeto&emoji=🙌&slug=barragenspt&button_colour=FF5F5F&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" />
     </a>
+</Layouts.app>

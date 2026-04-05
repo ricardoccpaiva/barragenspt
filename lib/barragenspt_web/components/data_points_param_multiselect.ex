@@ -23,7 +23,7 @@ defmodule BarragensptWeb.DataPointsParamMultiselect do
         type="button"
         phx-click="param_multiselect_toggle"
         aria-expanded={to_string(@open?)}
-        class="flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500"
+        class="flex w-full items-center justify-between gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500"
       >
         <span class="min-w-0 truncate">{@summary}</span>
         <svg
@@ -56,7 +56,7 @@ defmodule BarragensptWeb.DataPointsParamMultiselect do
         </div>
         <div class="max-h-52 overflow-y-auto border-t border-slate-100 px-1 pt-1 dark:border-slate-700">
           <%= if @options == [] do %>
-            <p class="px-2 py-2 text-center text-xs text-slate-500 dark:text-slate-400">Sem parâmetros na lista.</p>
+            <p class="px-2 py-2 text-center text-sm text-slate-500 dark:text-slate-400">Sem parâmetros na lista.</p>
           <% else %>
             <%= for {label, slug} <- @options do %>
               <% selected? = slug in @selected %>
@@ -66,7 +66,7 @@ defmodule BarragensptWeb.DataPointsParamMultiselect do
                 data-ms-filter-text={f}
                 phx-click="toggle_data_points_param"
                 phx-value-slug={slug}
-                class="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80"
+                class="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80"
               >
                 <span class={[
                   "flex size-4 shrink-0 items-center justify-center rounded border",

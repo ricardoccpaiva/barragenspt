@@ -21,14 +21,14 @@
               </p>
               <.data_points_dam_multiselect options={@data_points_dam_names} selected={dam_names_from_flop(@meta)}
                 open?={@dam_multiselect_open} />
-              <%= if dam_names_from_flop(@meta) !=[] do %>
+              <%= if dam_names_from_flop(@meta) != [] do %>
                 <p class="mt-1.5 text-xs text-slate-600 dark:text-slate-400">
                   <button type="button" phx-click="clear_data_points_dams"
                     class="font-semibold text-brand-600 hover:underline dark:text-brand-400">
                     Limpar seleção de barragens
                   </button>
                 </p>
-                <% end %>
+              <% end %>
             </div>
             <div :if={i.label=="Parâmetro" }
               class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
@@ -44,7 +44,7 @@
                     Limpar parâmetros
                   </button>
                 </p>
-                <% end %>
+              <% end %>
             </div>
             <div :if={i.label=="Bacia" }
               class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
@@ -114,18 +114,18 @@
                   class="block px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80">
                   Exportar CSV
                 </a>
-                <% else %>
-                  <span role="menuitem" aria-disabled="true"
-                    class="block cursor-not-allowed px-3 py-2 text-sm text-slate-400 dark:text-slate-500"
-                    title="Escolha um parâmetro, aplique os filtros e volte a exportar.">
-                    Ver gráfico
-                  </span>
-                  <span role="menuitem" aria-disabled="true"
-                    class="block cursor-not-allowed px-3 py-2 text-sm text-slate-400 dark:text-slate-500"
-                    title="Escolha um parâmetro, aplique os filtros e volte a exportar.">
-                    Exportar CSV
-                  </span>
-                  <% end %>
+              <% else %>
+                <span role="menuitem" aria-disabled="true"
+                  class="block cursor-not-allowed px-3 py-2 text-sm text-slate-400 dark:text-slate-500"
+                  title="Escolha um parâmetro, aplique os filtros e volte a exportar.">
+                  Ver gráfico
+                </span>
+                <span role="menuitem" aria-disabled="true"
+                  class="block cursor-not-allowed px-3 py-2 text-sm text-slate-400 dark:text-slate-500"
+                  title="Escolha um parâmetro, aplique os filtros e volte a exportar.">
+                  Exportar CSV
+                </span>
+              <% end %>
             </div>
           </div>
         </div>
@@ -176,12 +176,9 @@
 
       <div
         class="relative mt-4 w-full max-w-4xl rounded-2xl border border-slate-200 bg-white p-4 pt-5 shadow-xl dark:border-slate-600 dark:bg-slate-800 sm:p-6 sm:pt-6">
-        <button
-          type="button"
-          phx-click="close_data_points_chart"
+        <button type="button" phx-click="close_data_points_chart"
           class="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-slate-400 dark:hover:bg-slate-700/90 dark:hover:text-white dark:focus-visible:ring-offset-slate-800"
-          aria-label="Fechar"
-        >
+          aria-label="Fechar">
           <.icon name="hero-x-mark" class="size-5 shrink-0" />
         </button>
 
@@ -197,10 +194,14 @@
             <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Agrupado por {@data_points_chart_meta.grain_label} (média dos valores).
               <%= if @data_points_chart_meta.grain_auto_adjusted do %>
-                <span class="font-medium text-slate-800 dark:text-slate-200"> Ajustámos o agrupamento para caber no gráfico.</span>
+                <span class="font-medium text-slate-800 dark:text-slate-200">
+                  Ajustámos o agrupamento para caber no gráfico.
+                </span>
               <% end %>
               <%= if @data_points_chart_meta.over_point_cap do %>
-                <span class="font-medium text-amber-800 dark:text-amber-200"> Muitos pontos mesmo após agregar — afina o intervalo de datas se precisares de mais detalhe.</span>
+                <span class="font-medium text-amber-800 dark:text-amber-200">
+                  Muitos pontos mesmo após agregar — afina o intervalo de datas se precisares de mais detalhe.
+                </span>
               <% end %>
             </p>
           <% end %>

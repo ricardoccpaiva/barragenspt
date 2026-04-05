@@ -9,8 +9,8 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="space-y-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="space-y-8">
+        <div class="flex flex-wrap items-start justify-between gap-4 sm:items-center sm:gap-6">
           <.header>
             Alertas
             <:subtitle>

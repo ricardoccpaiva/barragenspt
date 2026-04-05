@@ -5,6 +5,7 @@
 
 /* Content paths for class detection (relative to this file). md = 768px. */
 @source "../../lib/**/*.{heex,ex}";
+@source "../../assets/js/**/*.js";
 
 @theme {
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
@@ -56,6 +57,11 @@ main.fixed.inset-0 {
 }
 html.map-loaded #map {
   opacity: 1;
+}
+
+/* MapLibre default controls sit top-right; offset so they clear app chrome (switcher + theme + avatar; matches layouts top-2 + h-10) */
+.maplibregl-ctrl-top-right {
+  top: 3.25rem;
 }
 
 .sidebar-mobile {

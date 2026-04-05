@@ -31,7 +31,7 @@ defmodule BarragensptWeb.DataPointsFilterSingleSelect do
         phx-value-field={@field}
         aria-haspopup="listbox"
         aria-expanded={to_string(@open?)}
-        class="flex w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500"
+        class="flex w-full items-center justify-between gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500"
       >
         <span class="min-w-0 truncate">{@summary}</span>
         <svg
