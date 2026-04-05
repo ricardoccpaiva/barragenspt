@@ -13,9 +13,11 @@ defmodule BarragensptWeb.UserOAuthController do
   end
 
   def callback(%{assigns: %{ueberauth_auth: %{provider: :google} = auth}} = conn, _params) do
-    email = auth.info.email || ""
+    info = auth.info
+    email = (info && info.email) || ""
+    image_url = info && info.image
 
-    case Accounts.find_or_create_google_user(email) do
+    case Accounts.find_or_create_google_user(email, image_url) do
       {:ok, user} ->
         conn
         |> put_flash(:info, "Sessão iniciada com Google.")

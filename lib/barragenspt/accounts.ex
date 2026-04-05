@@ -86,8 +86,12 @@ defmodule Barragenspt.Accounts do
   Finds or creates a user for Google OAuth login.
 
   Users created from Google are marked as confirmed immediately.
+  Persists `info.image` to `avatar_url` when it is a valid Google HTTPS URL; on
+  each login, refreshes `avatar_url` for existing users when Google sends a new URL.
+
+  `oauth_image_url` is typically `auth.info.image` from Ueberauth (may be `nil`).
   """
-  def find_or_create_google_user(email) when is_binary(email) do
+  def find_or_create_google_user(email, oauth_image_url \\ nil) when is_binary(email) do
     email = normalize_oauth_email(email)
 
     cond do
@@ -95,12 +99,13 @@ defmodule Barragenspt.Accounts do
         {:error, :missing_email}
 
       user = get_user_by_email(email) ->
-        ensure_user_confirmed(user)
+        with {:ok, user} <- ensure_user_confirmed(user) do
+          {:ok, sync_google_avatar_from_oauth(user, oauth_image_url)}
+        end
 
       true ->
         %User{}
-        |> User.email_changeset(%{email: email})
-        |> Ecto.Changeset.put_change(:confirmed_at, NaiveDateTime.utc_now(:second))
+        |> User.google_oauth_registration_changeset(email, oauth_image_url)
         |> Repo.insert()
         |> case do
           {:ok, user} ->
@@ -109,9 +114,39 @@ defmodule Barragenspt.Accounts do
           # Handles rare race where another request inserts the same email first.
           {:error, _changeset} ->
             case get_user_by_email(email) do
-              %User{} = user -> ensure_user_confirmed(user)
-              nil -> {:error, :cannot_create_user}
+              %User{} = user ->
+                with {:ok, user} <- ensure_user_confirmed(user) do
+                  {:ok, sync_google_avatar_from_oauth(user, oauth_image_url)}
+                end
+
+              nil ->
+                {:error, :cannot_create_user}
             end
+        end
+    end
+  end
+
+  defp sync_google_avatar_from_oauth(%User{} = user, oauth_image_url) do
+    oauth_image_url =
+      case oauth_image_url do
+        url when is_binary(url) -> String.trim(url)
+        _ -> ""
+      end
+
+    cond do
+      oauth_image_url == "" ->
+        user
+
+      not User.google_avatar_https_url?(oauth_image_url) ->
+        user
+
+      user.avatar_url == oauth_image_url ->
+        user
+
+      true ->
+        case Repo.update(User.avatar_url_changeset(user, %{avatar_url: oauth_image_url})) do
+          {:ok, updated} -> updated
+          {:error, _changeset} -> user
         end
     end
   end

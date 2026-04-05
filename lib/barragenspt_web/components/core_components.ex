@@ -648,6 +648,26 @@ defmodule BarragensptWeb.CoreComponents do
     """
   end
 
+  def icon(%{name: "hero-user-circle"} = assigns) do
+    ~H"""
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class={@class}
+      aria-hidden="true"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M17.982 18.725A11.942 11.942 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+      />
+    </svg>
+    """
+  end
+
   def icon(assigns) do
     ~H"""
     <span class={["inline-block", @class]} title={@name}>•</span>

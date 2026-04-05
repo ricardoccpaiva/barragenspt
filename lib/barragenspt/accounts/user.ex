@@ -4,6 +4,7 @@ defmodule Barragenspt.Accounts.User do
 
   schema "users" do
     field :email, :string
+    field :avatar_url, :string
     field :email_notifications_enabled, :boolean, default: true
     field :telegram_chat_id, :string
     field :telegram_enabled, :boolean, default: false
@@ -108,6 +109,76 @@ defmodule Barragenspt.Accounts.User do
       changeset
     end
   end
+
+  @doc """
+  Updates `avatar_url` from Google OAuth (`info.image`).
+
+  Invalid or non-Google HTTPS URLs are rejected; use `nil` to clear.
+  """
+  def avatar_url_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:avatar_url])
+    |> validate_google_avatar_url()
+  end
+
+  defp validate_google_avatar_url(changeset) do
+    case get_change(changeset, :avatar_url) do
+      nil ->
+        changeset
+
+      "" ->
+        put_change(changeset, :avatar_url, nil)
+
+      url when is_binary(url) ->
+        trimmed = String.trim(url)
+
+        if trimmed == "" do
+          put_change(changeset, :avatar_url, nil)
+        else
+          if google_avatar_https_url?(trimmed) do
+            put_change(changeset, :avatar_url, trimmed)
+          else
+            delete_change(changeset, :avatar_url)
+          end
+        end
+    end
+  end
+
+  @doc false
+  def google_oauth_registration_changeset(%__MODULE__{} = user, email, oauth_image_url)
+      when is_binary(email) do
+    cs =
+      user
+      |> email_changeset(%{email: email}, validate_unique: true)
+      |> put_change(:confirmed_at, NaiveDateTime.utc_now(:second))
+
+    case oauth_image_url |> to_string() |> String.trim() do
+      "" ->
+        cs
+
+      url ->
+        cs
+        |> cast(%{avatar_url: url}, [:avatar_url])
+        |> validate_google_avatar_url()
+    end
+  end
+
+  @doc false
+  def google_avatar_https_url?(url) when is_binary(url) do
+    url = String.trim(url)
+
+    case URI.parse(url) do
+      %URI{scheme: "https", host: host} when is_binary(host) ->
+        host = String.downcase(host)
+
+        String.ends_with?(host, ".googleusercontent.com") or host == "googleusercontent.com"
+
+      _ ->
+        false
+    end
+  end
+
+  def google_avatar_https_url?(_), do: false
 
   @doc """
   Confirms the account by setting `confirmed_at`.

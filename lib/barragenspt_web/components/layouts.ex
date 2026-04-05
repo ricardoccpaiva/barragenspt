@@ -9,6 +9,8 @@ defmodule BarragensptWeb.Layouts do
 
   import BarragensptWeb.CoreComponents
 
+  alias BarragensptWeb.UserAvatar
+
   attr :flash, :map, required: true
   attr :current_scope, :map, default: nil
   attr :mode, :atom, default: :default
@@ -87,7 +89,10 @@ defmodule BarragensptWeb.Layouts do
           </div>
         <% end %>
 
-        <div class="flex shrink-0 items-center gap-2.5">
+        <div class={[
+          "flex shrink-0 items-center gap-2.5",
+          @mode != :map && not @signed_in? && "ml-auto"
+        ]}>
           <div
             id="app-switcher"
             phx-hook="NavRouteActive"
@@ -146,22 +151,40 @@ defmodule BarragensptWeb.Layouts do
             </button>
           </div>
 
-          <%= if @signed_in? do %>
-            <details
-              id="navbar-avatar-menu"
-              class="group relative inline-flex h-10 list-none items-center rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
-              phx-hook="AvatarMenu"
+          <details
+            id="navbar-avatar-menu"
+            class="group relative inline-flex h-10 list-none items-center rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
+            phx-hook="AvatarMenu"
+          >
+            <summary
+              class="flex h-8 cursor-pointer list-none items-center justify-center rounded-lg marker:content-none [&::-webkit-details-marker]:hidden hover:bg-slate-100/80 dark:hover:bg-slate-700/50"
+              aria-label={if(@signed_in?, do: "Menu da conta", else: "Conta — iniciar sessão ou registo")}
             >
-              <summary class="flex h-8 cursor-pointer list-none items-center justify-center rounded-lg marker:content-none [&::-webkit-details-marker]:hidden hover:bg-slate-100/80 dark:hover:bg-slate-700/50">
-                <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-xs font-bold text-white">
-                  {case @current_scope.user.email do
-                    e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
-                    _ -> "U"
-                  end}
-                </span>
-              </summary>
+              <%= if @signed_in? do %>
+                <%= if src = UserAvatar.image_src(@current_scope.user) do %>
+                  <img
+                    src={src}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    referrerpolicy="no-referrer"
+                    class="h-8 w-8 shrink-0 rounded-lg object-cover ring-1 ring-slate-200/80 dark:ring-slate-600"
+                  />
+                <% else %>
+                  <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-xs font-bold text-white">
+                    {case @current_scope.user.email do
+                      e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
+                      _ -> "U"
+                    end}
+                  </span>
+                <% end %>
+              <% else %>
+                <.icon name="hero-user-circle" class="h-8 w-8 shrink-0 text-slate-500 dark:text-slate-400" />
+              <% end %>
+            </summary>
 
-              <div class="absolute right-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-600 dark:bg-slate-800">
+            <div class="absolute right-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-600 dark:bg-slate-800">
+              <%= if @signed_in? do %>
                 <.link
                   navigate={~p"/users/settings"}
                   class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
@@ -175,24 +198,22 @@ defmodule BarragensptWeb.Layouts do
                 >
                   Sair
                 </.link>
-              </div>
-            </details>
-          <% else %>
-            <div class="hidden h-10 items-center gap-0.5 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90 sm:inline-flex">
-              <.link
-                navigate={~p"/users/register"}
-                class="inline-flex h-8 items-center rounded-lg px-2.5 text-xs font-semibold leading-none text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
-              >
-                Registo
-              </.link>
-              <.link
-                navigate={~p"/users/log-in"}
-                class="inline-flex h-8 items-center rounded-lg px-2.5 text-xs font-semibold leading-none text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
-              >
-                Iniciar sessão
-              </.link>
+              <% else %>
+                <.link
+                  navigate={~p"/users/register"}
+                  class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                >
+                  Registo
+                </.link>
+                <.link
+                  navigate={~p"/users/log-in"}
+                  class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                >
+                  Iniciar sessão
+                </.link>
+              <% end %>
             </div>
-          <% end %>
+          </details>
         </div>
       </div>
 
