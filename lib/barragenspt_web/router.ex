@@ -82,14 +82,23 @@ defmodule BarragensptWeb.Router do
     end
   end
 
-  ## Authentication routes
+  ## Authenticated controllers (plug runs before action)
 
   scope "/", BarragensptWeb do
     pipe_through [:browser, :authenticated]
 
     get "/dashboard/data-points/export/csv", Dashboard.DataPointsExportController, :csv
+    post "/users/update-password", UserSessionController, :update_password
+  end
+
+  ## Dashboard & account LiveViews: browser pipeline only — guests may open /dashboard;
+  ## each tool enforces auth via `on_mount {UserAuth, :require_authenticated}`.
+
+  scope "/", BarragensptWeb do
+    pipe_through [:browser]
+
     live_session :authenticated,
-      on_mount: [{BarragensptWeb.UserAuth, :require_authenticated}] do
+      on_mount: [{BarragensptWeb.UserAuth, :mount_current_scope}] do
       live "/dashboard", DashboardLive, :index
       live "/dashboard/data-points", Dashboard.DataPointsLive, :index
       live "/dashboard/basin-report", Dashboard.BasinReportLive, :index
@@ -105,8 +114,6 @@ defmodule BarragensptWeb.Router do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
-
-    post "/users/update-password", UserSessionController, :update_password
   end
 
   scope "/", BarragensptWeb do

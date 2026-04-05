@@ -1,30 +1,66 @@
 defmodule BarragensptWeb.DashboardLive do
   use BarragensptWeb, :live_view
 
-  on_mount {BarragensptWeb.UserAuth, :require_authenticated}
-
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <%!-- Hero --%>
-      <div class="mb-10">
-        <p class="text-xs font-semibold uppercase tracking-widest text-brand-500 dark:text-brand-400">
-          barragens.pt · Dashboard
-        </p>
-        <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
-          Bem-vindo, <span class="text-brand-600 dark:text-brand-400">{String.split(@current_scope.user.email, "@") |> List.first()}</span>.
-        </h1>
-        <p class="mt-3 max-w-xl text-base text-slate-500 dark:text-slate-400">
-          Analisa dados hidrométricos, gera relatórios com IA e monitoriza albufeiras portuguesas com alertas personalizados.
-        </p>
-      </div>
+      <%!-- Hero (+ compact login card for guests) --%>
+      <%= if @signed_in? do %>
+        <div class="mb-10">
+          <p class="text-xs font-semibold uppercase tracking-widest text-brand-500 dark:text-brand-400">
+            barragens.pt · Dashboard
+          </p>
+          <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
+            Bem-vindo, <span class="text-brand-600 dark:text-brand-400">{String.split(@current_scope.user.email, "@") |> List.first()}</span>.
+          </h1>
+          <p class="mt-3 max-w-xl text-base text-slate-500 dark:text-slate-400">
+            Analisa dados hidrométricos, gera relatórios com IA e monitoriza albufeiras portuguesas com alertas personalizados.
+          </p>
+        </div>
+      <% else %>
+        <div class="mb-10 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-semibold uppercase tracking-widest text-brand-500 dark:text-brand-400">
+              barragens.pt · Dashboard
+            </p>
+            <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
+              O teu centro de análise hidrométrica
+            </h1>
+            <p class="mt-3 max-w-xl text-base text-slate-500 dark:text-slate-400">
+              Analisa dados hidrométricos, gera relatórios com IA e monitoriza albufeiras portuguesas com alertas personalizados.
+            </p>
+          </div>
+          <div class="w-full shrink-0 rounded-xl border border-brand-200/90 bg-gradient-to-br from-brand-50/95 to-sky-50/80 p-3.5 shadow-sm dark:border-brand-800/60 dark:from-brand-950/50 dark:to-slate-900/80 dark:shadow-none lg:max-w-[min(100%,20rem)] lg:self-start xl:max-w-[22rem]">
+            <p class="text-xs font-semibold text-brand-900 dark:text-brand-100">
+              Conta gratuita · Google ou e-mail
+            </p>
+            <p class="mt-1.5 text-xs leading-snug text-slate-600 dark:text-slate-400">
+              Inicia sessão para dados, relatórios IA e alertas.
+            </p>
+            <div class="mt-3 flex flex-col gap-2">
+              <.link
+                navigate={~p"/users/log-in"}
+                class="inline-flex w-full items-center justify-center rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 dark:focus:ring-offset-slate-900"
+              >
+                Iniciar sessão
+              </.link>
+              <.link
+                navigate={~p"/users/register"}
+                class="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+              >
+                Criar conta
+              </.link>
+            </div>
+          </div>
+        </div>
+      <% end %>
 
       <%!-- Feature cards --%>
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
         <%!-- Relatório IA --%>
         <.link
-          navigate={~p"/dashboard/basin-report"}
+          {dashboard_link_attrs(@current_scope, ~p"/dashboard/basin-report")}
           class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:border-brand-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-brand-600/60"
         >
           <div class="flex items-start gap-4 p-6">
@@ -45,29 +81,11 @@ defmodule BarragensptWeb.DashboardLive do
               </p>
             </div>
           </div>
-          <div class="mt-auto border-t border-slate-100 px-6 py-3 dark:border-slate-700/80">
-            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400">
-              Abrir Relatório IA
-              <svg
-                class="size-3.5 transition-transform group-hover:translate-x-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2.5"
-                  d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                />
-              </svg>
-            </span>
-          </div>
         </.link>
 
         <%!-- Dados --%>
         <.link
-          navigate={~p"/dashboard/data-points"}
+          {dashboard_link_attrs(@current_scope, ~p"/dashboard/data-points")}
           class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:border-teal-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-teal-600/60"
         >
           <div class="flex items-start gap-4 p-6">
@@ -90,29 +108,11 @@ defmodule BarragensptWeb.DashboardLive do
               </p>
             </div>
           </div>
-          <div class="mt-auto border-t border-slate-100 px-6 py-3 dark:border-slate-700/80">
-            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-600 dark:text-teal-400">
-              Explorar Dados
-              <svg
-                class="size-3.5 transition-transform group-hover:translate-x-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2.5"
-                  d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                />
-              </svg>
-            </span>
-          </div>
         </.link>
 
         <%!-- Alertas --%>
         <.link
-          navigate={~p"/dashboard/alerts"}
+          {dashboard_link_attrs(@current_scope, ~p"/dashboard/alerts")}
           class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:border-amber-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-amber-600/60"
         >
           <div class="flex items-start gap-4 p-6">
@@ -133,24 +133,6 @@ defmodule BarragensptWeb.DashboardLive do
               </p>
             </div>
           </div>
-          <div class="mt-auto border-t border-slate-100 px-6 py-3 dark:border-slate-700/80">
-            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
-              Gerir Alertas
-              <svg
-                class="size-3.5 transition-transform group-hover:translate-x-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2.5"
-                  d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-                />
-              </svg>
-            </span>
-          </div>
         </.link>
       </div>
     </Layouts.app>
@@ -159,6 +141,10 @@ defmodule BarragensptWeb.DashboardLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    signed_in? = socket.assigns.current_scope.user != nil
+    {:ok, assign(socket, :signed_in?, signed_in?)}
   end
+
+  defp dashboard_link_attrs(%{user: user}, path) when not is_nil(user), do: [navigate: path]
+  defp dashboard_link_attrs(_scope, path), do: [href: path]
 end

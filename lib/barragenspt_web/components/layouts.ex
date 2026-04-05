@@ -62,7 +62,7 @@ defmodule BarragensptWeb.Layouts do
       <% end %>
 
       <div class={top_chrome_wrapper_classes(@mode)}>
-        <%= if @mode != :map do %>
+        <%= if @mode != :map and @signed_in? do %>
           <div class="flex shrink-0 items-center gap-2">
             <div
               id="dashboard-app-nav"
@@ -70,33 +70,20 @@ defmodule BarragensptWeb.Layouts do
               class="inline-flex min-h-10 max-w-[calc(100vw-10rem)] flex-nowrap items-center gap-0.5 overflow-x-auto rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card [-ms-overflow-style:none] [scrollbar-width:none] dark:border-slate-600 dark:bg-slate-800/90 [&::-webkit-scrollbar]:hidden"
             >
               <%= for item <- @dashboard_sidebar_items do %>
-                <%= if item.requires_auth and !@signed_in? do %>
-                  <.link
-                    href={item.path}
-                    data-nav-path={item.path}
-                    class="inline-flex h-8 shrink-0 items-center rounded-lg px-2.5 text-xs font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-                  >
-                    <.icon name="hero-lock-closed" class="mr-1 h-3.5 w-3.5 shrink-0 opacity-70" />
-                    {item.label}
-                  </.link>
-                <% else %>
-                  <.link
-                    navigate={item.path}
-                    data-nav-path={item.path}
-                    class="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-xs font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-                  >
-                    <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
-                    {item.label}
-                  </.link>
-                <% end %>
+                <.link
+                  navigate={item.path}
+                  data-nav-path={item.path}
+                  class="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-xs font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                >
+                  <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
+                  {item.label}
+                </.link>
               <% end %>
             </div>
-            <%= if @signed_in? do %>
-              <.live_component
-                module={BarragensptWeb.EvaluateAlertsShortcutComponent}
-                id="dashboard-evaluate-alerts-top"
-              />
-            <% end %>
+            <.live_component
+              module={BarragensptWeb.EvaluateAlertsShortcutComponent}
+              id="dashboard-evaluate-alerts-top"
+            />
           </div>
         <% end %>
 
