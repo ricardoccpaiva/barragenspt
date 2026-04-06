@@ -8,9 +8,8 @@ defmodule BarragensptWeb.UserLive.LoginTest do
     test "renders login page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
-      assert html =~ "Log in"
+      assert html =~ "Iniciar sessão"
       assert html =~ "Registo"
-      assert html =~ "Log in with email"
     end
   end
 
@@ -70,7 +69,7 @@ defmodule BarragensptWeb.UserLive.LoginTest do
       render_submit(form, %{user: %{remember_me: true}})
 
       conn = follow_trigger_action(form, conn)
-      assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) == "E-mail ou palavra-passe inválidos."
       assert redirected_to(conn) == ~p"/users/log-in"
     end
   end
@@ -81,11 +80,11 @@ defmodule BarragensptWeb.UserLive.LoginTest do
 
       {:ok, _login_live, login_html} =
         lv
-        |> element("main a", "Sign up")
+        |> element("main a", "Regista-te")
         |> render_click()
         |> follow_redirect(conn, ~p"/users/register")
 
-      assert login_html =~ "Register"
+      assert login_html =~ "Criar conta"
     end
   end
 
@@ -98,12 +97,11 @@ defmodule BarragensptWeb.UserLive.LoginTest do
     test "shows login page with email filled in", %{conn: conn, user: user} do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
-      assert html =~ "You need to reauthenticate"
-      refute html =~ "Register"
-      assert html =~ "Log in with email"
+      assert html =~ "Precisas de voltar a autenticar-te"
+      refute html =~ "Criar conta"
 
       assert html =~
-               ~s(<input type="email" name="user[email]" id="login_form_magic_email" value="#{user.email}")
+               ~s(<input type="email" name="user[email]" id="login_form_password_email" value="#{user.email}")
     end
   end
 end

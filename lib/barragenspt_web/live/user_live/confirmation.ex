@@ -9,7 +9,7 @@ defmodule BarragensptWeb.UserLive.Confirmation do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="mx-auto max-w-sm">
         <div class="text-center">
-          <.header>Welcome {@user.email}</.header>
+          <.header>Bem-vindo {@user.email}</.header>
         </div>
 
         <.form
@@ -25,16 +25,16 @@ defmodule BarragensptWeb.UserLive.Confirmation do
           <.button
             name={@form[:remember_me].name}
             value="true"
-            phx-disable-with="Confirming..."
+            phx-disable-with="A confirmar..."
             class="w-full"
           >
-            Confirm and stay logged in
+            Confirmar e manter sessão
           </.button>
           <.button
-            phx-disable-with="Confirming..."
+            phx-disable-with="A confirmar..."
             class="mt-2 w-full bg-slate-200 text-slate-800 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
           >
-            Confirm and log in only this time
+            Confirmar e iniciar sessão só desta vez
           </.button>
         </.form>
 
@@ -49,23 +49,23 @@ defmodule BarragensptWeb.UserLive.Confirmation do
         >
           <input type="hidden" name={@form[:token].name} value={@form[:token].value} />
           <%= if @current_scope.user do %>
-            <.button phx-disable-with="Logging in..." class="w-full">
-              Log in
+            <.button phx-disable-with="A iniciar sessão..." class="w-full">
+              Iniciar sessão
             </.button>
           <% else %>
             <.button
               name={@form[:remember_me].name}
               value="true"
-              phx-disable-with="Logging in..."
+              phx-disable-with="A iniciar sessão..."
               class="w-full"
             >
-              Keep me logged in on this device
+              Manter sessão neste dispositivo
             </.button>
             <.button
-              phx-disable-with="Logging in..."
+              phx-disable-with="A iniciar sessão..."
               class="mt-2 w-full bg-slate-200 text-slate-800 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
             >
-              Log me in only this time
+              Iniciar sessão só desta vez
             </.button>
           <% end %>
         </.form>
@@ -74,7 +74,7 @@ defmodule BarragensptWeb.UserLive.Confirmation do
           :if={!@user.confirmed_at}
           class="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400"
         >
-          Tip: If you prefer passwords, you can enable them in the user settings.
+          Dica: se preferires palavra-passe, podes configurá-la nas definições da conta.
         </p>
       </div>
     </Layouts.app>
@@ -91,7 +91,7 @@ defmodule BarragensptWeb.UserLive.Confirmation do
     else
       {:ok,
        socket
-       |> put_flash(:error, "Magic link is invalid or it has expired.")
+       |> put_flash(:error, "O link mágico é inválido ou expirou.")
        |> push_navigate(to: ~p"/users/log-in")}
     end
   end

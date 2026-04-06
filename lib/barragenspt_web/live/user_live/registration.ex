@@ -11,13 +11,12 @@ defmodule BarragensptWeb.UserLive.Registration do
       <div class="mx-auto max-w-sm">
         <div class="text-center">
           <.header>
-            Register for an account
+            Criar conta
             <:subtitle>
-              Already registered?
+              Já tens conta?
               <.link navigate={~p"/users/log-in"} class="font-semibold text-brand hover:underline">
-                Log in
-              </.link>
-              to your account now.
+                Inicia sessão
+              </.link>.
             </:subtitle>
           </.header>
         </div>
@@ -26,20 +25,20 @@ defmodule BarragensptWeb.UserLive.Registration do
           <.input
             field={@form[:email]}
             type="email"
-            label="Email"
+            label="E-mail"
             autocomplete="username"
             required
             phx-mounted={JS.focus()}
           />
 
-          <.button phx-disable-with="Creating account..." class="w-full">
-            Create an account
+          <.button phx-disable-with="A criar conta..." class="w-full">
+            Criar conta
           </.button>
         </.form>
 
         <div class="my-3 flex items-center gap-4 py-2 text-center text-sm text-slate-500">
           <div class="h-px flex-1 bg-slate-200 dark:bg-slate-600"></div>
-          <span>or</span>
+          <span>ou</span>
           <div class="h-px flex-1 bg-slate-200 dark:bg-slate-600"></div>
         </div>
 
@@ -47,7 +46,7 @@ defmodule BarragensptWeb.UserLive.Registration do
           href={~p"/auth/google"}
           class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900"
         >
-          Continue with Google
+          Continuar com Google
         </.link>
       </div>
     </Layouts.app>
@@ -80,7 +79,7 @@ defmodule BarragensptWeb.UserLive.Registration do
          socket
          |> put_flash(
            :info,
-           "An email was sent to #{user.email}, please access it to confirm your account."
+           "Foi enviado um e-mail para #{user.email}. Abre-o para confirmar a tua conta."
          )
          |> push_navigate(to: ~p"/users/log-in")}
 

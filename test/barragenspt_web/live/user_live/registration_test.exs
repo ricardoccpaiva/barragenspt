@@ -8,8 +8,8 @@ defmodule BarragensptWeb.UserLive.RegistrationTest do
     test "renders registration page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/register")
 
-      assert html =~ "Register"
-      assert html =~ "Log in"
+      assert html =~ "Criar conta"
+      assert html =~ "Inicia sessão"
     end
 
     test "redirects if already logged in", %{conn: conn} do
@@ -30,7 +30,7 @@ defmodule BarragensptWeb.UserLive.RegistrationTest do
         |> element("#registration_form")
         |> render_change(user: %{"email" => "with spaces"})
 
-      assert result =~ "Register"
+      assert result =~ "Criar conta"
       assert result =~ "must have the @ sign and no spaces"
     end
   end
@@ -46,8 +46,8 @@ defmodule BarragensptWeb.UserLive.RegistrationTest do
         render_submit(form)
         |> follow_redirect(conn, ~p"/users/log-in")
 
-      assert html =~
-               ~r/An email was sent to .*, please access it to confirm your account/
+      assert html =~ "Foi enviado um e-mail para #{email}"
+      assert html =~ "confirmar a tua conta"
     end
 
     test "renders errors for duplicated email", %{conn: conn} do
@@ -72,11 +72,11 @@ defmodule BarragensptWeb.UserLive.RegistrationTest do
 
       {:ok, _login_live, login_html} =
         lv
-        |> element("main a", "Log in")
+        |> element("main a", "Inicia sessão")
         |> render_click()
         |> follow_redirect(conn, ~p"/users/log-in")
 
-      assert login_html =~ "Log in"
+      assert login_html =~ "Iniciar sessão"
     end
   end
 end

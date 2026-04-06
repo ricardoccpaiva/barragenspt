@@ -8,16 +8,17 @@ defmodule BarragensptWeb.UserLive.Login do
       <div class="mx-auto max-w-sm space-y-4">
         <div class="text-center">
           <.header>
-            <p>Log in</p>
+            <p>Iniciar sessão</p>
             <:subtitle>
               <%= if @current_scope.user do %>
-                You need to reauthenticate to perform sensitive actions on your account.
+                Precisas de voltar a autenticar-te para efectuar acções sensíveis na tua conta.
               <% else %>
-                Don't have an account? <.link
+                Ainda não tens conta?
+                <.link
                   navigate={~p"/users/register"}
                   class="font-semibold text-brand-600 hover:underline dark:text-brand-400"
                   phx-no-format
-                >Sign up</.link> for an account now.
+                >Regista-te</.link>.
               <% end %>
             </:subtitle>
           </.header>
@@ -27,12 +28,12 @@ defmodule BarragensptWeb.UserLive.Login do
           href={~p"/auth/google"}
           class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900"
         >
-          Continue with Google
+          Continuar com Google
         </.link>
 
         <div class="flex items-center gap-4 py-2 text-center text-sm text-slate-500">
           <div class="h-px flex-1 bg-slate-200 dark:bg-slate-600"></div>
-          <span>or</span>
+          <span>ou</span>
           <div class="h-px flex-1 bg-slate-200 dark:bg-slate-600"></div>
         </div>
 
@@ -48,7 +49,7 @@ defmodule BarragensptWeb.UserLive.Login do
             readonly={!!@current_scope.user}
             field={f[:email]}
             type="email"
-            label="Email"
+            label="E-mail"
             autocomplete="username"
             required
             phx-mounted={JS.focus()}
@@ -56,14 +57,14 @@ defmodule BarragensptWeb.UserLive.Login do
           <.input
             field={@form[:password]}
             type="password"
-            label="Password"
+            label="Palavra-passe"
             autocomplete="current-password"
           />
           <.button class="w-full" name={@form[:remember_me].name} value="true">
-            Log in and stay logged in <span aria-hidden="true">→</span>
+            Iniciar sessão e manter-me ligado <span aria-hidden="true">→</span>
           </.button>
           <.button class="mt-2 w-full bg-slate-200 text-slate-800 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600">
-            Log in only this time
+            Iniciar sessão só desta vez
           </.button>
         </.form>
       </div>
