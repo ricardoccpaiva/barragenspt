@@ -65,7 +65,7 @@ defmodule BarragensptWeb.Layouts do
 
       <div class={top_chrome_wrapper_classes(@mode)}>
         <%= if @mode != :map and @signed_in? do %>
-          <div class="flex shrink-0 items-center gap-2">
+          <div class="flex min-w-0 shrink-0 items-center gap-2">
             <div
               id="dashboard-app-nav"
               phx-hook="NavRouteActive"
@@ -91,7 +91,7 @@ defmodule BarragensptWeb.Layouts do
 
         <div class={[
           "flex shrink-0 items-center gap-2.5",
-          @mode != :map && not @signed_in? && "ml-auto"
+          @mode != :map && "ml-auto"
         ]}>
           <div
             id="app-switcher"
@@ -236,13 +236,18 @@ defmodule BarragensptWeb.Layouts do
   end
 
   defp top_chrome_wrapper_classes(_) do
-    "fixed left-2 right-2 top-2 z-50 flex items-center justify-between gap-3"
+    # Same horizontal inset as main; w-full + ml-auto on the right cluster keeps utilities flush to the content edge.
+    "fixed inset-x-0 top-2 z-50 flex w-full min-w-0 items-center gap-3 #{app_shell_horizontal_padding()}"
   end
 
   defp main_wrapper_classes(:map), do: ""
 
   defp main_wrapper_classes(_),
-    do: "px-6 pb-10 pt-[5.5rem] sm:px-10 md:px-14 lg:px-20 xl:px-24 2xl:px-32"
+    do: "#{app_shell_horizontal_padding()} pb-10 pt-[5.5rem]"
+
+  defp app_shell_horizontal_padding do
+    "px-6 sm:px-10 md:px-14 lg:px-20 xl:px-24 2xl:px-32"
+  end
 
   defp main_content_classes(:map), do: "relative min-h-screen"
   defp main_content_classes(_), do: "w-full max-w-none"
