@@ -223,6 +223,37 @@ defmodule BarragensptWeb.Layouts do
           {render_slot(@inner_block)}
         </main>
       </div>
+
+      <.beta_corner_notice />
+    </div>
+    """
+  end
+
+  def beta_corner_notice(assigns) do
+    ~H"""
+    <div
+      class="pointer-events-none fixed bottom-0 right-0 z-40 h-[6.5rem] w-[6.5rem] overflow-hidden sm:h-[7.25rem] sm:w-[7.25rem]"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="sr-only">
+        Versão beta experimental. Funcionalidades e dados podem mudar.
+      </span>
+      <%!-- Triângulo no vértice: face escura da fita por baixo --%>
+      <div
+        class="absolute bottom-0 right-0 z-0 size-0 border-b-[18px] border-l-[18px] border-b-red-950/35 border-l-transparent dark:border-b-red-950/55"
+        aria-hidden="true"
+      >
+      </div>
+      <%!-- Fita diagonal (estilo marcador de caderno) --%>
+      <div
+        class="absolute bottom-[0.85rem] right-[-2.65rem] z-[1] flex w-[11.5rem] items-center justify-center border-y border-white/30 bg-gradient-to-r from-rose-600 via-red-600 to-red-700 px-10 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_3px_10px_rgba(127,29,29,0.35)] -rotate-45 dark:border-white/15 dark:from-rose-700 dark:via-red-700 dark:to-red-900 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_3px_12px_rgba(0,0,0,0.45)] sm:bottom-[1rem] sm:right-[-2.85rem] sm:w-[13rem] sm:px-11 sm:py-2.5"
+        aria-hidden="true"
+      >
+        <span class="font-sans text-[13px] font-semibold uppercase leading-none tracking-wide text-white antialiased [padding-inline-start:0.025em]">
+          Beta
+        </span>
+      </div>
     </div>
     """
   end
