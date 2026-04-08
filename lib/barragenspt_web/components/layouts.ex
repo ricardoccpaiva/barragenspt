@@ -158,7 +158,9 @@ defmodule BarragensptWeb.Layouts do
           >
             <summary
               class="flex h-8 cursor-pointer list-none items-center justify-center rounded-lg marker:content-none [&::-webkit-details-marker]:hidden hover:bg-slate-100/80 dark:hover:bg-slate-700/50"
-              aria-label={if(@signed_in?, do: "Menu da conta", else: "Conta — iniciar sessão ou registo")}
+              aria-label={
+                if(@signed_in?, do: "Menu da conta", else: "Conta — iniciar sessão ou registo")
+              }
             >
               <%= if @signed_in? do %>
                 <%= if src = UserAvatar.image_src(@current_scope.user) do %>
@@ -179,7 +181,10 @@ defmodule BarragensptWeb.Layouts do
                   </span>
                 <% end %>
               <% else %>
-                <.icon name="hero-user-circle" class="h-8 w-8 shrink-0 text-slate-500 dark:text-slate-400" />
+                <.icon
+                  name="hero-user-circle"
+                  class="h-8 w-8 shrink-0 text-slate-500 dark:text-slate-400"
+                />
               <% end %>
             </summary>
 
@@ -307,6 +312,13 @@ defmodule BarragensptWeb.Layouts do
         path: ~p"/dashboard/alerts",
         icon: "hero-bell-alert",
         description: "Monitorização de risco",
+        requires_auth: true
+      },
+      %{
+        label: "API",
+        path: ~p"/dashboard/api-tokens",
+        icon: "hero-key",
+        description: "Tokens para integrações",
         requires_auth: true
       }
     ]

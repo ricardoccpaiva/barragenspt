@@ -13,6 +13,8 @@ defmodule Barragenspt.Accounts.User do
     field :confirmed_at, :naive_datetime
     field :authenticated_at, :naive_datetime, virtual: true
 
+    has_many :user_api_tokens, Barragenspt.Accounts.UserApiToken
+
     timestamps()
   end
 

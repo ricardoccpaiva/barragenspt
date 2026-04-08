@@ -442,6 +442,19 @@ const DataPointsChart = {
   }
 }
 
+const CopyButton = {
+  mounted() {
+    this.el.addEventListener("click", async (e) => {
+      e.preventDefault()
+      const text = this.el.getAttribute("data-copy-text")
+      if (!text || !navigator.clipboard) return
+      try {
+        await navigator.clipboard.writeText(text)
+      } catch (_) {}
+    })
+  }
+}
+
 const ExportBasinCard = {
   mounted() {
     this.el.addEventListener("click", (e) => {
@@ -466,6 +479,7 @@ const ExportBasinCard = {
 }
 
 export const Hooks = {
+  CopyButton,
   CapacityColor,
   BasinChartTimeWindow,
   DamChartTimeWindow,

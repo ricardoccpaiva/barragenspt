@@ -6,7 +6,7 @@ defmodule Barragenspt.Accounts do
   import Ecto.Query, warn: false
   alias Barragenspt.Repo
 
-  alias Barragenspt.Accounts.{User, UserToken, UserNotifier, TelegramLinkToken}
+  alias Barragenspt.Accounts.{User, UserToken, UserNotifier, TelegramLinkToken, UserApiToken}
 
   @telegram_link_validity_in_minutes 10
 
@@ -506,4 +506,109 @@ defmodule Barragenspt.Accounts do
   end
 
   defp ensure_user_confirmed(%User{} = user), do: {:ok, user}
+
+  ## User API tokens
+
+  @doc """
+  Lists API tokens for a user (active and revoked), excluding entries removed by the user (`deleted_at`).
+  Newest first.
+  """
+  def list_user_api_tokens(user_id) when is_integer(user_id) do
+    from(t in UserApiToken,
+      where: t.user_id == ^user_id and is_nil(t.deleted_at),
+      order_by: [desc: t.created_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Counts active (non-revoked) API tokens for a user.
+  """
+  def count_active_user_api_tokens(user_id) when is_integer(user_id) do
+    from(t in UserApiToken,
+      where: t.user_id == ^user_id and is_nil(t.revoked_at) and is_nil(t.deleted_at),
+      select: count(t.id)
+    )
+    |> Repo.one()
+  end
+
+  @doc """
+  Creates an API token. Returns `{:ok, plain_token, token}` on success.
+  Plain token is shown once to the user; only `token_digest` is stored.
+
+  Enforces at most `UserApiToken.max_active_per_user/0` active tokens.
+  """
+  def create_user_api_token(user_id, scopes) when is_integer(user_id) and is_list(scopes) do
+    if count_active_user_api_tokens(user_id) >= UserApiToken.max_active_per_user() do
+      {:error, :limit}
+    else
+      plain = generate_user_api_plain_token()
+      digest = :crypto.hash(:sha256, plain)
+      prefix = String.slice(plain, 0, min(String.length(plain), 20))
+
+      %UserApiToken{}
+      |> UserApiToken.changeset(%{
+        user_id: user_id,
+        token_digest: digest,
+        token_prefix: prefix,
+        scopes: Enum.sort(scopes)
+      })
+      |> Repo.insert()
+      |> case do
+        {:ok, token} -> {:ok, plain, token}
+        {:error, changeset} -> {:error, changeset}
+      end
+    end
+  end
+
+  @doc """
+  Revokes an API token. Idempotent if already revoked.
+  """
+  def revoke_user_api_token(user_id, token_id)
+      when is_integer(user_id) and is_integer(token_id) do
+    now = DateTime.utc_now(:microsecond)
+
+    case Repo.get_by(UserApiToken, id: token_id, user_id: user_id) do
+      nil ->
+        {:error, :not_found}
+
+      %UserApiToken{revoked_at: %DateTime{}} = token ->
+        {:ok, token}
+
+      token ->
+        token
+        |> Ecto.Changeset.change(revoked_at: now)
+        |> Repo.update()
+    end
+  end
+
+  @doc """
+  Soft-deletes a revoked API token from the user's history (`deleted_at`).
+  The row remains for auditing; it no longer appears in `list_user_api_tokens/1`.
+  Idempotent if already discarded.
+  """
+  def discard_user_api_token(user_id, token_id)
+      when is_integer(user_id) and is_integer(token_id) do
+    now = DateTime.utc_now(:microsecond)
+
+    case Repo.get_by(UserApiToken, id: token_id, user_id: user_id) do
+      nil ->
+        {:error, :not_found}
+
+      %UserApiToken{revoked_at: nil} ->
+        {:error, :not_revoked}
+
+      %UserApiToken{deleted_at: %DateTime{}} = token ->
+        {:ok, token}
+
+      token ->
+        token
+        |> Ecto.Changeset.change(deleted_at: now)
+        |> Repo.update()
+    end
+  end
+
+  defp generate_user_api_plain_token do
+    "bpt_" <> Base.url_encode64(:crypto.strong_rand_bytes(32), padding: false)
+  end
 end

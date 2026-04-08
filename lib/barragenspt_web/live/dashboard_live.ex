@@ -57,7 +57,7 @@ defmodule BarragensptWeb.DashboardLive do
       <% end %>
 
       <%!-- Feature cards --%>
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <%!-- Relatório IA --%>
         <.link
           {dashboard_link_attrs(@current_scope, ~p"/dashboard/basin-report")}
@@ -130,6 +130,24 @@ defmodule BarragensptWeb.DashboardLive do
               <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Alertas</p>
               <p class="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                 Define limiares de armazenamento ou caudal por albufeira e recebe notificações por e-mail quando os valores ultrapassam ou descem abaixo dos teus critérios.
+              </p>
+            </div>
+          </div>
+        </.link>
+
+        <%!-- Tokens API --%>
+        <.link
+          {dashboard_link_attrs(@current_scope, ~p"/dashboard/api-tokens")}
+          class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:border-violet-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-600/60"
+        >
+          <div class="flex items-start gap-4 p-6">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 ring-1 ring-violet-100 dark:bg-violet-950/40 dark:text-violet-400 dark:ring-violet-800/60">
+              <.icon name="hero-key" class="size-5" />
+            </span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Tokens API</p>
+              <p class="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                Gere até cinco tokens com âmbitos (barragens, bacias, pontos de dados), revogue quando não precisares e consulta o histórico de criação e revogação.
               </p>
             </div>
           </div>
