@@ -11,12 +11,6 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="space-y-8">
         <div class="flex flex-wrap items-start justify-between gap-4 sm:items-center sm:gap-6">
-          <.header>
-            Alertas
-            <:subtitle>
-              Gerir condições que lhe enviam e-mail quando são cumpridas.
-            </:subtitle>
-          </.header>
           <.link
             navigate={~p"/dashboard/alerts/new"}
             class="inline-flex rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
@@ -36,45 +30,48 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
             </.link>
           </p>
         <% else %>
-          <div class="max-w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
-            <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-600">
-              <thead class="bg-slate-50 dark:bg-slate-800/80">
+          <div class="max-w-full overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-[0_4px_24px_-6px_rgba(15,23,42,0.12)] ring-1 ring-slate-950/[0.04] dark:border-slate-700/90 dark:bg-slate-900/45 dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.55)] dark:ring-white/[0.06]">
+            <table class="min-w-full border-collapse text-[13px]">
+              <thead class="sticky top-0 z-10 border-b border-slate-200/90 bg-slate-50/90 backdrop-blur-md dark:border-slate-700/80 dark:bg-slate-950/85">
                 <tr>
-                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
                     Alvo
                   </th>
-                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
                     Condição
                   </th>
-                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
                     Estado
                   </th>
-                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
                     Disparos
                   </th>
-                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
                     Último disparo
                   </th>
-                  <th class="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-200">
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
                     Ações
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-600 dark:bg-slate-800/40">
+              <tbody class="[&>tr:nth-child(even)]:bg-slate-50/70 [&>tr:hover]:bg-sky-50/60 dark:[&>tr:nth-child(even)]:bg-slate-800/25 dark:[&>tr:hover]:bg-slate-800/55">
                 <%= for row <- @rows do %>
-                  <tr class={if !row.alert.active, do: "opacity-60", else: ""}>
-                    <td class="px-4 py-3">
+                  <tr class={[
+                    "border-b border-slate-100/90 transition-colors duration-200 last:border-b-0 dark:border-slate-800/70",
+                    !row.alert.active && "opacity-60"
+                  ]}>
+                    <td class="px-4 py-2 align-middle text-[13px] text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
                       <span class="font-medium text-slate-900 dark:text-slate-100">
                         {subject_emoji(row.alert.subject_type)} {row.alert.subject_name}
                       </span>
                     </td>
-                    <td class="px-4 py-3 text-slate-700 dark:text-slate-300">
+                    <td class="px-4 py-2 align-middle text-[13px] text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
                       {condition_row(row.alert)}
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-2 align-middle text-[13px] first:pl-5 last:pr-5">
                       <.status_badge row={row} />
                     </td>
-                    <td class="px-4 py-3 text-left tabular-nums text-slate-700 dark:text-slate-300">
+                    <td class="px-4 py-2 align-middle text-left text-[13px] tabular-nums text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
                       <.link
                         navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
                         class="font-medium text-brand-600 hover:underline dark:text-brand-400"
@@ -83,10 +80,10 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                         {row.triggered_count}×
                       </.link>
                     </td>
-                    <td class="px-4 py-3 text-slate-600 dark:text-slate-400">
+                    <td class="px-4 py-2 align-middle text-[13px] text-slate-600 first:pl-5 last:pr-5 dark:text-slate-400">
                       {format_last(row.triggered_at)}
                     </td>
-                    <td class="px-4 py-3 text-left">
+                    <td class="px-4 py-2 align-middle text-left text-[13px] first:pl-5 last:pr-5">
                       <div class="inline-flex items-center justify-start gap-0.5">
                         <.link
                           navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
@@ -139,13 +136,6 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
             </table>
           </div>
         <% end %>
-
-        <.link
-          navigate={~p"/dashboard"}
-          class="inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
-        >
-          ← Painel
-        </.link>
       </div>
     </Layouts.app>
     """

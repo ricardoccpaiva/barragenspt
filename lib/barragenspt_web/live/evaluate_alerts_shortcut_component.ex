@@ -16,7 +16,7 @@ defmodule BarragensptWeb.EvaluateAlertsShortcutComponent do
       type="button"
       phx-click="enqueue"
       phx-target={@myself}
-      class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/80"
+      class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/80"
       title="Correr agora o job Oban que avalia todas as condições de alerta ativas"
     >
       Avaliar alertas

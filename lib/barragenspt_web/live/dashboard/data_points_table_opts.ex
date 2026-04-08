@@ -10,7 +10,7 @@ defmodule BarragensptWeb.DataPointsTableOpts do
         "overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-[0_4px_24px_-6px_rgba(15,23,42,0.12)] ring-1 ring-slate-950/[0.04] dark:border-slate-700/90 dark:bg-slate-900/45 dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.55)] dark:ring-white/[0.06]"
     ],
     table_attrs: [
-      class: "min-w-full border-collapse text-sm"
+      class: "min-w-full border-collapse text-[13px]"
     ],
     thead_attrs: [
       class:
@@ -18,7 +18,7 @@ defmodule BarragensptWeb.DataPointsTableOpts do
     ],
     thead_th_attrs: [
       class:
-        "px-4 py-3 text-left text-sm font-bold uppercase tracking-[0.07em] text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400"
+        "px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400"
     ],
     tbody_attrs: [
       class:
@@ -26,7 +26,7 @@ defmodule BarragensptWeb.DataPointsTableOpts do
     ],
     tbody_td_attrs: [
       class:
-        "px-4 py-3 align-middle text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300"
+        "px-4 py-2 align-middle text-[13px] text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300"
     ],
     tbody_tr_attrs: [
       class:

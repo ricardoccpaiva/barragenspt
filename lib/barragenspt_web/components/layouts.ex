@@ -75,7 +75,7 @@ defmodule BarragensptWeb.Layouts do
                 <.link
                   navigate={item.path}
                   data-nav-path={item.path}
-                  class="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-xs font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                  class="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
                 >
                   <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
                   {item.label}
@@ -101,7 +101,7 @@ defmodule BarragensptWeb.Layouts do
             <.link
               navigate={~p"/"}
               data-nav-path={~p"/"}
-              class="inline-flex h-8 items-center rounded-lg px-3 text-xs font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+              class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
             >
               Mapa
             </.link>
@@ -109,7 +109,7 @@ defmodule BarragensptWeb.Layouts do
               <.link
                 navigate={~p"/dashboard"}
                 data-nav-path={~p"/dashboard"}
-                class="inline-flex h-8 items-center rounded-lg px-3 text-xs font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
               >
                 Dashboard
               </.link>
@@ -117,7 +117,7 @@ defmodule BarragensptWeb.Layouts do
               <.link
                 href={~p"/dashboard"}
                 data-nav-path={~p"/dashboard"}
-                class="inline-flex h-8 items-center rounded-lg px-3 text-xs font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
               >
                 Dashboard
               </.link>

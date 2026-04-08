@@ -1,0 +1,543 @@
+openapi: 3.0.3
+info:
+  title: barragens.pt Hydrometrics API
+  description: |
+    Read-only JSON API for Portuguese dam (barragem) metadata, basins, and hydrometric data points.
+
+    **Not implemented yet** — this specification describes the intended contract. Base path and servers are placeholders.
+  version: 1.0.0
+  contact:
+    name: barragens.pt
+
+servers:
+  - url: https://barragens.pt/api/v1
+    description: Production (placeholder)
+  - url: http://localhost:4000/api/v1
+    description: Local development
+
+tags:
+  - name: Basins
+    description: Hydrographic basins derived from dam records
+  - name: Dams
+    description: Dam (albufeira) metadata
+  - name: Data points
+    description: Time-series measurements joined with dam context
+
+paths:
+  /basins:
+    get:
+      tags: [Basins]
+      summary: List basins
+      description: Returns distinct basins (stable `basin_id` + display name). Paginated.
+      operationId: listBasins
+      parameters:
+        - $ref: "#/components/parameters/PageNumber"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Paginated list of basins
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BasinCollectionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /basins/{basin_id}:
+    get:
+      tags: [Basins]
+      summary: Get basin
+      description: Basin metadata and optional summary (e.g. dam count).
+      operationId: getBasin
+      parameters:
+        - $ref: "#/components/parameters/BasinIdPath"
+      responses:
+        "200":
+          description: Basin resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BasinResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /basins/{basin_id}/dams:
+    get:
+      tags: [Basins, Dams]
+      summary: List dams in a basin
+      operationId: listDamsByBasin
+      parameters:
+        - $ref: "#/components/parameters/BasinIdPath"
+        - $ref: "#/components/parameters/PageNumber"
+        - $ref: "#/components/parameters/PageSize"
+        - name: sort
+          in: query
+          description: Comma-separated fields. Prefix with `-` for descending (e.g. `name`, `-name`).
+          schema:
+            type: string
+            example: name
+      responses:
+        "200":
+          description: Paginated dams in the basin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DamCollectionResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /dams:
+    get:
+      tags: [Dams]
+      summary: List dams
+      description: All dams with optional filters.
+      operationId: listDams
+      parameters:
+        - $ref: "#/components/parameters/PageNumber"
+        - $ref: "#/components/parameters/PageSize"
+        - name: filter[basin_id]
+          in: query
+          schema:
+            type: string
+        - name: filter[basin]
+          in: query
+          description: Basin display name (exact match unless documented otherwise)
+          schema:
+            type: string
+        - name: filter[name]
+          in: query
+          description: Case-insensitive partial match on dam name (implementation-defined)
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            example: name
+      responses:
+        "200":
+          description: Paginated dams
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DamCollectionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /dams/{site_id}:
+    get:
+      tags: [Dams]
+      summary: Get dam by site id
+      description: SNIRH site identifier (`site_id` from `dam` table).
+      operationId: getDam
+      parameters:
+        - $ref: "#/components/parameters/SiteIdPath"
+      responses:
+        "200":
+          description: Dam resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DamResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /dams/{site_id}/data-points:
+    get:
+      tags: [Dams, Data points]
+      summary: List data points for a dam
+      operationId: listDataPointsByDam
+      parameters:
+        - $ref: "#/components/parameters/SiteIdPath"
+        - $ref: "#/components/parameters/FilterDataPointParamName"
+        - $ref: "#/components/parameters/FilterDataPointColectedAtGte"
+        - $ref: "#/components/parameters/FilterDataPointColectedAtLte"
+        - $ref: "#/components/parameters/DataPointSort"
+        - $ref: "#/components/parameters/PageNumber"
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/CursorAfter"
+      responses:
+        "200":
+          description: Paginated or cursor-paginated data points
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataPointCollectionResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /data-points:
+    get:
+      tags: [Data points]
+      summary: List data points (global)
+      description: |
+        Query hydrometric observations across all dams. Filters should align with the `data_points_with_dam` view
+        (e.g. `param_name`, `basin`, `dam_name`, `colected_at` range).
+      operationId: listDataPoints
+      parameters:
+        - $ref: "#/components/parameters/FilterDataPointParamName"
+        - $ref: "#/components/parameters/FilterDataPointDamName"
+        - $ref: "#/components/parameters/FilterDataPointBasin"
+        - $ref: "#/components/parameters/FilterDataPointColectedAtGte"
+        - $ref: "#/components/parameters/FilterDataPointColectedAtLte"
+        - $ref: "#/components/parameters/DataPointSort"
+        - $ref: "#/components/parameters/PageNumber"
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/CursorAfter"
+      responses:
+        "200":
+          description: Paginated or cursor-paginated data points
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataPointCollectionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+components:
+  parameters:
+    BasinIdPath:
+      name: basin_id
+      in: path
+      required: true
+      description: Stable basin identifier (SNIRH / internal `basin_id` on `dam`).
+      schema:
+        type: string
+      example: "1"
+
+    SiteIdPath:
+      name: site_id
+      in: path
+      required: true
+      description: Dam site identifier (`dam.site_id`).
+      schema:
+        type: string
+      example: "12345"
+
+    PageNumber:
+      name: page[number]
+      in: query
+      description: 1-based page index (offset pagination).
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    PageSize:
+      name: page[size]
+      in: query
+      description: Page size (max enforced by server, e.g. 100).
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 50
+
+    CursorAfter:
+      name: page[after]
+      in: query
+      description: Opaque cursor for the next page (cursor pagination for high-volume `data-points`).
+      schema:
+        type: string
+
+    FilterDataPointParamName:
+      name: filter[param_name]
+      in: query
+      description: Parameter slug (e.g. `volume_last_hour`). Repeat the query key or use comma-separated values if the server supports `in`.
+      schema:
+        type: string
+      example: volume_last_hour
+
+    FilterDataPointDamName:
+      name: filter[dam_name]
+      in: query
+      description: Dam display name; typically case-insensitive partial match (implementation-defined).
+      schema:
+        type: string
+
+    FilterDataPointBasin:
+      name: filter[basin]
+      in: query
+      description: Basin display name (aligns with `data_points_with_dam.basin`).
+      schema:
+        type: string
+
+    FilterDataPointColectedAtGte:
+      name: filter[colected_at][gte]
+      in: query
+      description: Inclusive lower bound for sample time (`colected_at`). ISO 8601 date-time.
+      schema:
+        type: string
+        format: date-time
+
+    FilterDataPointColectedAtLte:
+      name: filter[colected_at][lte]
+      in: query
+      description: Inclusive upper bound for sample time (`colected_at`). ISO 8601 date-time.
+      schema:
+        type: string
+        format: date-time
+
+    DataPointSort:
+      name: sort
+      in: query
+      description: Comma-separated. Use `-field` for descending. Whitelist e.g. `colected_at`, `id`, `value`, `param_name`, `dam_name`, `basin`.
+      schema:
+        type: string
+        example: "-colected_at,id"
+
+  responses:
+    BadRequest:
+      description: Invalid query parameters or filters
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            errors:
+              - code: invalid_parameter
+                title: Bad Request
+                detail: Unknown filter field 'foo'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            errors:
+              - code: not_found
+                title: Not Found
+                detail: Dam with site_id not found
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorObject"
+
+    ErrorObject:
+      type: object
+      properties:
+        code:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        source:
+          type: object
+          properties:
+            parameter:
+              type: string
+
+    PaginationMeta:
+      type: object
+      properties:
+        total_count:
+          type: integer
+          description: Total matching rows (may be omitted for cursor pages or expensive counts)
+          nullable: true
+        page:
+          type: object
+          properties:
+            number:
+              type: integer
+            size:
+              type: integer
+            after:
+              type: string
+              description: Opaque cursor echoed or returned for the next page when using cursor pagination.
+
+    PaginationLinks:
+      type: object
+      properties:
+        self:
+          type: string
+          format: uri
+        next:
+          type: string
+          format: uri
+          nullable: true
+        prev:
+          type: string
+          format: uri
+          nullable: true
+
+    BasinAttributes:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Display basin name
+        dam_count:
+          type: integer
+          description: Optional; number of dams in basin
+
+    BasinResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [basin]
+        id:
+          type: string
+          description: "Stable basin identifier (`basin_id`)"
+        attributes:
+          $ref: "#/components/schemas/BasinAttributes"
+
+    BasinResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/BasinResource"
+
+    BasinCollectionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BasinResource"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+        links:
+          $ref: "#/components/schemas/PaginationLinks"
+
+    DamAttributes:
+      type: object
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        basin:
+          type: string
+        basin_id:
+          type: string
+        site_id:
+          type: string
+        albuf_id:
+          type: string
+          nullable: true
+        river:
+          type: string
+          nullable: true
+        total_capacity:
+          type: integer
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Optional; may be omitted by default for payload size
+        inserted_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    DamResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [dam]
+        id:
+          type: string
+          description: Same as `site_id`
+        attributes:
+          $ref: "#/components/schemas/DamAttributes"
+
+    DamResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/DamResource"
+
+    DamCollectionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DamResource"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+        links:
+          $ref: "#/components/schemas/PaginationLinks"
+
+    DataPointAttributes:
+      type: object
+      properties:
+        param_id:
+          type: string
+          nullable: true
+        param_name:
+          type: string
+        value:
+          type: string
+          description: Decimal encoded as string for JSON precision
+        colected_at:
+          type: string
+          format: date-time
+          description: Naive local or UTC per server contract
+        dam_name:
+          type: string
+        basin:
+          type: string
+        river:
+          type: string
+          nullable: true
+
+    DataPointResource:
+      type: object
+      required: [type, id, attributes]
+      properties:
+        type:
+          type: string
+          enum: [data_point]
+        id:
+          type: string
+          description: Row identifier from view / composite key serialized
+        attributes:
+          $ref: "#/components/schemas/DataPointAttributes"
+
+    DataPointCollectionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DataPointResource"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+        links:
+          $ref: "#/components/schemas/PaginationLinks"
+
+security: []
+# When API keys are added:
+# security:
+#   - ApiKeyAuth: []
+# components:
+#   securitySchemes:
+#     ApiKeyAuth:
+#       type: apiKey
+#       in: header
+#       name: X-Api-Key

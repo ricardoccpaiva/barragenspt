@@ -317,9 +317,6 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
     assign(socket, :filter_fields, filter_field_configs(socket.assigns))
   end
 
-  defp date_filter_row_start?(%{label: "Recolhido desde"}), do: true
-  defp date_filter_row_start?(_), do: false
-
   defp dam_names_from_flop(%Flop.Meta{flop: flop}), do: dam_names_from_flop(flop)
 
   defp dam_names_from_flop(%Flop{filters: filters}) do

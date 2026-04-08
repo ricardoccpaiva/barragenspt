@@ -1,20 +1,20 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <div
-    class="grid grid-cols-1 gap-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-stretch lg:gap-8 xl:grid-cols-[18rem_minmax(0,1fr)]">
+    class="grid grid-cols-1 gap-6 lg:grid-cols-[19.5rem_minmax(0,1fr)] lg:items-stretch lg:gap-8 xl:grid-cols-[21.5rem_minmax(0,1fr)]">
     <aside class="w-full self-start lg:sticky lg:top-4">
       <form id="basin-report-form" phx-submit="generate"
         class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-600 dark:bg-slate-800 sm:p-4">
-        <p class="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
+        <p class="mb-3 text-[13px] font-semibold text-slate-700 dark:text-slate-200">
           Parâmetros
         </p>
         <div class="flex flex-col gap-3">
           <div class="space-y-1">
-            <label for="basin-report-basin" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label for="basin-report-basin" class="block text-[13px] font-medium text-slate-700 dark:text-slate-300">
               Bacia hidrográfica
             </label>
             <div class="relative">
               <select id="basin-report-basin" name="basin"
-                class="w-full appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-9 text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500 disabled:opacity-60"
+                class="block w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 py-2 pr-9 text-[13px] text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500 disabled:opacity-60"
                 disabled={@basins==[] or @loading}>
                 <%= if @basins==[] do %>
                   <option value="">— Sem bacias na base de dados —</option>
@@ -38,12 +38,12 @@
           </div>
 
           <div class="space-y-1">
-            <label for="basin-report-period" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label for="basin-report-period" class="block text-[13px] font-medium text-slate-700 dark:text-slate-300">
               Período (UTC)
             </label>
             <div class="relative">
               <select id="basin-report-period" name="period"
-                class="w-full appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-9 text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500 disabled:opacity-60"
+                class="block w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 py-2 pr-9 text-[13px] text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500 disabled:opacity-60"
                 disabled={@loading}>
                 <option value="week" selected={@period==:week}>Últimos 7 dias</option>
                 <option value="30" selected={@period==:month}>Últimos 30 dias</option>
@@ -61,7 +61,7 @@
 
           <div class="space-y-1 border-t border-slate-100 pt-3 dark:border-slate-700/80">
             <div class="flex items-center gap-1.5">
-              <label for="basin-report-compare" class="text-sm font-medium text-slate-800 dark:text-slate-200">
+              <label for="basin-report-compare" class="text-[13px] font-medium text-slate-800 dark:text-slate-200">
                 Comparação
               </label>
               <button type="button"
@@ -76,7 +76,7 @@
             </div>
             <div class="relative">
               <select id="basin-report-compare" name="compare"
-                class="w-full appearance-none rounded-md border border-slate-300 bg-white py-2 pl-3 pr-9 text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500 disabled:opacity-60"
+                class="block w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 py-2 pr-9 text-[13px] text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500 disabled:opacity-60"
                 disabled={@loading}>
                 <option value="none" selected={@compare_mode==:none}>Sem comparação</option>
                 <option value="homologous" selected={@compare_mode==:homologous}>
@@ -98,7 +98,7 @@
 
         <div class="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 dark:border-slate-700/80">
           <button type="submit" disabled={@basins==[] or @loading or not @cerebras_configured}
-            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60">
+            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-[13px] font-semibold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60">
             <%= if @loading do %>
               A gerar…
               <% else %>
@@ -186,7 +186,7 @@
         <h2 id="basin-report-compare-help-title" class="text-lg font-semibold text-slate-900 dark:text-slate-100">
           Comparação
         </h2>
-        <div class="mt-4 space-y-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+        <div class="mt-4 space-y-4 text-[13px] leading-relaxed text-slate-700 dark:text-slate-300">
           <div>
             <p class="font-semibold text-slate-900 dark:text-slate-100">Sem comparação</p>
             <p class="mt-1">

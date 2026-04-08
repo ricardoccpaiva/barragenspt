@@ -26,11 +26,14 @@ defmodule BarragensptWeb.DataPointsDamMultiselect do
         type="button"
         phx-click="dam_multiselect_toggle"
         aria-expanded={to_string(@open?)}
-        class="flex w-full items-center justify-between gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500"
+        class="flex w-full items-center justify-between gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-[13px] text-slate-900 shadow-sm ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-500"
       >
         <span class="min-w-0 truncate">{@summary}</span>
         <svg
-          class={["size-4 shrink-0 text-slate-500 transition-transform dark:text-slate-400", @open? && "rotate-180"]}
+          class={[
+            "size-4 shrink-0 text-slate-500 transition-transform dark:text-slate-400",
+            @open? && "rotate-180"
+          ]}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -54,12 +57,14 @@ defmodule BarragensptWeb.DataPointsDamMultiselect do
             placeholder="Pesquisar…"
             phx-hook="DamMultiselectSearch"
             data-ms-panel={@panel_id}
-            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-500"
+            class="block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-[13px] text-slate-900 shadow-sm placeholder:text-slate-400 ring-brand-500 hover:border-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:hover:border-slate-500"
           />
         </div>
         <div class="max-h-52 overflow-y-auto border-t border-slate-100 px-1 pt-1 dark:border-slate-700">
           <%= if @options == [] do %>
-            <p class="px-2 py-2 text-center text-sm text-slate-500 dark:text-slate-400">Sem barragens na lista.</p>
+            <p class="px-2 py-2 text-center text-[13px] text-slate-500 dark:text-slate-400">
+              Sem barragens na lista.
+            </p>
           <% else %>
             <%= for name <- @options do %>
               <% selected? = name in @selected %>
@@ -69,7 +74,7 @@ defmodule BarragensptWeb.DataPointsDamMultiselect do
                 data-ms-filter-text={String.downcase(name)}
                 phx-click="toggle_data_points_dam"
                 phx-value-name={name}
-                class="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80"
+                class="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-[13px] text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80"
               >
                 <span class={[
                   "flex size-4 shrink-0 items-center justify-center rounded border",
@@ -77,7 +82,13 @@ defmodule BarragensptWeb.DataPointsDamMultiselect do
                   !selected? && "border-slate-300 dark:border-slate-500"
                 ]}>
                   <%= if selected? do %>
-                    <svg class="size-2.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                    <svg
+                      class="size-2.5 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      viewBox="0 0 24 24"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   <% end %>

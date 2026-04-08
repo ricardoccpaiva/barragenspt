@@ -4,51 +4,44 @@
     <aside class="w-full self-start lg:sticky lg:top-4">
       <.form for={@form} id="data-points-filter-form"
         class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-600 dark:bg-slate-800 sm:p-4"
-        phx-change="update-filter"
-        phx-submit="update-filter">
-        <p class="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
-          Filtros
-        </p>
+        phx-change="update-filter" phx-submit="update-filter">
         <div class="flex flex-col gap-3">
           <.filter_fields :let={i} form={@form} fields={@filter_fields}>
-            <div :if={date_filter_row_start?(i)} class="mt-1 border-t border-slate-100 pt-3 dark:border-slate-700/80"
-              aria-hidden="true">
-            </div>
             <div :if={i.label=="Barragem" }
-              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
-              <p class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-[13px] [&_label_span]:font-medium">
+              <p class="mb-1 block text-[13px] font-medium text-slate-700 dark:text-slate-300">
                 Barragem
               </p>
               <.data_points_dam_multiselect options={@data_points_dam_names} selected={dam_names_from_flop(@meta)}
                 open?={@dam_multiselect_open} />
-              <%= if dam_names_from_flop(@meta) != [] do %>
+              <%= if dam_names_from_flop(@meta) !=[] do %>
                 <p class="mt-1.5 text-xs text-slate-600 dark:text-slate-400">
                   <button type="button" phx-click="clear_data_points_dams"
                     class="font-semibold text-brand-600 hover:underline dark:text-brand-400">
                     Limpar seleção de barragens
                   </button>
                 </p>
-              <% end %>
+                <% end %>
             </div>
             <div :if={i.label=="Parâmetro" }
-              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
-              <p class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-[13px] [&_label_span]:font-medium">
+              <p class="mb-1 block text-[13px] font-medium text-slate-700 dark:text-slate-300">
                 {i.label}
               </p>
               <.data_points_param_multiselect options={param_options_for_multiselect()}
                 selected={param_names_from_flop(@meta)} open?={@param_multiselect_open} />
-              <%= if param_names_from_flop(@meta) != [] do %>
+              <%= if param_names_from_flop(@meta) !=[] do %>
                 <p class="mt-1.5 text-xs text-slate-600 dark:text-slate-400">
                   <button type="button" phx-click="clear_data_points_params"
                     class="font-semibold text-brand-600 hover:underline dark:text-brand-400">
                     Limpar parâmetros
                   </button>
                 </p>
-              <% end %>
+                <% end %>
             </div>
             <div :if={i.label=="Bacia" }
-              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
-              <p class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-[13px] [&_label_span]:font-medium">
+              <p class="mb-1 block text-[13px] font-medium text-slate-700 dark:text-slate-300">
                 {i.label}
               </p>
               <input type="hidden" name={i.field.name} id={i.field.id} value={basin_value_from_flop(@meta)} />
@@ -57,12 +50,14 @@
                 open?={@data_points_single_select_open=="basin" } />
             </div>
             <div :if={ i.label not in ["Barragem", "Parâmetro" , "Bacia" ] && i.type=="select" }
-              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
+              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-[13px] [&_label_span]:font-medium">
               <.input field={i.field} label={i.label} type="select" options={Keyword.get(i.rest, :options, [])}
-                phx-debounce="300" {Keyword.drop(i.rest, [:options])} />
+                phx-debounce="300"
+                class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[13px] text-slate-900 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                {Keyword.drop(i.rest, [:options])} />
             </div>
             <div :if={ i.label not in ["Barragem", "Parâmetro" , "Bacia" ] && i.type !="select" }
-              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-sm [&_label_span]:font-medium">
+              class="w-full min-w-0 [&>div]:!mb-0 [&_label_span]:mb-1 [&_label_span]:text-[13px] [&_label_span]:font-medium">
               <.input field={i.field} label={i.label} type={i.type} phx-debounce="300"
                 class={DataPointsFilterDateClass.class()} {i.rest} />
             </div>
@@ -71,11 +66,11 @@
 
         <div class="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-4 dark:border-slate-700/80">
           <button type="submit"
-            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700">
+            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-[13px] font-semibold text-white hover:bg-brand-700">
             Aplicar
           </button>
           <.link patch={~p"/dashboard/data-points"}
-            class="inline-flex w-full justify-center rounded-md border border-slate-300 px-3 py-2 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50">
+            class="inline-flex w-full justify-center rounded-md border border-slate-300 px-3 py-2 text-center text-[13px] font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700/50">
             Limpar
           </.link>
         </div>
@@ -96,36 +91,32 @@
               <.icon name="hero-ellipsis-vertical" class="block size-5 shrink-0" />
             </button>
 
-            <div
-              id="data-points-table-actions-menu"
-              role="menu"
-              aria-labelledby="data-points-table-menu-trigger"
+            <div id="data-points-table-actions-menu" role="menu" aria-labelledby="data-points-table-menu-trigger"
               class={[
                 "absolute right-0 top-full z-40 mt-1 w-44 origin-top-right overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-600 dark:bg-slate-800",
-                !@data_points_table_menu_open && "hidden"
-              ]}
-            >
+                @data_points_table_menu_open == false && "hidden"
+              ]}>
               <%= if @data_points_export_enabled do %>
                 <button type="button" role="menuitem" phx-click="open_data_points_chart"
-                  class="block w-full px-3 py-2 text-left text-sm text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80">
+                  class="block w-full px-3 py-2 text-left text-[13px] text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80">
                   Ver gráfico
                 </button>
                 <a href={@data_points_export_href} role="menuitem" phx-click="data_points_table_menu_close"
-                  class="block px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80">
+                  class="block px-3 py-2 text-[13px] text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80">
                   Exportar CSV
                 </a>
-              <% else %>
-                <span role="menuitem" aria-disabled="true"
-                  class="block cursor-not-allowed px-3 py-2 text-sm text-slate-400 dark:text-slate-500"
-                  title="Escolha um parâmetro, aplique os filtros e volte a exportar.">
-                  Ver gráfico
-                </span>
-                <span role="menuitem" aria-disabled="true"
-                  class="block cursor-not-allowed px-3 py-2 text-sm text-slate-400 dark:text-slate-500"
-                  title="Escolha um parâmetro, aplique os filtros e volte a exportar.">
-                  Exportar CSV
-                </span>
-              <% end %>
+                <% else %>
+                  <span role="menuitem" aria-disabled="true"
+                    class="block cursor-not-allowed px-3 py-2 text-[13px] text-slate-400 dark:text-slate-500"
+                    title="Escolha um parâmetro, aplique os filtros e volte a exportar.">
+                    Ver gráfico
+                  </span>
+                  <span role="menuitem" aria-disabled="true"
+                    class="block cursor-not-allowed px-3 py-2 text-[13px] text-slate-400 dark:text-slate-500"
+                    title="Escolha um parâmetro, aplique os filtros e volte a exportar.">
+                    Exportar CSV
+                  </span>
+                  <% end %>
             </div>
           </div>
         </div>
@@ -149,7 +140,7 @@
         </.table>
       </div>
 
-      <div class="flex shrink-0 justify-center py-2">
+      <div class="-mt-[5px] flex shrink-0 justify-center py-2">
         <.pagination meta={@meta} path={~p"/dashboard/data-points"} page_links={5}
           class="flex flex-wrap items-center justify-center gap-1.5" aria-label="Paginação" page_list_attrs={[
           class: "order-2 m-0 flex list-none flex-wrap items-center justify-center gap-1.5 p-0" ]}
@@ -171,7 +162,8 @@
     <div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center sm:p-6"
       id="data-points-chart-modal-backdrop" role="dialog" aria-modal="true"
       aria-labelledby="data-points-chart-modal-title">
-      <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] dark:bg-slate-950/70" phx-click="close_data_points_chart">
+      <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] dark:bg-slate-950/70"
+        phx-click="close_data_points_chart">
       </div>
 
       <div
@@ -184,11 +176,11 @@
 
         <div class="min-w-0 pr-10 sm:pr-12">
           <h2 id="data-points-chart-modal-title" class="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            <%= if chart_modal_param_summary(@meta) != "" do %>
+            <%= if chart_modal_param_summary(@meta) !="" do %>
               Gráfico — {chart_modal_param_summary(@meta)}
-            <% else %>
-              Gráfico
-            <% end %>
+              <% else %>
+                Gráfico
+                <% end %>
           </h2>
           <%= if @data_points_chart_meta do %>
             <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
@@ -197,14 +189,14 @@
                 <span class="font-medium text-slate-800 dark:text-slate-200">
                   Ajustámos o agrupamento para caber no gráfico.
                 </span>
-              <% end %>
-              <%= if @data_points_chart_meta.over_point_cap do %>
-                <span class="font-medium text-amber-800 dark:text-amber-200">
-                  Muitos pontos mesmo após agregar — afina o intervalo de datas se precisares de mais detalhe.
-                </span>
-              <% end %>
+                <% end %>
+                  <%= if @data_points_chart_meta.over_point_cap do %>
+                    <span class="font-medium text-amber-800 dark:text-amber-200">
+                      Muitos pontos mesmo após agregar — afina o intervalo de datas se precisares de mais detalhe.
+                    </span>
+                    <% end %>
             </p>
-          <% end %>
+            <% end %>
         </div>
 
         <div phx-hook="DataPointsChart" id="data-points-chart-hook" class="relative mt-4 min-h-[280px] w-full">
@@ -212,5 +204,5 @@
         </div>
       </div>
     </div>
-  <% end %>
+    <% end %>
 </Layouts.app>
