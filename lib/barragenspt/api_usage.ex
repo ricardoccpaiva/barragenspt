@@ -15,6 +15,7 @@ defmodule Barragenspt.ApiUsage do
   @ets_table :barragenspt_api_usage_counters
 
   @usage_chart_max_bars 48
+  @usage_chart_max_bars_filtered 400
 
   @token_chart_colors [
     "rgba(14, 165, 233, 0.88)",
@@ -84,16 +85,33 @@ defmodule Barragenspt.ApiUsage do
   @doc """
   Builds a Chart.js-friendly payload: stacked bar series per token, one bar per time bucket.
   Merges persisted buckets with in-flight ETS counts for the same `(token, bucket)`.
+
+  ## Options
+
+    * `:from_date`, `:to_date` — inclusive calendar dates in UTC. When both are set, only
+      buckets in `[from_date 00:00 UTC, to_date end UTC]` are included (up to
+      #{@usage_chart_max_bars_filtered} buckets, keeping the most recent if the range is larger).
+    * When dates are omitted, uses the latest #{@usage_chart_max_bars} bucket intervals (current behaviour).
   """
-  def usage_stacked_bar_chart(user_id, tokens) when is_integer(user_id) and is_list(tokens) do
+  def usage_stacked_bar_chart(user_id, tokens, opts \\ [])
+
+  def usage_stacked_bar_chart(user_id, tokens, opts)
+      when is_integer(user_id) and is_list(tokens) and is_list(opts) do
     if tokens == [] do
       %{labels: [], datasets: []}
     else
-      usage_stacked_bar_chart_nonempty(user_id, tokens)
+      case Keyword.get(opts, :from_date) do
+        %Date{} = from_date ->
+          to_date = Keyword.fetch!(opts, :to_date)
+          usage_stacked_bar_chart_for_range(user_id, tokens, from_date, to_date)
+
+        _ ->
+          usage_stacked_bar_chart_auto(user_id, tokens)
+      end
     end
   end
 
-  defp usage_stacked_bar_chart_nonempty(user_id, tokens) do
+  defp usage_stacked_bar_chart_auto(user_id, tokens) do
     max_bars = @usage_chart_max_bars
 
     db_buckets =
@@ -120,6 +138,64 @@ defmodule Barragenspt.ApiUsage do
       |> Enum.sort_by(&DateTime.to_unix(&1, :second))
       |> Enum.take(-max_bars)
 
+    build_stacked_chart(user_id, tokens, bucket_starts, ets_by_token_bucket)
+  end
+
+  defp usage_stacked_bar_chart_for_range(user_id, tokens, from_date, to_date) do
+    start_dt = date_start_utc(from_date)
+    end_exclusive = date_start_utc(Date.add(to_date, 1))
+    max_bars = @usage_chart_max_bars_filtered
+
+    db_buckets =
+      from(b in ApiTokenUsageBucket,
+        where: b.user_id == ^user_id,
+        where: b.bucket_start >= ^start_dt and b.bucket_start < ^end_exclusive,
+        group_by: b.bucket_start,
+        order_by: [asc: b.bucket_start],
+        select: b.bucket_start
+      )
+      |> Repo.all()
+
+    ets_by_token_bucket =
+      user_id
+      |> ets_counts_by_token_bucket()
+      |> ets_in_datetime_range(start_dt, end_exclusive)
+
+    ets_bucket_times =
+      ets_by_token_bucket
+      |> Map.keys()
+      |> Enum.map(&elem(&1, 1))
+      |> Enum.uniq()
+
+    bucket_starts =
+      (db_buckets ++ ets_bucket_times)
+      |> Enum.uniq()
+      |> Enum.sort_by(&DateTime.to_unix(&1, :second))
+      |> trim_bucket_starts_to_max(max_bars)
+
+    build_stacked_chart(user_id, tokens, bucket_starts, ets_by_token_bucket)
+  end
+
+  defp date_start_utc(%Date{} = d) do
+    DateTime.new!(d, ~T[00:00:00.000000], "Etc/UTC")
+  end
+
+  defp ets_in_datetime_range(ets_map, start_dt, end_exclusive) do
+    Enum.filter(ets_map, fn {{_, bucket}, _} ->
+      DateTime.compare(bucket, start_dt) != :lt and DateTime.compare(bucket, end_exclusive) == :lt
+    end)
+    |> Map.new()
+  end
+
+  defp trim_bucket_starts_to_max(bucket_starts, max) do
+    if length(bucket_starts) <= max do
+      bucket_starts
+    else
+      Enum.drop(bucket_starts, length(bucket_starts) - max)
+    end
+  end
+
+  defp build_stacked_chart(user_id, tokens, bucket_starts, ets_by_token_bucket) do
     if bucket_starts == [] do
       %{labels: [], datasets: []}
     else

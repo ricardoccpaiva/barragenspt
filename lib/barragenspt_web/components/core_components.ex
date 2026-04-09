@@ -689,6 +689,22 @@ defmodule BarragensptWeb.CoreComponents do
     """
   end
 
+  def icon(%{name: "hero-check"} = assigns) do
+    ~H"""
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class={@class}
+      aria-hidden="true"
+    >
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+    </svg>
+    """
+  end
+
   def icon(assigns) do
     ~H"""
     <span class={["inline-block", @class]} title={@name}>•</span>

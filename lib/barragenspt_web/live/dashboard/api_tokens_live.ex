@@ -14,6 +14,8 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
     {:ok,
      socket
      |> assign(:page_title, "Tokens API")
+     |> assign(:usage_chart_from_date, nil)
+     |> assign(:usage_chart_to_date, nil)
      |> refresh_tokens(user.id)
      |> assign(:selected_scopes, [])
      |> assign(:generate_modal_open?, false)
@@ -125,9 +127,96 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
     end
   end
 
+  def handle_event("apply_usage_chart_filter", %{"from" => from_s, "to" => to_s}, socket) do
+    from_s = String.trim(to_string(from_s || ""))
+    to_s = String.trim(to_string(to_s || ""))
+
+    cond do
+      from_s == "" and to_s == "" ->
+        {:noreply,
+         socket
+         |> assign(:usage_chart_from_date, nil)
+         |> assign(:usage_chart_to_date, nil)
+         |> refresh_usage_chart()}
+
+      from_s == "" or to_s == "" ->
+        {:noreply,
+         put_flash(socket, :error, "Indica data de início e de fim, ou deixa ambas em branco.")}
+
+      true ->
+        with {:ok, from_d} <- Date.from_iso8601(from_s),
+             {:ok, to_d} <- Date.from_iso8601(to_s),
+             :ok <- validate_usage_chart_range(from_d, to_d) do
+          {:noreply,
+           socket
+           |> clear_flash(:error)
+           |> assign(:usage_chart_from_date, from_s)
+           |> assign(:usage_chart_to_date, to_s)
+           |> refresh_usage_chart()}
+        else
+          {:error, :invalid_range} ->
+            {:noreply,
+             put_flash(socket, :error, "A data de início não pode ser posterior à data de fim.")}
+
+          _ ->
+            {:noreply, put_flash(socket, :error, "Datas inválidas. Usa o formato AAAA-MM-DD.")}
+        end
+    end
+  end
+
+  def handle_event("clear_usage_chart_filter", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:usage_chart_from_date, nil)
+     |> assign(:usage_chart_to_date, nil)
+     |> refresh_usage_chart()}
+  end
+
+  defp validate_usage_chart_range(from_d, to_d) do
+    if Date.compare(from_d, to_d) == :gt, do: {:error, :invalid_range}, else: :ok
+  end
+
+  defp chart_filter_opts(assigns) do
+    from_s = Map.get(assigns, :usage_chart_from_date)
+    to_s = Map.get(assigns, :usage_chart_to_date)
+
+    with s when is_binary(s) and s != "" <- from_s,
+         e when is_binary(e) and e != "" <- to_s,
+         {:ok, from_d} <- Date.from_iso8601(s),
+         {:ok, to_d} <- Date.from_iso8601(e),
+         :ok <- validate_usage_chart_range(from_d, to_d) do
+      [from_date: from_d, to_date: to_d]
+    else
+      _ -> []
+    end
+  end
+
+  defp refresh_usage_chart(socket) do
+    user_id = socket.assigns.current_scope.user.id
+    tokens = socket.assigns.tokens
+    opts = chart_filter_opts(socket.assigns)
+    chart = ApiUsage.usage_stacked_bar_chart(user_id, tokens, opts)
+
+    socket
+    |> assign(:api_tokens_usage_chart, chart)
+    |> maybe_push_usage_chart(chart)
+  end
+
+  defp maybe_push_usage_chart(socket, chart) do
+    if connected?(socket) && socket.assigns.tokens != [] do
+      push_event(socket, "api-tokens-usage-chart", %{
+        labels: chart.labels,
+        datasets: chart.datasets
+      })
+    else
+      socket
+    end
+  end
+
   defp refresh_tokens(socket, user_id) do
     tokens = Accounts.list_user_api_tokens(user_id)
-    chart = ApiUsage.usage_stacked_bar_chart(user_id, tokens)
+    opts = chart_filter_opts(socket.assigns)
+    chart = ApiUsage.usage_stacked_bar_chart(user_id, tokens, opts)
 
     socket =
       socket
@@ -136,14 +225,7 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
       |> assign(:api_tokens_usage_chart, chart)
       |> assign(:active_count, Accounts.count_active_user_api_tokens(user_id))
 
-    if connected?(socket) && chart.labels != [] do
-      push_event(socket, "api-tokens-usage-chart", %{
-        labels: chart.labels,
-        datasets: chart.datasets
-      })
-    else
-      socket
-    end
+    maybe_push_usage_chart(socket, chart)
   end
 
   @impl true
@@ -272,9 +354,67 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
         </div>
 
         <div :if={@tokens != []} class="space-y-2">
-          <.header padding="pb-2">
-            Utilização por período
-          </.header>
+          <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+            <.header padding="pb-2">
+              Utilização por período
+            </.header>
+
+            <form
+              phx-submit="apply_usage_chart_filter"
+              id="api-usage-chart-filter-form"
+              class="flex flex-wrap items-end justify-end gap-2 sm:gap-2.5"
+            >
+              <div class="flex flex-col gap-0.5">
+                <label
+                  for="usage_chart_from"
+                  class="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400"
+                >
+                  Início
+                </label>
+                <input
+                  type="date"
+                  name="from"
+                  id="usage_chart_from"
+                  value={@usage_chart_from_date || ""}
+                  class="h-8 w-[9.5rem] rounded-md border border-slate-300 bg-white px-2 text-[12px] text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </div>
+              <div class="flex flex-col gap-0.5">
+                <label
+                  for="usage_chart_to"
+                  class="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400"
+                >
+                  Fim
+                </label>
+                <input
+                  type="date"
+                  name="to"
+                  id="usage_chart_to"
+                  value={@usage_chart_to_date || ""}
+                  class="h-8 w-[9.5rem] rounded-md border border-slate-300 bg-white px-2 text-[12px] text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </div>
+              <div class="flex items-center gap-0.5 pb-px">
+                <button
+                  type="submit"
+                  class="inline-flex rounded-md bg-brand-600 p-1.5 text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 dark:focus:ring-offset-slate-900"
+                  aria-label="Aplicar filtro de datas"
+                  title="Aplicar filtro"
+                >
+                  <.icon name="hero-check" class="size-3.5" />
+                </button>
+                <button
+                  type="button"
+                  phx-click="clear_usage_chart_filter"
+                  class="inline-flex rounded-md border border-slate-300 bg-white p-1.5 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700/80"
+                  aria-label="Limpar filtro e voltar à vista automática"
+                  title="Limpar filtro"
+                >
+                  <.icon name="hero-x-mark" class="size-3.5" />
+                </button>
+              </div>
+            </form>
+          </div>
 
           <div
             :if={@api_tokens_usage_chart.labels == []}
