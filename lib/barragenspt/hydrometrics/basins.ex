@@ -128,6 +128,13 @@ defmodule Barragenspt.Hydrometrics.Basins do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
+  @doc """
+  Per-basin snapshot for the current calendar day/month: map/UI uses `observed_value` and
+  `historical_average` (percent, one decimal). API clients can use `current_storage_volume` and
+  `historical_average_volume` — rounded total hm³ (sum of latest `volume_last_hour` per dam, and
+  historical % scaled by summed `total_capacity`). `total_capacity` is the basin total: sum of each
+  dam’s `total_capacity` (same dams as the volume snapshot).
+  """
   @decorate cacheable(
               cache: Cache,
               key: "basins.summary_stats_#{Enum.join(usage_types, "-")}",
@@ -143,7 +150,10 @@ defmodule Barragenspt.Hydrometrics.Basins do
           id: d.basin_id,
           name: b.name,
           observed_value: fragment("round(?, 1)", b.current_storage),
-          historical_average: fragment("round(?, 1)", d.value)
+          historical_average: fragment("round(?, 1)", d.value),
+          current_storage_volume: fragment("round(?)::integer", b.total_volume),
+          historical_average_volume: fragment("round(?)::integer", d.capacity_value),
+          total_capacity: b.capacity_sum
         }
       )
 
@@ -236,6 +246,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
           basin_id: dp.basin_id,
           site_id: dp.site_id,
           average: dp.value / d.total_capacity,
+          value: dp.value,
           period:
             fragment(
               "EXTRACT(day FROM ?) || '-' || EXTRACT(month FROM ?)",
@@ -254,7 +265,8 @@ defmodule Barragenspt.Hydrometrics.Basins do
       select: %{
         period: q.period,
         basin_id: q.basin_id,
-        value: avg(q.average) * 100
+        value: avg(q.average) * 100,
+        capacity_value: avg(q.value)
       }
   end
 
@@ -313,7 +325,9 @@ defmodule Barragenspt.Hydrometrics.Basins do
       select: %{
         id: d.basin_id,
         name: d.basin,
-        current_storage: sum(dp.value) / sum(d.total_capacity) * 100
+        current_storage: sum(dp.value) / sum(d.total_capacity) * 100,
+        total_volume: sum(dp.value),
+        capacity_sum: sum(d.total_capacity)
       }
     )
   end

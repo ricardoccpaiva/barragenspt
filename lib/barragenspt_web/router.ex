@@ -35,6 +35,12 @@ defmodule BarragensptWeb.Router do
     post("/webhook", TelegramWebhookController, :create)
   end
 
+  scope "/api", BarragensptWeb do
+    pipe_through(:api)
+
+    get("/basins", Api.BasinsController, :index)
+  end
+
   scope "/oban", BarragensptWeb do
     pipe_through(:browser)
     pipe_through(:private)
