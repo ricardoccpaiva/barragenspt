@@ -31,6 +31,7 @@ defmodule BarragensptWeb.Router do
 
   pipeline :api_protected do
     plug(BarragensptWeb.Plugs.ApiTokenAuth, required_scopes: ["basins"])
+    plug(BarragensptWeb.Plugs.ApiUsage)
   end
 
   scope "/telegram", BarragensptWeb do

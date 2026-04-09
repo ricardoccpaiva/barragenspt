@@ -378,6 +378,123 @@ const ExportDamCard = {
   }
 }
 
+const ApiTokensUsageChart = {
+  mounted() {
+    this.chart = null
+    this._lastFingerprint = null
+
+    this.handleEvent("api-tokens-usage-chart", (payload) => {
+      this.applyUsageChartPayload(payload)
+    })
+  },
+
+  destroyed() {
+    this._lastFingerprint = null
+    if (this.chart) {
+      this.chart.destroy()
+      this.chart = null
+    }
+  },
+
+  applyUsageChartPayload(payload) {
+    if (typeof window.Chart === "undefined") return
+
+    const canvas = this.el.querySelector("canvas")
+    if (!canvas) return
+
+    const labels = (payload && payload.labels) || []
+    const datasetsIn = (payload && payload.datasets) || []
+
+    if (labels.length === 0 || datasetsIn.length === 0) {
+      if (this.chart) {
+        this.chart.destroy()
+        this.chart = null
+      }
+      return
+    }
+
+    let fingerprint
+    try {
+      fingerprint = JSON.stringify(payload)
+    } catch (_) {
+      return
+    }
+
+    if (
+      fingerprint === this._lastFingerprint &&
+      this.chart &&
+      this.chart.canvas === canvas &&
+      canvas.isConnected
+    ) {
+      return
+    }
+
+    this._lastFingerprint = fingerprint
+
+    if (this.chart) {
+      this.chart.destroy()
+      this.chart = null
+    }
+
+    const isDark = document.documentElement.classList.contains("dark")
+    const tickColor = isDark ? "#94a3b8" : "#64748b"
+    const gridColor = isDark ? "rgba(148, 163, 184, 0.14)" : "rgba(100, 116, 139, 0.18)"
+
+    this.chart = new window.Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: datasetsIn.map((ds) => ({
+          label: ds.label,
+          data: ds.data,
+          backgroundColor: ds.backgroundColor,
+          borderRadius: 4,
+          borderSkipped: false,
+          stack: "usage"
+        }))
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 0 },
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: { color: tickColor, boxWidth: 12, padding: 10 }
+          },
+          tooltip: {
+            mode: "index",
+            intersect: false,
+            backgroundColor: isDark ? "#1e293b" : "#fff",
+            titleColor: tickColor,
+            bodyColor: tickColor,
+            borderColor: gridColor,
+            borderWidth: 1
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: { color: tickColor, maxRotation: 45, autoSkip: true, maxTicksLimit: 16 },
+            grid: { color: gridColor }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            ticks: { color: tickColor, precision: 0 },
+            grid: { color: gridColor }
+          }
+        }
+      }
+    })
+
+    requestAnimationFrame(() => {
+      if (this.chart) this.chart.resize()
+    })
+  }
+}
+
 const DataPointsChart = {
   mounted() {
     this.chart = null
@@ -480,6 +597,7 @@ const ExportBasinCard = {
 
 export const Hooks = {
   CopyButton,
+  ApiTokensUsageChart,
   CapacityColor,
   BasinChartTimeWindow,
   DamChartTimeWindow,

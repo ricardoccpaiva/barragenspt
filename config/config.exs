@@ -67,6 +67,10 @@ config :phoenix, :json_library, Jason
 {seconds, micro_seconds} = DateTime.to_gregorian_seconds(DateTime.utc_now())
 unique_id = "#{seconds}_#{micro_seconds}"
 
+api_usage_flush_cron = if config_env() == :dev, do: "* * * * *", else: "0 * * * *"
+
+config :barragenspt, :api_usage_bucket, :hour
+
 config :barragenspt, Oban,
   repo: Barragenspt.Repo,
   plugins: [
@@ -79,7 +83,8 @@ config :barragenspt, Oban,
        {"*/15 * * * *", Barragenspt.Workers.EvaluateAlerts,
         args: %{id: "cron-15m"}, max_attempts: 1},
        {"*/30 * * * *", Barragenspt.Workers.InfoaguaAlertsRefresh, args: %{}, max_attempts: 1},
-       {"0 5 * * *", Barragenspt.Workers.RefreshMaterializedViews, args: %{}, max_attempts: 3}
+       {"0 5 * * *", Barragenspt.Workers.RefreshMaterializedViews, args: %{}, max_attempts: 3},
+       {api_usage_flush_cron, Barragenspt.Workers.FlushApiUsage, args: %{}, max_attempts: 3}
      ]}
   ],
   queues: [
@@ -88,7 +93,8 @@ config :barragenspt, Oban,
     stats_cacher: 5,
     data_points_update: 1,
     meteo_data: 5,
-    notifications: 2
+    notifications: 2,
+    api_usage: 1
   ]
 
 # TTL for Nebulex `Barragenspt.ApiTokenCache` entries (resolved bearer → user_id/scopes).

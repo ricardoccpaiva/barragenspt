@@ -26,6 +26,7 @@ defmodule Barragenspt.Application do
         # Start the Endpoint (http/https)
         BarragensptWeb.Endpoint,
         {Oban, oban_config()},
+        Barragenspt.ApiUsage.EtsHolder,
         Barragenspt.Cache,
         Barragenspt.MeteoDataCache,
         Barragenspt.RealtimeDataPointsCache,

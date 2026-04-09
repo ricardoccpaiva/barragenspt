@@ -5,6 +5,7 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
 
   alias Barragenspt.Accounts
   alias Barragenspt.Accounts.UserApiToken
+  alias Barragenspt.ApiUsage
 
   @impl true
   def mount(_params, _session, socket) do
@@ -125,9 +126,24 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
   end
 
   defp refresh_tokens(socket, user_id) do
-    socket
-    |> assign(:tokens, Accounts.list_user_api_tokens(user_id))
-    |> assign(:active_count, Accounts.count_active_user_api_tokens(user_id))
+    tokens = Accounts.list_user_api_tokens(user_id)
+    chart = ApiUsage.usage_stacked_bar_chart(user_id, tokens)
+
+    socket =
+      socket
+      |> assign(:tokens, tokens)
+      |> assign(:token_usage_counts, ApiUsage.request_counts_by_token_id(user_id))
+      |> assign(:api_tokens_usage_chart, chart)
+      |> assign(:active_count, Accounts.count_active_user_api_tokens(user_id))
+
+    if connected?(socket) && chart.labels != [] do
+      push_event(socket, "api-tokens-usage-chart", %{
+        labels: chart.labels,
+        datasets: chart.datasets
+      })
+    else
+      socket
+    end
   end
 
   @impl true
@@ -135,127 +151,150 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="space-y-8">
-        <div class="flex flex-wrap items-start justify-between gap-4 sm:items-center sm:gap-6">
-          <.header>
-            Tokens API
-            <:subtitle>
-              Gera até 5 tokens ativos com âmbitos Barragens, Bacias ou Pontos de dados. Cada token só é mostrado uma vez.
-            </:subtitle>
-          </.header>
-          <button
-            type="button"
-            phx-click="open_generate_modal"
-            disabled={@active_count >= UserApiToken.max_active_per_user()}
-            title={
-              if @active_count >= UserApiToken.max_active_per_user(),
-                do: "Limite de 5 tokens ativos",
-                else: "Abrir formulário para gerar token"
-            }
-            class="inline-flex shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Gerar token
-          </button>
-        </div>
+        <div>
+          <div class="flex flex-wrap items-start justify-between gap-4 sm:items-center sm:gap-6">
+            <.header padding="pb-2">
+              Tokens API
+            </.header>
+            <button
+              type="button"
+              phx-click="open_generate_modal"
+              disabled={@active_count >= UserApiToken.max_active_per_user()}
+              title={
+                if @active_count >= UserApiToken.max_active_per_user(),
+                  do: "Limite de 5 tokens ativos",
+                  else: "Abrir formulário para gerar token"
+              }
+              class="inline-flex shrink-0 rounded-lg bg-brand-600 px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Gerar token
+            </button>
+          </div>
 
-        <div class="max-w-full overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-[0_4px_24px_-6px_rgba(15,23,42,0.12)] ring-1 ring-slate-950/[0.04] dark:border-slate-700/90 dark:bg-slate-900/45 dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.55)] dark:ring-white/[0.06]">
-          <table class="min-w-full border-collapse text-[13px]">
-            <thead class="sticky top-0 z-10 border-b border-slate-200/90 bg-slate-50/90 backdrop-blur-md dark:border-slate-700/80 dark:bg-slate-950/85">
-              <tr>
-                <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
-                  Prefixo
-                </th>
-                <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
-                  Âmbitos
-                </th>
-                <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
-                  Criado em
-                </th>
-                <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
-                  Revogado em
-                </th>
-                <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
-                  Estado
-                </th>
-                <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody class="[&>tr:nth-child(even)]:bg-slate-50/70 [&>tr:hover]:bg-sky-50/60 dark:[&>tr:nth-child(even)]:bg-slate-800/25 dark:[&>tr:hover]:bg-slate-800/55">
-              <%= if @tokens == [] do %>
-                <tr class="border-b border-slate-100/90 dark:border-slate-800/70">
-                  <td colspan="6" class="px-4 py-8 text-center text-slate-600 dark:text-slate-400">
-                    Ainda não tens tokens. Usa «Gerar token» para criar um.
-                  </td>
+          <div class="mt-4 max-w-full overflow-x-auto rounded-2xl border border-slate-200/90 bg-white shadow-[0_4px_24px_-6px_rgba(15,23,42,0.12)] ring-1 ring-slate-950/[0.04] dark:border-slate-700/90 dark:bg-slate-900/45 dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.55)] dark:ring-white/[0.06]">
+            <table class="min-w-full border-collapse text-[13px]">
+              <thead class="sticky top-0 z-10 border-b border-slate-200/90 bg-slate-50/90 backdrop-blur-md dark:border-slate-700/80 dark:bg-slate-950/85">
+                <tr>
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
+                    Prefixo
+                  </th>
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
+                    Âmbitos
+                  </th>
+                  <th class="px-4 py-3 text-right text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
+                    Pedidos
+                  </th>
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
+                    Criado em
+                  </th>
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
+                    Revogado em
+                  </th>
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
+                    Estado
+                  </th>
+                  <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
+                    Ações
+                  </th>
                 </tr>
-              <% else %>
-                <%= for t <- @tokens do %>
-                  <tr class="border-b border-slate-100/90 transition-colors duration-200 last:border-b-0 dark:border-slate-800/70">
-                    <td class="px-4 py-2 align-middle font-mono text-[12px] text-slate-800 first:pl-5 last:pr-5 dark:text-slate-200">
-                      {t.token_prefix}…
-                    </td>
-                    <td class="px-4 py-2 align-middle text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
-                      {scope_labels_joined(t.scopes)}
-                    </td>
-                    <td class="px-4 py-2 align-middle tabular-nums text-slate-600 first:pl-5 last:pr-5 dark:text-slate-400">
-                      {format_dt(t.created_at)}
-                    </td>
-                    <td class="px-4 py-2 align-middle tabular-nums text-slate-600 first:pl-5 last:pr-5 dark:text-slate-400">
-                      <%= if t.revoked_at do %>
-                        {format_dt(t.revoked_at)}
-                      <% else %>
-                        —
-                      <% end %>
-                    </td>
-                    <td class="px-4 py-2 align-middle first:pl-5 last:pr-5">
-                      <%= if UserApiToken.active?(t) do %>
-                        <span class="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200">
-                          Ativo
-                        </span>
-                      <% else %>
-                        <span class="inline-flex rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-600 dark:text-slate-100">
-                          Revogado
-                        </span>
-                      <% end %>
-                    </td>
-                    <td class="px-4 py-2 align-middle first:pl-5 last:pr-5">
-                      <%= if UserApiToken.active?(t) do %>
-                        <button
-                          type="button"
-                          phx-click="revoke"
-                          phx-value-id={to_string(t.id)}
-                          data-confirm="Revogar este token? As integrações que o usam deixam de funcionar."
-                          class="text-[13px] font-semibold text-rose-600 hover:underline dark:text-rose-400"
-                        >
-                          Revogar
-                        </button>
-                      <% else %>
-                        <button
-                          type="button"
-                          phx-click="discard_token"
-                          phx-value-id={to_string(t.id)}
-                          data-confirm="Apagar da tua lista? O token continua revogado."
-                          class="inline-flex rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-rose-400"
-                          aria-label="Apagar da lista"
-                          title="Apagar da lista"
-                        >
-                          <.icon name="hero-trash" class="size-4" />
-                        </button>
-                      <% end %>
+              </thead>
+              <tbody class="[&>tr:nth-child(even)]:bg-slate-50/70 [&>tr:hover]:bg-sky-50/60 dark:[&>tr:nth-child(even)]:bg-slate-800/25 dark:[&>tr:hover]:bg-slate-800/55">
+                <%= if @tokens == [] do %>
+                  <tr class="border-b border-slate-100/90 dark:border-slate-800/70">
+                    <td colspan="7" class="px-4 py-8 text-center text-slate-600 dark:text-slate-400">
+                      Ainda não tens tokens. Usa «Gerar token» para criar um.
                     </td>
                   </tr>
+                <% else %>
+                  <%= for t <- @tokens do %>
+                    <tr class="border-b border-slate-100/90 transition-colors duration-200 last:border-b-0 dark:border-slate-800/70">
+                      <td class="px-4 py-2 align-middle font-mono text-[12px] text-slate-800 first:pl-5 last:pr-5 dark:text-slate-200">
+                        {t.token_prefix}…
+                      </td>
+                      <td class="px-4 py-2 align-middle text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
+                        {scope_labels_joined(t.scopes)}
+                      </td>
+                      <td class="px-4 py-2 align-middle text-right tabular-nums text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
+                        {Map.get(@token_usage_counts, t.id, 0)}
+                      </td>
+                      <td class="px-4 py-2 align-middle tabular-nums text-slate-600 first:pl-5 last:pr-5 dark:text-slate-400">
+                        {format_dt(t.created_at)}
+                      </td>
+                      <td class="px-4 py-2 align-middle tabular-nums text-slate-600 first:pl-5 last:pr-5 dark:text-slate-400">
+                        <%= if t.revoked_at do %>
+                          {format_dt(t.revoked_at)}
+                        <% else %>
+                          —
+                        <% end %>
+                      </td>
+                      <td class="px-4 py-2 align-middle first:pl-5 last:pr-5">
+                        <%= if UserApiToken.active?(t) do %>
+                          <span class="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/40 dark:text-green-200">
+                            Ativo
+                          </span>
+                        <% else %>
+                          <span class="inline-flex rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-600 dark:text-slate-100">
+                            Revogado
+                          </span>
+                        <% end %>
+                      </td>
+                      <td class="px-4 py-2 align-middle first:pl-5 last:pr-5">
+                        <%= if UserApiToken.active?(t) do %>
+                          <button
+                            type="button"
+                            phx-click="revoke"
+                            phx-value-id={to_string(t.id)}
+                            data-confirm="Revogar este token? As integrações que o usam deixam de funcionar."
+                            class="text-[13px] font-semibold text-rose-600 hover:underline dark:text-rose-400"
+                          >
+                            Revogar
+                          </button>
+                        <% else %>
+                          <button
+                            type="button"
+                            phx-click="discard_token"
+                            phx-value-id={to_string(t.id)}
+                            data-confirm="Apagar da tua lista? O token continua revogado."
+                            class="inline-flex rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-rose-400"
+                            aria-label="Apagar da lista"
+                            title="Apagar da lista"
+                          >
+                            <.icon name="hero-trash" class="size-4" />
+                          </button>
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
                 <% end %>
-              <% end %>
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <.link
-          navigate={~p"/dashboard"}
-          class="inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
-        >
-          ← Painel
-        </.link>
+        <div :if={@tokens != []} class="space-y-2">
+          <.header padding="pb-2">
+            Utilização por período
+          </.header>
+
+          <div
+            :if={@api_tokens_usage_chart.labels == []}
+            class="rounded-2xl border border-slate-200/90 bg-white px-4 py-10 text-center text-[13px] text-slate-500 shadow-[0_4px_24px_-6px_rgba(15,23,42,0.12)] ring-1 ring-slate-950/[0.04] dark:border-slate-700/90 dark:bg-slate-900/45 dark:text-slate-400 dark:ring-white/[0.06]"
+          >
+            Sem dados de utilização por período ainda.
+          </div>
+
+          <div
+            :if={@api_tokens_usage_chart.labels != []}
+            id="api-tokens-usage-chart"
+            phx-hook="ApiTokensUsageChart"
+            phx-update="ignore"
+            class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-[0_4px_24px_-6px_rgba(15,23,42,0.12)] ring-1 ring-slate-950/[0.04] dark:border-slate-700/90 dark:bg-slate-900/45 dark:ring-white/[0.06]"
+          >
+            <div class="relative min-h-[280px] w-full">
+              <canvas class="max-h-[320px] w-full" aria-hidden="true"></canvas>
+            </div>
+          </div>
+        </div>
       </div>
 
       <%= if @generate_modal_open? do %>
