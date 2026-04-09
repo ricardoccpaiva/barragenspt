@@ -2,7 +2,13 @@ defmodule BarragensptWeb.Api.BasinsView do
   use BarragensptWeb, :view
 
   def render("index.json", %{basins: basins}) do
-    %{data: Enum.map(basins, &basin/1)}
+    %{
+      data: Enum.map(basins, &basin/1),
+      links: %{
+        self: "/api/basins",
+        basin: "/api/basins/{id}"
+      }
+    }
   end
 
   def render("show.json", %{basin: basin}) do
