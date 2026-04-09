@@ -5,6 +5,13 @@ defmodule BarragensptWeb.Api.BasinsView do
     %{data: Enum.map(basins, &basin/1)}
   end
 
+  def render("show.json", %{basin: basin}) do
+    %{
+      data: basin(basin),
+      links: %{dams: "/api/basins/#{basin.id}/dams"}
+    }
+  end
+
   defp basin(%{
          id: id,
          name: name,

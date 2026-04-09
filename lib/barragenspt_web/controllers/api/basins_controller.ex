@@ -10,4 +10,20 @@ defmodule BarragensptWeb.Api.BasinsController do
     |> put_view(BarragensptWeb.Api.BasinsView)
     |> render("index.json", basins: basins)
   end
+
+  def show(conn, %{"id" => id}) do
+    case Basins.basin_summary(id) do
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{
+          errors: [%{title: "Not Found", detail: "No basin snapshot for this id"}]
+        })
+
+      basin ->
+        conn
+        |> put_view(BarragensptWeb.Api.BasinsView)
+        |> render("show.json", basin: basin)
+    end
+  end
 end

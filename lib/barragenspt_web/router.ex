@@ -39,6 +39,7 @@ defmodule BarragensptWeb.Router do
     pipe_through(:api)
 
     get("/basins", Api.BasinsController, :index)
+    get("/basins/:id", Api.BasinsController, :show)
   end
 
   scope "/oban", BarragensptWeb do

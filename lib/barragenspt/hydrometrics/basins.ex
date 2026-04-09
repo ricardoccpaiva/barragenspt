@@ -160,6 +160,38 @@ defmodule Barragenspt.Hydrometrics.Basins do
     Repo.all(query)
   end
 
+  @doc """
+  Same aggregate fields as `summary_stats/1` for a single `basin_id`, or `nil` if there is no
+  matching snapshot (e.g. no historical row for today’s day–month). Not to be confused with
+  `summary_stats/2`, which returns per-dam rows for charts.
+  """
+  @decorate cacheable(
+              cache: Cache,
+              key: "basins.basin_summary_#{basin_id}",
+              ttl: :timer.hours(24)
+            )
+  def basin_summary(basin_id) do
+    period = "#{Timex.now().day}-#{Timex.now().month}"
+
+    query =
+      from(d in subquery(daily_average_storage_by_basin_query(basin_id, [])),
+        join: b in subquery(basin_current_storage_query([])),
+        on: d.basin_id == b.id,
+        where: d.period == ^period,
+        select: %{
+          id: d.basin_id,
+          name: b.name,
+          observed_value: fragment("round(?, 1)", b.current_storage),
+          historical_average: fragment("round(?, 1)", d.value),
+          current_storage_volume: fragment("round(?)", b.total_volume),
+          historical_average_volume: fragment("round(? * ? / 100.0)", d.value, b.capacity_sum),
+          total_capacity: fragment("round(?)", b.capacity_sum)
+        }
+      )
+
+    Repo.one(query)
+  end
+
   @decorate cacheable(
               cache: Cache,
               key: "basins.summary_stats_#{id}_#{Enum.join(usage_types, "-")}",
