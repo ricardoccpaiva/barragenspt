@@ -91,6 +91,18 @@ config :barragenspt, Oban,
     notifications: 2
   ]
 
+# TTL for Nebulex `Barragenspt.ApiTokenCache` entries (resolved bearer → user_id/scopes).
+config :barragenspt, :api_token_cache_ttl, :timer.minutes(3)
+
+# Required for `Nebulex.Adapters.Local` — without this the cache process may not start
+# (runtime error: "could not lookup Nebulex cache ... because it was not started").
+config :barragenspt, Barragenspt.ApiTokenCache,
+  gc_interval: :timer.hours(1),
+  max_size: 50_000,
+  allocated_memory: 50_000_000,
+  gc_cleanup_min_timeout: :timer.seconds(10),
+  gc_cleanup_max_timeout: :timer.minutes(10)
+
 config :barragenspt, :snirh,
   csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php",
   proxy: nil

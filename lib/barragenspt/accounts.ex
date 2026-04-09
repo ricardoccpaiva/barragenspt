@@ -5,6 +5,7 @@ defmodule Barragenspt.Accounts do
 
   import Ecto.Query, warn: false
   alias Barragenspt.Repo
+  alias Barragenspt.ApiTokenCache
 
   alias Barragenspt.Accounts.{User, UserToken, UserNotifier, TelegramLinkToken, UserApiToken}
 
@@ -510,6 +511,31 @@ defmodule Barragenspt.Accounts do
   ## User API tokens
 
   @doc """
+  Nebulex cache key for a bearer token digest (never use the raw secret as the key).
+  """
+  def api_token_cache_key(digest) when is_binary(digest) do
+    "api_token:" <> Base.encode16(digest, case: :lower)
+  end
+
+  @doc """
+  Loads an active (non-revoked, non-deleted) API token row by SHA-256 digest of the plain token.
+  """
+  def fetch_active_api_token_by_digest(digest) when is_binary(digest) do
+    query =
+      from(t in UserApiToken,
+        where: t.token_digest == ^digest,
+        where: is_nil(t.revoked_at),
+        where: is_nil(t.deleted_at),
+        select: %{id: t.id, user_id: t.user_id, scopes: t.scopes}
+      )
+
+    case Repo.one(query) do
+      nil -> :error
+      row -> {:ok, row}
+    end
+  end
+
+  @doc """
   Lists API tokens for a user (active and revoked), excluding entries removed by the user (`deleted_at`).
   Newest first.
   """
@@ -573,12 +599,19 @@ defmodule Barragenspt.Accounts do
         {:error, :not_found}
 
       %UserApiToken{revoked_at: %DateTime{}} = token ->
+        delete_api_token_cache_entry(token.token_digest)
         {:ok, token}
 
       token ->
-        token
-        |> Ecto.Changeset.change(revoked_at: now)
-        |> Repo.update()
+        digest = token.token_digest
+
+        with {:ok, updated} <-
+               token
+               |> Ecto.Changeset.change(revoked_at: now)
+               |> Repo.update() do
+          delete_api_token_cache_entry(digest)
+          {:ok, updated}
+        end
     end
   end
 
@@ -599,13 +632,25 @@ defmodule Barragenspt.Accounts do
         {:error, :not_revoked}
 
       %UserApiToken{deleted_at: %DateTime{}} = token ->
+        delete_api_token_cache_entry(token.token_digest)
         {:ok, token}
 
       token ->
-        token
-        |> Ecto.Changeset.change(deleted_at: now)
-        |> Repo.update()
+        digest = token.token_digest
+
+        with {:ok, updated} <-
+               token
+               |> Ecto.Changeset.change(deleted_at: now)
+               |> Repo.update() do
+          delete_api_token_cache_entry(digest)
+          {:ok, updated}
+        end
     end
+  end
+
+  defp delete_api_token_cache_entry(digest) when is_binary(digest) do
+    _ = ApiTokenCache.delete(api_token_cache_key(digest))
+    :ok
   end
 
   defp generate_user_api_plain_token do

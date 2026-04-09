@@ -29,6 +29,10 @@ defmodule BarragensptWeb.Router do
     plug(:accepts, ["json"])
   end
 
+  pipeline :api_protected do
+    plug(BarragensptWeb.Plugs.ApiTokenAuth, required_scopes: ["basins"])
+  end
+
   scope "/telegram", BarragensptWeb do
     pipe_through(:api)
 
@@ -36,7 +40,7 @@ defmodule BarragensptWeb.Router do
   end
 
   scope "/api", BarragensptWeb do
-    pipe_through(:api)
+    pipe_through([:api, :api_protected])
 
     get("/basins", Api.BasinsController, :index)
     get("/basins/:id", Api.BasinsController, :show)
