@@ -26,4 +26,20 @@ defmodule BarragensptWeb.Api.BasinsController do
         |> render("show.json", basin: basin)
     end
   end
+
+  def dams(conn, %{"id" => basin_id}) do
+    case Basins.summary_stats(basin_id, []) do
+      [] ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{
+          errors: [%{title: "Not Found", detail: "No basin snapshot for this id"}]
+        })
+
+      dams ->
+        conn
+        |> put_view(BarragensptWeb.Api.BasinsView)
+        |> render("dams.json", basin_id: basin_id, dams: dams)
+    end
+  end
 end

@@ -220,19 +220,35 @@ defmodule Barragenspt.Hydrometrics.Basins do
         join: dd in Dam,
         on: d.site_id == dd.site_id,
         where: ^filter,
+        group_by: [
+          d.site_id,
+          dd.name,
+          dd.basin,
+          b.value,
+          d.value,
+          b.colected_at,
+          dd.total_capacity
+        ],
         select: %{
           site_id: d.site_id,
           site_name: dd.name,
           basin_name: dd.basin,
           observed_value: fragment("round((?/?)*100, 1)", b.value, dd.total_capacity),
           historical_average: fragment("round(?, 1)", d.value),
+          current_storage_volume: fragment("round(?)", b.value),
+          historical_average_volume: fragment("round(? * ? / 100.0)", d.value, dd.total_capacity),
           colected_at: b.colected_at,
-          total_capacity: dd.total_capacity
+          total_capacity: dd.total_capacity,
+          usage_types:
+            fragment(
+              "string_agg(distinct ?::text, ',' order by ?::text)",
+              du.usage_name,
+              du.usage_name
+            )
         }
       )
 
     query
-    |> distinct(true)
     |> Repo.all()
   end
 
