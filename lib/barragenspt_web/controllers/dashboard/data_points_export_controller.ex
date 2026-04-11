@@ -1,7 +1,7 @@
 defmodule BarragensptWeb.Dashboard.DataPointsExportController do
   use BarragensptWeb, :controller
 
-  alias Barragenspt.Hydrometrics.{Dams, DataPointParamLabels}
+  alias Barragenspt.Hydrometrics.{Dams, DataPointParams}
   alias Barragenspt.Models.Hydrometrics.DataPointWithDam
 
   def csv(conn, params) do
@@ -40,7 +40,7 @@ defmodule BarragensptWeb.Dashboard.DataPointsExportController do
         [
           row.dam_name,
           row.basin,
-          DataPointParamLabels.label(row.param_name),
+          DataPointParams.label(row.param_name),
           row.value,
           row.colected_at
         ]

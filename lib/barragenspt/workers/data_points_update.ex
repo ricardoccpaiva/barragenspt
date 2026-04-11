@@ -2,6 +2,7 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
   use Oban.Worker, queue: :data_points_update
   import Ecto.Query
   require Logger
+  alias Barragenspt.Hydrometrics.DataPointParams
   alias Barragenspt.Models.Hydrometrics.Dam
 
   @impl Oban.Worker
@@ -17,17 +18,7 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
     # 2282 - Caudal turbinado médio diário
     # 212296818 - Caudal efluente médio diário
 
-    data_params = [
-      {1_629_599_798, "volume"},
-      {354_895_398, "volume_last_hour"},
-      {304_545_050, "volume_last_day_month"},
-      {1_629_599_726, "elevation"},
-      {354_895_424, "elevation_last_hour"},
-      {2279, "tributary_daily_flow"},
-      {2284, "ouput_flow_rate_daily"},
-      {2282, "turbocharged_daily_flow"},
-      {212_296_818, "effluent_daily_flow"}
-    ]
+    data_params = DataPointParams.tuples()
 
     current_date = Timex.now()
     {:ok, end_date_str} = Timex.format(current_date, "{D}/{M}/{YYYY}")

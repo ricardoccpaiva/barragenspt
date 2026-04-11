@@ -49,6 +49,7 @@ defmodule BarragensptWeb.Router do
     get("/basins/:id/dams", Api.BasinsController, :dams)
     get("/dams/:id/info", Api.DamsController, :info)
     get("/dams/:id", Api.DamsController, :show)
+    get("/data-points/params", Api.DataPointsController, :param_catalog)
   end
 
   scope "/oban", BarragensptWeb do

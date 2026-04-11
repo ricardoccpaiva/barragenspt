@@ -20,7 +20,7 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
 
   on_mount {BarragensptWeb.UserAuth, :require_authenticated}
 
-  alias Barragenspt.Hydrometrics.{Dams, DataPointParamLabels}
+  alias Barragenspt.Hydrometrics.{Dams, DataPointParams}
   alias BarragensptWeb.DataPointsFilterDateClass
   alias Flop.Filter
 
@@ -467,7 +467,7 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
   defp chart_modal_param_summary(%Flop.Meta{} = meta) do
     meta
     |> param_names_from_flop()
-    |> Enum.map(&DataPointParamLabels.label/1)
+    |> Enum.map(&DataPointParams.label/1)
     |> Enum.join(", ")
   end
 
@@ -501,7 +501,7 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
 
   defp param_options_for_multiselect do
     Enum.map(data_point_param_names(), fn slug ->
-      {DataPointParamLabels.label(slug), slug}
+      {DataPointParams.label(slug), slug}
     end)
   end
 
@@ -568,7 +568,7 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
 
         label =
           if multi_param? do
-            "#{dam} — #{DataPointParamLabels.label(param_slug)}"
+            "#{dam} — #{DataPointParams.label(param_slug)}"
           else
             dam
           end
