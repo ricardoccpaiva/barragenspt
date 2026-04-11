@@ -711,6 +711,65 @@ defmodule Barragenspt.Hydrometrics.Dams do
       }
   end
 
+  def dam_summary_stats(site_id) do
+    basin_id =
+      Repo.one(from(d in Dam, where: d.site_id == ^site_id, select: d.basin_id))
+
+    case basin_id do
+      nil ->
+        {:error, :not_found}
+
+      basin_id ->
+        dam_summary_stats_for_basin(site_id, basin_id)
+    end
+  end
+
+  defp dam_summary_stats_for_basin(site_id, basin_id) do
+    usage_types = []
+
+    query =
+      from(b in subquery(sites_current_storage_query(basin_id, usage_types)),
+        left_join: e in subquery(sites_current_elevation_query(basin_id, usage_types)),
+        on: b.site_id == e.site_id,
+        join: du in DamUsage,
+        on: b.site_id == du.site_id,
+        join: dd in Dam,
+        on: b.site_id == dd.site_id,
+        where: b.site_id == ^site_id,
+        group_by: [
+          b.site_id,
+          dd.basin_id,
+          dd.name,
+          dd.basin,
+          b.value,
+          b.colected_at,
+          dd.total_capacity,
+          e.value
+        ],
+        select: %{
+          site_id: b.site_id,
+          basin_id: dd.basin_id,
+          site_name: dd.name,
+          basin_name: dd.basin,
+          current_storage_volume: fragment("round(?)", b.value),
+          current_storage_quota: e.value,
+          colected_at: b.colected_at,
+          total_capacity: dd.total_capacity,
+          usage_types:
+            fragment(
+              "string_agg(distinct ?::text, ',' order by ?::text)",
+              du.usage_name,
+              du.usage_name
+            )
+        }
+      )
+
+    case Repo.one(query) do
+      nil -> {:error, :no_snapshot}
+      row -> {:ok, row}
+    end
+  end
+
   def sites_current_storage_query(basin_id, usage_types) do
     filter = dynamic([dp, _du], dp.param_name == "volume_last_hour")
 
@@ -743,6 +802,60 @@ defmodule Barragenspt.Hydrometrics.Dams do
               "row_number() OVER (PARTITION BY ? ORDER BY ? DESC)",
               dp.site_id,
               dp.colected_at
+            )
+        }
+      )
+
+    from(dp in subquery(subquery),
+      join: d in Dam,
+      on: dp.site_id == d.site_id,
+      where: dp.rn == 1,
+      select: %{
+        site_id: dp.site_id,
+        basin_id: dp.basin_id,
+        value: dp.value,
+        colected_at: dp.colected_at
+      }
+    )
+  end
+
+  def sites_current_elevation_query(basin_id, usage_types) do
+    filter =
+      dynamic(
+        [dp, _du],
+        dp.param_name in ^["elevation_last_hour", "elevation"]
+      )
+
+    filter =
+      if basin_id do
+        dynamic([dp, _du], ^filter and dp.basin_id == ^basin_id)
+      else
+        filter
+      end
+
+    filter =
+      if usage_types != [] do
+        dynamic([_dp, du], ^filter and du.usage_name in ^usage_types)
+      else
+        filter
+      end
+
+    subquery =
+      from(dp in DataPoint,
+        join: du in DamUsage,
+        on: dp.site_id == du.site_id,
+        where: ^filter,
+        select: %{
+          site_id: dp.site_id,
+          basin_id: dp.basin_id,
+          value: dp.value,
+          colected_at: dp.colected_at,
+          rn:
+            fragment(
+              "row_number() OVER (PARTITION BY ? ORDER BY ? DESC, CASE WHEN ? = 'elevation_last_hour' THEN 0 ELSE 1 END)",
+              dp.site_id,
+              dp.colected_at,
+              dp.param_name
             )
         }
       )
@@ -1171,7 +1284,12 @@ defmodule Barragenspt.Hydrometrics.Dams do
     |> Repo.all()
   end
 
-  defp chart_row_to_json_map(%{bucket: bucket, dam_name: dam_name, param_name: param_name, avg_value: avg}) do
+  defp chart_row_to_json_map(%{
+         bucket: bucket,
+         dam_name: dam_name,
+         param_name: param_name,
+         avg_value: avg
+       }) do
     %{
       "bucket" => naive_bucket_to_iso(bucket),
       "dam_name" => dam_name,
@@ -1226,11 +1344,21 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   defp op_to_atom(op) when is_binary(op) do
     case op do
-      "==" -> :==
-      ">=" -> :>=
-      "<=" -> :<=
-      ">" -> :>
-      "<" -> :<
+      "==" ->
+        :==
+
+      ">=" ->
+        :>=
+
+      "<=" ->
+        :<=
+
+      ">" ->
+        :>
+
+      "<" ->
+        :<
+
       other ->
         try do
           String.to_existing_atom(other)

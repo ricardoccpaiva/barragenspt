@@ -1,7 +1,7 @@
 defmodule BarragensptWeb.Api.BasinsController do
   use BarragensptWeb, :controller
 
-  alias Barragenspt.Hydrometrics.Basins
+  alias Barragenspt.Hydrometrics.{Basins, Dams}
 
   def index(conn, _params) do
     basins = Basins.summary_stats([])
@@ -40,6 +40,39 @@ defmodule BarragensptWeb.Api.BasinsController do
         conn
         |> put_view(BarragensptWeb.Api.BasinsView)
         |> render("dams.json", basin_id: basin_id, dams: dams)
+    end
+  end
+
+  def dam(conn, %{"id" => basin_id, "site_id" => site_id}) do
+    case Dams.dam_summary_stats(site_id) do
+      {:error, :not_found} ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{
+          errors: [
+            %{
+              title: "Not Found",
+              detail: "No dam with this site_id in this basin"
+            }
+          ]
+        })
+
+      {:error, :no_snapshot} ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{
+          errors: [
+            %{
+              title: "Not Found",
+              detail: "No hydrometric snapshot for this dam in the current window"
+            }
+          ]
+        })
+
+      {:ok, dam} ->
+        conn
+        |> put_view(BarragensptWeb.Api.DamsView)
+        |> render("dam.json", basin_id: basin_id, dam: dam)
     end
   end
 end

@@ -215,6 +215,8 @@ defmodule Barragenspt.Hydrometrics.Basins do
       from(d in subquery(Dams.daily_average_storage_by_site_query(id, usage_types)),
         join: b in subquery(Dams.sites_current_storage_query(id, usage_types)),
         on: d.site_id == b.site_id,
+        left_join: e in subquery(Dams.sites_current_elevation_query(id, usage_types)),
+        on: b.site_id == e.site_id,
         join: du in DamUsage,
         on: b.site_id == du.site_id,
         join: dd in Dam,
@@ -227,13 +229,15 @@ defmodule Barragenspt.Hydrometrics.Basins do
           b.value,
           d.value,
           b.colected_at,
-          dd.total_capacity
+          dd.total_capacity,
+          e.value
         ],
         select: %{
           site_id: d.site_id,
           site_name: dd.name,
           basin_name: dd.basin,
           observed_value: fragment("round((?/?)*100, 1)", b.value, dd.total_capacity),
+          current_storage_quota: fragment("round(?, 2)", e.value),
           historical_average: fragment("round(?, 1)", d.value),
           current_storage_volume: fragment("round(?)", b.value),
           historical_average_volume: fragment("round(? * ? / 100.0)", d.value, dd.total_capacity),
