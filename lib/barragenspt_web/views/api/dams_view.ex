@@ -1,6 +1,21 @@
 defmodule BarragensptWeb.Api.DamsView do
   use BarragensptWeb, :view
 
+  def render("info.json", %{dam: dam}) do
+    site_id = dam.site_id
+    basin_id = dam.basin_id
+
+    %{
+      data: dam.metadata || %{},
+      links: %{
+        self: "/api/dams/#{site_id}/info",
+        snapshot: "/api/dams/#{site_id}",
+        basin: "/api/basins/#{basin_id}",
+        collection: "/api/basins/#{basin_id}/dams"
+      }
+    }
+  end
+
   def render("dam.json", %{dam: dam, scope: :global}) do
     id = dam.site_id
     basin_id = dam.basin_id

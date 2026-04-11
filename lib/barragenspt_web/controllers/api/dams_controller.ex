@@ -3,6 +3,27 @@ defmodule BarragensptWeb.Api.DamsController do
 
   alias Barragenspt.Hydrometrics.Dams
 
+  def info(conn, %{"id" => site_id}) do
+    case Dams.get(site_id) do
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{
+          errors: [
+            %{
+              title: "Not Found",
+              detail: "No dam with this site id"
+            }
+          ]
+        })
+
+      dam ->
+        conn
+        |> put_view(BarragensptWeb.Api.DamsView)
+        |> render("info.json", dam: dam)
+    end
+  end
+
   def show(conn, %{"id" => site_id}) do
     case Dams.dam_summary_stats(site_id) do
       {:error, :not_found} ->

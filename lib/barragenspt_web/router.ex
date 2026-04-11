@@ -47,6 +47,7 @@ defmodule BarragensptWeb.Router do
     get("/basins/:id", Api.BasinsController, :show)
     get("/basins/:id/dams/:site_id", Api.BasinsController, :dam)
     get("/basins/:id/dams", Api.BasinsController, :dams)
+    get("/dams/:id/info", Api.DamsController, :info)
     get("/dams/:id", Api.DamsController, :show)
   end
 

@@ -34,7 +34,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
               ttl: :timer.hours(1)
             )
   def get(id) do
-    Repo.one!(
+    Repo.one(
       from(b in SiteCurrentStorage,
         join: d in Dam,
         on: b.site_id == d.site_id,
