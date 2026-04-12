@@ -21,6 +21,8 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   alias Flop.{Filter, Meta}
 
+  alias Barragenspt.Helpers.FilterParser
+
   @discharge_flow_params [
     "ouput_flow_rate_daily",
     "tributary_daily_flow",
@@ -1042,6 +1044,28 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
           {:ok, {[], meta}}
         end
+
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+    end
+  end
+
+  def list_data_points_api(params) do
+    page = FilterParser.parse_int(Map.get(params, "page"), 1)
+    per_page = FilterParser.parse_int(Map.get(params, "per_page"), 20)
+
+    flop_params = %Flop{
+      filters: FilterParser.parse(params["colected_at"]),
+      page: page,
+      page_size: per_page
+    }
+
+    case Flop.validate(flop_params, @data_points_flop_opts) do
+      {:ok, flop} ->
+        count = cached_data_points_total_count(flop)
+
+        {:ok,
+         Flop.run(DataPointWithDam, flop, Keyword.put(@data_points_flop_opts, :count, count))}
 
       {:error, %Meta{} = meta} ->
         {:error, meta}
