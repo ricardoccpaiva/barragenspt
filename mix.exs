@@ -98,7 +98,8 @@ defmodule Barragenspt.MixProject do
       {:ueberauth_google, "~> 0.12"},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:earmark, "~> 1.4"},
-      {:html_sanitize_ex, "~> 1.4"}
+      {:html_sanitize_ex, "~> 1.4"},
+      {:open_api_spex, "~> 3.21"}
     ]
   end
 

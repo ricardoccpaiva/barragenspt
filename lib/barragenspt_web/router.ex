@@ -27,6 +27,7 @@ defmodule BarragensptWeb.Router do
 
   pipeline :api do
     plug(:accepts, ["json"])
+    plug OpenApiSpex.Plug.PutApiSpec, module: BarragensptWeb.ApiSpec
   end
 
   pipeline :api_protected do
@@ -40,8 +41,13 @@ defmodule BarragensptWeb.Router do
     post("/webhook", TelegramWebhookController, :create)
   end
 
+  scope "/api" do
+    pipe_through(:api)
+    get "/openapi", OpenApiSpex.Plug.RenderSpec, []
+  end
+
   scope "/api", BarragensptWeb do
-    pipe_through([:api, :api_protected])
+    pipe_through([:api_protected])
 
     get("/basins", Api.BasinsController, :index)
     get("/basins/:id", Api.BasinsController, :show)
