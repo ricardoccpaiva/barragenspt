@@ -1,7 +1,83 @@
 defmodule BarragensptWeb.Api.BasinsController do
   use BarragensptWeb, :controller
+  use OpenApiSpex.ControllerSpecs
 
   alias Barragenspt.Hydrometrics.{Basins, Dams}
+
+  alias BarragensptWeb.Api.Schemas.{
+    BasinDamListResponse,
+    BasinDetailResponse,
+    BasinListResponse,
+    DamSnapshotResponse
+  }
+
+  tags(["Bacias"])
+  security([%{}, %{"info" => ["basins"]}])
+
+  operation(:index,
+    summary: "Listar bacias",
+    description: "Devolve uma lista de bacias com resumo por bacia.",
+    responses: [
+      ok: {"Lista de bacias", "application/json", BasinListResponse}
+    ]
+  )
+
+  operation(:show,
+    summary: "Obter resumo de uma bacia",
+    description: "Resumo de uma única bacia.",
+    parameters: [
+      id: [
+        in: :path,
+        description: "Identificador da bacia.",
+        type: :string,
+        example: "1"
+      ]
+    ],
+    responses: [
+      ok: {"Resumo da bacia", "application/json", BasinDetailResponse}
+    ]
+  )
+
+  operation(:dams,
+    summary: "Listar barragens de uma bacia",
+    description: "Devolve uma lista de barragens da bacia hidrográfica com resumo por barragem.",
+    parameters: [
+      id: [
+        in: :path,
+        description: "Identificador da bacia",
+        type: :string,
+        example: "1"
+      ]
+    ],
+    responses: [
+      ok: {"Barragens na bacia", "application/json", BasinDamListResponse}
+    ]
+  )
+
+  operation(:dam,
+    summary:
+      "Obter snapshot dos indicadores hidrométricos de uma barragem na bacia hidrográfica.",
+    description: "Resposta equivalente à chamada `GET /basins/{id}/dams`.",
+    parameters: [
+      id: [
+        in: :path,
+        description: "Identificador da bacia",
+        type: :string,
+        example: "1"
+      ],
+      site_id: [
+        in: :path,
+        description: "Identificador de site da barragem (SNIRH)",
+        type: :string,
+        example: "1627743384"
+      ]
+    ],
+    responses: [
+      ok:
+        {"Snapshot dos valores hidrométricos da barragem.", "application/json",
+         DamSnapshotResponse}
+    ]
+  )
 
   def index(conn, _params) do
     basins = Basins.summary_stats([])

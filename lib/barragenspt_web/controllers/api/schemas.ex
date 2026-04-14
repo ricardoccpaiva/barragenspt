@@ -74,13 +74,17 @@ defmodule BarragensptWeb.Api.Schemas do
     require OpenApiSpex
 
     OpenApiSpex.schema(%{
-      title: "Dam metadatainformation",
-      description: "An extended list of characteristics of a dam",
+      title: "Metadados da barragem",
+      description:
+        "Conjunto alargado de características descritivas da barragem (estrutura chave/valor).",
       type: :object,
       properties: %{
-        additionalProperties: %Schema{
+        additionalProperties: %OpenApiSpex.Schema{
           type: :object,
-          additionalProperties: %Schema{type: :string}
+          properties: %{
+            nome: %OpenApiSpex.Schema{type: :string},
+            valor: %OpenApiSpex.Schema{type: :integer}
+          }
         }
       },
       example: %{
@@ -105,19 +109,25 @@ defmodule BarragensptWeb.Api.Schemas do
     require OpenApiSpex
 
     OpenApiSpex.schema(%{
-      title: "UserResponse",
-      description: "Response schema for single user",
+      title: "Resposta de metadados da barragem",
+      description: "Metadados da barragem com hiperligações relacionadas.",
       type: :object,
       properties: %{
         data: DamInfo,
         links: %Schema{
           type: :string,
-          description: "Entity related links",
+          description: "Hiperligações relacionadas com o recurso",
           properties: %{
-            self: %Schema{type: :string, description: "Self link"},
-            snapshot: %Schema{type: :string, description: "Snapshot link"},
-            basin: %Schema{type: :string, description: "Basin link"},
-            collection: %Schema{type: :string, description: "Collection link"}
+            self: %Schema{type: :string, description: "Hiperligação para este recurso"},
+            snapshot: %Schema{
+              type: :string,
+              description: "Hiperligação para o instantâneo hidrométrico"
+            },
+            basin: %Schema{type: :string, description: "Hiperligação para a bacia"},
+            collection: %Schema{
+              type: :string,
+              description: "Hiperligação para a coleção de barragens na bacia"
+            }
           }
         }
       },
@@ -151,104 +161,151 @@ defmodule BarragensptWeb.Api.Schemas do
     require OpenApiSpex
 
     OpenApiSpex.schema(%{
-      title: "Dam snapshot",
-      description: "The last known values for a dam's datapoints",
+      title: "Instantâneo hidrométrico (modelo detalhado)",
+      description:
+        "Últimos valores conhecidos por parâmetro: médias diárias e leituras de última hora.",
       type: :object,
       properties: %{
         daily_average: %Schema{
           type: :object,
+          description: "Médias diárias por parâmetro.",
           properties: %{
             effluent_daily_flow: %Schema{
               type: :object,
+              description: "Caudal efluente médio diário (m³/s).",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro no SNIRH."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             },
             elevation: %Schema{
               type: :object,
+              description: "Cota da albufeira (m) — média diária.",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro no SNIRH."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             },
             ouput_flow_rate_daily: %Schema{
               type: :object,
+              description: "Caudal descarregado médio diário (m³/s).",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro no SNIRH."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             },
             tributary_daily_flow: %Schema{
               type: :object,
+              description: "Caudal afluente médio diário (m³/s).",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro no SNIRH."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             },
             turbocharged_daily_flow: %Schema{
               type: :object,
+              description: "Caudal turbinado médio diário (m³/s).",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro no SNIRH."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             },
             volume: %Schema{
               type: :object,
+              description: "Volume armazenado (dam³) — média diária.",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro no SNIRH."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             },
             volume_last_day_month: %Schema{
               type: :object,
+              description: "Volume armazenado no último dia do mês (dam³).",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro no SNIRH."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             }
           }
         },
         realtime: %Schema{
           type: :object,
+          description: "Leituras em tempo real por parâmetro.",
           properties: %{
             elevation: %Schema{
               type: :object,
+              description: "Cota da albufeira",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             },
             volume: %Schema{
               type: :object,
+              description: "Volume armazenado.",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             },
             effluent_flow: %Schema{
               type: :object,
+              description: "Caudal efluente.",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             },
             tributary_flow: %Schema{
               type: :object,
+              description: "Caudal afluente.",
               properties: %{
-                param_id: %Schema{type: :string},
-                value: %Schema{type: :number},
-                collected_at: %Schema{type: :datetime}
+                param_id: %Schema{
+                  type: :string,
+                  description: "Identificador do parâmetro."
+                },
+                value: %Schema{type: :number, description: "Valor medido."},
+                collected_at: %Schema{type: :datetime, description: "Data da recolha."}
               }
             }
           }
@@ -262,19 +319,22 @@ defmodule BarragensptWeb.Api.Schemas do
     require OpenApiSpex
 
     OpenApiSpex.schema(%{
-      title: "Dam snapshot response",
-      description: "Contains the last know values for a dam's datapoints",
+      title: "Resposta de instantâneo da barragem",
+      description:
+        "Instantâneo hidrométrico da barragem com hiperligações para o recurso e para a bacia.",
       type: :object,
       properties: %{
         data: DamSnapshot,
         links: %Schema{
-          type: :string,
-          description: "Entity related links",
+          type: :object,
+          description: "Hiperligações relacionadas com o recurso",
           properties: %{
-            self: %Schema{type: :string, description: "Self link"},
-            snapshot: %Schema{type: :string, description: "Snapshot link"},
-            basin: %Schema{type: :string, description: "Basin link"},
-            collection: %Schema{type: :string, description: "Collection link"}
+            self: %Schema{type: :string, description: "URL para este snapshot"},
+            basin: %Schema{type: :string, description: "URL para a bacia hidrográfica"},
+            collection: %Schema{
+              type: :string,
+              description: "URL para a listagem de todas as barragens da bacia hidrográfica."
+            }
           }
         }
       },
@@ -284,6 +344,154 @@ defmodule BarragensptWeb.Api.Schemas do
           "self" => "https://example.com/api/dams/7554777512",
           "basin" => "https://example.com/api/basins/1",
           "collection" => "https://example.com/api/basins/1/dams"
+        }
+      }
+    })
+  end
+
+  defmodule BasinSummary do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Resumo de bacia hidrográfica",
+      description:
+        "Agregado por bacia para o dia e mês correntes: volumes totais armazenados e capacidade.",
+      type: :object,
+      properties: %{
+        id: %Schema{type: :string, description: "Identificador da bacia."},
+        name: %Schema{type: :string, description: "Nome da bacia."},
+        current_storage_volume: %Schema{
+          type: :number,
+          nullable: true,
+          description:
+            "Média ponderada do parâmetro `volume_last_hour` mais recente de todas as barragens da bacia (hm³, arredondado). A média é ponderada pela capacidade total de cada barragem."
+        },
+        historical_average_volume: %Schema{
+          type: :number,
+          nullable: true,
+          description:
+            "Volume armazenado médio histórico da bacia (hm³, arredondado) à data corrente.. A média é ponderada pela capacidade total de cada barragem."
+        },
+        total_capacity: %Schema{
+          type: :number,
+          nullable: true,
+          description: "Soma das capacidades máximas projetadas das barragens de uma bacia."
+        }
+      },
+      example: %{
+        "id" => "1",
+        "name" => "Rio Mondego",
+        "current_storage_volume" => 1_250_000,
+        "historical_average_volume" => 1_180_000,
+        "total_capacity" => 2_100_000
+      }
+    })
+  end
+
+  defmodule BasinListResponse do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Lista de bacias hidrográficas",
+      description: "Lista de bacias hidrográficas com resumo agregado.",
+      type: :object,
+      properties: %{
+        data: %Schema{type: :array, items: BasinSummary},
+        links: %Schema{
+          type: :object,
+          properties: %{
+            self: %Schema{type: :string, description: "URL para esta listagem."},
+            basin: %Schema{
+              type: :string,
+              description:
+                "URL de detalhe de uma bacia hidrográfica. Substituir `{id}` pelo identificador da bacia."
+            }
+          }
+        }
+      },
+      example: %{
+        "data" => [
+          %{
+            "id" => "1",
+            "name" => "Rio Mondego",
+            "current_storage_volume" => 1_250_000,
+            "historical_average_volume" => 1_180_000,
+            "total_capacity" => 2_100_000
+          }
+        ],
+        "links" => %{
+          "self" => "https://example.com/api/basins",
+          "basin" => "https://example.com/api/basins/{id}"
+        }
+      }
+    })
+  end
+
+  defmodule BasinDetailResponse do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Detalhe de bacia hidrográfica",
+      description: "Detalhe de uma bacia hidrográfica com resumo agregado.",
+      type: :object,
+      properties: %{
+        data: BasinSummary,
+        links: %Schema{
+          type: :object,
+          properties: %{
+            dams: %Schema{
+              type: :string,
+              description: "URL para a lista de barragens da bacia hidrográfica."
+            }
+          }
+        }
+      },
+      example: %{
+        "data" => %{
+          "id" => "1",
+          "name" => "Rio Mondego",
+          "current_storage_volume" => 1_250_000,
+          "historical_average_volume" => 1_180_000,
+          "total_capacity" => 2_100_000
+        },
+        "links" => %{
+          "dams" => "https://example.com/api/basins/1/dams"
+        }
+      }
+    })
+  end
+
+  defmodule BasinDamListResponse do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Resposta — barragens numa bacia",
+      description: "Lista de instantâneos hidrométricos por barragem na bacia indicada.",
+      type: :object,
+      properties: %{
+        data: %Schema{type: :array, items: BasinSummary},
+        links: %Schema{
+          type: :object,
+          properties: %{
+            self: %Schema{type: :string, description: "Hiperligação para esta listagem."},
+            basin: %Schema{type: :string, description: "Hiperligação para a bacia."},
+            dam: %Schema{
+              type: :string,
+              description:
+                "Modelo de URL; substituir `{site_id}` pelo identificador de site da barragem."
+            }
+          }
+        }
+      },
+      example: %{
+        "data" => [
+          BasinSummary.schema().example
+          |> Map.put("historical_average_volume", 128_000)
+        ],
+        "links" => %{
+          "self" => "https://example.com/api/basins/1/dams",
+          "basin" => "https://example.com/api/basins/1",
+          "dam" => "https://example.com/api/basins/1/dams/{site_id}"
         }
       }
     })

@@ -4,16 +4,22 @@ defmodule BarragensptWeb.Api.DamsController do
   use OpenApiSpex.ControllerSpecs
   alias BarragensptWeb.Api.Schemas.{DamInfoResponse, DamSnapshotResponse}
 
-  tags(["dams"])
+  tags(["Barragens"])
   security([%{}, %{"info" => ["dams:read"]}])
 
   operation(:info,
-    summary: "Get dam metadata",
+    summary: "Obter informação descritiva da barragem",
+    description: "Informação descritiva da barragem de acordo com o portal SNIRH.",
     parameters: [
-      id: [in: :path, description: "Dam ID", type: :string, example: "1627743384"]
+      id: [
+        in: :path,
+        description: "Identificador de site da barragem (SNIRH)",
+        type: :string,
+        example: "1627743384"
+      ]
     ],
     responses: [
-      ok: {"Dam info response", "application/json", DamInfoResponse}
+      ok: {"Metadados da barragem", "application/json", DamInfoResponse}
     ]
   )
 
@@ -39,12 +45,19 @@ defmodule BarragensptWeb.Api.DamsController do
   end
 
   operation(:show,
-    summary: "Get dam snapshot",
+    summary: "Obter snapshot dos indicadores hidrométrico da barragem.",
+    description:
+      "Últimos valores de armazenamento e quota conhecidos para a janela corrente; 404 se não existir linha hidrométrica.",
     parameters: [
-      id: [in: :path, description: "Dam ID", type: :string, example: "1627743384"]
+      id: [
+        in: :path,
+        description: "Identificador de site da barragem (SNIRH)",
+        type: :string,
+        example: "1627743384"
+      ]
     ],
     responses: [
-      ok: {"Dam info response", "application/json", DamSnapshotResponse}
+      ok: {"Instantâneo da barragem", "application/json", DamSnapshotResponse}
     ]
   )
 
