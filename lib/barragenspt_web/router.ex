@@ -44,6 +44,7 @@ defmodule BarragensptWeb.Router do
   scope "/api" do
     pipe_through(:api)
     get "/openapi", OpenApiSpex.Plug.RenderSpec, []
+    get "/redoc", Redoc.Plug.RedocUI, spec_url: "/api/openapi"
   end
 
   scope "/api", BarragensptWeb do
