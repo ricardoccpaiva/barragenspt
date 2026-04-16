@@ -496,4 +496,187 @@ defmodule BarragensptWeb.Api.Schemas do
       }
     })
   end
+
+  defmodule DataPointParamCatalogItem do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Parâmetro hidrométrico (catálogo)",
+      description:
+        "Uma linha do catálogo canónico SNIRH: identificador numérico, slug `param_name` e descrição em português.",
+      type: :object,
+      properties: %{
+        id: %Schema{type: :integer, description: "Identificador do parâmetro no SNIRH."},
+        slug: %Schema{type: :string, description: "Valor armazenado em `data_points.param_name`."},
+        description: %Schema{type: :string, description: "Descrição para interface (português)."}
+      },
+      required: [:id, :slug, :description],
+      example: %{
+        "id" => 354_895_398,
+        "slug" => "volume_last_hour",
+        "description" => "Volume armazenado na última hora (dam³)"
+      }
+    })
+  end
+
+  defmodule DataPointParamCatalogResponse do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Resposta — catálogo de parâmetros hidrométricos",
+      description: "Lista completa dos parâmetros recolhidos.",
+      type: :object,
+      properties: %{
+        data: %Schema{type: :array, items: DataPointParamCatalogItem}
+      },
+      required: [:data],
+      example: %{
+        "data" => [
+          %{
+            "id" => 212_296_818,
+            "slug" => "effluent_daily_flow",
+            "description" => "Caudal efluente médio diário (m³/s)"
+          },
+          %{
+            "id" => 1_629_599_726,
+            "slug" => "elevation",
+            "description" => "Cota da albufeira (m)"
+          },
+          %{
+            "id" => 354_895_398,
+            "slug" => "volume_last_hour",
+            "description" => "Volume armazenado na última hora (dam³)"
+          }
+        ]
+      }
+    })
+  end
+
+  defmodule DataPointRow do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Recolha de parâmetro hidrométrico",
+      description: "Uma recolha de parâmetro hidrométrico referente a uma barragem.",
+      type: :object,
+      properties: %{
+        dam_name: %Schema{type: :string, description: "Nome da barragem."},
+        basin: %Schema{type: :string, nullable: false, description: "Nome da bacia hidrográfica."},
+        river: %Schema{type: :string, nullable: false, description: "Rio ou curso de água."},
+        param_id: %Schema{
+          type: :string,
+          nullable: false,
+          description: "Identificador do parâmetro SNIRH."
+        },
+        param_name: %Schema{
+          type: :string,
+          nullable: false,
+          description: "Slug do parâmetro (`data_points.param_name`)."
+        },
+        value: %Schema{
+          type: :string,
+          nullable: false,
+          description: "Valor numérico codificado em texto (decimal)."
+        },
+        colected_at: %Schema{
+          type: :string,
+          format: :"date-time",
+          nullable: false,
+          description: "Data e hora da recolha (ISO8601, hora local naive)."
+        }
+      },
+      example: %{
+        "dam_name" => "Albufeira Do Arade",
+        "basin" => "Arade",
+        "river" => "Arade",
+        "param_id" => "354895398",
+        "param_name" => "volume_last_hour",
+        "value" => "125430.5",
+        "colected_at" => "2026-04-13T14:00:00"
+      }
+    })
+  end
+
+  defmodule DataPointsPaginationMeta do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Metadados de paginação",
+      type: :object,
+      properties: %{
+        total_count: %Schema{
+          type: :integer,
+          description: "Número total de linhas para o filtro corrente."
+        },
+        page_size: %Schema{type: :integer, description: "Número de leituras por página."},
+        current_page: %Schema{type: :integer, description: "Número da página corrente."},
+        total_pages: %Schema{type: :integer, description: "Número total de páginas."},
+        has_next_page: %Schema{
+          type: :boolean,
+          description: "Indica se existe uma página seguinte."
+        },
+        has_previous_page: %Schema{
+          type: :boolean,
+          description: "Indica se existe uma página anterior."
+        }
+      }
+    })
+  end
+
+  defmodule DataPointsIndexResponse do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Resposta — listagem de pontos de dados",
+      description: "Lista paginada com metadados e hiperligações úteis.",
+      type: :object,
+      properties: %{
+        data: %Schema{type: :array, items: DataPointRow},
+        meta: DataPointsPaginationMeta,
+        links: %Schema{
+          type: :object,
+          properties: %{
+            self: %Schema{type: :string, description: "Caminho deste recurso."},
+            param_catalog: %Schema{
+              type: :string,
+              description: "Catálogo de parâmetros (`GET /api/data-points/params`)."
+            }
+          }
+        }
+      },
+      required: [:data, :meta, :links]
+    })
+  end
+
+  defmodule ApiErrorResponse do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Erro da API",
+      description: "Formato genérico de erro JSON (validação ou regra de negócio).",
+      type: :object,
+      properties: %{
+        errors: %Schema{
+          type: :array,
+          items: %Schema{
+            type: :object,
+            properties: %{
+              title: %Schema{type: :string},
+              detail: %Schema{type: :string}
+            },
+            required: [:title, :detail]
+          }
+        }
+      },
+      required: [:errors],
+      example: %{
+        "errors" => [
+          %{
+            "title" => "Bad Request",
+            "detail" => "Invalid pagination or filter parameters."
+          }
+        ]
+      }
+    })
+  end
 end

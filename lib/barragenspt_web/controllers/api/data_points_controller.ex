@@ -1,7 +1,77 @@
 defmodule BarragensptWeb.Api.DataPointsController do
   use BarragensptWeb, :controller
+  use OpenApiSpex.ControllerSpecs
 
   alias Barragenspt.Hydrometrics.{Dams, DataPointParams}
+
+  alias BarragensptWeb.Api.Schemas.{
+    ApiErrorResponse,
+    DataPointParamCatalogResponse,
+    DataPointsIndexResponse
+  }
+
+  tags(["Pontos de dados"])
+  security([%{}, %{"info" => ["basins"]}])
+
+  operation(:index,
+    summary: "Listar leituras de parâmetros hidrométricos.",
+    description: """
+    Lista paginada de leituras de parâmetro hidrométricos com suporte para paginação e filtragem.
+    """,
+    parameters: [
+      page: [
+        in: :query,
+        description: "Número da página.",
+        schema: %OpenApiSpex.Schema{type: :integer, minimum: 1},
+        example: 1
+      ],
+      per_page: [
+        in: :query,
+        description: "Número de leituras por página.",
+        schema: %OpenApiSpex.Schema{type: :integer, minimum: 1},
+        example: 20
+      ],
+      "colected_at[operator]": [
+        in: :query,
+        required: false,
+        description:
+          "Filtrar pela data da leitura. Suporta vários tipos de comparação: gt (maior), gte (maior ou igual), lt (menor), lte (menor ou igual). A data deve ser especificada no formato ISO8601).",
+        schema: %OpenApiSpex.Schema{type: :string, format: :"date-time"}
+      ],
+      param_id: [
+        in: :query,
+        required: false,
+        description: "Filtrar por identificador do parâmetro.",
+        schema: %OpenApiSpex.Schema{type: :string}
+      ],
+      basin_id: [
+        in: :query,
+        required: false,
+        description: "Filtrar por id da bacia hidrográfica.",
+        schema: %OpenApiSpex.Schema{type: :string}
+      ],
+      site_id: [
+        in: :query,
+        required: false,
+        description: "Filtrar por identificador da barragem.",
+        schema: %OpenApiSpex.Schema{type: :string}
+      ]
+    ],
+    responses: [
+      ok: {"Lista de leituras.", "application/json", DataPointsIndexResponse},
+      bad_request: {"Filtros inválidos", "application/json", ApiErrorResponse},
+      not_found: {"Recolha não encontrada", "application/json", ApiErrorResponse}
+    ]
+  )
+
+  operation(:param_catalog,
+    summary: "List de parâmetros hidrométricos",
+    description:
+      "Devolve o catálogo canónico SNIRH: `id`, `slug` (`param_name`) e descrição em português para cada parâmetro suportado na API e na ingestão.",
+    responses: [
+      ok: {"Catálogo de parâmetros", "application/json", DataPointParamCatalogResponse}
+    ]
+  )
 
   def index(conn, params) do
     case Dams.list_data_points_api(params) do

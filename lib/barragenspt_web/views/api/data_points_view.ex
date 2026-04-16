@@ -14,7 +14,6 @@ defmodule BarragensptWeb.Api.DataPointsView do
 
   defp data_point_row(r) do
     %{
-      id: r.id,
       dam_name: r.dam_name,
       basin: r.basin,
       river: r.river,
