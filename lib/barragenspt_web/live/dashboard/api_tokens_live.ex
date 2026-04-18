@@ -10,12 +10,13 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
+    today = Date.utc_today() |> Date.to_iso8601()
 
     {:ok,
      socket
      |> assign(:page_title, "Tokens API")
-     |> assign(:usage_chart_from_date, nil)
-     |> assign(:usage_chart_to_date, nil)
+     |> assign(:usage_chart_from_date, today)
+     |> assign(:usage_chart_to_date, today)
      |> refresh_tokens(user.id)
      |> assign(:selected_scopes, [])
      |> assign(:generate_modal_open?, false)
