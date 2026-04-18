@@ -35,13 +35,13 @@ defmodule Barragenspt.Accounts.UserApiToken do
         add_error(changeset, :scopes, "escolhe pelo menos um âmbito")
 
       length(scopes) > 3 ->
-        add_error(changeset, :scopes, "no máximo 3 âmbitos")
+        add_error(changeset, :scopes, "no máximo 3 scopes")
 
       length(scopes) != length(Enum.uniq(scopes)) ->
-        add_error(changeset, :scopes, "âmbitos duplicados")
+        add_error(changeset, :scopes, "scopes duplicados")
 
       not Enum.all?(scopes, &(&1 in @allowed_scopes)) ->
-        add_error(changeset, :scopes, "âmbito inválido")
+        add_error(changeset, :scopes, "scope inválido")
 
       true ->
         changeset

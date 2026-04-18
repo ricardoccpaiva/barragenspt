@@ -430,7 +430,7 @@ defmodule Barragenspt.AccountsTest do
       assert {:error, %Ecto.Changeset{} = cs} =
                Accounts.create_user_api_token(user.id, ["dams", "dams"])
 
-      assert "âmbitos duplicados" in errors_on(cs).scopes
+      assert "scopes duplicados" in errors_on(cs).scopes
     end
 
     test "create_user_api_token/2 rejects more than three scopes" do
@@ -444,7 +444,7 @@ defmodule Barragenspt.AccountsTest do
                  "dams"
                ])
 
-      assert "no máximo 3 âmbitos" in errors_on(cs).scopes
+      assert "no máximo 3 scopes" in errors_on(cs).scopes
     end
 
     test "create_user_api_token/2 returns :limit after five active tokens" do

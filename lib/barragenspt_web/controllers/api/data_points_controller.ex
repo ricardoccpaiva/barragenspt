@@ -11,7 +11,7 @@ defmodule BarragensptWeb.Api.DataPointsController do
   }
 
   tags(["Pontos de dados"])
-  security([%{}, %{"info" => ["basins"]}])
+  security([%{}, %{"info" => ["data_points"]}])
 
   operation(:index,
     summary: "Listar leituras de parâmetros hidrométricos.",

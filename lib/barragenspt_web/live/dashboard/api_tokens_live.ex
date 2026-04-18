@@ -55,7 +55,7 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
 
       case new_sel do
         :over ->
-          {:noreply, put_flash(socket, :error, "No máximo 3 âmbitos.")}
+          {:noreply, put_flash(socket, :error, "No máximo 3 scopes.")}
 
         list ->
           {:noreply, assign(socket, :selected_scopes, list)}
@@ -85,7 +85,7 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
 
         {:error, %Ecto.Changeset{}} ->
           {:noreply,
-           put_flash(socket, :error, "Não foi possível criar o token. Verifica os âmbitos.")}
+           put_flash(socket, :error, "Não foi possível criar o token. Verifica os scopes.")}
       end
     end
   end
@@ -261,7 +261,7 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
                     Prefixo
                   </th>
                   <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
-                    Âmbitos
+                    Scopes
                   </th>
                   <th class="px-4 py-3 text-right text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
                     Pedidos
@@ -467,10 +467,10 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
               </button>
             </div>
             <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              Escolhe 1 a 3 âmbitos. O token em claro só aparece após criar.
+              A escolha de scopes determina a que apis o token tem acesso.
             </p>
 
-            <div class="mt-4 flex flex-col gap-2" role="group" aria-label="Âmbitos do token">
+            <div class="mt-4 flex flex-col gap-2" role="group" aria-label="Scope do token">
               <%= for scope <- UserApiToken.allowed_scopes() do %>
                 <div
                   class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900/40 dark:hover:bg-slate-700/50"
@@ -496,7 +496,7 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
             </div>
 
             <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-              {length(@selected_scopes)}/3 âmbitos · {max(
+              {length(@selected_scopes)}/3 scopes · {max(
                 0,
                 UserApiToken.max_active_per_user() - @active_count
               )} tokens disponíveis

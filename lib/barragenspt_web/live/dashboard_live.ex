@@ -147,7 +147,7 @@ defmodule BarragensptWeb.DashboardLive do
             <div class="min-w-0">
               <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Tokens API</p>
               <p class="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                Gere até cinco tokens com âmbitos (barragens, bacias, pontos de dados), revogue quando não precisares e consulta o histórico de criação e revogação.
+                Gere até cinco tokens com scopes (barragens, bacias, pontos de dados), revogue quando não precisares e consulta o histórico de criação e revogação.
               </p>
             </div>
           </div>

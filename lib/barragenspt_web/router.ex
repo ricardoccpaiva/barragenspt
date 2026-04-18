@@ -30,8 +30,18 @@ defmodule BarragensptWeb.Router do
     plug OpenApiSpex.Plug.PutApiSpec, module: BarragensptWeb.ApiSpec
   end
 
-  pipeline :api_protected do
+  pipeline :api_basins do
     plug(BarragensptWeb.Plugs.ApiTokenAuth, required_scopes: ["basins"])
+    plug(BarragensptWeb.Plugs.ApiUsage)
+  end
+
+  pipeline :api_dams do
+    plug(BarragensptWeb.Plugs.ApiTokenAuth, required_scopes: ["dams"])
+    plug(BarragensptWeb.Plugs.ApiUsage)
+  end
+
+  pipeline :api_data_points do
+    plug(BarragensptWeb.Plugs.ApiTokenAuth, required_scopes: ["data_points"])
     plug(BarragensptWeb.Plugs.ApiUsage)
   end
 
@@ -48,14 +58,24 @@ defmodule BarragensptWeb.Router do
   end
 
   scope "/api", BarragensptWeb do
-    pipe_through([:api_protected])
+    pipe_through([:api_basins])
 
     get("/basins", Api.BasinsController, :index)
     get("/basins/:id", Api.BasinsController, :show)
     get("/basins/:id/dams/:site_id", Api.BasinsController, :dam)
     get("/basins/:id/dams", Api.BasinsController, :dams)
+  end
+
+  scope "/api", BarragensptWeb do
+    pipe_through([:api_dams])
+
     get("/dams/:id/info", Api.DamsController, :info)
     get("/dams/:id", Api.DamsController, :show)
+  end
+
+  scope "/api", BarragensptWeb do
+    pipe_through([:api_data_points])
+
     get("/data-points", Api.DataPointsController, :index)
     get("/data-points/params", Api.DataPointsController, :param_catalog)
   end
