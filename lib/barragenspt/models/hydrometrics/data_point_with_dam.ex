@@ -1,7 +1,10 @@
 defmodule Barragenspt.Models.Hydrometrics.DataPointWithDam do
   @moduledoc """
   Read-only mapping to the `data_points_with_dam` SQL view:
-  `dam` joined to `data_points` on `site_id`.
+  `dam` joined to `data_points` on `site_id` (and matching `basin_id`).
+
+  `site_id` and `basin_id` in the view come from `data_points` so filters can use
+  base-table indexes; `dam_name`, `basin`, and `river` still come from `dam`.
   """
   use Ecto.Schema
 

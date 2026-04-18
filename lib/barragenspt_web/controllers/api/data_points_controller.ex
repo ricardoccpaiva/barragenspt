@@ -17,6 +17,9 @@ defmodule BarragensptWeb.Api.DataPointsController do
     summary: "Listar leituras de parâmetros hidrométricos.",
     description: """
     Lista paginada de leituras de parâmetro hidrométricos com suporte para paginação e filtragem.
+
+    Se usar apenas `basin_id`, é obrigatório indicar também um intervalo de datas em `colected_at[...]`
+    ou combinar com `param_id` ou `site_id` (evita consultas demasiado amplas).
     """,
     parameters: [
       page: [
@@ -47,7 +50,8 @@ defmodule BarragensptWeb.Api.DataPointsController do
       basin_id: [
         in: :query,
         required: false,
-        description: "Filtrar por id da bacia hidrográfica.",
+        description:
+          "Filtrar por id da bacia hidrográfica. Não pode ser o único filtro: combine com `colected_at[gte]`/`colected_at[lte]` ou com `param_id` / `site_id`.",
         schema: %OpenApiSpex.Schema{type: :string}
       ],
       site_id: [

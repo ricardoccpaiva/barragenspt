@@ -1050,7 +1050,17 @@ defmodule Barragenspt.Hydrometrics.Dams do
     end
   end
 
-  def list_data_points_api(params) do
+  def list_data_points_api(params) when is_map(params) do
+    case validate_api_data_points_scope(params) do
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+
+      :ok ->
+        list_data_points_api_validated(params)
+    end
+  end
+
+  defp list_data_points_api_validated(params) do
     page = FilterParser.parse_int(Map.get(params, "page"), 1)
     per_page = FilterParser.parse_int(Map.get(params, "per_page"), 20)
 
@@ -1074,6 +1084,36 @@ defmodule Barragenspt.Hydrometrics.Dams do
         {:error, meta}
     end
   end
+
+  defp validate_api_data_points_scope(params) do
+    basin = api_query_param_present?(Map.get(params, "basin_id") || Map.get(params, :basin_id))
+    param = api_query_param_present?(Map.get(params, "param_id") || Map.get(params, :param_id))
+    site = api_query_param_present?(Map.get(params, "site_id") || Map.get(params, :site_id))
+    time_bound? = FilterParser.parse(params["colected_at"]) != []
+
+    if basin && !param && !site && !time_bound? do
+      {:error,
+       Meta.with_errors(
+         params,
+         [
+           query: [
+             "When filtering only by basin_id, add a colected_at range (for example colected_at[gte] and colected_at[lte]) or also pass param_id or site_id."
+           ]
+         ],
+         @data_points_flop_opts
+       )}
+    else
+      :ok
+    end
+  end
+
+  defp api_query_param_present?(v) when v in [nil, ""], do: false
+
+  defp api_query_param_present?(v) when is_binary(v) do
+    v |> String.trim() |> Kernel.!=("")
+  end
+
+  defp api_query_param_present?(_), do: true
 
   defp data_points_api_equality_filters(params) when is_map(params) do
     []
