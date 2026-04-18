@@ -27,6 +27,8 @@ defmodule Barragenspt.Application do
         BarragensptWeb.Endpoint,
         {Oban, oban_config()},
         Barragenspt.ApiUsage.EtsHolder,
+        {Barragenspt.ApiRateLimit,
+         clean_period: :timer.minutes(1), key_older_than: :timer.hours(2)},
         Barragenspt.Cache,
         Barragenspt.MeteoDataCache,
         Barragenspt.RealtimeDataPointsCache,

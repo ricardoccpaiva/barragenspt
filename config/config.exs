@@ -109,6 +109,13 @@ config :barragenspt, Barragenspt.ApiTokenCache,
   gc_cleanup_min_timeout: :timer.seconds(10),
   gc_cleanup_max_timeout: :timer.minutes(10)
 
+# Hammer fixed window (ETS): at most `limit` requests per `window_ms` per key.
+# Tuned per environment in `dev.exs` / `runtime.exs` if needed.
+config :barragenspt, Barragenspt.ApiRateLimit,
+  enabled: true,
+  window_ms: :timer.minutes(1),
+  limit: 25
+
 config :barragenspt, :snirh,
   csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php",
   proxy: nil
@@ -126,7 +133,8 @@ config :mogrify,
 
 config :ueberauth, Ueberauth,
   providers: [
-    google: {Ueberauth.Strategy.Google, [default_scope: "email profile", prompt: "select_account"]}
+    google:
+      {Ueberauth.Strategy.Google, [default_scope: "email profile", prompt: "select_account"]}
   ]
 
 # Import environment specific config. This must remain at the bottom

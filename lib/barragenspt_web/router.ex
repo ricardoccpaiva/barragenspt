@@ -32,16 +32,19 @@ defmodule BarragensptWeb.Router do
 
   pipeline :api_basins do
     plug(BarragensptWeb.Plugs.ApiTokenAuth, required_scopes: ["basins"])
+    plug(BarragensptWeb.Plugs.ApiRateLimit)
     plug(BarragensptWeb.Plugs.ApiUsage)
   end
 
   pipeline :api_dams do
     plug(BarragensptWeb.Plugs.ApiTokenAuth, required_scopes: ["dams"])
+    plug(BarragensptWeb.Plugs.ApiRateLimit)
     plug(BarragensptWeb.Plugs.ApiUsage)
   end
 
   pipeline :api_data_points do
     plug(BarragensptWeb.Plugs.ApiTokenAuth, required_scopes: ["data_points"])
+    plug(BarragensptWeb.Plugs.ApiRateLimit)
     plug(BarragensptWeb.Plugs.ApiUsage)
   end
 
