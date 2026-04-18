@@ -320,6 +320,13 @@ defmodule BarragensptWeb.Layouts do
         icon: "hero-key",
         description: "Tokens para integrações",
         requires_auth: true
+      },
+      %{
+        label: "API docs",
+        path: ~p"/dashboard/api-docs",
+        icon: "hero-book-open",
+        description: "Referência OpenAPI (ReDoc)",
+        requires_auth: true
       }
     ]
   end
