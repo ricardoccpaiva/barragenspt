@@ -1054,8 +1054,11 @@ defmodule Barragenspt.Hydrometrics.Dams do
     page = FilterParser.parse_int(Map.get(params, "page"), 1)
     per_page = FilterParser.parse_int(Map.get(params, "per_page"), 20)
 
+    filters =
+      FilterParser.parse(params["colected_at"]) ++ data_points_api_equality_filters(params)
+
     flop_params = %Flop{
-      filters: FilterParser.parse(params["colected_at"]),
+      filters: filters,
       page: page,
       page_size: per_page
     }
@@ -1070,6 +1073,20 @@ defmodule Barragenspt.Hydrometrics.Dams do
       {:error, %Meta{} = meta} ->
         {:error, meta}
     end
+  end
+
+  defp data_points_api_equality_filters(params) when is_map(params) do
+    []
+    |> maybe_api_eq_filter(:param_id, Map.get(params, "param_id") || Map.get(params, :param_id))
+    |> maybe_api_eq_filter(:basin_id, Map.get(params, "basin_id") || Map.get(params, :basin_id))
+    |> maybe_api_eq_filter(:site_id, Map.get(params, "site_id") || Map.get(params, :site_id))
+  end
+
+  defp maybe_api_eq_filter(acc, _field, v) when v in [nil, ""], do: acc
+
+  defp maybe_api_eq_filter(acc, field, v) do
+    value = if is_binary(v), do: v, else: to_string(v)
+    [%Filter{field: field, op: :==, value: value} | acc]
   end
 
   @doc """

@@ -10,6 +10,9 @@ defmodule Barragenspt.Models.Hydrometrics.DataPointWithDam do
     filterable: [
       :dam_name,
       :basin,
+      :basin_id,
+      :site_id,
+      :param_id,
       :param_name,
       :colected_at
     ],
@@ -33,6 +36,8 @@ defmodule Barragenspt.Models.Hydrometrics.DataPointWithDam do
 
   @primary_key {:id, :id, autogenerate: false}
   schema "data_points_with_dam" do
+    field :site_id, :string
+    field :basin_id, :string
     field :dam_name, :string
     field :basin, :string
     field :river, :string

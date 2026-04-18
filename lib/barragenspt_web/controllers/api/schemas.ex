@@ -560,9 +560,21 @@ defmodule BarragensptWeb.Api.Schemas do
       description: "Uma recolha de parâmetro hidrométrico referente a uma barragem.",
       type: :object,
       properties: %{
-        dam_name: %Schema{type: :string, description: "Nome da barragem."},
-        basin: %Schema{type: :string, nullable: false, description: "Nome da bacia hidrográfica."},
-        river: %Schema{type: :string, nullable: false, description: "Rio ou curso de água."},
+        site_id: %Schema{
+          type: :string,
+          nullable: false,
+          description: "Identificador de site SNIRH da barragem."
+        },
+        basin_id: %Schema{
+          type: :string,
+          nullable: false,
+          description: "Identificador da bacia hidrográfica."
+        },
+        basin_name: %Schema{
+          type: :string,
+          nullable: false,
+          description: "Nome da bacia hidrográfica."
+        },
         param_id: %Schema{
           type: :string,
           nullable: false,
@@ -571,21 +583,24 @@ defmodule BarragensptWeb.Api.Schemas do
         param_name: %Schema{
           type: :string,
           nullable: false,
-          description: "Slug do parâmetro (`data_points.param_name`)."
+          description: "Slug do parâmetro."
         },
         value: %Schema{
-          type: :string,
+          type: :number,
           nullable: false,
-          description: "Valor numérico codificado em texto (decimal)."
+          description: "Valor da leitura."
         },
         colected_at: %Schema{
           type: :string,
           format: :"date-time",
           nullable: false,
-          description: "Data e hora da recolha (ISO8601, hora local naive)."
+          description: "Data e hora da recolha."
         }
       },
       example: %{
+        "id" => 12_345_678,
+        "site_id" => "7554777512",
+        "basin_id" => "1",
         "dam_name" => "Albufeira Do Arade",
         "basin" => "Arade",
         "river" => "Arade",
