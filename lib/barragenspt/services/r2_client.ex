@@ -42,4 +42,45 @@ defmodule Barragenspt.Services.R2 do
         {:error, :not_found}
     end
   end
+
+  def public_url(remote_path) when is_binary(remote_path) do
+    path = normalize_remote_path(remote_path)
+
+    case configured_public_base_url() do
+      {:ok, base} ->
+        {:ok, base <> path}
+
+      :error ->
+        with {:ok, base} <- ex_aws_public_base_url() do
+          {:ok, base <> path}
+        end
+    end
+  end
+
+  defp configured_public_base_url do
+    case Application.get_env(:barragenspt, :r2_public_base_url) do
+      base when is_binary(base) and base != "" ->
+        {:ok, String.trim_trailing(base, "/")}
+
+      _ ->
+        :error
+    end
+  end
+
+  defp ex_aws_public_base_url do
+    s3_cfg = Application.get_env(:ex_aws, :s3, [])
+    raw_host = Keyword.get(s3_cfg, :host, "")
+
+    cond do
+      not is_binary(raw_host) or raw_host == "" ->
+        {:error, :missing_r2_host}
+
+      true ->
+        {:ok, "https://assets.barragens.pt"}
+    end
+  end
+
+  defp normalize_remote_path(remote_path) do
+    if String.starts_with?(remote_path, "/"), do: remote_path, else: "/#{remote_path}"
+  end
 end

@@ -134,11 +134,20 @@ defmodule Barragenspt.Accounts do
         _ -> ""
       end
 
+    current_avatar_url =
+      case user.avatar_url do
+        url when is_binary(url) -> String.trim(url)
+        _ -> ""
+      end
+
     cond do
       oauth_image_url == "" ->
         user
 
       not User.google_avatar_https_url?(oauth_image_url) ->
+        user
+
+      current_avatar_url != "" and not User.google_avatar_https_url?(current_avatar_url) ->
         user
 
       user.avatar_url == oauth_image_url ->
@@ -150,6 +159,15 @@ defmodule Barragenspt.Accounts do
           {:error, _changeset} -> user
         end
     end
+  end
+
+  @doc """
+  Updates user avatar URL with an app-managed HTTPS URL.
+  """
+  def update_user_avatar(user, avatar_url) do
+    user
+    |> User.avatar_upload_changeset(%{avatar_url: avatar_url})
+    |> Repo.update()
   end
 
   ## Settings

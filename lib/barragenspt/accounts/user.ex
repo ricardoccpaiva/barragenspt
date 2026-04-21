@@ -146,6 +146,23 @@ defmodule Barragenspt.Accounts.User do
     end
   end
 
+  @doc """
+  Updates `avatar_url` for uploaded avatars.
+  """
+  def avatar_upload_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:avatar_url])
+    |> update_change(:avatar_url, fn
+      nil -> nil
+      url when is_binary(url) -> String.trim(url)
+      other -> to_string(other) |> String.trim()
+    end)
+    |> update_change(:avatar_url, fn
+      "" -> nil
+      value -> value
+    end)
+  end
+
   @doc false
   def google_oauth_registration_changeset(%__MODULE__{} = user, email, oauth_image_url)
       when is_binary(email) do

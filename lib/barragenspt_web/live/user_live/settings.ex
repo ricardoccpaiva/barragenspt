@@ -5,6 +5,8 @@ defmodule BarragensptWeb.UserLive.Settings do
 
   alias Barragenspt.Accounts
   alias Barragenspt.Accounts.Scope
+  alias Barragenspt.Services.R2
+  alias BarragensptWeb.UserAvatar
 
   @impl true
   def render(assigns) do
@@ -16,6 +18,87 @@ defmodule BarragensptWeb.UserLive.Settings do
         </.header>
       </div>
       <div class="space-y-6">
+        <section class="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
+          <div class="mb-3 border-b border-slate-200 pb-3 dark:border-slate-600">
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Foto de Perfil</h2>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              Carregue uma imagem PNG, JPG ou WebP até 5 MB.
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <%= if src = UserAvatar.image_src(@current_scope.user) do %>
+              <img
+                src={src}
+                alt="Foto de perfil"
+                loading="lazy"
+                decoding="async"
+                referrerpolicy="no-referrer"
+                class="h-20 w-20 rounded-full object-cover ring-1 ring-slate-200/80 dark:ring-slate-600"
+              />
+            <% else %>
+              <div class="inline-flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-2xl font-bold text-white">
+                {case @current_scope.user.email do
+                  e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
+                  _ -> "U"
+                end}
+              </div>
+            <% end %>
+
+            <.form
+              id="avatar_form"
+              for={%{}}
+              phx-change="validate_avatar_upload"
+              phx-submit="upload_avatar"
+              class="w-full max-w-xl"
+            >
+              <div class="space-y-3">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <div class="relative min-w-[12rem] flex-1 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 pr-12 text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800/40 dark:text-slate-300">
+                    <div class="truncate">
+                      <%= if @uploads.avatar.entries == [] do %>
+                        Nenhum ficheiro selecionado
+                      <% else %>
+                        <%= for entry <- @uploads.avatar.entries do %>
+                          <span>{entry.client_name}</span>
+                        <% end %>
+                      <% end %>
+                    </div>
+
+                    <label class="absolute inset-y-1.5 right-1.5 inline-flex w-9 cursor-pointer items-center justify-center rounded-md border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
+                      <.icon name="hero-pencil-square" class="size-4" />
+                      <span class="sr-only">Escolher imagem</span>
+                      <.live_file_input
+                        upload={@uploads.avatar}
+                        class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                      />
+                    </label>
+                  </div>
+
+                  <.button variant="primary" phx-disable-with="A enviar...">Atualizar foto</.button>
+                </div>
+
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                  Formatos aceites: PNG, JPG e WebP. Tamanho máximo: 5 MB.
+                </p>
+
+                <%= for entry <- @uploads.avatar.entries do %>
+                  <%= for error <- upload_errors(@uploads.avatar, entry) do %>
+                    <p class="text-xs text-red-600 dark:text-red-400">
+                      {avatar_upload_error_to_message(error)}
+                    </p>
+                  <% end %>
+                <% end %>
+                <%= for error <- upload_errors(@uploads.avatar) do %>
+                  <p class="text-xs text-red-600 dark:text-red-400">
+                    {avatar_upload_error_to_message(error)}
+                  </p>
+                <% end %>
+              </div>
+            </.form>
+          </div>
+        </section>
+
         <section class="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
           <div class="mb-3 border-b border-slate-200 pb-3 dark:border-slate-600">
             <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">
@@ -39,7 +122,9 @@ defmodule BarragensptWeb.UserLive.Settings do
               <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
                 <tr>
                   <td class="py-3 pr-3 font-semibold text-slate-900 dark:text-slate-100">E-mail</td>
-                  <td class="px-3 py-3 text-slate-600 dark:text-slate-300">{@current_scope.user.email}</td>
+                  <td class="px-3 py-3 text-slate-600 dark:text-slate-300">
+                    {@current_scope.user.email}
+                  </td>
                   <td class="px-3 py-3">
                     <span class={[
                       "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
@@ -48,7 +133,9 @@ defmodule BarragensptWeb.UserLive.Settings do
                       !@current_scope.user.email_notifications_enabled &&
                         "bg-slate-200 text-slate-800 dark:bg-slate-600 dark:text-slate-100"
                     ]}>
-                      {if @current_scope.user.email_notifications_enabled, do: "Ativo", else: "Pausado"}
+                      {if @current_scope.user.email_notifications_enabled,
+                        do: "Ativo",
+                        else: "Pausado"}
                     </span>
                   </td>
                   <td class="px-3 py-3">
@@ -64,7 +151,9 @@ defmodule BarragensptWeb.UserLive.Settings do
                             else: "Retomar notificações por e-mail"
                         }
                         title={
-                          if @current_scope.user.email_notifications_enabled, do: "Pausar", else: "Retomar"
+                          if @current_scope.user.email_notifications_enabled,
+                            do: "Pausar",
+                            else: "Retomar"
                         }
                       >
                         <%= if @current_scope.user.email_notifications_enabled do %>
@@ -127,7 +216,9 @@ defmodule BarragensptWeb.UserLive.Settings do
                               do: "Pausar notificações por Telegram",
                               else: "Retomar notificações por Telegram"
                           }
-                          title={if telegram_active?(@current_scope.user), do: "Pausar", else: "Retomar"}
+                          title={
+                            if telegram_active?(@current_scope.user), do: "Pausar", else: "Retomar"
+                          }
                         >
                           <%= if telegram_active?(@current_scope.user) do %>
                             <.icon name="hero-pause" class="size-5" />
@@ -232,9 +323,70 @@ defmodule BarragensptWeb.UserLive.Settings do
       |> assign(:telegram_deep_link, telegram_deep_link)
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
+      |> allow_upload(:avatar,
+        accept: ~w(.png .jpg .jpeg .webp),
+        max_entries: 1,
+        max_file_size: 5_000_000
+      )
       |> maybe_schedule_telegram_link_poll()
 
     {:ok, socket}
+  end
+
+  def handle_event("validate_avatar_upload", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("upload_avatar", _params, socket) do
+    user = socket.assigns.current_scope.user
+    true = Accounts.sudo_mode?(user, -sudo_mode_validity_minutes())
+
+    cond do
+      avatar_upload_errors_present?(socket) ->
+        {:noreply, put_flash(socket, :error, "A imagem selecionada não é válida.")}
+
+      socket.assigns.uploads.avatar.entries == [] ->
+        {:noreply, put_flash(socket, :error, "Selecione uma imagem para carregar.")}
+
+      true ->
+        results =
+          consume_uploaded_entries(socket, :avatar, fn %{path: local_path}, entry ->
+            remote_path = avatar_remote_path(user, entry.client_name)
+
+            case upload_avatar_to_r2(local_path, remote_path) do
+              :ok ->
+                case build_r2_public_url(remote_path) do
+                  {:ok, avatar_url} -> {:ok, {:ok, avatar_url}}
+                  {:error, reason} -> {:ok, {:error, reason}}
+                end
+
+              {:error, reason} ->
+                {:ok, {:error, reason}}
+            end
+          end)
+
+        case results do
+          [{:ok, avatar_url}] ->
+            case Accounts.update_user_avatar(user, avatar_url) do
+              {:ok, updated_user} ->
+                {:noreply,
+                 socket
+                 |> assign(:current_scope, Scope.for_user(updated_user))
+                 |> put_flash(:info, "Foto de perfil atualizada com sucesso.")}
+
+              {:error, _changeset} ->
+                {:noreply,
+                 put_flash(socket, :error, "Não foi possível guardar a foto de perfil.")}
+            end
+
+          [{:error, reason}] ->
+            reason |> IO.inspect(label: "Avatar upload error------->")
+            {:noreply, put_flash(socket, :error, "Falha no upload da foto de perfil.")}
+
+          _ ->
+            {:noreply, put_flash(socket, :error, "Não foi possível processar a imagem.")}
+        end
+    end
   end
 
   @impl true
@@ -252,7 +404,8 @@ defmodule BarragensptWeb.UserLive.Settings do
          |> put_flash(:info, "Notificações por e-mail atualizadas.")}
 
       {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Não foi possível atualizar notificações por e-mail.")}
+        {:noreply,
+         put_flash(socket, :error, "Não foi possível atualizar notificações por e-mail.")}
     end
   end
 
@@ -262,7 +415,9 @@ defmodule BarragensptWeb.UserLive.Settings do
     true = Accounts.sudo_mode?(user, -sudo_mode_validity_minutes())
 
     if telegram_connected?(user) do
-      case Accounts.update_user_telegram_settings(user, %{telegram_enabled: !user.telegram_enabled}) do
+      case Accounts.update_user_telegram_settings(user, %{
+             telegram_enabled: !user.telegram_enabled
+           }) do
         {:ok, updated_user} ->
           {:noreply,
            socket
@@ -421,6 +576,61 @@ defmodule BarragensptWeb.UserLive.Settings do
 
   defp telegram_active?(user),
     do: telegram_connected?(user) && user.telegram_enabled
+
+  defp avatar_upload_errors_present?(socket) do
+    upload = socket.assigns.uploads.avatar
+
+    upload_errors(upload) != [] ||
+      (upload.entries != [] &&
+         Enum.any?(upload.entries, fn entry ->
+           upload_errors(upload, entry) != []
+         end))
+  end
+
+  defp avatar_upload_error_to_message(:not_accepted),
+    do: "Formato inválido. Use PNG, JPG ou WebP."
+
+  defp avatar_upload_error_to_message(:too_large),
+    do: "Imagem demasiado grande. O limite é 5 MB."
+
+  defp avatar_upload_error_to_message(:too_many_files),
+    do: "Só pode carregar um ficheiro."
+
+  defp avatar_upload_error_to_message(_),
+    do: "Não foi possível validar o ficheiro selecionado."
+
+  defp avatar_remote_path(user, client_name) do
+    ext =
+      client_name
+      |> Path.extname()
+      |> String.downcase()
+      |> case do
+        ".jpeg" -> ".jpg"
+        ".png" -> ".png"
+        ".jpg" -> ".jpg"
+        ".webp" -> ".webp"
+        _ -> ".jpg"
+      end
+
+    "/users/avatars/#{user.id}/#{UUID.uuid4()}#{ext}"
+  end
+
+  defp upload_avatar_to_r2(local_path, remote_path) do
+    client = Application.get_env(:barragenspt, :r2_upload_client, R2)
+
+    try do
+      _ = client.upload(local_path, remote_path)
+      :ok
+    rescue
+      _ -> {:error, :upload_failed}
+    catch
+      _, _ -> {:error, :upload_failed}
+    end
+  end
+
+  defp build_r2_public_url(remote_path) do
+    R2.public_url(remote_path)
+  end
 
   defp sudo_mode_validity_minutes do
     case Application.get_env(:barragenspt, :sudo_mode_validity_minutes, 1440) do

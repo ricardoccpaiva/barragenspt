@@ -120,6 +120,8 @@ config :barragenspt, :snirh,
   csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php",
   proxy: nil
 
+config :barragenspt, :r2_upload_client, Barragenspt.Services.R2
+
 config :ex_aws, :s3,
   scheme: "https://",
   host: "e5841afb091ae329ae85de35190a8e5d.r2.cloudflarestorage.com",
