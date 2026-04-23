@@ -26,8 +26,17 @@
         </thead>
         <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
           <tr :for={row <- @summaries}>
-            <td class="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
-              {row.worker_name}
+            <td class="px-4 py-3">
+              <div class="inline-flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
+                <span class="font-semibold">{row.worker_display_name}</span>
+                <span
+                  class="inline-flex rounded-full text-slate-400 dark:text-slate-500"
+                  title={row.worker_description}
+                  aria-label={row.worker_description}
+                >
+                  <.icon name="hero-information-circle" class="size-4" />
+                </span>
+              </div>
             </td>
             <td class="px-4 py-3 text-slate-600 dark:text-slate-300">
               {format_datetime(row.last_run_at)}
@@ -50,7 +59,7 @@
               <button id={"open-runs-#{row.worker_name}"} type="button" phx-click="open_runs_modal"
                 phx-value-worker={row.worker}
                 class="inline-flex size-8 items-center justify-center rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
-                aria-label={"Ver últimas 30 execuções de #{row.worker_name}"} title="Ver últimas 30 execuções">
+                aria-label={"Ver últimas 30 execuções de #{row.worker_display_name}"} title="Ver últimas 30 execuções">
                 <.icon name="hero-book-open" class="size-3.5" />
               </button>
             </td>

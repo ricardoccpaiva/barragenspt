@@ -12,10 +12,28 @@ defmodule Barragenspt.WorkerStatus do
     Barragenspt.Workers.RealtimeDataPointsUpdate,
     Barragenspt.Workers.InfoaguaAlertsRefresh
   ]
+  @worker_details %{
+    Barragenspt.Workers.DataPointsUpdate => %{
+      name: "Histórico diário",
+      description: "Extrai e atualiza séries históricas de leituras das barragens."
+    },
+    Barragenspt.Workers.RealtimeDataPointsUpdate => %{
+      name: "Tempo real",
+      description: "Recolhe leituras das últimas 48h, com precisão de 1h entre leituras."
+    },
+    Barragenspt.Workers.InfoaguaAlertsRefresh => %{
+      name: "Alertas cheias",
+      description: "Atualiza os dados relativos a riscos de cheias por concelho."
+    }
+  }
 
   @error_states ["discarded", "cancelled"]
 
   def tracked_workers, do: @tracked_workers
+
+  def worker_details_for(worker_module) when is_atom(worker_module) do
+    worker_details(worker_module)
+  end
 
   def cron_expression_for_worker(worker_module) when is_atom(worker_module) do
     worker = to_string(worker_module)
@@ -39,11 +57,14 @@ defmodule Barragenspt.WorkerStatus do
       seconds_to_next = seconds_to_next_run(next_run_at, now)
       stale? = stale?(cron_expr, latest_success, now)
       executing? = executing?(worker)
+      details = worker_details(worker_module)
 
       %{
         worker: worker,
         worker_module: worker_module,
         worker_name: worker_name(worker_module),
+        worker_display_name: details.name,
+        worker_description: details.description,
         cron_expr: cron_expr,
         next_run_at: next_run_at,
         seconds_to_next: seconds_to_next,
@@ -208,6 +229,13 @@ defmodule Barragenspt.WorkerStatus do
     worker_module
     |> Module.split()
     |> List.last()
+  end
+
+  defp worker_details(worker_module) do
+    Map.get(@worker_details, worker_module, %{
+      name: worker_name(worker_module),
+      description: "Sem descrição disponível."
+    })
   end
 
   defp cron_entries do

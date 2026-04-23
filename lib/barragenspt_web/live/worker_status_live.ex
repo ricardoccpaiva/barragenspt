@@ -40,7 +40,7 @@ defmodule BarragensptWeb.WorkerStatusLive do
       {:noreply,
        socket
        |> assign(:show_runs_modal, true)
-       |> assign(:modal_worker_name, worker_module |> Module.split() |> List.last())
+       |> assign(:modal_worker_name, worker_display_name(worker_module))
        |> assign(:modal_runs, runs)
        |> assign(:modal_summary, summary)}
     else
@@ -107,6 +107,10 @@ defmodule BarragensptWeb.WorkerStatusLive do
   defp status_badge_class(_),
     do:
       "inline-flex rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-700 dark:text-slate-100"
+
+  defp worker_display_name(worker_module) do
+    WorkerStatus.worker_details_for(worker_module).name
+  end
 
   defp empty_modal_summary do
     %{
