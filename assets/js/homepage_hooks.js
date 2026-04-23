@@ -523,7 +523,12 @@ const DataPointsChart = {
         type: "line",
         data: {
           labels,
-          datasets: datasets.map((ds) => ({ ...ds, fill: false }))
+          datasets: datasets.map((ds) => ({
+            ...ds,
+            fill: false,
+            pointRadius: 0,
+            pointHoverRadius: 0
+          }))
         },
         options: {
           responsive: true,
