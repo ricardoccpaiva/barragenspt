@@ -544,7 +544,7 @@ defmodule Barragenspt.Accounts do
         where: t.token_digest == ^digest,
         where: is_nil(t.revoked_at),
         where: is_nil(t.deleted_at),
-        select: %{id: t.id, user_id: t.user_id, scopes: t.scopes}
+        select: %{id: t.id, user_id: t.user_id}
       )
 
     case Repo.one(query) do
@@ -582,7 +582,7 @@ defmodule Barragenspt.Accounts do
 
   Enforces at most `UserApiToken.max_active_per_user/0` active tokens.
   """
-  def create_user_api_token(user_id, scopes) when is_integer(user_id) and is_list(scopes) do
+  def create_user_api_token(user_id) when is_integer(user_id) do
     if count_active_user_api_tokens(user_id) >= UserApiToken.max_active_per_user() do
       {:error, :limit}
     else
@@ -594,8 +594,7 @@ defmodule Barragenspt.Accounts do
       |> UserApiToken.changeset(%{
         user_id: user_id,
         token_digest: digest,
-        token_prefix: prefix,
-        scopes: Enum.sort(scopes)
+        token_prefix: prefix
       })
       |> Repo.insert()
       |> case do

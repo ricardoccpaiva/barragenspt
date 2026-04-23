@@ -396,74 +396,35 @@ defmodule Barragenspt.AccountsTest do
   end
 
   describe "user API tokens" do
-    test "create_user_api_token/2 stores digest and returns plain once" do
+    test "create_user_api_token/1 stores digest and returns plain once" do
       user = user_fixture()
 
       assert {:ok, plain, %UserApiToken{} = token} =
-               Accounts.create_user_api_token(user.id, ["dams", "data_points"])
+               Accounts.create_user_api_token(user.id)
 
       assert String.starts_with?(plain, "bpt_")
       assert token.token_prefix == String.slice(plain, 0, min(String.length(plain), 20))
-      assert token.scopes == ["dams", "data_points"]
+      assert token.scopes == []
       assert is_nil(token.revoked_at)
       assert :crypto.hash(:sha256, plain) == token.token_digest
     end
 
-    test "create_user_api_token/2 rejects empty scopes" do
-      user = user_fixture()
-      assert {:error, %Ecto.Changeset{} = cs} = Accounts.create_user_api_token(user.id, [])
-      assert "escolhe pelo menos um âmbito" in errors_on(cs).scopes
-    end
-
-    test "create_user_api_token/2 rejects invalid scope" do
+    test "create_user_api_token/1 returns :limit after five active tokens" do
       user = user_fixture()
 
-      assert {:error, %Ecto.Changeset{} = cs} =
-               Accounts.create_user_api_token(user.id, ["dams", "nope"])
-
-      assert "âmbito inválido" in errors_on(cs).scopes
-    end
-
-    test "create_user_api_token/2 rejects duplicate scopes" do
-      user = user_fixture()
-
-      assert {:error, %Ecto.Changeset{} = cs} =
-               Accounts.create_user_api_token(user.id, ["dams", "dams"])
-
-      assert "scopes duplicados" in errors_on(cs).scopes
-    end
-
-    test "create_user_api_token/2 rejects more than three scopes" do
-      user = user_fixture()
-
-      assert {:error, %Ecto.Changeset{} = cs} =
-               Accounts.create_user_api_token(user.id, [
-                 "dams",
-                 "basins",
-                 "data_points",
-                 "dams"
-               ])
-
-      assert "no máximo 3 scopes" in errors_on(cs).scopes
-    end
-
-    test "create_user_api_token/2 returns :limit after five active tokens" do
-      user = user_fixture()
-
-      for i <- 1..5 do
-        scopes = if rem(i, 2) == 0, do: ["dams"], else: ["basins"]
-        assert {:ok, _plain, _} = Accounts.create_user_api_token(user.id, scopes)
+      for _i <- 1..5 do
+        assert {:ok, _plain, _} = Accounts.create_user_api_token(user.id)
       end
 
-      assert {:error, :limit} = Accounts.create_user_api_token(user.id, ["data_points"])
+      assert {:error, :limit} = Accounts.create_user_api_token(user.id)
     end
 
     test "list_user_api_tokens/1 and revoke_user_api_token/2" do
       user = user_fixture()
       other = user_fixture()
 
-      assert {:ok, _p1, t1} = Accounts.create_user_api_token(user.id, ["dams"])
-      assert {:ok, _p2, t2} = Accounts.create_user_api_token(user.id, ["basins"])
+      assert {:ok, _p1, t1} = Accounts.create_user_api_token(user.id)
+      assert {:ok, _p2, t2} = Accounts.create_user_api_token(user.id)
 
       ids = Accounts.list_user_api_tokens(user.id) |> Enum.map(& &1.id)
       assert t2.id in ids and t1.id in ids
@@ -478,7 +439,7 @@ defmodule Barragenspt.AccountsTest do
 
     test "count_active_user_api_tokens/1 excludes revoked" do
       user = user_fixture()
-      {:ok, _, t} = Accounts.create_user_api_token(user.id, ["dams"])
+      {:ok, _, t} = Accounts.create_user_api_token(user.id)
       assert Accounts.count_active_user_api_tokens(user.id) == 1
       assert {:ok, _} = Accounts.revoke_user_api_token(user.id, t.id)
       assert Accounts.count_active_user_api_tokens(user.id) == 0
@@ -486,7 +447,7 @@ defmodule Barragenspt.AccountsTest do
 
     test "discard_user_api_token/2 sets deleted_at and list_user_api_tokens/1 hides it" do
       user = user_fixture()
-      assert {:ok, _, t} = Accounts.create_user_api_token(user.id, ["dams"])
+      assert {:ok, _, t} = Accounts.create_user_api_token(user.id)
       assert {:error, :not_revoked} = Accounts.discard_user_api_token(user.id, t.id)
       assert t.id in (Accounts.list_user_api_tokens(user.id) |> Enum.map(& &1.id))
 

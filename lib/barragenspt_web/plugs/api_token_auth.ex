@@ -5,11 +5,9 @@ defmodule BarragensptWeb.Plugs.ApiTokenAuth do
 
   alias Barragenspt.{Accounts, ApiTokenCache}
 
-  def init(opts) do
-    %{required_scopes: Keyword.get(opts, :required_scopes, [])}
-  end
+  def init(_opts), do: %{}
 
-  def call(conn, %{required_scopes: required}) do
+  def call(conn, _opts) do
     case get_req_header(conn, "authorization") do
       ["Bearer " <> plain] ->
         plain = String.trim(plain)
@@ -21,14 +19,9 @@ defmodule BarragensptWeb.Plugs.ApiTokenAuth do
 
           case resolve_token(digest) do
             {:ok, payload} ->
-              if scopes_cover?(payload.scopes, required) do
-                conn
-                |> assign(:api_token_id, payload.id)
-                |> assign(:api_user_id, payload.user_id)
-                |> assign(:api_token_scopes, payload.scopes)
-              else
-                forbidden(conn, "Token does not allow this resource")
-              end
+              conn
+              |> assign(:api_token_id, payload.id)
+              |> assign(:api_user_id, payload.user_id)
 
             :error ->
               unauthorized(conn, "Invalid or revoked token")
@@ -62,21 +55,10 @@ defmodule BarragensptWeb.Plugs.ApiTokenAuth do
     end
   end
 
-  defp scopes_cover?(token_scopes, required) do
-    Enum.all?(required, &(&1 in token_scopes))
-  end
-
   defp unauthorized(conn, detail) do
     conn
     |> put_status(:unauthorized)
     |> json(%{errors: [%{title: "Unauthorized", detail: detail}]})
-    |> halt()
-  end
-
-  defp forbidden(conn, detail) do
-    conn
-    |> put_status(:forbidden)
-    |> json(%{errors: [%{title: "Forbidden", detail: detail}]})
     |> halt()
   end
 end

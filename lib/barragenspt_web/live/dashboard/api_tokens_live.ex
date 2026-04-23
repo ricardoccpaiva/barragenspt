@@ -21,76 +21,36 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
      |> assign(:usage_chart_from_date, from_s)
      |> assign(:usage_chart_to_date, to_s)
      |> refresh_tokens(user.id)
-     |> assign(:selected_scopes, [])
      |> assign(:generate_modal_open?, false)
      |> assign(:plain_token_secret, nil)}
   end
 
   @impl true
   def handle_event("open_generate_modal", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:generate_modal_open?, true)
-     |> assign(:selected_scopes, [])}
+    {:noreply, assign(socket, :generate_modal_open?, true)}
   end
 
   def handle_event("close_generate_modal", _, socket) do
     {:noreply, assign(socket, :generate_modal_open?, false)}
   end
 
-  def handle_event("toggle_scope", %{"scope" => scope}, socket) do
-    allowed = UserApiToken.allowed_scopes()
-
-    if scope not in allowed do
-      {:noreply, socket}
-    else
-      sel = socket.assigns.selected_scopes
-
-      new_sel =
-        if scope in sel do
-          List.delete(sel, scope)
-        else
-          if length(sel) >= 3 do
-            :over
-          else
-            Enum.sort(sel ++ [scope])
-          end
-        end
-
-      case new_sel do
-        :over ->
-          {:noreply, put_flash(socket, :error, "No máximo 3 scopes.")}
-
-        list ->
-          {:noreply, assign(socket, :selected_scopes, list)}
-      end
-    end
-  end
-
   def handle_event("create_token", _params, socket) do
     user_id = socket.assigns.current_scope.user.id
-    scopes = socket.assigns.selected_scopes
 
-    if scopes == [] do
-      {:noreply, put_flash(socket, :error, "Escolhe pelo menos um âmbito.")}
-    else
-      case Accounts.create_user_api_token(user_id, scopes) do
-        {:ok, plain, _token} ->
-          {:noreply,
-           socket
-           |> assign(:plain_token_secret, plain)
-           |> assign(:selected_scopes, [])
-           |> assign(:generate_modal_open?, false)
-           |> refresh_tokens(user_id)
-           |> put_flash(:info, "Token criado. Copia-o agora — não voltará a ser mostrado.")}
+    case Accounts.create_user_api_token(user_id) do
+      {:ok, plain, _token} ->
+        {:noreply,
+         socket
+         |> assign(:plain_token_secret, plain)
+         |> assign(:generate_modal_open?, false)
+         |> refresh_tokens(user_id)
+         |> put_flash(:info, "Token criado. Copia-o agora — não voltará a ser mostrado.")}
 
-        {:error, :limit} ->
-          {:noreply, put_flash(socket, :error, "Limite de 5 tokens ativos.")}
+      {:error, :limit} ->
+        {:noreply, put_flash(socket, :error, "Limite de 5 tokens ativos.")}
 
-        {:error, %Ecto.Changeset{}} ->
-          {:noreply,
-           put_flash(socket, :error, "Não foi possível criar o token. Verifica os scopes.")}
-      end
+      {:error, %Ecto.Changeset{}} ->
+        {:noreply, put_flash(socket, :error, "Não foi possível criar o token.")}
     end
   end
 
@@ -265,9 +225,6 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
                     Prefixo
                   </th>
                   <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
-                    Scopes
-                  </th>
-                  <th class="px-4 py-3 text-right text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
                     Pedidos
                   </th>
                   <th class="px-4 py-3 text-left text-[13px] font-bold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5 dark:text-slate-400">
@@ -287,7 +244,7 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
               <tbody class="[&>tr:nth-child(even)]:bg-slate-50/70 [&>tr:hover]:bg-sky-50/60 dark:[&>tr:nth-child(even)]:bg-slate-800/25 dark:[&>tr:hover]:bg-slate-800/55">
                 <%= if @tokens == [] do %>
                   <tr class="border-b border-slate-100/90 dark:border-slate-800/70">
-                    <td colspan="7" class="px-4 py-8 text-center text-slate-600 dark:text-slate-400">
+                    <td colspan="6" class="px-4 py-8 text-center text-slate-600 dark:text-slate-400">
                       Ainda não tens tokens. Usa «Gerar token» para criar um.
                     </td>
                   </tr>
@@ -296,9 +253,6 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
                     <tr class="border-b border-slate-100/90 transition-colors duration-200 last:border-b-0 dark:border-slate-800/70">
                       <td class="px-4 py-2 align-middle font-mono text-[12px] text-slate-800 first:pl-5 last:pr-5 dark:text-slate-200">
                         {t.token_prefix}…
-                      </td>
-                      <td class="px-4 py-2 align-middle text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
-                        {scope_labels_joined(t.scopes)}
                       </td>
                       <td class="px-4 py-2 align-middle text-right tabular-nums text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
                         {Map.get(@token_usage_counts, t.id, 0)}
@@ -471,48 +425,18 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
               </button>
             </div>
             <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
-              A escolha de scopes determina a que apis o token tem acesso.
+              O token é mostrado apenas uma vez após a criação.
             </p>
 
-            <div class="mt-4 flex flex-col gap-2" role="group" aria-label="Scope do token">
-              <%= for scope <- UserApiToken.allowed_scopes() do %>
-                <div
-                  class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900/40 dark:hover:bg-slate-700/50"
-                  phx-click="toggle_scope"
-                  phx-value-scope={scope}
-                >
-                  <input
-                    type="checkbox"
-                    id={"api-token-scope-#{scope}"}
-                    checked={scope in @selected_scopes}
-                    class="pointer-events-none h-4 w-4 shrink-0 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-500 dark:bg-slate-800 dark:ring-offset-slate-800"
-                    tabindex="-1"
-                    aria-hidden="true"
-                  />
-                  <label
-                    for={"api-token-scope-#{scope}"}
-                    class="pointer-events-none flex-1 cursor-pointer text-[13px] font-medium text-slate-800 dark:text-slate-200"
-                  >
-                    {Map.fetch!(UserApiToken.scope_labels(), scope)}
-                  </label>
-                </div>
-              <% end %>
-            </div>
-
             <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-              {length(@selected_scopes)}/3 scopes · {max(
-                0,
-                UserApiToken.max_active_per_user() - @active_count
-              )} tokens disponíveis
+              {max(0, UserApiToken.max_active_per_user() - @active_count)} tokens disponíveis
             </p>
 
             <div class="mt-5 flex flex-wrap gap-2">
               <button
                 type="button"
                 phx-click="create_token"
-                disabled={
-                  @active_count >= UserApiToken.max_active_per_user() or @selected_scopes == []
-                }
+                disabled={@active_count >= UserApiToken.max_active_per_user()}
                 class="inline-flex rounded-lg bg-brand-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Gerar token
@@ -586,12 +510,4 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
   end
 
   defp format_dt(nil), do: "—"
-
-  defp scope_labels_joined(scopes) when is_list(scopes) do
-    labels = UserApiToken.scope_labels()
-
-    scopes
-    |> Enum.map(&Map.fetch!(labels, &1))
-    |> Enum.join(", ")
-  end
 end
