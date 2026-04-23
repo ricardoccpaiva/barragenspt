@@ -117,6 +117,19 @@ defmodule Barragenspt.WorkerStatus do
     }
   end
 
+  def cleanup_runs_older_than_days(days) when is_integer(days) and days > 0 do
+    cutoff = DateTime.add(DateTime.utc_now(), -days * 24 * 60 * 60, :second)
+
+    from(r in WorkerRun,
+      where: fragment("COALESCE(?, ?) < ?", r.finished_at, r.started_at, ^cutoff)
+    )
+    |> Repo.delete_all()
+    |> case do
+      {count, _} -> {:ok, count}
+      _ -> {:error, :unexpected_result}
+    end
+  end
+
   def start_run(worker_module, run_key, oban_job_id, meta \\ %{}) when is_atom(worker_module) do
     now = DateTime.utc_now()
     cron_expr = cron_expression_for_worker(worker_module)
