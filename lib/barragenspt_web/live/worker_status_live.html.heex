@@ -59,7 +59,7 @@
               <button id={"open-runs-#{row.worker_name}"} type="button" phx-click="open_runs_modal"
                 phx-value-worker={row.worker}
                 class="inline-flex size-8 items-center justify-center rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700"
-                aria-label={"Ver últimas 30 execuções de #{row.worker_display_name}"} title="Ver últimas 30 execuções">
+                aria-label={"Ver últimas 10 execuções de #{row.worker_display_name}"} title="Ver últimas 10 execuções">
                 <.icon name="hero-book-open" class="size-3.5" />
               </button>
             </td>
@@ -78,7 +78,7 @@
         <div class="mb-3 flex items-start justify-between">
           <div>
             <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Últimas 30 execuções - {@modal_worker_name}
+              Últimas 10 execuções - {@modal_worker_name}
             </h2>
             <p class="text-xs text-slate-500 dark:text-slate-400">
               Resumo agregado das execuções recentes.

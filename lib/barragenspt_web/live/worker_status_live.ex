@@ -4,6 +4,7 @@ defmodule BarragensptWeb.WorkerStatusLive do
   alias Barragenspt.WorkerStatus
 
   @refresh_ms 30_000
+  @modal_runs_limit 10
   @display_tz "Europe/Lisbon"
 
   @impl true
@@ -34,7 +35,7 @@ defmodule BarragensptWeb.WorkerStatusLive do
       |> Enum.find(fn mod -> to_string(mod) == worker end)
 
     if worker_module do
-      runs = WorkerStatus.last_runs(worker_module, 30)
+      runs = WorkerStatus.last_runs(worker_module, @modal_runs_limit)
       summary = WorkerStatus.summarize_runs(runs)
 
       {:noreply,
