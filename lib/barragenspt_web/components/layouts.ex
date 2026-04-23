@@ -113,6 +113,13 @@ defmodule BarragensptWeb.Layouts do
               >
                 Dashboard
               </.link>
+              <.link
+                navigate={~p"/status/workers"}
+                data-nav-path={~p"/status/workers"}
+                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+              >
+                Status
+              </.link>
             <% else %>
               <.link
                 href={~p"/dashboard"}
@@ -120,6 +127,13 @@ defmodule BarragensptWeb.Layouts do
                 class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
               >
                 Dashboard
+              </.link>
+              <.link
+                href={~p"/status/workers"}
+                data-nav-path={~p"/status/workers"}
+                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+              >
+                Status
               </.link>
             <% end %>
           </div>

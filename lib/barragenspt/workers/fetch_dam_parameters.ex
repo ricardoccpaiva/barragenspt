@@ -4,6 +4,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
   require Logger
   alias Barragenspt.Models.Hydrometrics.{DataPoint, Dam}
   alias Barragenspt.Services.Snirh
+  alias Barragenspt.WorkerStatus
 
   def spawn_workers do
     # 354895424 - Cota da Albufeira na última hora
@@ -72,8 +73,10 @@ defmodule Barragenspt.Workers.FetchDamParameters do
             "start_date" => start_date,
             "end_date" => end_date,
             "max_value" => max_value
-          } = _args
+          } = args
       }) do
+    run_key = Map.get(args, "run_key")
+
     site_id
     |> Snirh.get_raw_csv_data(parameter_id, start_date, end_date)
     |> NimbleCSV.RFC4180.parse_string()
@@ -85,7 +88,7 @@ defmodule Barragenspt.Workers.FetchDamParameters do
       |> List.flatten()
       |> Enum.reject(fn row -> row == :noop end)
       |> Enum.reject(fn %{value: value} -> value > max_value * 1.10 end)
-      |> save_rows()
+      |> save_rows(run_key)
     end)
     |> Stream.run()
 
@@ -136,11 +139,41 @@ defmodule Barragenspt.Workers.FetchDamParameters do
 
   defp handle_row(_, _, _, _, _, _), do: :noop
 
-  defp save_rows(rows) do
-    Barragenspt.Repo.insert_all(DataPoint, rows,
-      on_conflict: :replace_all,
-      conflict_target: [:site_id, :param_id, :colected_at]
-    )
+  defp save_rows([], _run_key), do: {0, 0}
+
+  defp save_rows(rows, run_key) do
+    keys = Enum.map(rows, &{&1.site_id, &1.param_id, &1.colected_at}) |> Enum.uniq()
+
+    existing_keys_filter =
+      Enum.reduce(keys, dynamic(false), fn {site_id, param_id, colected_at}, dyn ->
+        dynamic(
+          [d],
+          ^dyn or
+            (d.site_id == ^site_id and d.param_id == ^param_id and d.colected_at == ^colected_at)
+        )
+      end)
+
+    existing_count =
+      from(d in DataPoint,
+        where: ^existing_keys_filter,
+        select: count(d.site_id)
+      )
+      |> Barragenspt.Repo.one()
+
+    {affected_rows, _} =
+      Barragenspt.Repo.insert_all(DataPoint, rows,
+        on_conflict: :replace_all,
+        conflict_target: [:site_id, :param_id, :colected_at]
+      )
+
+    updated_rows = min(existing_count, affected_rows)
+    created_rows = max(affected_rows - updated_rows, 0)
+
+    if is_binary(run_key) and run_key != "" do
+      _ = WorkerStatus.add_rows(run_key, created_rows, updated_rows)
+    end
+
+    {created_rows, updated_rows}
   end
 
   defp sanitize_param_name(name) do

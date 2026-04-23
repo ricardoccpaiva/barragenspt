@@ -5,6 +5,7 @@ defmodule Barragenspt.Workers.RealtimeDataExtractor do
   alias Barragenspt.Models.Hydrometrics.{Dam, DataPointRealtime}
   alias Barragenspt.Repo
   alias Barragenspt.RealtimeDataPointsCache
+  alias Barragenspt.WorkerStatus
 
   @base_url "https://infoagua.apambiente.pt/pt/cheias/cheia-detalhe/"
   @params_mapping [
@@ -15,7 +16,8 @@ defmodule Barragenspt.Workers.RealtimeDataExtractor do
   ]
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"site_id" => site_id}}) do
+  def perform(%Oban.Job{args: %{"site_id" => site_id} = args}) do
+    run_key = Map.get(args, "run_key")
     Repo.delete_all(from(d in DataPointRealtime, where: d.site_id == ^site_id))
     flush_realtime_cache(site_id)
 
@@ -23,10 +25,15 @@ defmodule Barragenspt.Workers.RealtimeDataExtractor do
 
     case get_raw_html_content(site_id) do
       {:ok, body} ->
-        body
-        |> extract_station_parameters(site_id)
-        |> prep(site_id)
-        |> store(site_id)
+        stored_count =
+          body
+          |> extract_station_parameters(site_id)
+          |> prep(site_id)
+          |> store(site_id)
+
+        if is_binary(run_key) and run_key != "" do
+          _ = WorkerStatus.add_rows(run_key, stored_count, 0)
+        end
 
         :ok
 
