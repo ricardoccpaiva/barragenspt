@@ -12,7 +12,18 @@ import { drawSmiLayer, removeSmiLayer } from "./homepage/smi_layer"
 import { drawRainLayer, removeRainLayer } from "./homepage/rain_layer"
 
 function getMap() {
-  return window.map
+  const map = window.map
+
+  if (
+    !map ||
+    typeof map.getStyle !== "function" ||
+    typeof map.getLayer !== "function" ||
+    typeof map.getSource !== "function"
+  ) {
+    return null
+  }
+
+  return map
 }
 
 function gtagEvent(name, params) {

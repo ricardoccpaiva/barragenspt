@@ -80,29 +80,80 @@ window.addEventListener("phx:show_toast", (event) => {
 })
 
 const state = { areBasinsVisible: true }
+let map = null
+let mapEventsRegistered = false
 
 function enableTabs() {
   document.querySelectorAll("[data-basin-tab]").forEach((btn) => { btn.disabled = false })
 }
 window.addEventListener("phx:enable_tabs", enableTabs)
 
-const map = createMap()
-window.map = map
+function isMapInstance(candidate) {
+  return (
+    candidate &&
+    typeof candidate.getStyle === "function" &&
+    typeof candidate.getContainer === "function" &&
+    typeof candidate.resize === "function"
+  )
+}
+
+function attachExistingMapToContainer(existingMap, mapContainer) {
+  const currentContainer = existingMap.getContainer()
+  if (!currentContainer || currentContainer === mapContainer) return
+
+  mapContainer.replaceWith(currentContainer)
+  currentContainer.id = "map"
+  existingMap.resize()
+}
+
+function registerMapEventsOnce(activeMap) {
+  if (mapEventsRegistered) return
+
+  registerMapEvents({
+    map: activeMap,
+    topbar,
+    getStorageColor,
+    navigateToBasin,
+    navigateToDam,
+    loadReservoir: (siteId, color) => loadReservoir(activeMap, siteId, color),
+    applyBasinsLayerActive,
+    applyDamsLayerActive,
+    damsCircleColorGray: DAMS_CIRCLE_COLOR_GRAY_EXPORT,
+    state,
+    enableTabs
+  })
+
+  mapEventsRegistered = true
+}
+
+function ensureHomepageMap() {
+  const mapContainer = document.getElementById("map")
+  if (!mapContainer) return
+
+  if (isMapInstance(window.map)) {
+    map = window.map
+    attachExistingMapToContainer(map, mapContainer)
+  } else {
+    map = createMap()
+    window.map = map
+  }
+
+  if (typeof map.isStyleLoaded === "function" && map.isStyleLoaded()) {
+    document.documentElement.classList.add("map-loaded")
+    topbar.hide()
+  }
+
+  registerMapEventsOnce(map)
+}
+
+ensureHomepageMap()
 
 window.addEventListener("dark-mode-change", () => {
   location.reload()
 })
 
-registerMapEvents({
-  map,
-  topbar,
-  getStorageColor,
-  navigateToBasin,
-  navigateToDam,
-  loadReservoir: (siteId, color) => loadReservoir(map, siteId, color),
-  applyBasinsLayerActive,
-  applyDamsLayerActive,
-  damsCircleColorGray: DAMS_CIRCLE_COLOR_GRAY_EXPORT,
-  state,
-  enableTabs
+window.addEventListener("phx:page-loading-stop", () => {
+  requestAnimationFrame(() => {
+    ensureHomepageMap()
+  })
 })
