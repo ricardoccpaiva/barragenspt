@@ -273,6 +273,11 @@ defmodule Barragenspt.WorkerStatus do
 
   defp compute_status(true, _latest_job, _latest_run, _stale?), do: "running"
 
+  defp compute_status(false, _latest_job, latest_run, _stale?)
+       when is_map(latest_run) and latest_run.status == "running" do
+    "running"
+  end
+
   defp compute_status(false, latest_job, latest_run, _stale?)
        when is_map(latest_run) and latest_run.status == "error" do
     if is_error_job?(latest_job), do: "error", else: "error"
