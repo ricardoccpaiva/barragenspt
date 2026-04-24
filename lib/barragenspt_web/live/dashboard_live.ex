@@ -57,7 +57,25 @@ defmodule BarragensptWeb.DashboardLive do
       <% end %>
 
       <%!-- Feature cards --%>
-      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
+        <%!-- Relatório visual --%>
+        <.link
+          {dashboard_link_attrs(@current_scope, ~p"/dashboard/storage-report")}
+          class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:border-sky-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600/60"
+        >
+          <div class="flex items-start gap-4 p-6">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 ring-1 ring-sky-100 dark:bg-sky-950/40 dark:text-sky-400 dark:ring-sky-800/60">
+              <.icon name="hero-chart-bar" class="size-5" />
+            </span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Relatório visual</p>
+              <p class="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                Vê o armazenamento atual por bacia e barragem, com mapas, variação semanal e comparação histórica.
+              </p>
+            </div>
+          </div>
+        </.link>
+
         <%!-- Relatório IA --%>
         <.link
           {dashboard_link_attrs(@current_scope, ~p"/dashboard/basin-report")}

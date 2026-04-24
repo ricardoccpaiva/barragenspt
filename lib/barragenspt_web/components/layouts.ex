@@ -315,10 +315,10 @@ defmodule BarragensptWeb.Layouts do
         requires_auth: true
       },
       %{
-        label: "Relatório IA",
-        path: ~p"/dashboard/basin-report",
-        icon: "hero-sparkles",
-        description: "Análises automáticas por bacia",
+        label: "Relatório",
+        path: ~p"/dashboard/storage-report",
+        icon: "hero-chart-bar",
+        description: "Armazenamento por bacia e barragem",
         requires_auth: true
       },
       %{

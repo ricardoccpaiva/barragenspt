@@ -1,0 +1,301 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="space-y-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0">
+        <form class="flex min-w-0 flex-col gap-2 sm:w-auto sm:flex-row" phx-change="select_basin">
+          <label class="min-w-0 flex-1">
+            <span class="sr-only">Bacia</span>
+            <select
+              name="basin"
+              disabled={@loading_report}
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[18rem]"
+            >
+              <option value="__all__" selected={@selected_basin == "__all__"}>
+                Todas as bacias
+              </option>
+              <%= for basin <- @basin_options do %>
+                <option value={basin} selected={@selected_basin == basin}>{basin}</option>
+              <% end %>
+            </select>
+          </label>
+          <button
+            type="button"
+            phx-click="generate_report"
+            disabled={@loading_report}
+            class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-slate-900"
+          >
+            <%= if @loading_report do %>
+              A gerar...
+            <% else %>
+              Gerar relatório
+            <% end %>
+          </button>
+        </form>
+      </div>
+
+      <%= if @report do %>
+        <div class="self-start rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 shadow-sm dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-400 sm:ml-auto sm:self-auto">
+          <span class="font-semibold text-slate-700 dark:text-slate-200">Ref.</span>
+          <span class="tabular-nums">{format_datetime(@report.report_date)}</span>
+          <span class="ml-2 tabular-nums">
+            {@report.basin_count} bacias · {@report.dam_count} barragens
+          </span>
+        </div>
+      <% end %>
+    </div>
+
+    <%= if @loading_report do %>
+      <div class="flex min-h-[12rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-12 text-center dark:border-slate-600 dark:bg-slate-800/30">
+        <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
+          A gerar o relatório…
+        </p>
+        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          Isto pode demorar um pouco, dependendo do número de barragens.
+        </p>
+      </div>
+    <% end %>
+
+    <%= if is_nil(@report) and not @loading_report do %>
+      <div class="flex min-h-[10rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-10 text-center dark:border-slate-600 dark:bg-slate-800/20">
+        <p class="text-sm text-slate-600 dark:text-slate-400">
+          Escolha a bacia e clique em «Gerar relatório».
+        </p>
+      </div>
+    <% end %>
+
+    <%= if @report do %>
+      <section class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <.metric_card
+          label={storage_metric_label(@selected_basin)}
+          value={format_pct(@report.summary.current_pct)}
+          sub={delta_text(@report.summary.week_delta, "vs semana anterior")}
+          accent="brand"
+        />
+        <.metric_card
+          label="Volume estimado"
+          value={format_volume(@report.summary.current_volume)}
+          sub={"Capacidade: #{format_volume(@report.summary.total_capacity)}"}
+          accent="sky"
+        />
+        <.metric_card
+          label="Média de referência"
+          value={format_delta(@report.summary.reference_delta)}
+          sub="Mesma semana ISO, anos anteriores"
+          accent="teal"
+        />
+        <.metric_card
+          label={attention_metric_label(@selected_basin)}
+          value={to_string(@report.summary.attention_count)}
+          sub="Abaixo de 50% de armazenamento"
+          accent="amber"
+        />
+      </section>
+
+      <section class="grid grid-cols-1 gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 lg:grid-cols-[26rem_minmax(0,1fr)] sm:p-5">
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+          <div class="mb-3 flex items-center justify-between gap-3 px-1 text-sm">
+            <p class="font-semibold text-slate-900 dark:text-slate-100">Portugal continental</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">% armazenamento</p>
+          </div>
+          <svg
+            viewBox="0 0 260 500"
+            role="img"
+            aria-label="Mapa esquemático de Portugal por bacia"
+          >
+            <path
+              d="M112 15 L150 28 L171 58 L162 92 L178 130 L166 169 L184 205 L173 242 L194 282 L181 324 L197 369 L181 414 L154 472 L111 484 L76 458 L88 408 L72 365 L85 319 L68 277 L83 235 L70 191 L82 151 L73 111 L89 72 Z"
+              fill="#e0f2fe"
+              stroke="#93c5fd"
+              stroke-width="2"
+            />
+            <%= for basin <- @report.basins do %>
+              <% {x, y} = portugal_point(basin) %>
+              <g>
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="14"
+                  fill={status_color(basin.status)}
+                  opacity="0.92"
+                  stroke="#ffffff"
+                  stroke-width="2"
+                />
+                <text
+                  x={x}
+                  y={y + 3}
+                  text-anchor="middle"
+                  class="fill-slate-900 text-[8px] font-bold"
+                >
+                  {round_pct_for_map(basin.current_pct)}
+                </text>
+                <text
+                  x={x}
+                  y={y + 25}
+                  text-anchor="middle"
+                  class="fill-slate-600 text-[7px] font-semibold"
+                >
+                  {short_basin_name(basin.name)}
+                </text>
+              </g>
+            <% end %>
+          </svg>
+          <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-4 lg:grid-cols-2">
+            <.legend_item color="#5eead4" label="≥ 70%" />
+            <.legend_item color="#7dd3fc" label="50-69%" />
+            <.legend_item color="#fbbf24" label="30-49%" />
+            <.legend_item color="#f87171" label="< 30%" />
+          </div>
+        </div>
+
+        <div class="min-w-0">
+          <div class="mb-3">
+            <h2 class="text-lg font-semibold text-slate-950 dark:text-slate-50">
+              Síntese por bacia
+            </h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Valores agregados pela capacidade das barragens em cada bacia.
+            </p>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+            <table class="min-w-[760px] w-full text-sm">
+              <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
+                <tr>
+                  <th class="px-3 py-3 text-left font-semibold">Bacia</th>
+                  <th class="px-3 py-3 text-right font-semibold">Atual</th>
+                  <th class="px-3 py-3 text-left font-semibold">Indicador</th>
+                  <th class="px-3 py-3 text-right font-semibold">Semana</th>
+                  <th class="px-3 py-3 text-right font-semibold">Referência</th>
+                  <th class="px-3 py-3 text-right font-semibold">Volume</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
+                <%= for basin <- @report.basins do %>
+                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
+                    <td class="px-3 py-3 font-semibold text-slate-900 dark:text-slate-100">
+                      {basin.name}
+                    </td>
+                    <td class="px-3 py-3 text-right tabular-nums text-slate-800 dark:text-slate-200">
+                      {format_pct(basin.current_pct)}
+                    </td>
+                    <td class="px-3 py-3">
+                      <.bar pct={basin.current_pct} status={basin.status} />
+                    </td>
+                    <td class={[
+                      "px-3 py-3 text-right tabular-nums font-semibold",
+                      delta_class(basin.week_delta)
+                    ]}>
+                      {format_delta(basin.week_delta)}
+                    </td>
+                    <td class={[
+                      "px-3 py-3 text-right tabular-nums font-semibold",
+                      delta_class(basin.reference_delta)
+                    ]}>
+                      {format_delta(basin.reference_delta)}
+                    </td>
+                    <td class="px-3 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                      {format_volume(basin.current_volume)}
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:p-5">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-slate-950 dark:text-slate-50">
+            Detalhe por bacia e barragem
+          </h2>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Cada bloco mostra o mapa da bacia com pontos das barragens e os mesmos indicadores de comparação.
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <%= for basin <- @report.basins do %>
+            <article class="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/70 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900/40">
+              <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <h3 class="text-base font-semibold text-slate-950 dark:text-slate-50">
+                    Bacia do {basin.name}
+                  </h3>
+                  <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                    {status_label(basin.status)} · {basin.dam_count} barragem(ns) monitorizada(s)
+                  </p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <.pill label="Atual" value={format_pct(basin.current_pct)} />
+                  <.pill
+                    label="Semana"
+                    value={format_delta(basin.week_delta)}
+                    class={delta_class(basin.week_delta)}
+                  />
+                  <.pill
+                    label="Referência"
+                    value={format_delta(basin.reference_delta)}
+                    class={delta_class(basin.reference_delta)}
+                  />
+                  <.pill
+                    label="Volume"
+                    value={"#{format_volume(basin.current_volume)} / #{format_volume(basin.total_capacity)}"}
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 gap-4 lg:grid-cols-[15rem_minmax(0,1fr)]">
+                <.mini_map basin={basin} />
+                <div class="min-w-0 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                  <table class="min-w-[720px] w-full text-sm">
+                    <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
+                      <tr>
+                        <th class="px-3 py-3 text-left font-semibold">Barragem</th>
+                        <th class="px-3 py-3 text-left font-semibold">Armazenamento</th>
+                        <th class="px-3 py-3 text-right font-semibold">Semana</th>
+                        <th class="px-3 py-3 text-right font-semibold">Referência</th>
+                        <th class="px-3 py-3 text-right font-semibold">Volume</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
+                      <%= for dam <- basin.dams do %>
+                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
+                          <td class="px-3 py-3">
+                            <p class="font-semibold text-slate-900 dark:text-slate-100">
+                              {dam.name}
+                            </p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                              {dam.river || "Rio n/d"}
+                            </p>
+                          </td>
+                          <td class="px-3 py-3">
+                            <.bar pct={dam.current_pct} status={dam.status} />
+                          </td>
+                          <td class={[
+                            "px-3 py-3 text-right tabular-nums font-semibold",
+                            delta_class(dam.week_delta)
+                          ]}>
+                            {format_delta(dam.week_delta)}
+                          </td>
+                          <td class={[
+                            "px-3 py-3 text-right tabular-nums font-semibold",
+                            delta_class(dam.reference_delta)
+                          ]}>
+                            {format_delta(dam.reference_delta)}
+                          </td>
+                          <td class="px-3 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                            {format_volume(dam.current_volume)}
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </article>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  </div>
+</Layouts.app>

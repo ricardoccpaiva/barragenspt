@@ -1,0 +1,297 @@
+defmodule BarragensptWeb.Dashboard.StorageReportLive do
+  use BarragensptWeb, :live_view
+
+  on_mount {BarragensptWeb.UserAuth, :require_authenticated}
+
+  alias Barragenspt.Hydrometrics.StorageReport
+
+  @portugal_bounds %{min_lon: -9.7, max_lon: -6.1, min_lat: 36.8, max_lat: 42.2}
+
+  @impl true
+  def mount(_params, _session, socket) do
+    {:ok,
+     socket
+     |> assign(:page_title, "Relatório de armazenamento")
+     |> assign(:basin_options, StorageReport.list_basins())
+     |> assign(:selected_basin, "__all__")
+     |> assign(:loading_report, false)
+     |> assign(:report, nil)}
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    selected_basin = selected_basin_param(Map.get(params, "basin"))
+
+    {:noreply,
+     socket
+     |> assign(:selected_basin, selected_basin)
+     |> assign(:loading_report, false)
+     |> assign(:report, nil)}
+  end
+
+  @impl true
+  def handle_event("generate_report", _params, socket) do
+    send(self(), {:generate_storage_report, socket.assigns.selected_basin})
+
+    {:noreply,
+     socket
+     |> assign(:loading_report, true)
+     |> assign(:report, nil)}
+  end
+
+  def handle_event("select_basin", %{"basin" => "__all__"}, socket) do
+    {:noreply, push_patch(socket, to: ~p"/dashboard/storage-report")}
+  end
+
+  def handle_event("select_basin", %{"basin" => basin}, socket) do
+    {:noreply, push_patch(socket, to: ~p"/dashboard/storage-report?basin=#{basin}")}
+  end
+
+  @impl true
+  def handle_info({:generate_storage_report, selected_basin}, socket) do
+    {:noreply,
+     socket
+     |> assign(:loading_report, false)
+     |> assign(:report, StorageReport.build(basin: selected_basin))}
+  end
+
+  attr :label, :string, required: true
+  attr :value, :string, required: true
+  attr :sub, :string, required: true
+  attr :accent, :string, default: "brand"
+
+  defp metric_card(assigns) do
+    ~H"""
+    <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class={["absolute inset-x-4 bottom-0 h-1 rounded-t-full", accent_bg(@accent)]}></div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        {@label}
+      </p>
+      <p class="mt-2 text-2xl font-bold tabular-nums text-slate-950 dark:text-slate-50">{@value}</p>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{@sub}</p>
+    </div>
+    """
+  end
+
+  attr :color, :string, required: true
+  attr :label, :string, required: true
+
+  defp legend_item(assigns) do
+    ~H"""
+    <span class="inline-flex items-center gap-2">
+      <span class="h-3.5 w-3.5 rounded" style={"background-color: #{@color}"}></span>
+      <span>{@label}</span>
+    </span>
+    """
+  end
+
+  attr :pct, :float, default: nil
+  attr :status, :atom, default: :unknown
+
+  defp bar(assigns) do
+    ~H"""
+    <div class="grid grid-cols-[5rem_minmax(0,1fr)] items-center gap-2">
+      <span class="text-right tabular-nums text-slate-700 dark:text-slate-300">
+        {format_pct(@pct)}
+      </span>
+      <span class="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+        <span
+          class="block h-full rounded-full"
+          style={"width: #{bar_width(@pct)}%; background-color: #{status_color(@status)}"}
+        >
+        </span>
+      </span>
+    </div>
+    """
+  end
+
+  attr :label, :string, required: true
+  attr :value, :string, required: true
+  attr :class, :string, default: "text-slate-900 dark:text-slate-100"
+
+  defp pill(assigns) do
+    ~H"""
+    <span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs shadow-sm dark:border-slate-600 dark:bg-slate-800">
+      <span class="text-slate-500 dark:text-slate-400">{@label}</span>
+      <strong class={@class}>{@value}</strong>
+    </span>
+    """
+  end
+
+  attr :basin, :map, required: true
+
+  defp mini_map(assigns) do
+    ~H"""
+    <aside class="aspect-square rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+      <div class="mb-2 flex items-center justify-between gap-2 text-xs">
+        <p class="font-semibold text-slate-900 dark:text-slate-100">Mapa da bacia</p>
+        <p class="text-slate-500 dark:text-slate-400">{@basin.dam_count} ponto(s)</p>
+      </div>
+      <svg
+        viewBox="0 0 220 220"
+        role="img"
+        aria-label={"Bacia do #{@basin.name} com pontos das barragens"}
+      >
+        <rect
+          x="0"
+          y="0"
+          width="220"
+          height="220"
+          rx="10"
+          fill="currentColor"
+          class="text-white dark:text-slate-800"
+        />
+        <path
+          d="M72 24 C112 16 169 37 185 80 C205 134 167 190 114 197 C66 204 31 169 27 119 C24 78 40 40 72 24 Z"
+          fill={status_color(@basin.status)}
+          opacity="0.64"
+        />
+        <path
+          d="M49 56 C79 82 95 91 104 118 C115 151 144 164 174 184"
+          fill="none"
+          stroke="#0284c7"
+          stroke-opacity="0.38"
+          stroke-width="3"
+          stroke-linecap="round"
+        />
+        <path
+          d="M142 42 C129 73 131 99 104 118"
+          fill="none"
+          stroke="#0284c7"
+          stroke-opacity="0.32"
+          stroke-width="3"
+          stroke-linecap="round"
+        />
+        <%= for {dam, index} <- Enum.with_index(@basin.dams) do %>
+          <% {x, y} = mini_map_point(@basin, dam, index) %>
+          <g>
+            <circle cx={x} cy={y} r="5" fill="#0f172a" stroke="#ffffff" stroke-width="2" />
+            <text
+              x={x + 8}
+              y={label_y(y)}
+              class="fill-slate-700 text-[8px] font-semibold dark:fill-slate-200"
+            >
+              {truncate(dam.name, 18)}
+            </text>
+          </g>
+        <% end %>
+      </svg>
+    </aside>
+    """
+  end
+
+  defp portugal_point(%{centroid: %{lat: lat, lon: lon}}) do
+    x = scale(lon, @portugal_bounds.min_lon, @portugal_bounds.max_lon, 62, 198)
+    y = scale(lat, @portugal_bounds.max_lat, @portugal_bounds.min_lat, 30, 466)
+    {x, y}
+  end
+
+  defp portugal_point(basin) do
+    index = :erlang.phash2(basin.name, 100)
+    {82 + rem(index * 37, 96), 40 + rem(index * 53, 390)}
+  end
+
+  defp mini_map_point(basin, %{coordinates: %{lat: lat, lon: lon}}, _index) do
+    coords =
+      basin.dams
+      |> Enum.map(& &1.coordinates)
+      |> Enum.reject(&is_nil/1)
+
+    lats = Enum.map(coords, & &1.lat)
+    lons = Enum.map(coords, & &1.lon)
+
+    {scale(lon, Enum.min(lons), Enum.max(lons), 42, 178),
+     scale(lat, Enum.max(lats), Enum.min(lats), 42, 178)}
+  end
+
+  defp mini_map_point(_basin, _dam, index) do
+    {56 + rem(index * 47, 110), 60 + rem(index * 59, 100)}
+  end
+
+  defp scale(_value, same, same, min_out, max_out), do: (min_out + max_out) / 2
+
+  defp scale(value, min_in, max_in, min_out, max_out) do
+    min_out + (value - min_in) / (max_in - min_in) * (max_out - min_out)
+  end
+
+  defp label_y(y) when y > 150, do: y - 9
+  defp label_y(y), do: y + 15
+
+  defp selected_basin_param(nil), do: "__all__"
+  defp selected_basin_param(""), do: "__all__"
+  defp selected_basin_param("__all__"), do: "__all__"
+  defp selected_basin_param(basin), do: basin
+
+  defp storage_metric_label("__all__"), do: "Armazenamento nacional"
+  defp storage_metric_label(_basin), do: "Armazenamento da bacia"
+
+  defp attention_metric_label("__all__"), do: "Bacias em atenção"
+  defp attention_metric_label(_basin), do: "Bacia em atenção"
+
+  defp format_pct(nil), do: "n/d"
+  defp format_pct(value), do: "#{format_number(value)}%"
+
+  defp format_delta(nil), do: "n/d"
+  defp format_delta(value) when value > 0, do: "+#{format_number(value)} p.p."
+  defp format_delta(value), do: "#{format_number(value)} p.p."
+
+  defp delta_text(nil, label), do: "Sem dados #{label}"
+  defp delta_text(value, label), do: "#{format_delta(value)} #{label}"
+
+  defp format_volume(nil), do: "n/d"
+  defp format_volume(value), do: "#{format_number(value)} hm³"
+
+  defp format_number(value) when is_number(value) do
+    :erlang.float_to_binary(value * 1.0, decimals: 1)
+  end
+
+  defp format_datetime(nil), do: "n/d"
+
+  defp format_datetime(%NaiveDateTime{} = value) do
+    Calendar.strftime(value, "%d/%m/%Y %H:%M")
+  end
+
+  defp bar_width(nil), do: 0
+  defp bar_width(value), do: value |> max(0) |> min(100)
+
+  defp status_color(:good), do: "#5eead4"
+  defp status_color(:normal), do: "#7dd3fc"
+  defp status_color(:low), do: "#fbbf24"
+  defp status_color(:alert), do: "#f87171"
+  defp status_color(_), do: "#cbd5e1"
+
+  defp status_label(:good), do: "acima de 70%"
+  defp status_label(:normal), do: "entre 50% e 70%"
+  defp status_label(:low), do: "abaixo de 50%"
+  defp status_label(:alert), do: "em atenção"
+  defp status_label(_), do: "sem dados"
+
+  defp delta_class(nil), do: "text-slate-500 dark:text-slate-400"
+  defp delta_class(value) when value > 0, do: "text-emerald-600 dark:text-emerald-400"
+  defp delta_class(value) when value < 0, do: "text-rose-600 dark:text-rose-400"
+  defp delta_class(_), do: "text-slate-500 dark:text-slate-400"
+
+  defp accent_bg("sky"), do: "bg-sky-500"
+  defp accent_bg("teal"), do: "bg-teal-500"
+  defp accent_bg("amber"), do: "bg-amber-500"
+  defp accent_bg(_), do: "bg-brand-600"
+
+  defp round_pct_for_map(nil), do: "n/d"
+  defp round_pct_for_map(value), do: "#{round(value)}"
+
+  defp short_basin_name(name) do
+    name
+    |> String.replace("Ribeiras do ", "R. ")
+    |> truncate(14)
+  end
+
+  defp truncate(nil, _max), do: ""
+
+  defp truncate(text, max) do
+    if String.length(text) <= max do
+      text
+    else
+      String.slice(text, 0, max - 3) <> "..."
+    end
+  end
+end
