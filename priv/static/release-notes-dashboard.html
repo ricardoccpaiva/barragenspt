@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>barragens.pt - Novidades do Dashboard</title>
+  <meta name="description"
+    content="Novas funcionalidades do dashboard barragens.pt: contas, dados raw, relatório semanal, alertas, API e estado de atualização." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f6f9fc;
+      --ink: #102033;
+      --muted: #64748b;
+      --line: #dbe6f3;
+      --card: #ffffff;
+      --brand: #0284c7;
+      --brand-2: #0f766e;
+      --amber: #d97706;
+      --violet: #7c3aed;
+      --rose: #e11d48;
+      --shadow: 0 18px 45px rgb(15 35 62 / 0.11);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 16% -6%, #dff3ff 0 18rem, transparent 34rem),
+        radial-gradient(circle at 88% 7%, #ecfeff 0 14rem, transparent 28rem),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 56%, #eef4fb 100%);
+      line-height: 1.45;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 22px 0 42px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #0f172a;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: #e0f2fe;
+      color: var(--brand);
+      border: 1px solid #bae6fd;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav a,
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 11px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgb(255 255 255 / 0.78);
+      color: #334155;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+    }
+
+    .button.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: white;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      display: block;
+      align-items: center;
+      min-height: 133px;
+      padding: 22px 34px 18px;
+      border-radius: 20px;
+      border: 1px solid rgb(255 255 255 / 0.72);
+      background:
+        linear-gradient(90deg, rgb(15 32 51 / 0.74) 0%, rgb(15 32 51 / 0.52) 48%, rgb(15 32 51 / 0.12) 100%),
+        url("/images/dashboard-hero-illustration.png") center / cover no-repeat,
+        #0f2033;
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -6% -18% 42%;
+      height: 220px;
+      background: linear-gradient(90deg, transparent, rgb(125 211 252 / 0.18), transparent);
+      transform: rotate(-8deg);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 10px;
+      padding: 5px 10px;
+      width: fit-content;
+      border-radius: 999px;
+      border: 1px solid rgb(255 255 255 / 0.18);
+      background: rgb(255 255 255 / 0.1);
+      color: #bae6fd;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hero h1 {
+      margin: 0;
+      max-width: 720px;
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      max-width: 620px;
+      color: #d7e9f8;
+      font-size: clamp(13px, 1.35vw, 15px);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .hero .button {
+      border-color: rgb(255 255 255 / 0.22);
+      background: rgb(255 255 255 / 0.1);
+      color: #eef9ff;
+      min-height: 36px;
+      padding: 0 14px;
+    }
+
+    .hero .button.primary {
+      border-color: #38bdf8;
+      background: #0ea5e9;
+      color: white;
+    }
+
+    .hero-art {
+      position: relative;
+      z-index: 1;
+      min-height: 105px;
+      border-radius: 17px;
+      overflow: hidden;
+      background: #0b2539;
+      border: 1px solid rgb(255 255 255 / 0.16);
+      box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+    }
+
+    .hero-art img,
+    .hero-art svg,
+    .feature-art svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .hero-art img {
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .quick {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0 0;
+    }
+
+    .quick a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgb(255 255 255 / 0.82);
+      border: 1px solid var(--line);
+      text-decoration: none;
+      box-shadow: 0 10px 30px rgb(15 35 62 / 0.06);
+      color: #334155;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .quick svg {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 auto;
+      color: var(--brand);
+    }
+
+    .section {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: minmax(220px, 0.62fr) minmax(0, 1.38fr);
+      gap: 20px;
+      align-items: stretch;
+      min-height: 240px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      overflow: hidden;
+      box-shadow: 0 14px 38px rgb(15 35 62 / 0.08);
+    }
+
+    .section:nth-of-type(even) {
+      grid-template-columns: minmax(0, 1.38fr) minmax(220px, 0.62fr);
+    }
+
+    .section:nth-of-type(even) .feature-art {
+      order: 2;
+    }
+
+    .section-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: clamp(20px, 3vw, 32px);
+    }
+
+    .section-kicker {
+      margin: 0 0 10px;
+      color: var(--brand);
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .section h2 {
+      margin: 0;
+      font-size: clamp(20px, 2.4vw, 28px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .section p {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .bullets {
+      display: grid;
+      gap: 10px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .bullets li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    .bullets li::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      margin-top: 7px;
+      border-radius: 999px;
+      background: var(--brand);
+      flex: 0 0 auto;
+    }
+
+    .feature-art {
+      min-height: 220px;
+      background: #eef7ff;
+      border-right: 1px solid var(--line);
+    }
+
+    .section:nth-of-type(even) .feature-art {
+      border-right: 0;
+      border-left: 1px solid var(--line);
+    }
+
+    .final {
+      margin-top: 16px;
+      padding: clamp(22px, 4vw, 34px);
+      border-radius: 24px;
+      color: white;
+      background: linear-gradient(135deg, #0f2033, #075985);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .final h2 {
+      margin: 0;
+      font-size: clamp(20px, 2.4vw, 28px);
+      line-height: 1.08;
+    }
+
+    .final p {
+      margin: 10px 0 0;
+      color: #dbeafe;
+      max-width: 720px;
+    }
+
+    .final .button {
+      min-height: 40px;
+      border-color: rgb(255 255 255 / 0.22);
+      background: rgb(255 255 255 / 0.12);
+      color: white;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 980px) {
+
+      .hero,
+      .section,
+      .section:nth-of-type(even) {
+        grid-template-columns: 1fr;
+      }
+
+      .section:nth-of-type(even) .feature-art {
+        order: 0;
+      }
+
+      .feature-art,
+      .section:nth-of-type(even) .feature-art {
+        border: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .quick {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .final {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .page {
+        width: min(100% - 20px, 1180px);
+        padding-top: 12px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+
+      .hero,
+      .section,
+      .final {
+        border-radius: 18px;
+      }
+
+      .hero {
+        min-height: 0;
+      }
+
+      .hero-art {
+        min-height: 180px;
+      }
+
+      .quick {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <section class="hero">
+      <div>
+        <h1>O barragens.pt está mais capaz.</h1>
+        <p>
+          Esta release reúne contas de utilizador, acesso aos dados base, relatórios semanais,
+          alertas configuráveis, API documentada e visibilidade sobre a atualização dos dados.
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="/dashboard">Abrir dashboard</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="quick" aria-label="Resumo das novidades">
+      <a href="#contas">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor"
+            d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm0 2c-4.42 0-8 2.02-8 4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5C20 16.02 16.42 14 12 14Z" />
+        </svg>
+        Registo e login
+      </a>
+      <a href="#dados">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor"
+            d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm2 4v2h10V8H7Zm0 4v2h6v-2H7Zm0 4v2h10v-2H7Z" />
+        </svg>
+        Dados base
+      </a>
+      <a href="#relatorio">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M15 4 9 2 3 4v17l6-2 6 2 6-2V2l-6 2Zm-1 14.66-4-1.34V5.34l4 1.34v11.98Z" />
+        </svg>
+        Relatório semanal
+      </a>
+      <a href="#alertas">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor"
+            d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm8-5-2-3v-4a6 6 0 1 0-12 0v4l-2 3v1h16v-1Z" />
+        </svg>
+        Alertas
+      </a>
+      <a href="#api">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor"
+            d="m8.7 16.3-4-4a1 1 0 0 1 0-1.4l4-4 1.4 1.4L6.8 11.6l3.3 3.3-1.4 1.4Zm6.6 0-1.4-1.4 3.3-3.3-3.3-3.3 1.4-1.4 4 4a1 1 0 0 1 0 1.4l-4 4ZM11 18l-1.9-.6L13 5l1.9.6L11 18Z" />
+        </svg>
+        API e docs
+      </a>
+      <a href="#status">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M4 19h16v2H4v-2Zm2-4h3V7H6v8Zm5 0h3V3h-3v12Zm5 0h3v-5h-3v5Z" />
+        </svg>
+        Estado do sistema
+      </a>
+    </div>
+
+    <div id="features">
+      <section class="section" id="contas">
+        <figure class="feature-art" aria-label="Ilustração low-poly de autenticação">
+          <svg viewBox="0 0 520 420" role="img">
+            <rect width="520" height="420" fill="#e0f2fe" />
+            <polygon points="0,420 0,180 140,120 210,420" fill="#bae6fd" />
+            <polygon points="140,120 330,76 520,180 210,420" fill="#7dd3fc" />
+            <polygon points="330,76 520,180 520,420 210,420" fill="#38bdf8" />
+            <rect x="150" y="92" width="220" height="240" rx="22" fill="#fff" opacity="0.96" />
+            <circle cx="260" cy="166" r="42" fill="#0284c7" />
+            <path d="M198 264c14-42 110-42 124 0" fill="none" stroke="#0f172a" stroke-width="18"
+              stroke-linecap="round" />
+            <rect x="194" y="292" width="132" height="14" rx="7" fill="#cbd5e1" />
+          </svg>
+        </figure>
+        <div class="section-copy">
+          <h2>Registo e login de utilizadores</h2>
+          <p>
+            O barragens.pt passa a ter uma área autenticada de forma a concentrar este novo conjunto de funcionalidades.
+          </p>
+          <ul class="bullets">
+            <li>Criação de conta e início de sessão no dashboard.</li>
+            <li>Possibilidade de alterar a foto de perfil.</li>
+            <li>Gestão dos canais de notificação.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section" id="dados">
+        <figure class="feature-art" aria-label="Ilustração low-poly de tabela e gráfico">
+          <svg viewBox="0 0 520 420" role="img">
+            <rect width="520" height="420" fill="#ecfeff" />
+            <polygon points="0,320 160,180 270,260 520,80 520,420 0,420" fill="#99f6e4" />
+            <polygon points="0,320 160,180 120,420 0,420" fill="#5eead4" />
+            <polygon points="160,180 270,260 120,420" fill="#2dd4bf" />
+            <polygon points="270,260 520,80 520,420 120,420" fill="#14b8a6" />
+            <rect x="78" y="88" width="364" height="244" rx="20" fill="#fff" opacity="0.96" />
+            <rect x="112" y="128" width="296" height="16" rx="8" fill="#0f766e" opacity="0.25" />
+            <rect x="112" y="174" width="296" height="2" fill="#dbe6f3" />
+            <rect x="112" y="214" width="296" height="2" fill="#dbe6f3" />
+            <rect x="112" y="254" width="296" height="2" fill="#dbe6f3" />
+            <path d="M122 278 L174 244 L226 252 L278 202 L330 218 L398 160" fill="none" stroke="#0f766e"
+              stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </figure>
+        <div class="section-copy">
+          <h2>Visualizar e exportar dados base</h2>
+          <p>
+            A nova área de dados permite consultar medições hidrométricas em bruto,
+            explorar séries temporais e exportar resultados para análise externa.
+          </p>
+          <ul class="bullets">
+            <li>Filtros por bacia, barragem, parâmetro e intervalo temporal.</li>
+            <li>Gráficos para inspecionar tendências e variações.</li>
+            <li>Exportação em CSV.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section" id="relatorio">
+        <figure class="feature-art" aria-label="Ilustração low-poly de mapa de bacias">
+          <svg viewBox="0 0 520 420" role="img">
+            <rect width="520" height="420" fill="#eff6ff" />
+            <polygon points="78,54 248,22 332,96 236,172 86,150" fill="#7dd3fc" />
+            <polygon points="248,22 454,72 420,192 332,96" fill="#bae6fd" />
+            <polygon points="86,150 236,172 208,318 58,352" fill="#38bdf8" />
+            <polygon points="236,172 420,192 358,366 208,318" fill="#0ea5e9" />
+            <polygon points="420,192 476,310 358,366" fill="#fbbf24" />
+            <circle cx="186" cy="130" r="18" fill="#5eead4" stroke="#fff" stroke-width="5" />
+            <circle cx="316" cy="110" r="18" fill="#7dd3fc" stroke="#fff" stroke-width="5" />
+            <circle cx="250" cy="260" r="18" fill="#fbbf24" stroke="#fff" stroke-width="5" />
+            <rect x="82" y="332" width="356" height="54" rx="14" fill="#fff" opacity="0.94" />
+            <rect x="108" y="354" width="80" height="10" rx="5" fill="#5eead4" />
+            <rect x="212" y="354" width="80" height="10" rx="5" fill="#7dd3fc" />
+            <rect x="316" y="354" width="80" height="10" rx="5" fill="#fbbf24" />
+          </svg>
+        </figure>
+        <div class="section-copy">
+          <h2>Um snapshot visual da semana</h2>
+          <p>
+            O relatório semanal usa os dados da segunda-feira da semana corrente
+            para mostrar o estado do armazenamento por bacia e por barragem.
+          </p>
+          <ul class="bullets">
+            <li>Mapa real das bacias com cores por estado de armazenamento.</li>
+            <li>Comparação com a semana anterior e média histórica de referência.</li>
+            <li>Detalhe por bacia, barragem, volume estimado e variação.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section" id="alertas">
+        <figure class="feature-art" aria-label="Ilustração low-poly de alertas">
+          <svg viewBox="0 0 520 420" role="img">
+            <rect width="520" height="420" fill="#fff7ed" />
+            <polygon points="0,420 84,150 260,220 410,92 520,420" fill="#fed7aa" />
+            <polygon points="84,150 260,220 184,420 0,420" fill="#fdba74" />
+            <polygon points="260,220 410,92 520,420 184,420" fill="#fb923c" />
+            <path d="M260 80c-58 0-92 38-92 96v56l-32 54h248l-32-54v-56c0-58-34-96-92-96Z" fill="#fff" />
+            <path d="M226 300c7 22 61 22 68 0" fill="none" stroke="#0f172a" stroke-width="16" stroke-linecap="round" />
+            <circle cx="260" cy="174" r="42" fill="#f59e0b" />
+            <path d="M260 132v52" stroke="#fff" stroke-width="14" stroke-linecap="round" />
+            <circle cx="260" cy="214" r="8" fill="#fff" />
+          </svg>
+        </figure>
+        <div class="section-copy">
+          <h2>Alertas configuráveis por albufeira</h2>
+          <p>
+            Agora é possível acompanhar automaticamente valores críticos e receber
+            notificações quando os dados cruzarem os critérios definidos.
+          </p>
+          <ul class="bullets">
+            <li>Critérios configuráveis para diversos parâmetros.</li>
+            <li>Histórico para perceber quando e porquê cada alerta disparou.</li>
+            <li>Canais de notificação configuráveis: E-mail ou Telegram.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section" id="api">
+        <figure class="feature-art" aria-label="Ilustração low-poly de API">
+          <svg viewBox="0 0 520 420" role="img">
+            <rect width="520" height="420" fill="#f5f3ff" />
+            <polygon points="0,132 184,58 308,168 148,280" fill="#ddd6fe" />
+            <polygon points="184,58 520,108 308,168" fill="#c4b5fd" />
+            <polygon points="148,280 308,168 520,300 520,420 0,420" fill="#a78bfa" />
+            <rect x="86" y="116" width="348" height="210" rx="20" fill="#fff" opacity="0.96" />
+            <path d="M188 198l-44 36 44 36" fill="none" stroke="#7c3aed" stroke-width="14" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M332 198l44 36-44 36" fill="none" stroke="#7c3aed" stroke-width="14" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <path d="M282 176l-48 116" fill="none" stroke="#0f172a" stroke-width="12" stroke-linecap="round" />
+            <rect x="130" y="284" width="260" height="12" rx="6" fill="#ddd6fe" />
+          </svg>
+        </figure>
+        <div class="section-copy">
+          <h2>Acesso à API e documentação</h2>
+          <p>
+            A nova área de API torna os dados do barragens.pt mais fáceis de integrar
+            em dashboards, automatismos e ferramentas externas.
+          </p>
+          <ul class="bullets">
+            <li>Geração e gestão de tokens de acesso.</li>
+            <li>Documentação com endpoints, parâmetros e exemplos.</li>
+            <li>Controlo de utilização para acompanhar integrações.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section" id="status">
+        <figure class="feature-art" aria-label="Ilustração low-poly de estado dos dados">
+          <svg viewBox="0 0 520 420" role="img">
+            <rect width="520" height="420" fill="#f0fdf4" />
+            <polygon points="0,420 0,170 130,116 256,420" fill="#bbf7d0" />
+            <polygon points="130,116 328,60 520,188 256,420" fill="#86efac" />
+            <polygon points="328,60 520,188 520,420 256,420" fill="#4ade80" />
+            <rect x="88" y="92" width="344" height="236" rx="22" fill="#fff" opacity="0.96" />
+            <circle cx="162" cy="166" r="18" fill="#22c55e" />
+            <rect x="202" y="154" width="178" height="14" rx="7" fill="#cbd5e1" />
+            <circle cx="162" cy="218" r="18" fill="#22c55e" />
+            <rect x="202" y="206" width="224" height="14" rx="7" fill="#cbd5e1" />
+            <circle cx="162" cy="270" r="18" fill="#f59e0b" />
+            <rect x="202" y="258" width="138" height="14" rx="7" fill="#cbd5e1" />
+          </svg>
+        </figure>
+        <div class="section-copy">
+          <h2>Estado de atualização dos dados</h2>
+          <p>
+            A página de estado dá visibilidade ao funcionamento dos processos que
+            recolhem e atualizam os dados hidrométricos.
+          </p>
+          <ul class="bullets">
+            <li>Consulta do estado dos workers de atualização.</li>
+            <li>Mais transparência sobre a frescura dos dados disponíveis.</li>
+            <li>Ajuda no diagnóstico quando uma fonte externa falha ou atrasa.</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+
+</html>
