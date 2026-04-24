@@ -91,59 +91,26 @@
         />
       </section>
 
-      <section class="grid grid-cols-1 gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 lg:grid-cols-[26rem_minmax(0,1fr)] sm:p-5">
-        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+      <section class="grid grid-cols-1 items-stretch gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 lg:grid-cols-[26rem_minmax(0,1fr)] sm:p-5">
+        <div class="flex h-full flex-col rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
           <div class="mb-3 flex items-center justify-between gap-3 px-1 text-sm">
             <p class="font-semibold text-slate-900 dark:text-slate-100">Portugal continental</p>
             <p class="text-xs text-slate-500 dark:text-slate-400">% armazenamento</p>
           </div>
-          <svg
-            viewBox="0 0 260 500"
-            role="img"
-            aria-label="Mapa esquemático de Portugal por bacia"
-          >
-            <path
-              d="M112 15 L150 28 L171 58 L162 92 L178 130 L166 169 L184 205 L173 242 L194 282 L181 324 L197 369 L181 414 L154 472 L111 484 L76 458 L88 408 L72 365 L85 319 L68 277 L83 235 L70 191 L82 151 L73 111 L89 72 Z"
-              fill="#e0f2fe"
-              stroke="#93c5fd"
-              stroke-width="2"
+          <div class="min-h-[28rem] flex-1">
+            <img
+              src={@basin_map_image}
+              alt="Mapa de Portugal continental com bacias hidrográficas coloridas por armazenamento"
+              class="mx-auto block h-full max-h-[36rem] w-auto max-w-full rounded-xl object-contain"
             />
-            <%= for basin <- @report.basins do %>
-              <% {x, y} = portugal_point(basin) %>
-              <g>
-                <circle
-                  cx={x}
-                  cy={y}
-                  r="14"
-                  fill={status_color(basin.status)}
-                  opacity="0.92"
-                  stroke="#ffffff"
-                  stroke-width="2"
-                />
-                <text
-                  x={x}
-                  y={y + 3}
-                  text-anchor="middle"
-                  class="fill-slate-900 text-[8px] font-bold"
-                >
-                  {round_pct_for_map(basin.current_pct)}
-                </text>
-                <text
-                  x={x}
-                  y={y + 25}
-                  text-anchor="middle"
-                  class="fill-slate-600 text-[7px] font-semibold"
-                >
-                  {short_basin_name(basin.name)}
-                </text>
-              </g>
-            <% end %>
-          </svg>
-          <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-4 lg:grid-cols-2">
-            <.legend_item color="#5eead4" label="≥ 70%" />
-            <.legend_item color="#7dd3fc" label="50-69%" />
-            <.legend_item color="#fbbf24" label="30-49%" />
-            <.legend_item color="#f87171" label="< 30%" />
+          </div>
+          <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-3 lg:grid-cols-2">
+            <.legend_item color="#ff675c" label="0 - 20" />
+            <.legend_item color="#ffc34a" label="21 - 40" />
+            <.legend_item color="#ffe99c" label="41 - 50" />
+            <.legend_item color="#c2faaa" label="51 - 60" />
+            <.legend_item color="#a6d8ff" label="61 - 80" />
+            <.legend_item color="#1c9dff" label="81 - 100" />
           </div>
         </div>
 

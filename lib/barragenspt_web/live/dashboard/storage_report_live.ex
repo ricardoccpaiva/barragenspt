@@ -5,6 +5,11 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   alias Barragenspt.Hydrometrics.StorageReport
 
+  @hydro_geojson_source_path Path.expand(
+                               "../../../../priv/static/geojson/pt100_hidro.json",
+                               __DIR__
+                             )
+  @external_resource @hydro_geojson_source_path
   @portugal_bounds %{min_lon: -9.7, max_lon: -6.1, min_lat: 36.8, max_lat: 42.2}
 
   @impl true
@@ -15,6 +20,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:basin_options, StorageReport.list_basins())
      |> assign(:selected_basin, "__all__")
      |> assign(:loading_report, false)
+     |> assign(:basin_map_image, nil)
      |> assign(:report, nil)}
   end
 
@@ -26,6 +32,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      socket
      |> assign(:selected_basin, selected_basin)
      |> assign(:loading_report, false)
+     |> assign(:basin_map_image, nil)
      |> assign(:report, nil)}
   end
 
@@ -36,6 +43,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     {:noreply,
      socket
      |> assign(:loading_report, true)
+     |> assign(:basin_map_image, nil)
      |> assign(:report, nil)}
   end
 
@@ -49,10 +57,13 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   @impl true
   def handle_info({:generate_storage_report, selected_basin}, socket) do
+    report = StorageReport.build(basin: selected_basin)
+
     {:noreply,
      socket
      |> assign(:loading_report, false)
-     |> assign(:report, StorageReport.build(basin: selected_basin))}
+     |> assign(:basin_map_image, basin_map_image(report))
+     |> assign(:report, report)}
   end
 
   attr :label, :string, required: true
@@ -180,17 +191,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     """
   end
 
-  defp portugal_point(%{centroid: %{lat: lat, lon: lon}}) do
-    x = scale(lon, @portugal_bounds.min_lon, @portugal_bounds.max_lon, 62, 198)
-    y = scale(lat, @portugal_bounds.max_lat, @portugal_bounds.min_lat, 30, 466)
-    {x, y}
-  end
-
-  defp portugal_point(basin) do
-    index = :erlang.phash2(basin.name, 100)
-    {82 + rem(index * 37, 96), 40 + rem(index * 53, 390)}
-  end
-
   defp mini_map_point(basin, %{coordinates: %{lat: lat, lon: lon}}, _index) do
     coords =
       basin.dams
@@ -276,13 +276,118 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp accent_bg("amber"), do: "bg-amber-500"
   defp accent_bg(_), do: "bg-brand-600"
 
-  defp round_pct_for_map(nil), do: "n/d"
-  defp round_pct_for_map(value), do: "#{round(value)}"
+  defp basin_map_image(%{basins: basins}) do
+    stats_by_basin =
+      Map.new(basins, fn basin ->
+        {normalize_basin_name(basin.name), basin}
+      end)
 
-  defp short_basin_name(name) do
+    svg =
+      """
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 500" role="img">
+        <rect width="260" height="500" rx="18" fill="#f8fafc"/>
+        <g>
+          #{hydro_feature_paths(stats_by_basin)}
+        </g>
+      </svg>
+      """
+
+    "data:image/svg+xml;base64," <> Base.encode64(svg)
+  end
+
+  defp hydro_feature_paths(stats_by_basin) do
+    hydro_features()
+    |> Enum.map(fn feature ->
+      zname = get_in(feature, ["properties", "zname"])
+      basin = Map.get(stats_by_basin, normalize_basin_name(zname))
+      fill = if basin, do: storage_color(basin.current_pct), else: "#cbd5e1"
+      opacity = if basin, do: "0.92", else: "0.45"
+      title = Phoenix.HTML.html_escape(zname || "Bacia sem nome") |> Phoenix.HTML.safe_to_string()
+      path = geometry_to_svg_path(feature["geometry"])
+
+      """
+      <path d="#{path}" fill="#{fill}" fill-opacity="#{opacity}" fill-rule="evenodd" stroke="#ffffff" stroke-width="0.8">
+        <title>#{title}</title>
+      </path>
+      """
+    end)
+    |> Enum.join("\n")
+  end
+
+  defp hydro_features do
+    hydro_geojson_path()
+    |> File.read!()
+    |> Jason.decode!()
+    |> Map.fetch!("features")
+  end
+
+  defp hydro_geojson_path do
+    case :code.priv_dir(:barragenspt) do
+      {:error, _reason} ->
+        @hydro_geojson_source_path
+
+      priv_dir ->
+        priv_dir
+        |> to_string()
+        |> Path.join("static/geojson/pt100_hidro.json")
+    end
+  end
+
+  defp geometry_to_svg_path(%{"type" => "MultiPolygon", "coordinates" => polygons}) do
+    polygons
+    |> Enum.map(&polygon_to_svg_path/1)
+    |> Enum.join(" ")
+  end
+
+  defp geometry_to_svg_path(%{"type" => "Polygon", "coordinates" => rings}) do
+    polygon_to_svg_path(rings)
+  end
+
+  defp geometry_to_svg_path(_geometry), do: ""
+
+  defp polygon_to_svg_path(rings) do
+    rings
+    |> Enum.map(fn ring ->
+      ring
+      |> Enum.with_index()
+      |> Enum.map(fn {[lon, lat | _], index} ->
+        {x, y} = portugal_svg_point(lon, lat)
+        command = if index == 0, do: "M", else: "L"
+        "#{command}#{format_svg_number(x)} #{format_svg_number(y)}"
+      end)
+      |> Kernel.++(["Z"])
+      |> Enum.join(" ")
+    end)
+    |> Enum.join(" ")
+  end
+
+  defp portugal_svg_point(lon, lat) do
+    x = scale(lon, @portugal_bounds.min_lon, @portugal_bounds.max_lon, 18, 242)
+    y = scale(lat, @portugal_bounds.max_lat, @portugal_bounds.min_lat, 16, 484)
+    {x, y}
+  end
+
+  defp format_svg_number(value) when is_number(value) do
+    :erlang.float_to_binary(value * 1.0, decimals: 2)
+  end
+
+  defp storage_color(value) when is_number(value) and value <= 20, do: "#ff675c"
+  defp storage_color(value) when is_number(value) and value <= 40, do: "#ffc34a"
+  defp storage_color(value) when is_number(value) and value <= 50, do: "#ffe99c"
+  defp storage_color(value) when is_number(value) and value <= 60, do: "#c2faaa"
+  defp storage_color(value) when is_number(value) and value <= 80, do: "#a6d8ff"
+  defp storage_color(value) when is_number(value) and value <= 100, do: "#1c9dff"
+  defp storage_color(_value), do: "#94a3b8"
+
+  defp normalize_basin_name(nil), do: ""
+
+  defp normalize_basin_name(name) do
     name
-    |> String.replace("Ribeiras do ", "R. ")
-    |> truncate(14)
+    |> String.downcase()
+    |> String.normalize(:nfd)
+    |> String.replace(~r/\p{Mn}/u, "")
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
   end
 
   defp truncate(nil, _max), do: ""
