@@ -97,21 +97,20 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   end
 
   attr :pct, :float, default: nil
-  attr :status, :atom, default: :unknown
 
-  defp bar(assigns) do
+  defp pct_with_sparkbar(assigns) do
     ~H"""
-    <div class="grid grid-cols-[5rem_minmax(0,1fr)] items-center gap-2">
-      <span class="text-right tabular-nums text-slate-700 dark:text-slate-300">
+    <div class="ml-auto w-20">
+      <div class="text-right tabular-nums text-slate-800 dark:text-slate-200">
         {format_pct(@pct)}
-      </span>
-      <span class="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+      </div>
+      <div class="mt-1 h-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
         <span
           class="block h-full rounded-full"
-          style={"width: #{bar_width(@pct)}%; background-color: #{status_color(@status)}"}
+          style={"width: #{bar_width(@pct)}%; background-color: #{storage_color(@pct)}"}
         >
         </span>
-      </span>
+      </div>
     </div>
     """
   end

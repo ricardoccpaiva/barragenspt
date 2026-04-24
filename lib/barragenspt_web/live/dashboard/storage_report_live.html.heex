@@ -124,12 +124,11 @@
             </p>
           </div>
           <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
-            <table class="min-w-[760px] w-full text-sm">
+            <table class="min-w-[680px] w-full text-sm">
               <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
                 <tr>
                   <th class="px-3 py-3 text-left font-semibold">Bacia</th>
                   <th class="px-3 py-3 text-right font-semibold">Atual</th>
-                  <th class="px-3 py-3 text-left font-semibold">Indicador</th>
                   <th class="px-3 py-3 text-right font-semibold">Semana</th>
                   <th class="px-3 py-3 text-right font-semibold">Referência</th>
                   <th class="px-3 py-3 text-right font-semibold">Volume</th>
@@ -141,11 +140,8 @@
                     <td class="px-3 py-3 font-semibold text-slate-900 dark:text-slate-100">
                       {basin.name}
                     </td>
-                    <td class="px-3 py-3 text-right tabular-nums text-slate-800 dark:text-slate-200">
-                      {format_pct(basin.current_pct)}
-                    </td>
                     <td class="px-3 py-3">
-                      <.bar pct={basin.current_pct} status={basin.status} />
+                      <.pct_with_sparkbar pct={basin.current_pct} />
                     </td>
                     <td class={[
                       "px-3 py-3 text-right tabular-nums font-semibold",
@@ -218,7 +214,7 @@
                     <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
                       <tr>
                         <th class="px-3 py-3 text-left font-semibold">Barragem</th>
-                        <th class="px-3 py-3 text-left font-semibold">Armazenamento</th>
+                        <th class="px-3 py-3 text-right font-semibold">Armazenamento</th>
                         <th class="px-3 py-3 text-right font-semibold">Semana</th>
                         <th class="px-3 py-3 text-right font-semibold">Referência</th>
                         <th class="px-3 py-3 text-right font-semibold">Volume</th>
@@ -236,7 +232,7 @@
                             </p>
                           </td>
                           <td class="px-3 py-3">
-                            <.bar pct={dam.current_pct} status={dam.status} />
+                            <.pct_with_sparkbar pct={dam.current_pct} />
                           </td>
                           <td class={[
                             "px-3 py-3 text-right tabular-nums font-semibold",
