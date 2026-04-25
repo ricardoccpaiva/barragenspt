@@ -54,6 +54,7 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
   defp current_dam_rows(basin, reference_at) do
     reference_date = NaiveDateTime.to_date(reference_at)
     {start_at, end_at} = day_bounds(reference_date)
+    lookback_at = Timex.shift(reference_at, months: -2)
 
     storage_points =
       from dp in DataPoint,
@@ -70,9 +71,17 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
 
     query =
       from d in Dam,
+        as: :dam,
         left_join: p in subquery(storage_points),
         on: p.site_id == d.site_id,
         where: not is_nil(d.basin) and d.basin != "",
+        where:
+          exists(
+            from dp in DataPoint,
+              where:
+                dp.site_id == parent_as(:dam).site_id and dp.param_name == ^@volume_param and
+                  dp.colected_at >= ^lookback_at
+          ),
         order_by: [asc: d.basin, asc: d.name],
         select: %{
           site_id: d.site_id,
