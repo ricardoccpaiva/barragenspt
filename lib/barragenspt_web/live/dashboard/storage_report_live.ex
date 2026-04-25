@@ -49,7 +49,10 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
       parsed_date ->
         {:noreply,
-         push_patch(socket, to: ~p"/dashboard/storage-report?date=#{date_to_string(parsed_date)}")}
+         push_patch(
+           socket,
+           to: storage_report_path(socket.assigns.selected_basin, parsed_date)
+         )}
     end
   end
 
@@ -67,11 +70,19 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   end
 
   def handle_event("select_basin", %{"basin" => "__all__"}, socket) do
-    {:noreply, push_patch(socket, to: ~p"/dashboard/storage-report")}
+    {:noreply,
+     push_patch(
+       socket,
+       to: storage_report_path("__all__", socket.assigns.selected_date)
+     )}
   end
 
   def handle_event("select_basin", %{"basin" => basin}, socket) do
-    {:noreply, push_patch(socket, to: ~p"/dashboard/storage-report?basin=#{basin}")}
+    {:noreply,
+     push_patch(
+       socket,
+       to: storage_report_path(basin, socket.assigns.selected_date)
+     )}
   end
 
   @impl true
@@ -216,6 +227,19 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   defp date_to_naive_datetime(%Date{} = date) do
     NaiveDateTime.new!(date, ~T[23:00:00])
+  end
+
+  defp storage_report_path(selected_basin, selected_date) do
+    params = [date: date_to_string(selected_date)]
+
+    params =
+      if selected_basin == "__all__" do
+        params
+      else
+        Keyword.put(params, :basin, selected_basin)
+      end
+
+    ~p"/dashboard/storage-report?#{params}"
   end
 
   defp storage_metric_label("__all__"), do: "Armazenamento nacional"
