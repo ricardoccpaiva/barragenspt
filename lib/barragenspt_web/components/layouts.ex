@@ -243,7 +243,9 @@ defmodule BarragensptWeb.Layouts do
         </main>
       </div>
 
-      <.beta_corner_notice />
+      <%= if @mode != :map do %>
+        <.beta_corner_notice />
+      <% end %>
     </div>
     """
   end
