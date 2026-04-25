@@ -24,7 +24,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:selected_basin, "__all__")
      |> assign(:selected_date, default_date)
      |> assign(:loading_report, false)
-     |> assign(:basin_map_image, nil)
+     |> assign(:portugal_map_payload, nil)
      |> assign(:report, nil)}
   end
 
@@ -38,7 +38,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:selected_date, selected_date)
      |> assign(:selected_basin, selected_basin)
      |> assign(:loading_report, false)
-     |> assign(:basin_map_image, nil)
+     |> assign(:portugal_map_payload, nil)
      |> assign(:report, nil)}
   end
 
@@ -66,7 +66,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     {:noreply,
      socket
      |> assign(:loading_report, true)
-     |> assign(:basin_map_image, nil)
+     |> assign(:portugal_map_payload, nil)
      |> assign(:report, nil)}
   end
 
@@ -97,7 +97,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     {:noreply,
      socket
      |> assign(:loading_report, false)
-     |> assign(:basin_map_image, basin_map_image(report))
+     |> assign(:portugal_map_payload, portugal_map_payload(report))
      |> assign(:report, report)}
   end
 
@@ -161,12 +161,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
       <strong class={@class}>{@value}</strong>
     </span>
     """
-  end
-
-  defp scale(_value, same, same, min_out, max_out), do: (min_out + max_out) / 2
-
-  defp scale(value, min_in, max_in, min_out, max_out) do
-    min_out + (value - min_in) / (max_in - min_in) * (max_out - min_out)
   end
 
   defp selected_basin_param(nil), do: "__all__"
@@ -273,23 +267,69 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp accent_bg("amber"), do: "bg-amber-500"
   defp accent_bg(_), do: "bg-brand-600"
 
-  defp basin_map_image(%{basins: basins}) do
+  defp portugal_map_payload(%{basins: basins}) do
     stats_by_basin =
       Map.new(basins, fn basin ->
         {normalize_basin_name(basin.name), basin}
       end)
 
-    svg =
-      """
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 500" role="img">
-        <rect width="260" height="500" rx="18" fill="#f8fafc"/>
-        <g>
-          #{hydro_feature_paths(stats_by_basin)}
-        </g>
-      </svg>
-      """
+    basins_geojson = %{
+      "type" => "FeatureCollection",
+      "features" =>
+        Enum.map(hydro_features(), fn feature ->
+          zname = get_in(feature, ["properties", "zname"])
+          basin = Map.get(stats_by_basin, normalize_basin_name(zname))
 
-    "data:image/svg+xml;base64," <> Base.encode64(svg)
+          %{
+            "type" => "Feature",
+            "geometry" => feature["geometry"],
+            "properties" => %{
+              "name" => zname,
+              "fill_color" => if(basin, do: storage_color(basin.current_pct), else: "#cbd5e1"),
+              "fill_opacity" => if(basin, do: 0.92, else: 0.45)
+            }
+          }
+        end)
+    }
+
+    dams_geojson = %{
+      "type" => "FeatureCollection",
+      "features" =>
+        basins
+        |> Enum.flat_map(fn basin ->
+          basin.dams
+          |> Enum.reduce([], fn dam, acc ->
+            case dam.coordinates do
+              %{lat: lat, lon: lon} when is_number(lat) and is_number(lon) ->
+                [
+                  %{
+                    "type" => "Feature",
+                    "geometry" => %{"type" => "Point", "coordinates" => [lon, lat]},
+                    "properties" => %{
+                      "name" => dam.name,
+                      "color" => storage_color(dam.current_pct)
+                    }
+                  }
+                  | acc
+                ]
+
+              _ ->
+                acc
+            end
+          end)
+          |> Enum.reverse()
+        end)
+    }
+
+    %{
+      basins_geojson: Jason.encode!(basins_geojson),
+      dams_geojson: Jason.encode!(dams_geojson),
+      fit_bounds:
+        Jason.encode!([
+          [@portugal_bounds.min_lon, @portugal_bounds.min_lat],
+          [@portugal_bounds.max_lon, @portugal_bounds.max_lat]
+        ])
+    }
   end
 
   defp mini_basin_map_payload(basin) do
@@ -404,25 +444,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     "storage-report-basin-map-" <> if(token == "", do: "unknown", else: token)
   end
 
-  defp hydro_feature_paths(stats_by_basin) do
-    hydro_features()
-    |> Enum.map(fn feature ->
-      zname = get_in(feature, ["properties", "zname"])
-      basin = Map.get(stats_by_basin, normalize_basin_name(zname))
-      fill = if basin, do: storage_color(basin.current_pct), else: "#cbd5e1"
-      opacity = if basin, do: "0.92", else: "0.45"
-      title = Phoenix.HTML.html_escape(zname || "Bacia sem nome") |> Phoenix.HTML.safe_to_string()
-      path = geometry_to_svg_path(feature["geometry"])
-
-      """
-      <path d="#{path}" fill="#{fill}" fill-opacity="#{opacity}" fill-rule="evenodd" stroke="#ffffff" stroke-width="0.8">
-        <title>#{title}</title>
-      </path>
-      """
-    end)
-    |> Enum.join("\n")
-  end
-
   defp hydro_feature_for(basin_name) do
     normalized = normalize_basin_name(basin_name)
 
@@ -450,44 +471,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
         |> to_string()
         |> Path.join("static/geojson/pt100_hidro.json")
     end
-  end
-
-  defp geometry_to_svg_path(geometry) do
-    geometry_to_svg_path(geometry, &portugal_svg_point/2)
-  end
-
-  defp geometry_to_svg_path(%{"type" => "MultiPolygon", "coordinates" => polygons}, project_point) do
-    polygons
-    |> Enum.map(&polygon_to_svg_path(&1, project_point))
-    |> Enum.join(" ")
-  end
-
-  defp geometry_to_svg_path(%{"type" => "Polygon", "coordinates" => rings}, project_point) do
-    polygon_to_svg_path(rings, project_point)
-  end
-
-  defp geometry_to_svg_path(_geometry, _project_point), do: ""
-
-  defp polygon_to_svg_path(rings, project_point) do
-    rings
-    |> Enum.map(fn ring ->
-      ring
-      |> Enum.with_index()
-      |> Enum.map(fn {[lon, lat | _], index} ->
-        {x, y} = project_point.(lon, lat)
-        command = if index == 0, do: "M", else: "L"
-        "#{command}#{format_svg_number(x)} #{format_svg_number(y)}"
-      end)
-      |> Kernel.++(["Z"])
-      |> Enum.join(" ")
-    end)
-    |> Enum.join(" ")
-  end
-
-  defp portugal_svg_point(lon, lat) do
-    x = scale(lon, @portugal_bounds.min_lon, @portugal_bounds.max_lon, 18, 242)
-    y = scale(lat, @portugal_bounds.max_lat, @portugal_bounds.min_lat, 16, 484)
-    {x, y}
   end
 
   defp geometry_bounds(geometry) do
@@ -538,10 +521,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   end
 
   defp geometry_points(_geometry), do: []
-
-  defp format_svg_number(value) when is_number(value) do
-    :erlang.float_to_binary(value * 1.0, decimals: 2)
-  end
 
   defp storage_color(value) when is_number(value) and value <= 20, do: "#ff675c"
   defp storage_color(value) when is_number(value) and value <= 40, do: "#ffc34a"

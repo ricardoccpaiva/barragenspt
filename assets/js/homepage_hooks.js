@@ -420,6 +420,119 @@ const BasinMiniMap = {
   }
 }
 
+const StorageReportPortugalMap = {
+  mounted() {
+    this.map = null
+    this.styleLoaded = false
+    this.initMap()
+  },
+
+  updated() {
+    this.applyData()
+  },
+
+  destroyed() {
+    if (this.map) {
+      this.map.remove()
+      this.map = null
+    }
+  },
+
+  initMap() {
+    const maplibre = window.maplibregl
+    if (!maplibre || !this.el) return
+
+    this.map = new maplibre.Map({
+      container: this.el,
+      interactive: false,
+      attributionControl: false,
+      style: document.documentElement.classList.contains("dark") ? MINI_MAP_DARK_STYLE : MINI_MAP_LIGHT_STYLE
+    })
+
+    this.map.once("load", () => {
+      this.styleLoaded = true
+      this.applyData()
+    })
+  },
+
+  parseJson(value) {
+    if (!value) return null
+    try {
+      return JSON.parse(value)
+    } catch (_) {
+      return null
+    }
+  },
+
+  applyData() {
+    if (!this.map || !this.styleLoaded) return
+
+    const basinsGeojson = this.parseJson(this.el.dataset.basinsGeojson)
+    const damsGeojson = this.parseJson(this.el.dataset.damsGeojson)
+    const fitBounds = this.parseJson(this.el.dataset.fitBounds)
+
+    if (basinsGeojson) {
+      const source = this.map.getSource("storage-report-basins")
+      if (source) source.setData(basinsGeojson)
+      else this.map.addSource("storage-report-basins", { type: "geojson", data: basinsGeojson })
+
+      if (!this.map.getLayer("storage-report-basins-fill")) {
+        this.map.addLayer({
+          id: "storage-report-basins-fill",
+          type: "fill",
+          source: "storage-report-basins",
+          paint: {
+            "fill-color": ["coalesce", ["get", "fill_color"], "#cbd5e1"],
+            "fill-opacity": ["coalesce", ["get", "fill_opacity"], 0.45]
+          }
+        })
+      }
+
+      if (!this.map.getLayer("storage-report-basins-outline")) {
+        this.map.addLayer({
+          id: "storage-report-basins-outline",
+          type: "line",
+          source: "storage-report-basins",
+          paint: {
+            "line-color": "#ffffff",
+            "line-width": 1.0,
+            "line-opacity": 0.9
+          }
+        })
+      }
+    }
+
+    if (damsGeojson) {
+      const damsSource = this.map.getSource("storage-report-dams")
+      if (damsSource) damsSource.setData(damsGeojson)
+      else this.map.addSource("storage-report-dams", { type: "geojson", data: damsGeojson })
+
+      if (!this.map.getLayer("storage-report-dams-points")) {
+        this.map.addLayer({
+          id: "storage-report-dams-points",
+          type: "circle",
+          source: "storage-report-dams",
+          paint: {
+            "circle-radius": 5,
+            "circle-color": ["coalesce", ["get", "color"], "#94a3b8"],
+            "circle-stroke-color": "#ffffff",
+            "circle-stroke-width": 2
+          }
+        })
+      }
+    }
+
+    if (Array.isArray(fitBounds) && fitBounds.length === 2) {
+      this.map.resize()
+      this.map.fitBounds(fitBounds, {
+        padding: 20,
+        duration: 0,
+        maxZoom: 8
+      })
+    }
+  }
+}
+
 const OpenSettingsModal = {
   mounted() {
     this.el.addEventListener("click", () => {
@@ -768,6 +881,7 @@ export const Hooks = {
   AvatarMenu,
   NavRouteActive,
   BasinMiniMap,
+  StorageReportPortugalMap,
   OpenSettingsModal,
   SettingsModalBackdrop,
   SettingsModalCloseButton,

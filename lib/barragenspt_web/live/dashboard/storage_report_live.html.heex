@@ -112,11 +112,22 @@
             <p class="text-xs text-slate-500 dark:text-slate-400">% armazenamento</p>
           </div>
           <div class="min-h-[28rem] flex-1">
-            <img
-              src={@basin_map_image}
-              alt="Mapa de Portugal continental com bacias hidrográficas coloridas por armazenamento"
-              class="mx-auto block h-full max-h-[36rem] w-auto max-w-full rounded-xl object-contain"
-            />
+            <%= if @portugal_map_payload do %>
+              <div
+                id="storage-report-portugal-map"
+                phx-hook="StorageReportPortugalMap"
+                data-basins-geojson={@portugal_map_payload.basins_geojson}
+                data-dams-geojson={@portugal_map_payload.dams_geojson}
+                data-fit-bounds={@portugal_map_payload.fit_bounds}
+                class="mx-auto h-full min-h-[30rem] w-full overflow-hidden rounded-xl border border-slate-200/70 dark:border-slate-700/70"
+                aria-label="Mapa de Portugal continental com bacias hidrográficas coloridas por armazenamento"
+              >
+              </div>
+            <% else %>
+              <div class="flex h-full min-h-[28rem] items-center justify-center rounded-xl border border-slate-200/70 text-sm text-slate-500 dark:border-slate-700/70 dark:text-slate-400">
+                Sem dados de mapa
+              </div>
+            <% end %>
           </div>
           <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-3 lg:grid-cols-2">
             <.legend_item color="#ff675c" label="0 - 20" />
