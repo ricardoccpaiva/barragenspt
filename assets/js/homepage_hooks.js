@@ -1,6 +1,9 @@
 import topbar from "../vendor/topbar"
 import { getStorageColor, DAMS_CIRCLE_COLOR_GRAY } from "./utils/colors"
 
+const MINI_MAP_LIGHT_STYLE = "https://mapas.barragens.pt/styles/klokantech-basic/style.json"
+const MINI_MAP_DARK_STYLE = "https://mapas.barragens.pt/styles/positron/style.json"
+
 function getMap() {
   return window.map
 }
@@ -269,6 +272,151 @@ const NavRouteActive = {
   destroyed() {
     window.removeEventListener("popstate", this.markActive)
     window.removeEventListener("phx:page-loading-stop", this.markActive)
+  }
+}
+
+const BasinMiniMap = {
+  mounted() {
+    this.map = null
+    this.styleLoaded = false
+    this.initMap()
+  },
+
+  updated() {
+    this.applyData()
+  },
+
+  destroyed() {
+    if (this.map) {
+      this.map.remove()
+      this.map = null
+    }
+  },
+
+  initMap() {
+    const maplibre = window.maplibregl
+    if (!maplibre || !this.el) return
+
+    this.map = new maplibre.Map({
+      container: this.el,
+      interactive: false,
+      attributionControl: false,
+      style: document.documentElement.classList.contains("dark") ? MINI_MAP_DARK_STYLE : MINI_MAP_LIGHT_STYLE
+    })
+
+    this.map.once("load", () => {
+      this.styleLoaded = true
+      this.applyData()
+    })
+  },
+
+  parseJson(value) {
+    if (!value) return null
+    try {
+      return JSON.parse(value)
+    } catch (_) {
+      return null
+    }
+  },
+
+  applyData() {
+    if (!this.map || !this.styleLoaded) return
+
+    const basinGeojson = this.parseJson(this.el.dataset.basinGeojson)
+    const contextGeojson = this.parseJson(this.el.dataset.contextGeojson)
+    const damsGeojson = this.parseJson(this.el.dataset.damsGeojson)
+    const fitBounds = this.parseJson(this.el.dataset.fitBounds)
+
+    if (contextGeojson) {
+      const contextSource = this.map.getSource("mini-context-basins")
+      if (contextSource) contextSource.setData(contextGeojson)
+      else this.map.addSource("mini-context-basins", { type: "geojson", data: contextGeojson })
+
+      if (!this.map.getLayer("mini-context-basins-fill")) {
+        this.map.addLayer({
+          id: "mini-context-basins-fill",
+          type: "fill",
+          source: "mini-context-basins",
+          paint: {
+            "fill-color": "#cbd5e1",
+            "fill-opacity": 0.35
+          }
+        })
+      }
+
+      if (!this.map.getLayer("mini-context-basins-outline")) {
+        this.map.addLayer({
+          id: "mini-context-basins-outline",
+          type: "line",
+          source: "mini-context-basins",
+          paint: {
+            "line-color": "#ffffff",
+            "line-width": 1.1,
+            "line-opacity": 0.9
+          }
+        })
+      }
+    }
+
+    if (basinGeojson) {
+      const basinSource = this.map.getSource("mini-basin")
+      if (basinSource) basinSource.setData(basinGeojson)
+      else this.map.addSource("mini-basin", { type: "geojson", data: basinGeojson })
+
+      if (!this.map.getLayer("mini-basin-fill")) {
+        this.map.addLayer({
+          id: "mini-basin-fill",
+          type: "fill",
+          source: "mini-basin",
+          paint: {
+            "fill-color": "#38a3ff",
+            "fill-opacity": 0.84
+          }
+        })
+      }
+
+      if (!this.map.getLayer("mini-basin-outline")) {
+        this.map.addLayer({
+          id: "mini-basin-outline",
+          type: "line",
+          source: "mini-basin",
+          paint: {
+            "line-color": "#334155",
+            "line-width": 1.4,
+            "line-opacity": 0.8
+          }
+        })
+      }
+    }
+
+    if (damsGeojson) {
+      const damsSource = this.map.getSource("mini-dams")
+      if (damsSource) damsSource.setData(damsGeojson)
+      else this.map.addSource("mini-dams", { type: "geojson", data: damsGeojson })
+
+      if (!this.map.getLayer("mini-dams-points")) {
+        this.map.addLayer({
+          id: "mini-dams-points",
+          type: "circle",
+          source: "mini-dams",
+          paint: {
+            "circle-radius": 6,
+            "circle-color": ["coalesce", ["get", "color"], "#94a3b8"],
+            "circle-stroke-color": "#ffffff",
+            "circle-stroke-width": 3
+          }
+        })
+      }
+    }
+
+    if (Array.isArray(fitBounds) && fitBounds.length === 2) {
+      this.map.resize()
+      this.map.fitBounds(fitBounds, {
+        padding: 16,
+        duration: 0,
+        maxZoom: 10
+      })
+    }
   }
 }
 
@@ -619,6 +767,7 @@ export const Hooks = {
   DarkModeToggle,
   AvatarMenu,
   NavRouteActive,
+  BasinMiniMap,
   OpenSettingsModal,
   SettingsModalBackdrop,
   SettingsModalCloseButton,

@@ -221,8 +221,11 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-1 gap-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
-                <.mini_map basin={basin} />
+              <div class="grid grid-cols-1 gap-4 lg:grid-cols-[24rem_minmax(0,1fr)]">
+                <StorageReportComponents.mini_map
+                  basin={basin}
+                  map_payload={mini_basin_map_payload(basin)}
+                />
                 <div class="min-w-0 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
                   <table class="min-w-[720px] w-full text-sm">
                     <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">

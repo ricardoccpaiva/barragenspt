@@ -4,6 +4,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   on_mount {BarragensptWeb.UserAuth, :require_authenticated}
 
   alias Barragenspt.Hydrometrics.StorageReport
+  alias BarragensptWeb.StorageReportComponents
 
   @hydro_geojson_source_path Path.expand(
                                "../../../../priv/static/geojson/pt100_hidro.json",
@@ -162,24 +163,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     """
   end
 
-  attr :basin, :map, required: true
-
-  defp mini_map(assigns) do
-    ~H"""
-    <aside class="aspect-square rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
-      <div class="mb-2 flex items-center justify-between gap-2 text-xs">
-        <p class="font-semibold text-slate-900 dark:text-slate-100">Mapa da bacia</p>
-        <p class="text-slate-500 dark:text-slate-400">{@basin.dam_count} ponto(s)</p>
-      </div>
-      <img
-        src={mini_basin_map_image(@basin)}
-        alt={"Bacia do #{@basin.name} com pontos das barragens"}
-        class="block h-[calc(100%-1.5rem)] w-full rounded-lg object-contain"
-      />
-    </aside>
-    """
-  end
-
   defp scale(_value, same, same, min_out, max_out), do: (min_out + max_out) / 2
 
   defp scale(value, min_in, max_in, min_out, max_out) do
@@ -309,37 +292,51 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     "data:image/svg+xml;base64," <> Base.encode64(svg)
   end
 
-  defp mini_basin_map_image(basin) do
+  defp mini_basin_map_payload(basin) do
     with %{} = feature <- hydro_feature_for(basin.name),
-         %{} = bounds <- feature["geometry"] |> geometry_bounds() |> expand_bounds(0.18) do
+         %{} = bounds <- feature["geometry"] |> geometry_bounds() |> expand_bounds(0.12) do
       selected_name = normalize_basin_name(basin.name)
 
-      path =
-        geometry_to_svg_path(feature["geometry"], fn lon, lat ->
-          basin_svg_point(lon, lat, bounds)
-        end)
+      basin_geojson = %{
+        "type" => "FeatureCollection",
+        "features" => [
+          %{
+            "type" => "Feature",
+            "geometry" => feature["geometry"],
+            "properties" => %{
+              "name" => basin.name
+            }
+          }
+        ]
+      }
 
-      context_paths = mini_context_feature_paths(selected_name, bounds)
-      fill = storage_color(basin.current_pct)
-      markers = basin_dam_markers(basin, bounds)
+      context_geojson = %{
+        "type" => "FeatureCollection",
+        "features" => context_features_for_bounds(selected_name, bounds)
+      }
 
-      svg =
-        """
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img">
-          <rect width="220" height="220" rx="10" fill="#ffffff"/>
-          #{context_paths}
-          <path d="#{path}" fill="#{fill}" fill-opacity="0.84" fill-rule="evenodd" stroke="#0f172a" stroke-opacity="0.36" stroke-width="1.4"/>
-          #{markers}
-        </svg>
-        """
+      dams_geojson = %{
+        "type" => "FeatureCollection",
+        "features" => mini_map_dam_features(basin)
+      }
 
-      "data:image/svg+xml;base64," <> Base.encode64(svg)
+      %{
+        dom_id: mini_map_dom_id(basin),
+        basin_geojson: Jason.encode!(basin_geojson),
+        context_geojson: Jason.encode!(context_geojson),
+        dams_geojson: Jason.encode!(dams_geojson),
+        fit_bounds:
+          Jason.encode!([
+            [bounds.min_lon, bounds.min_lat],
+            [bounds.max_lon, bounds.max_lat]
+          ])
+      }
     else
-      _ -> mini_basin_fallback_image(basin)
+      _ -> nil
     end
   end
 
-  defp mini_context_feature_paths(selected_name, bounds) do
+  defp context_features_for_bounds(selected_name, bounds) do
     hydro_features()
     |> Enum.reject(fn feature ->
       feature
@@ -352,16 +349,59 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
       |> bounds_intersect?(bounds)
     end)
     |> Enum.map(fn feature ->
-      path =
-        geometry_to_svg_path(feature["geometry"], fn lon, lat ->
-          basin_svg_point(lon, lat, bounds)
-        end)
-
-      """
-      <path d="#{path}" fill="#cbd5e1" fill-opacity="0.30" fill-rule="evenodd" stroke="#ffffff" stroke-opacity="0.8" stroke-width="0.9"/>
-      """
+      %{
+        "type" => "Feature",
+        "geometry" => feature["geometry"],
+        "properties" => %{
+          "name" => get_in(feature, ["properties", "zname"])
+        }
+      }
     end)
-    |> Enum.join("\n")
+  end
+
+  defp mini_map_dam_features(basin) do
+    basin.dams
+    |> Enum.reduce([], fn dam, acc ->
+      case dam.coordinates do
+        %{lat: lat, lon: lon} when is_number(lat) and is_number(lon) ->
+          [
+            %{
+              "type" => "Feature",
+              "geometry" => %{"type" => "Point", "coordinates" => [lon, lat]},
+              "properties" => %{
+                "name" => dam.name,
+                "color" => storage_color(dam.current_pct)
+              }
+            }
+            | acc
+          ]
+
+        _ ->
+          acc
+      end
+    end)
+    |> Enum.reverse()
+  end
+
+  defp mini_map_dom_id(basin) do
+    token =
+      [Map.get(basin, :basin_id), Map.get(basin, :name)]
+      |> Enum.find_value(fn
+        value when is_binary(value) ->
+          trimmed = String.trim(value)
+          if trimmed == "", do: nil, else: trimmed
+
+        _ ->
+          nil
+      end)
+      |> then(fn
+        nil -> ""
+        value -> normalize_basin_name(value)
+      end)
+      |> String.replace(~r/[^a-z0-9_-]+/u, "-")
+      |> String.trim("-")
+
+    "storage-report-basin-map-" <> if(token == "", do: "unknown", else: token)
   end
 
   defp hydro_feature_paths(stats_by_basin) do
@@ -450,21 +490,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     {x, y}
   end
 
-  defp basin_svg_point(lon, lat, bounds) do
-    padding = 12
-    canvas = 220
-    drawable = canvas - padding * 2
-    lon_span = max(bounds.max_lon - bounds.min_lon, 0.0001)
-    lat_span = max(bounds.max_lat - bounds.min_lat, 0.0001)
-    factor = min(drawable / lon_span, drawable / lat_span)
-    width = lon_span * factor
-    height = lat_span * factor
-    offset_x = (canvas - width) / 2
-    offset_y = (canvas - height) / 2
-
-    {offset_x + (lon - bounds.min_lon) * factor, offset_y + (bounds.max_lat - lat) * factor}
-  end
-
   defp geometry_bounds(geometry) do
     case geometry_points(geometry) do
       [] ->
@@ -513,41 +538,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   end
 
   defp geometry_points(_geometry), do: []
-
-  defp basin_dam_markers(basin, bounds) do
-    basin.dams
-    |> Enum.map(fn dam ->
-      case dam.coordinates do
-        %{lat: lat, lon: lon} ->
-          {x, y} = basin_svg_point(lon, lat, bounds)
-          name = Phoenix.HTML.html_escape(dam.name || "Barragem") |> Phoenix.HTML.safe_to_string()
-
-          """
-          <circle cx="#{format_svg_number(x)}" cy="#{format_svg_number(y)}" r="4.5" fill="#0f172a" stroke="#ffffff" stroke-width="2">
-            <title>#{name}</title>
-          </circle>
-          """
-
-        _ ->
-          ""
-      end
-    end)
-    |> Enum.join("\n")
-  end
-
-  defp mini_basin_fallback_image(basin) do
-    fill = storage_color(basin.current_pct)
-
-    svg =
-      """
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img">
-        <rect width="220" height="220" rx="10" fill="#ffffff"/>
-        <path d="M72 24 C112 16 169 37 185 80 C205 134 167 190 114 197 C66 204 31 169 27 119 C24 78 40 40 72 24 Z" fill="#{fill}" fill-opacity="0.72"/>
-      </svg>
-      """
-
-    "data:image/svg+xml;base64," <> Base.encode64(svg)
-  end
 
   defp format_svg_number(value) when is_number(value) do
     :erlang.float_to_binary(value * 1.0, decimals: 2)
