@@ -14,11 +14,14 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    default_date = monday_of_current_week()
+
     {:ok,
      socket
      |> assign(:page_title, "Relatório de armazenamento")
      |> assign(:basin_options, StorageReport.list_basins())
      |> assign(:selected_basin, "__all__")
+     |> assign(:selected_date, default_date)
      |> assign(:loading_report, false)
      |> assign(:basin_map_image, nil)
      |> assign(:report, nil)}
@@ -27,9 +30,11 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   @impl true
   def handle_params(params, _url, socket) do
     selected_basin = selected_basin_param(Map.get(params, "basin"))
+    selected_date = parse_basin_date_param(Map.get(params, "date"), monday_of_current_week())
 
     {:noreply,
      socket
+     |> assign(:selected_date, selected_date)
      |> assign(:selected_basin, selected_basin)
      |> assign(:loading_report, false)
      |> assign(:basin_map_image, nil)
@@ -37,8 +42,22 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   end
 
   @impl true
+  def handle_event("select_date", %{"date" => date}, socket) do
+    case parse_basin_date_param(date, nil) do
+      nil ->
+        {:noreply, socket}
+
+      parsed_date ->
+        {:noreply,
+         push_patch(socket, to: ~p"/dashboard/storage-report?date=#{date_to_string(parsed_date)}")}
+    end
+  end
+
   def handle_event("generate_report", _params, socket) do
-    send(self(), {:generate_storage_report, socket.assigns.selected_basin})
+    send(
+      self(),
+      {:generate_storage_report, socket.assigns.selected_basin, socket.assigns.selected_date}
+    )
 
     {:noreply,
      socket
@@ -56,8 +75,12 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   end
 
   @impl true
-  def handle_info({:generate_storage_report, selected_basin}, socket) do
-    report = StorageReport.build(basin: selected_basin)
+  def handle_info({:generate_storage_report, selected_basin, selected_date}, socket) do
+    report =
+      StorageReport.build(
+        basin: selected_basin,
+        reference_at: date_to_naive_datetime(selected_date)
+      )
 
     {:noreply,
      socket
@@ -156,6 +179,44 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp selected_basin_param(""), do: "__all__"
   defp selected_basin_param("__all__"), do: "__all__"
   defp selected_basin_param(basin), do: basin
+
+  defp monday_of_current_week do
+    today = Date.utc_today()
+    monday = Date.add(today, 1 - Date.day_of_week(today))
+    monday
+  end
+
+  defp earliest_selectable_monday do
+    Date.add(monday_of_current_week(), -364)
+  end
+
+  defp parse_basin_date_param(nil, fallback), do: fallback
+
+  defp parse_basin_date_param("", fallback), do: fallback
+
+  defp parse_basin_date_param(date_string, _fallback) do
+    case Date.from_iso8601(date_string) do
+      {:ok, date} ->
+        if Date.day_of_week(date) == 1 and
+             Date.compare(date, earliest_selectable_monday()) != :lt and
+             Date.compare(date, monday_of_current_week()) != :gt do
+          date
+        else
+          nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
+  defp date_to_string(%Date{} = date) do
+    Calendar.strftime(date, "%Y-%m-%d")
+  end
+
+  defp date_to_naive_datetime(%Date{} = date) do
+    NaiveDateTime.new!(date, ~T[23:00:00])
+  end
 
   defp storage_metric_label("__all__"), do: "Armazenamento nacional"
   defp storage_metric_label(_basin), do: "Armazenamento da bacia"

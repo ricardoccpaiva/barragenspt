@@ -18,6 +18,20 @@
               <% end %>
             </select>
           </label>
+          <label class="min-w-0">
+            <span class="sr-only">Data</span>
+            <input
+              type="date"
+              name="date"
+              value={date_to_string(@selected_date)}
+              min={date_to_string(earliest_selectable_monday())}
+              max={date_to_string(monday_of_current_week())}
+              step="7"
+              phx-change="select_date"
+              disabled={@loading_report}
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[12rem]"
+            />
+          </label>
           <button
             type="button"
             phx-click="generate_report"
