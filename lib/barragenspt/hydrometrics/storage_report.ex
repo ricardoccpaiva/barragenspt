@@ -53,8 +53,7 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
 
   defp current_dam_rows(basin, reference_at) do
     reference_date = NaiveDateTime.to_date(reference_at)
-    start_at = NaiveDateTime.new!(reference_date, ~T[00:00:00])
-    end_at = reference_date |> Date.add(1) |> NaiveDateTime.new!(~T[00:00:00])
+    {start_at, end_at} = day_bounds(reference_date)
 
     storage_points =
       from dp in DataPoint,
@@ -198,17 +197,20 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
   defp historical_pct(_site_id, nil, _capacity, _mode), do: nil
 
   defp historical_pct(site_id, at, capacity, :previous_week) do
-    target = NaiveDateTime.add(at, -7, :day)
-    start_at = NaiveDateTime.add(target, -2, :day)
-    end_at = NaiveDateTime.add(target, 2, :day)
+    target_date =
+      at
+      |> NaiveDateTime.to_date()
+      |> Date.add(-7)
+
+    {start_at, end_at} = day_bounds(target_date)
 
     value =
       Repo.one(
         from dp in DataPoint,
           where:
             dp.site_id == ^site_id and dp.param_name == @volume_param and
-              dp.colected_at >= ^start_at and dp.colected_at <= ^end_at,
-          order_by: fragment("abs(extract(epoch from (? - ?)))", dp.colected_at, ^target),
+              dp.colected_at >= ^start_at and dp.colected_at < ^end_at,
+          order_by: [desc: dp.colected_at],
           limit: 1,
           select: dp.value
       )
@@ -261,6 +263,12 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
 
   defp current_volume(value, _current_pct, _capacity) when not is_nil(value), do: number(value)
   defp current_volume(_value, current_pct, capacity), do: weighted_value(current_pct, capacity)
+
+  defp day_bounds(%Date{} = date) do
+    start_at = NaiveDateTime.new!(date, ~T[00:00:00])
+    end_at = date |> Date.add(1) |> NaiveDateTime.new!(~T[00:00:00])
+    {start_at, end_at}
+  end
 
   defp weighted_volume(items, pct_key) do
     values =
