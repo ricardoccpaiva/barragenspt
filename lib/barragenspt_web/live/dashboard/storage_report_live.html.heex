@@ -159,35 +159,35 @@
             <table class="min-w-[680px] w-full text-sm">
               <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
                 <tr>
-                  <th class="px-3 py-3 text-left font-semibold">Bacia</th>
-                  <th class="px-3 py-3 text-right font-semibold">Atual</th>
-                  <th class="px-3 py-3 text-right font-semibold">Semana</th>
-                  <th class="px-3 py-3 text-right font-semibold">Referência</th>
-                  <th class="px-3 py-3 text-right font-semibold">Volume</th>
+                  <th class="px-3 py-2 text-left font-semibold">Bacia</th>
+                  <th class="px-3 py-2 text-right font-semibold">Atual</th>
+                  <th class="px-3 py-2 text-right font-semibold">Semana</th>
+                  <th class="px-3 py-2 text-right font-semibold">Referência</th>
+                  <th class="px-3 py-2 text-right font-semibold">Volume</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
                 <%= for basin <- @report.basins do %>
                   <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
-                    <td class="px-3 py-3 font-semibold text-slate-900 dark:text-slate-100">
+                    <td class="px-3 py-2 font-semibold text-slate-900 dark:text-slate-100">
                       {basin.name}
                     </td>
-                    <td class="px-3 py-3">
+                    <td class="px-3 py-2">
                       <.pct_with_sparkbar pct={basin.current_pct} />
                     </td>
                     <td class={[
-                      "px-3 py-3 text-right tabular-nums font-semibold",
+                      "px-3 py-2 text-right tabular-nums font-semibold",
                       delta_class(basin.week_delta)
                     ]}>
                       {format_delta(basin.week_delta)}
                     </td>
                     <td class={[
-                      "px-3 py-3 text-right tabular-nums font-semibold",
+                      "px-3 py-2 text-right tabular-nums font-semibold",
                       delta_class(basin.reference_delta)
                     ]}>
                       {format_delta(basin.reference_delta)}
                     </td>
-                    <td class="px-3 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                    <td class="px-3 py-2 text-right tabular-nums text-slate-700 dark:text-slate-300">
                       {format_volume(basin.current_volume)}
                     </td>
                   </tr>
@@ -248,40 +248,40 @@
                   <table class="min-w-[720px] w-full text-sm">
                     <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
                       <tr>
-                        <th class="px-3 py-3 text-left font-semibold">Barragem</th>
-                        <th class="px-3 py-3 text-right font-semibold">Armazenamento</th>
-                        <th class="px-3 py-3 text-right font-semibold">Semana</th>
-                        <th class="px-3 py-3 text-right font-semibold">Referência</th>
-                        <th class="px-3 py-3 text-right font-semibold">Volume</th>
+                        <th class="px-3 py-2 text-left font-semibold">Barragem</th>
+                        <th class="px-3 py-2 text-right font-semibold">Armazenamento</th>
+                        <th class="px-3 py-2 text-right font-semibold">Semana</th>
+                        <th class="px-3 py-2 text-right font-semibold">Referência</th>
+                        <th class="px-3 py-2 text-right font-semibold">Volume</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
                       <%= for dam <- basin.dams do %>
                         <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
-                          <td class="px-3 py-3">
+                          <td class="px-3 py-2">
                             <p class="font-semibold text-slate-900 dark:text-slate-100">
                               {dam.name}
                             </p>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                            <p class="text-xs leading-[1.1rem] text-slate-500 dark:text-slate-400">
                               {dam.river || "Rio n/d"}
                             </p>
                           </td>
-                          <td class="px-3 py-3">
+                          <td class="px-3 py-2">
                             <.pct_with_sparkbar pct={dam.current_pct} />
                           </td>
                           <td class={[
-                            "px-3 py-3 text-right tabular-nums font-semibold",
+                            "px-3 py-2 text-right tabular-nums font-semibold",
                             delta_class(dam.week_delta)
                           ]}>
                             {format_delta(dam.week_delta)}
                           </td>
                           <td class={[
-                            "px-3 py-3 text-right tabular-nums font-semibold",
+                            "px-3 py-2 text-right tabular-nums font-semibold",
                             delta_class(dam.reference_delta)
                           ]}>
                             {format_delta(dam.reference_delta)}
                           </td>
-                          <td class="px-3 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                          <td class="px-3 py-2 text-right tabular-nums text-slate-700 dark:text-slate-300">
                             {format_volume(dam.current_volume)}
                           </td>
                         </tr>
