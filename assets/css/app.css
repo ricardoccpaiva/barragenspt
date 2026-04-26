@@ -40,6 +40,53 @@ body {
   font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }
 
+@media print {
+  @page {
+    margin: 0;
+  }
+
+  html,
+  body {
+    height: auto;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  body {
+    color: #0f172a !important;
+  }
+
+  #app-top-chrome,
+  #dashboard-app-nav,
+  #dashboard-evaluate-alerts-top,
+  #app-switcher,
+  #app-layout-dark-toggle,
+  #navbar-avatar-menu,
+  #storage-report-controls,
+  #storage-report-reference,
+  [data-role="flash-group"] {
+    display: none !important;
+  }
+
+  #app-main-wrapper,
+  #app-main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  #app-main-content {
+    background: #ffffff !important;
+  }
+
+  .shadow-card,
+  .shadow-float {
+    box-shadow: none !important;
+  }
+}
+
 /* Map container: ensure full viewport so MapLibre has a valid size */
 main.fixed.inset-0 {
   min-height: 100vh;

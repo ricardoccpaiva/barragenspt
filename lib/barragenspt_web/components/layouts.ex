@@ -63,7 +63,7 @@ defmodule BarragensptWeb.Layouts do
         </aside>
       <% end %>
 
-      <div class={top_chrome_wrapper_classes(@mode)}>
+      <div id="app-top-chrome" class={top_chrome_wrapper_classes(@mode)}>
         <%= if @mode != :map and @signed_in? do %>
           <div class="flex min-w-0 shrink-0 items-center gap-2">
             <div
@@ -236,8 +236,8 @@ defmodule BarragensptWeb.Layouts do
         </div>
       </div>
 
-      <div class={main_wrapper_classes(@mode)}>
-        <main class={main_content_classes(@mode)}>
+      <div id="app-main-wrapper" class={main_wrapper_classes(@mode)}>
+        <main id="app-main-content" class={main_content_classes(@mode)}>
           <.flash_group flash={@flash} />
           {render_slot(@inner_block)}
         </main>

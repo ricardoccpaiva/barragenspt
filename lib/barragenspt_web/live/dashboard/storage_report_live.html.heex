@@ -2,7 +2,11 @@
   <div class="space-y-5">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="min-w-0">
-        <form class="flex min-w-0 flex-col gap-2 sm:w-auto sm:flex-row" phx-change="select_basin">
+        <form
+          id="storage-report-controls"
+          class="flex min-w-0 flex-col gap-2 sm:w-auto sm:flex-row"
+          phx-change="select_basin"
+        >
           <label class="min-w-0 flex-1">
             <span class="sr-only">Bacia</span>
             <select
@@ -48,7 +52,10 @@
       </div>
 
       <%= if @report do %>
-        <div class="self-start rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 shadow-sm dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-400 sm:ml-auto sm:self-auto">
+        <div
+          id="storage-report-reference"
+          class="self-start rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 shadow-sm dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-400 sm:ml-auto sm:self-auto"
+        >
           <span class="font-semibold text-slate-700 dark:text-slate-200">Ref.</span>
           <span class="tabular-nums">{format_datetime(@report.report_date)}</span>
           <span class="ml-2 tabular-nums">
