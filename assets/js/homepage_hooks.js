@@ -259,7 +259,7 @@ const NavRouteActive = {
       const sidebar = document.getElementById("app-shell-sidebar")
       const backdrop = document.getElementById("app-shell-backdrop")
       if (!sidebar || !backdrop) return
-      sidebar.classList.toggle("-translate-x-full", !open)
+      sidebar.classList.toggle("-translate-x-[calc(100%+1rem)]", !open)
       backdrop.classList.toggle("hidden", !open)
     }
 

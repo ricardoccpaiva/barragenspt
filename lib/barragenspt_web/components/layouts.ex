@@ -55,7 +55,7 @@ defmodule BarragensptWeb.Layouts do
             </div>
           </div>
 
-          <div class="flex-1 min-h-0 overflow-y-auto pt-2">
+          <div class="flex min-h-0 flex-1 flex-col pt-2">
             <%= if @sidebar != [] do %>
               {render_slot(@sidebar)}
             <% end %>
@@ -280,7 +280,7 @@ defmodule BarragensptWeb.Layouts do
   end
 
   defp map_sidebar_classes do
-    "fixed z-40 w-[80%] max-w-[279px] -translate-x-full md:translate-x-0 md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-1.5 pb-2.5 md:px-3 md:pt-1.5 md:pb-2.5 rounded-2xl backdrop-blur-md transition-transform duration-200 ease-out"
+    "fixed z-40 w-[80%] max-w-[279px] -translate-x-[calc(100%+1rem)] md:translate-x-0 md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-1.5 pb-2.5 md:px-3 md:pt-1.5 md:pb-2.5 rounded-2xl backdrop-blur-md transition-transform duration-200 ease-out"
   end
 
   defp top_chrome_wrapper_classes(:map) do

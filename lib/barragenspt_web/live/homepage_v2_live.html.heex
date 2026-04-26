@@ -10,7 +10,7 @@
 
 <Layouts.app flash={@flash} current_scope={@current_scope} mode={:map}>
   <:sidebar>
-    <div class="flex min-h-0 flex-1 flex-col gap-3">
+    <div class="flex h-full min-h-0 flex-1 flex-col gap-3">
     <div class="map-wait search-wrapper relative shrink-0">
     <input id="damSearchInput" type="search" placeholder="Pesquisar barragens ou rios..." phx-hook="SearchDam"
       class="w-full rounded-lg border border-slate-200 dark:border-slate-500 bg-white dark:bg-slate-600 text-slate-800 dark:text-slate-100 px-2.5 py-2 text-sm focus:ring-2 focus:ring-golden-bronze-500/30 focus:outline-none">
@@ -57,7 +57,7 @@
 
     <div class={"map-wait flex min-h-0 flex-1 flex-col gap-3 transition-all duration-200 #{if @search_term !="" ,
     do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
-      <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+      <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
       <div
         class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section"
         id="camadas-section" phx-update="ignore">
@@ -194,7 +194,7 @@
       </div>
 
       <div
-        class="flex shrink-0 w-full items-center justify-between border-t border-slate-200/80 pt-3 dark:border-slate-600">
+        class="mt-auto flex shrink-0 w-full items-center justify-between border-t border-slate-200/80 pt-3 dark:border-slate-600">
         <a href="https://www.buymeacoffee.com/barragenspt" target="_blank" rel="noopener noreferrer" class="shrink-0"
           aria-label="Ajudar o projeto">
           <img class="h-7 w-auto object-contain" alt=""
