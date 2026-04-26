@@ -35,11 +35,13 @@ defmodule BarragensptWeb.Layouts do
 
         <button
           type="button"
-          class="fixed left-2 top-2 z-50 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-slate-700 shadow-card dark:bg-slate-800/90 dark:text-slate-200 md:hidden"
+          class="fixed left-2 top-2 z-[35] inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-slate-700 shadow-card dark:bg-slate-800/90 dark:text-slate-200 md:hidden"
           onclick="window.toggleAppShellSidebar && window.toggleAppShellSidebar(true)"
           aria-label="Abrir navegação"
         >
-          <.icon name="hero-bars-3" class="h-5 w-5" />
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
         </button>
 
         <aside id="app-shell-sidebar" class={map_sidebar_classes()}>
