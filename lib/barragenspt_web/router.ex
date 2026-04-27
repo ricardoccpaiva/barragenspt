@@ -151,7 +151,6 @@ defmodule BarragensptWeb.Router do
       live "/dashboard", DashboardLive, :index
       live "/dashboard/data-points", Dashboard.DataPointsLive, :index
       live "/dashboard/storage-report", Dashboard.StorageReportLive, :index
-      live "/dashboard/basin-report", Dashboard.BasinReportLive, :index
       live "/dashboard/api-tokens", Dashboard.ApiTokensLive, :index
       live "/dashboard/api-docs", Dashboard.ApiDocsLive, :index
       live "/dashboard/alerts", Dashboard.AlertsLive, :index
