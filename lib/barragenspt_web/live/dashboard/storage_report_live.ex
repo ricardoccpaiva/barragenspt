@@ -196,7 +196,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp metric_card(assigns) do
     ~H"""
     <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div class={["absolute inset-x-4 bottom-0 h-1 rounded-t-full", accent_bg(@accent)]}></div>
+      <div class={["absolute inset-x-0 bottom-0 h-1 rounded-t-full", accent_bg(@accent)]}></div>
       <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
         {@label}
       </p>
