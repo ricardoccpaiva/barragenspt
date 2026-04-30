@@ -334,8 +334,8 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp format_pct(value), do: "#{format_number(value)}%"
 
   defp format_delta(nil), do: "n/d"
-  defp format_delta(value) when value > 0, do: "+#{format_number(value)} p.p."
-  defp format_delta(value), do: "#{format_number(value)} p.p."
+  defp format_delta(value) when value > 0, do: "+#{format_number(value)} %"
+  defp format_delta(value), do: "#{format_number(value)} %"
 
   defp delta_text(nil, label), do: "Sem dados #{label}"
   defp delta_text(value, label), do: "#{format_delta(value)} #{label}"
