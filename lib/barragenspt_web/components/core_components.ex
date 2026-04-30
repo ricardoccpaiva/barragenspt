@@ -734,6 +734,23 @@ defmodule BarragensptWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders Markdown as sanitized HTML.
+  """
+  attr :content, :string, required: true
+  attr :class, :string, default: nil
+
+  def safe_markdown(assigns) do
+    html = BarragensptWeb.Markdown.to_safe_html(assigns.content)
+    assigns = assign(assigns, :html, html)
+
+    ~H"""
+    <div class={["markdown-report max-w-none", @class]}>
+      {Phoenix.HTML.raw(@html)}
+    </div>
+    """
+  end
+
   defp normalize_date_input_value(%NaiveDateTime{} = ndt) do
     ndt |> NaiveDateTime.to_date() |> Date.to_iso8601()
   end

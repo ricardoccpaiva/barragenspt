@@ -3,7 +3,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   on_mount {BarragensptWeb.UserAuth, :require_authenticated}
 
-  alias Barragenspt.Hydrometrics.StorageReport
+  alias Barragenspt.Hydrometrics.{StorageReport, StorageReportAi}
   alias BarragensptWeb.StorageReportComponents
 
   @hydro_geojson_source_path Path.expand(
@@ -24,6 +24,13 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:selected_basin, "__all__")
      |> assign(:selected_date, default_date)
      |> assign(:loading_report, false)
+     |> assign(:loading_ai_summary, false)
+     |> assign(:ai_summary, nil)
+     |> assign(:ai_error, nil)
+     |> assign(:ai_gen, 0)
+     |> assign(:ai_drawer_open, false)
+     |> assign(:open_ai_summary_when_ready, false)
+     |> assign(:cerebras_configured, StorageReportAi.configured?())
      |> assign(:portugal_map_payload, nil)
      |> assign(:report, nil)}
   end
@@ -38,6 +45,11 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:selected_date, selected_date)
      |> assign(:selected_basin, selected_basin)
      |> assign(:loading_report, false)
+     |> assign(:loading_ai_summary, false)
+     |> assign(:ai_summary, nil)
+     |> assign(:ai_error, nil)
+     |> assign(:ai_drawer_open, false)
+     |> assign(:open_ai_summary_when_ready, false)
      |> assign(:portugal_map_payload, nil)
      |> assign(:report, nil)}
   end
@@ -66,8 +78,45 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     {:noreply,
      socket
      |> assign(:loading_report, true)
+     |> assign(:loading_ai_summary, false)
+     |> assign(:ai_summary, nil)
+     |> assign(:ai_error, nil)
+     |> assign(:ai_drawer_open, false)
+     |> assign(:open_ai_summary_when_ready, false)
      |> assign(:portugal_map_payload, nil)
      |> assign(:report, nil)}
+  end
+
+  def handle_event("open_ai_summary", _params, %{assigns: %{report: nil}} = socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("open_ai_summary", _params, socket) do
+    cond do
+      not is_nil(socket.assigns.ai_summary) ->
+        {:noreply, assign(socket, :ai_drawer_open, true)}
+
+      socket.assigns.loading_ai_summary or not socket.assigns.cerebras_configured ->
+        {:noreply, socket}
+
+      true ->
+        {:noreply,
+         socket
+         |> assign(:open_ai_summary_when_ready, true)
+         |> start_ai_summary_generation()}
+    end
+  end
+
+  def handle_event("generate_ai_summary", _params, %{assigns: %{report: nil}} = socket),
+    do: {:noreply, socket}
+
+  def handle_event("generate_ai_summary", _params, socket) do
+    if socket.assigns.loading_ai_summary or not is_nil(socket.assigns.ai_summary) or
+         not socket.assigns.cerebras_configured do
+      {:noreply, socket}
+    else
+      {:noreply, start_ai_summary_generation(socket)}
+    end
   end
 
   def handle_event("select_basin", %{"basin" => "__all__"}, socket) do
@@ -86,6 +135,13 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      )}
   end
 
+  def handle_event("close_ai_summary", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:ai_drawer_open, false)
+     |> assign(:open_ai_summary_when_ready, false)}
+  end
+
   @impl true
   def handle_info({:generate_storage_report, selected_basin, selected_date}, socket) do
     report =
@@ -97,8 +153,39 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     {:noreply,
      socket
      |> assign(:loading_report, false)
+     |> assign(:loading_ai_summary, false)
+     |> assign(:ai_summary, nil)
+     |> assign(:ai_error, nil)
+     |> assign(:ai_drawer_open, false)
+     |> assign(:open_ai_summary_when_ready, false)
      |> assign(:portugal_map_payload, portugal_map_payload(report))
      |> assign(:report, report)}
+  end
+
+  @impl true
+  def handle_info({:storage_report_ai_done, gen, result}, socket) do
+    if gen != socket.assigns.ai_gen do
+      {:noreply, socket}
+    else
+      case result do
+        {:ok, summary} ->
+          {:noreply,
+           socket
+           |> assign(:loading_ai_summary, false)
+           |> assign(:ai_summary, summary)
+           |> assign(:ai_error, nil)
+           |> assign(:ai_drawer_open, socket.assigns.open_ai_summary_when_ready)
+           |> assign(:open_ai_summary_when_ready, false)}
+
+        {:error, reason} ->
+          {:noreply,
+           socket
+           |> assign(:loading_ai_summary, false)
+           |> assign(:ai_summary, nil)
+           |> assign(:ai_error, format_ai_error(reason))
+           |> assign(:open_ai_summary_when_ready, false)}
+      end
+    end
   end
 
   attr :label, :string, required: true
@@ -167,6 +254,24 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp selected_basin_param(""), do: "__all__"
   defp selected_basin_param("__all__"), do: "__all__"
   defp selected_basin_param(basin), do: basin
+
+  defp start_ai_summary_generation(socket) do
+    gen = socket.assigns.ai_gen + 1
+    report = socket.assigns.report
+    parent = self()
+
+    _ =
+      Task.start(fn ->
+        result = StorageReportAi.summarize(report)
+        send(parent, {:storage_report_ai_done, gen, result})
+      end)
+
+    socket
+    |> assign(:ai_gen, gen)
+    |> assign(:loading_ai_summary, true)
+    |> assign(:ai_error, nil)
+    |> assign(:ai_summary, nil)
+  end
 
   defp monday_of_current_week do
     today = Date.utc_today()
@@ -247,6 +352,21 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp format_datetime(%NaiveDateTime{} = value) do
     Calendar.strftime(value, "%d/%m/%Y %H:%M")
   end
+
+  defp format_ai_error(:invalid_report), do: "Não foi possível preparar o relatório para IA."
+  defp format_ai_error(:cerebras_api_key_missing), do: "A integração IA não está configurada."
+  defp format_ai_error(:cerebras_model_missing), do: "O modelo IA não está configurado."
+
+  defp format_ai_error({:cerebras_http_error, status, _body}),
+    do: "O serviço IA respondeu com erro HTTP #{status}."
+
+  defp format_ai_error({:cerebras_transport, reason}),
+    do: "Falha de rede ao contactar o serviço IA: #{inspect(reason)}"
+
+  defp format_ai_error({:cerebras_unexpected_body, _}),
+    do: "O serviço IA devolveu uma resposta inesperada."
+
+  defp format_ai_error(other), do: "Não foi possível gerar o sumário IA: #{inspect(other)}"
 
   defp bar_width(nil), do: 0
   defp bar_width(value), do: value |> max(0) |> min(100)
