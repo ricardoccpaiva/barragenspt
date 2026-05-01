@@ -7,6 +7,17 @@
           class="flex min-w-0 flex-col gap-2 sm:w-auto sm:flex-row"
           phx-change="select_basin"
         >
+          <label class="min-w-0">
+            <span class="sr-only">Tipo de relatório</span>
+            <select
+              name="report_type"
+              phx-change="select_report_type"
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[13rem]"
+            >
+              <option value="weekly" selected={@report_type == "weekly"}>Semanal</option>
+              <option value="monthly" selected={@report_type == "monthly"}>Mensal</option>
+            </select>
+          </label>
           <label class="min-w-0 flex-1">
             <span class="sr-only">Bacia</span>
             <select
@@ -22,7 +33,7 @@
               <% end %>
             </select>
           </label>
-          <label class="min-w-0">
+          <label :if={@report_type == "weekly"} class="min-w-0">
             <span class="sr-only">Data</span>
             <input
               type="date"
@@ -36,6 +47,19 @@
               class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[12rem]"
             />
           </label>
+          <label :if={@report_type == "monthly"} class="min-w-0">
+            <span class="sr-only">Mês</span>
+            <input
+              type="month"
+              name="month"
+              value={month_to_string(@selected_month)}
+              min={month_to_string(@month_bounds.min)}
+              max={month_to_string(@month_bounds.max)}
+              phx-change="select_month"
+              disabled={@loading_report}
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[12rem]"
+            />
+          </label>
           <button
             type="button"
             phx-click="generate_report"
@@ -45,7 +69,7 @@
             <%= if @loading_report do %>
               A gerar...
             <% else %>
-              Gerar relatório
+              {if @report_type == "monthly", do: "Gerar relatório mensal", else: "Gerar relatório"}
             <% end %>
           </button>
         </form>
@@ -71,7 +95,7 @@
             class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 shadow-sm dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-400"
           >
             <span class="font-semibold text-slate-700 dark:text-slate-200">Ref.</span>
-            <span class="tabular-nums">{format_datetime(@report.report_date)}</span>
+            <span class="tabular-nums">{report_reference(@report, @report_type)}</span>
             <span class="ml-2 tabular-nums">
               {@report.basin_count} bacias · {@report.dam_count} barragens
             </span>
@@ -104,7 +128,7 @@
         <.metric_card
           label={storage_metric_label(@selected_basin)}
           value={format_pct(@report.summary.current_pct)}
-          sub={delta_text(@report.summary.week_delta, "vs semana anterior")}
+          sub={delta_text(period_delta(@report.summary, @report_type), period_subtitle(@report_type))}
           accent="brand"
         />
         <.metric_card
@@ -116,7 +140,7 @@
         <.metric_card
           label="Média de referência"
           value={format_delta(@report.summary.reference_delta)}
-          sub="Mesma semana ISO, anos anteriores"
+          sub={reference_subtitle(@report_type)}
           accent="teal"
         />
         <.metric_card
@@ -176,7 +200,7 @@
                 <tr>
                   <th class="px-3 py-2 text-left font-semibold">Bacia</th>
                   <th class="px-3 py-2 text-right font-semibold">Atual</th>
-                  <th class="px-3 py-2 text-right font-semibold">Semana</th>
+                  <th class="px-3 py-2 text-right font-semibold">{period_header(@report_type)}</th>
                   <th class="px-3 py-2 text-right font-semibold">Referência</th>
                   <th class="px-3 py-2 text-right font-semibold">Volume</th>
                 </tr>
@@ -192,9 +216,9 @@
                     </td>
                     <td class={[
                       "px-3 py-2 text-right tabular-nums font-semibold",
-                      delta_class(basin.week_delta)
+                      delta_class(period_delta_from(basin, @report_type))
                     ]}>
-                      {format_delta(basin.week_delta)}
+                      {format_delta(period_delta_from(basin, @report_type))}
                     </td>
                     <td class={[
                       "px-3 py-2 text-right tabular-nums font-semibold",
@@ -238,9 +262,9 @@
                 <div class="flex flex-wrap gap-2">
                   <.pill label="Atual" value={format_pct(basin.current_pct)} />
                   <.pill
-                    label="Semana"
-                    value={format_delta(basin.week_delta)}
-                    class={delta_class(basin.week_delta)}
+                    label={period_header(@report_type)}
+                    value={format_delta(period_delta_from(basin, @report_type))}
+                    class={delta_class(period_delta_from(basin, @report_type))}
                   />
                   <.pill
                     label="Referência"
@@ -265,7 +289,7 @@
                       <tr>
                         <th class="px-3 py-2 text-left font-semibold">Barragem</th>
                         <th class="px-3 py-2 text-right font-semibold">Armazenamento</th>
-                        <th class="px-3 py-2 text-right font-semibold">Semana</th>
+                        <th class="px-3 py-2 text-right font-semibold">{period_header(@report_type)}</th>
                         <th class="px-3 py-2 text-right font-semibold">Referência</th>
                         <th class="px-3 py-2 text-right font-semibold">Volume</th>
                       </tr>
@@ -286,9 +310,9 @@
                           </td>
                           <td class={[
                             "px-3 py-2 text-right tabular-nums font-semibold",
-                            delta_class(dam.week_delta)
+                            delta_class(period_delta_from(dam, @report_type))
                           ]}>
-                            {format_delta(dam.week_delta)}
+                            {format_delta(period_delta_from(dam, @report_type))}
                           </td>
                           <td class={[
                             "px-3 py-2 text-right tabular-nums font-semibold",
@@ -350,7 +374,7 @@
                 Sumário IA
               </h2>
               <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Síntese textual construída a partir do relatório semanal já gerado.
+                Síntese textual construída a partir do relatório já gerado.
               </p>
             </div>
             <button
@@ -369,7 +393,7 @@
                 {if @selected_basin == "__all__", do: "Todas as bacias", else: @selected_basin}
               </span>
               <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                Semana de {date_to_string(@selected_date)}
+                {if @report_type == "monthly", do: "Mês de #{month_to_string(@selected_month)}", else: "Semana de #{date_to_string(@selected_date)}"}
               </span>
               <%= if not @cerebras_configured do %>
                 <span class="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">

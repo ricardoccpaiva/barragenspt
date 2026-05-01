@@ -3,7 +3,12 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   on_mount {BarragensptWeb.UserAuth, :require_authenticated}
 
-  alias Barragenspt.Hydrometrics.{StorageReport, StorageReportAi}
+  alias Barragenspt.Hydrometrics.{
+    MonthlyStorageReport,
+    MonthlyStorageReportAi,
+    StorageReport,
+    StorageReportAi
+  }
   alias BarragensptWeb.StorageReportComponents
 
   @hydro_geojson_source_path Path.expand(
@@ -16,13 +21,17 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   @impl true
   def mount(_params, _session, socket) do
     default_date = monday_of_current_week()
+    month_bounds = MonthlyStorageReport.selectable_month_bounds()
 
     {:ok,
      socket
      |> assign(:page_title, "Relatório de armazenamento")
      |> assign(:basin_options, StorageReport.list_basins())
+     |> assign(:report_type, "weekly")
      |> assign(:selected_basin, "__all__")
      |> assign(:selected_date, default_date)
+     |> assign(:selected_month, month_bounds.max)
+     |> assign(:month_bounds, month_bounds)
      |> assign(:loading_report, false)
      |> assign(:loading_ai_summary, false)
      |> assign(:ai_summary, nil)
@@ -37,13 +46,23 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   @impl true
   def handle_params(params, _url, socket) do
+    report_type = selected_report_type_param(Map.get(params, "report_type"))
     selected_basin = selected_basin_param(Map.get(params, "basin"))
     selected_date = parse_basin_date_param(Map.get(params, "date"), monday_of_current_week())
+    selected_month =
+      parse_month_param(
+        Map.get(params, "month"),
+        socket.assigns.month_bounds.max,
+        socket.assigns.month_bounds
+      )
 
     {:noreply,
      socket
+     |> assign(:report_type, report_type)
      |> assign(:selected_date, selected_date)
+     |> assign(:selected_month, selected_month)
      |> assign(:selected_basin, selected_basin)
+     |> assign(:cerebras_configured, ai_configured?(report_type))
      |> assign(:loading_report, false)
      |> assign(:loading_ai_summary, false)
      |> assign(:ai_summary, nil)
@@ -64,15 +83,54 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
         {:noreply,
          push_patch(
            socket,
-           to: storage_report_path(socket.assigns.selected_basin, parsed_date)
+           to:
+             storage_report_path(
+               socket.assigns.report_type,
+               socket.assigns.selected_basin,
+               parsed_date,
+               socket.assigns.selected_month
+             )
          )}
     end
+  end
+
+  def handle_event("select_month", %{"month" => month}, socket) do
+    month = parse_month_param(month, socket.assigns.selected_month, socket.assigns.month_bounds)
+
+    {:noreply,
+     push_patch(
+       socket,
+       to:
+         storage_report_path(
+           socket.assigns.report_type,
+           socket.assigns.selected_basin,
+           socket.assigns.selected_date,
+           month
+         )
+     )}
+  end
+
+  def handle_event("select_report_type", %{"report_type" => report_type}, socket) do
+    report_type = selected_report_type_param(report_type)
+
+    {:noreply,
+     push_patch(
+       socket,
+       to:
+         storage_report_path(
+           report_type,
+           socket.assigns.selected_basin,
+           socket.assigns.selected_date,
+           socket.assigns.selected_month
+         )
+     )}
   end
 
   def handle_event("generate_report", _params, socket) do
     send(
       self(),
-      {:generate_storage_report, socket.assigns.selected_basin, socket.assigns.selected_date}
+      {:generate_storage_report, socket.assigns.report_type, socket.assigns.selected_basin,
+       socket.assigns.selected_date, socket.assigns.selected_month}
     )
 
     {:noreply,
@@ -123,7 +181,13 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     {:noreply,
      push_patch(
        socket,
-       to: storage_report_path("__all__", socket.assigns.selected_date)
+       to:
+         storage_report_path(
+           socket.assigns.report_type,
+           "__all__",
+           socket.assigns.selected_date,
+           socket.assigns.selected_month
+         )
      )}
   end
 
@@ -131,7 +195,13 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     {:noreply,
      push_patch(
        socket,
-       to: storage_report_path(basin, socket.assigns.selected_date)
+       to:
+         storage_report_path(
+           socket.assigns.report_type,
+           basin,
+           socket.assigns.selected_date,
+           socket.assigns.selected_month
+         )
      )}
   end
 
@@ -143,12 +213,11 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   end
 
   @impl true
-  def handle_info({:generate_storage_report, selected_basin, selected_date}, socket) do
-    report =
-      StorageReport.build(
-        basin: selected_basin,
-        reference_at: date_to_naive_datetime(selected_date)
-      )
+  def handle_info(
+        {:generate_storage_report, report_type, selected_basin, selected_date, selected_month},
+        socket
+      ) do
+    report = build_report(report_type, selected_basin, selected_date, selected_month)
 
     {:noreply,
      socket
@@ -158,6 +227,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:ai_error, nil)
      |> assign(:ai_drawer_open, false)
      |> assign(:open_ai_summary_when_ready, false)
+     |> assign(:cerebras_configured, ai_configured?(report_type))
      |> assign(:portugal_map_payload, portugal_map_payload(report))
      |> assign(:report, report)}
   end
@@ -258,11 +328,17 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp start_ai_summary_generation(socket) do
     gen = socket.assigns.ai_gen + 1
     report = socket.assigns.report
+    report_type = socket.assigns.report_type
     parent = self()
 
     _ =
       Task.start(fn ->
-        result = StorageReportAi.summarize(report)
+        result =
+          case report_type do
+            "monthly" -> MonthlyStorageReportAi.summarize(report)
+            _ -> StorageReportAi.summarize(report)
+          end
+
         send(parent, {:storage_report_ai_done, gen, result})
       end)
 
@@ -282,6 +358,12 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp earliest_selectable_monday do
     Date.add(monday_of_current_week(), -364)
   end
+
+  defp selected_report_type_param("monthly"), do: "monthly"
+  defp selected_report_type_param(_), do: "weekly"
+
+  defp ai_configured?("monthly"), do: MonthlyStorageReportAi.configured?()
+  defp ai_configured?(_), do: StorageReportAi.configured?()
 
   defp parse_basin_date_param(nil, fallback), do: fallback
 
@@ -303,16 +385,52 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     end
   end
 
+  defp parse_month_param(nil, fallback, _bounds), do: fallback
+  defp parse_month_param("", fallback, _bounds), do: fallback
+
+  defp parse_month_param(month_string, fallback, bounds) do
+    case String.split(month_string, "-", parts: 2) do
+      [year, month] ->
+        with {year_int, ""} <- Integer.parse(year),
+             {month_int, ""} <- Integer.parse(month),
+             true <- month_int >= 1 and month_int <= 12 do
+          month_date = Date.new!(year_int, month_int, 1)
+
+          cond do
+            Date.compare(month_date, bounds.min) == :lt -> bounds.min
+            Date.compare(month_date, bounds.max) == :gt -> bounds.max
+            true -> month_date
+          end
+        else
+          _ -> fallback
+        end
+
+      _ ->
+        fallback
+    end
+  end
+
   defp date_to_string(%Date{} = date) do
     Calendar.strftime(date, "%Y-%m-%d")
+  end
+
+  defp month_to_string(%Date{} = date), do: Calendar.strftime(date, "%Y-%m")
+
+  defp month_label(%Date{} = date) do
+    months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    "#{Enum.at(months, date.month - 1)} #{date.year}"
   end
 
   defp date_to_naive_datetime(%Date{} = date) do
     NaiveDateTime.new!(date, ~T[23:00:00])
   end
 
-  defp storage_report_path(selected_basin, selected_date) do
-    params = [date: date_to_string(selected_date)]
+  defp storage_report_path(report_type, selected_basin, selected_date, selected_month) do
+    params =
+      case report_type do
+        "monthly" -> [report_type: "monthly", month: month_to_string(selected_month)]
+        _ -> [report_type: "weekly", date: date_to_string(selected_date)]
+      end
 
     params =
       if selected_basin == "__all__" do
@@ -323,6 +441,38 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
     ~p"/dashboard/storage-report?#{params}"
   end
+
+  defp build_report("monthly", selected_basin, _selected_date, selected_month) do
+    MonthlyStorageReport.build(
+      basin: selected_basin,
+      report_month: selected_month
+    )
+  end
+
+  defp build_report(_report_type, selected_basin, selected_date, _selected_month) do
+    StorageReport.build(
+      basin: selected_basin,
+      reference_at: date_to_naive_datetime(selected_date)
+    )
+  end
+
+  defp report_reference(%{report_month: month}, "monthly"), do: month_label(month)
+  defp report_reference(%{report_date: dt}, _), do: format_datetime(dt)
+
+  defp period_delta(summary, "monthly"), do: Map.get(summary, :month_delta)
+  defp period_delta(summary, _), do: Map.get(summary, :week_delta)
+
+  defp period_delta_from(item, "monthly"), do: Map.get(item, :month_delta)
+  defp period_delta_from(item, _), do: Map.get(item, :week_delta)
+
+  defp period_header("monthly"), do: "Mês"
+  defp period_header(_), do: "Semana"
+
+  defp period_subtitle("monthly"), do: "vs mês anterior"
+  defp period_subtitle(_), do: "vs semana anterior"
+
+  defp reference_subtitle("monthly"), do: "Mesmo mês, anos anteriores"
+  defp reference_subtitle(_), do: "Mesma semana ISO, anos anteriores"
 
   defp storage_metric_label("__all__"), do: "Armazenamento nacional"
   defp storage_metric_label(_basin), do: "Armazenamento da bacia"
