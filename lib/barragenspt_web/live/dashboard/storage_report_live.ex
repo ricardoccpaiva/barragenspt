@@ -390,7 +390,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp portugal_map_payload(%{basins: basins}) do
     stats_by_basin =
       Map.new(basins, fn basin ->
-        {normalize_basin_name(basin.name), basin}
+        {basin_lookup_key(basin.name), basin}
       end)
 
     basins_geojson = %{
@@ -398,7 +398,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
       "features" =>
         Enum.map(hydro_features(), fn feature ->
           zname = get_in(feature, ["properties", "zname"])
-          basin = Map.get(stats_by_basin, normalize_basin_name(zname))
+          basin = Map.get(stats_by_basin, basin_lookup_key(zname))
 
           %{
             "type" => "Feature",
@@ -455,7 +455,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp mini_basin_map_payload(basin) do
     with %{} = feature <- hydro_feature_for(basin.name),
          %{} = bounds <- feature["geometry"] |> geometry_bounds() |> expand_bounds(0.12) do
-      selected_name = normalize_basin_name(basin.name)
+      selected_name = basin_lookup_key(basin.name)
 
       basin_geojson = %{
         "type" => "FeatureCollection",
@@ -501,7 +501,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     |> Enum.reject(fn feature ->
       feature
       |> get_in(["properties", "zname"])
-      |> normalize_basin_name() == selected_name
+      |> basin_lookup_key() == selected_name
     end)
     |> Enum.filter(fn feature ->
       feature["geometry"]
@@ -565,12 +565,12 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   end
 
   defp hydro_feature_for(basin_name) do
-    normalized = normalize_basin_name(basin_name)
+    normalized = basin_lookup_key(basin_name)
 
     Enum.find(hydro_features(), fn feature ->
       feature
       |> get_in(["properties", "zname"])
-      |> normalize_basin_name() == normalized
+      |> basin_lookup_key() == normalized
     end)
   end
 
@@ -659,5 +659,14 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     |> String.replace(~r/\p{Mn}/u, "")
     |> String.replace(~r/\s+/, " ")
     |> String.trim()
+  end
+
+  defp basin_lookup_key(name) do
+    name
+    |> normalize_basin_name()
+    |> String.replace(~r/[^a-z0-9]+/u, " ")
+    |> String.split(" ", trim: true)
+    |> Enum.reject(&(&1 in ~w(e de do da dos das)))
+    |> Enum.join(" ")
   end
 end
