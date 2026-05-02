@@ -614,7 +614,8 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
             "type" => "Feature",
             "geometry" => feature["geometry"],
             "properties" => %{
-              "name" => basin.name
+              "name" => basin.name,
+              "fill_color" => storage_color(basin.current_pct)
             }
           }
         ]

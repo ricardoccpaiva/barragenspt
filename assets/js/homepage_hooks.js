@@ -369,7 +369,7 @@ const BasinMiniMap = {
           type: "fill",
           source: "mini-basin",
           paint: {
-            "fill-color": "#38a3ff",
+            "fill-color": ["coalesce", ["get", "fill_color"], "#38a3ff"],
             "fill-opacity": 0.84
           }
         })
