@@ -65,7 +65,8 @@ defmodule BarragensptWeb.Layouts do
         </aside>
       <% end %>
 
-      <div id="app-top-chrome" class={top_chrome_wrapper_classes(@mode)}>
+      <div id="app-top-chrome" class={top_chrome_outer_classes(@mode)}>
+        <div class={top_chrome_inner_classes(@mode)}>
         <%= if @mode != :map and @signed_in? do %>
           <div class="flex min-w-0 shrink-0 items-center gap-2">
             <div
@@ -236,6 +237,7 @@ defmodule BarragensptWeb.Layouts do
             </div>
           </details>
         </div>
+        </div>
       </div>
 
       <div id="app-main-wrapper" class={main_wrapper_classes(@mode)}>
@@ -285,13 +287,20 @@ defmodule BarragensptWeb.Layouts do
     "fixed z-40 w-[80%] max-w-[279px] -translate-x-[calc(100%+1rem)] md:translate-x-0 md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-1.5 pb-2.5 md:px-3 md:pt-1.5 md:pb-2.5 rounded-2xl backdrop-blur-md transition-transform duration-200 ease-out"
   end
 
-  defp top_chrome_wrapper_classes(:map) do
-    "fixed right-2 top-2 z-50 flex items-center gap-2.5"
+  defp top_chrome_outer_classes(:map) do
+    "fixed right-2 top-2 z-50"
   end
 
-  defp top_chrome_wrapper_classes(_) do
-    # Same horizontal inset as main; w-full + ml-auto on the right cluster keeps utilities flush to the content edge.
-    "fixed inset-x-0 top-2 z-50 flex w-full min-w-0 items-center gap-3 #{app_shell_horizontal_padding()}"
+  defp top_chrome_outer_classes(_) do
+    "fixed inset-x-0 top-2 z-50 #{app_shell_horizontal_padding()}"
+  end
+
+  defp top_chrome_inner_classes(:map) do
+    "flex items-center gap-2.5"
+  end
+
+  defp top_chrome_inner_classes(_) do
+    "mx-auto flex w-full max-w-[1600px] min-w-0 items-center gap-3"
   end
 
   defp main_wrapper_classes(:map), do: ""
@@ -304,7 +313,7 @@ defmodule BarragensptWeb.Layouts do
   end
 
   defp main_content_classes(:map), do: "relative min-h-screen"
-  defp main_content_classes(_), do: "w-full max-w-none"
+  defp main_content_classes(_), do: "mx-auto w-full max-w-[1600px]"
 
   defp signed_in?(%{user: %{}}), do: true
   defp signed_in?(_), do: false
