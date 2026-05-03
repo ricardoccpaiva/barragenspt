@@ -4,7 +4,8 @@ defmodule Barragenspt.Notifications.UserAlert do
 
   alias Barragenspt.Accounts.User
 
-  @subject_types ~w(dam)
+  @subject_types ~w(dam basin)
+  @basin_metrics ~w(infoagua_alert_level)
   @realtime_metrics ~w(realtime_level realtime_inflow realtime_outflow realtime_storage)
   @daily_flow_metrics ~w(
     daily_discharged_flow
@@ -12,7 +13,8 @@ defmodule Barragenspt.Notifications.UserAlert do
     daily_effluent_flow
     daily_turbocharged_flow
   )
-  @metrics ~w(storage_pct month_change_pct year_change_pct) ++ @realtime_metrics ++ @daily_flow_metrics
+  @metrics ~w(storage_pct month_change_pct year_change_pct) ++
+             @realtime_metrics ++ @daily_flow_metrics ++ @basin_metrics
   @operators ~w(lt gt)
   @repeat_modes_base ~w(once_per_event cooldown)
 
@@ -90,10 +92,21 @@ defmodule Barragenspt.Notifications.UserAlert do
     metric = get_field(changeset, :metric)
     subject_type = get_field(changeset, :subject_type)
 
-    if metric in @realtime_metrics and subject_type != "dam" do
-      add_error(changeset, :metric, "is only available for dam alerts")
-    else
-      changeset
+    cond do
+      metric in @realtime_metrics and subject_type != "dam" ->
+        add_error(changeset, :metric, "is only available for dam alerts")
+
+      metric in @daily_flow_metrics and subject_type != "dam" ->
+        add_error(changeset, :metric, "is only available for dam alerts")
+
+      metric in ["storage_pct", "month_change_pct", "year_change_pct"] and subject_type != "dam" ->
+        add_error(changeset, :metric, "is only available for dam alerts")
+
+      metric in @basin_metrics and subject_type != "basin" ->
+        add_error(changeset, :metric, "is only available for basin alerts")
+
+      true ->
+        changeset
     end
   end
 
@@ -116,6 +129,7 @@ defmodule Barragenspt.Notifications.UserAlert do
   def metrics, do: @metrics
   def realtime_metrics, do: @realtime_metrics
   def daily_flow_metrics, do: @daily_flow_metrics
+  def basin_metrics, do: @basin_metrics
   def realtime_metric?(metric), do: metric in @realtime_metrics
   def operators, do: @operators
   @doc """

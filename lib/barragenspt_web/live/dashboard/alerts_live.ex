@@ -185,12 +185,17 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   end
 
   defp subject_emoji("dam"), do: "💧"
+  defp subject_emoji("basin"), do: "🏞"
   defp subject_emoji(_), do: "•"
 
   defp condition_row(a) do
-    m = condition_metric_label(a.metric)
-    op = if a.operator == "lt", do: "inferior a", else: "superior a"
-    "#{m} #{op} #{threshold_with_unit(a.metric, a.threshold)}"
+    if a.metric == "infoagua_alert_level" do
+      "InfoÁgua em Situação de alerta ou Situação de risco"
+    else
+      m = condition_metric_label(a.metric)
+      op = if a.operator == "lt", do: "inferior a", else: "superior a"
+      "#{m} #{op} #{threshold_with_unit(a.metric, a.threshold)}"
+    end
   end
 
   defp metric_label("storage_pct"), do: "Ocupação %"
@@ -204,6 +209,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   defp metric_label("daily_tributary_flow"), do: "Caudal afluente médio diário (m3/s)"
   defp metric_label("daily_effluent_flow"), do: "Caudal efluente médio diário (m3/s)"
   defp metric_label("daily_turbocharged_flow"), do: "Caudal turbinado médio diário (m3/s)"
+  defp metric_label("infoagua_alert_level"), do: "Nível de alerta de cheia (InfoÁgua)"
   defp metric_label(_), do: "?"
 
   defp condition_metric_label("storage_pct"), do: "Ocupação"
@@ -217,6 +223,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   defp condition_metric_label("daily_tributary_flow"), do: "Caudal afluente médio diário"
   defp condition_metric_label("daily_effluent_flow"), do: "Caudal efluente médio diário"
   defp condition_metric_label("daily_turbocharged_flow"), do: "Caudal turbinado médio diário"
+  defp condition_metric_label("infoagua_alert_level"), do: "Nível de alerta de cheia"
   defp condition_metric_label(metric), do: metric_label(metric)
 
   defp threshold_with_unit(metric, threshold)
@@ -235,6 +242,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   defp threshold_with_unit("month_change_pct", threshold), do: "#{threshold} pp"
   defp threshold_with_unit("year_change_pct", threshold), do: "#{threshold} pp"
   defp threshold_with_unit("realtime_storage", threshold), do: "#{threshold}%"
+  defp threshold_with_unit("infoagua_alert_level", threshold), do: "#{threshold} (0-3)"
   defp threshold_with_unit(_, threshold), do: to_string(threshold)
 
   attr :row, :map, required: true

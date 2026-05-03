@@ -3,10 +3,10 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
   on_mount {BarragensptWeb.UserAuth, :require_authenticated}
 
+  alias Barragenspt.Hydrometrics.Basins
   alias Barragenspt.Hydrometrics.Dams
   alias Barragenspt.Notifications
   alias Barragenspt.Notifications.AlertMetrics
-  alias Barragenspt.Notifications.UserAlert
 
   @max_step 4
 
@@ -24,8 +24,8 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
         <div class="grid gap-4 md:grid-cols-4">
           <.step_card
             num={1}
-            title="Alvo"
-            subtitle="Barragem"
+            title="Tipo"
+            subtitle="Operacional ou cheias"
             active={@step == 1}
             done={@step > 1}
           />
@@ -64,10 +64,10 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
           <%= if @step == 1 do %>
             <section class="space-y-4">
               <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                Escolha o alvo do alerta
+                Primeiro, escolha o tipo de alerta
               </h2>
               <p class="text-sm text-slate-600 dark:text-slate-300">
-                Neste momento os alertas são configurados para uma barragem específica.
+                Depois de escolher o tipo, seleciona o alvo correspondente.
               </p>
 
               <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -77,39 +77,67 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                   phx-value-type="dam"
                   class={subject_type_tile_class(@subject_type == "dam")}
                 >
-                  <span class="text-xl leading-none">💧</span>
+                  <span class="text-xl leading-none">📈</span>
                   <span class="flex min-w-0 flex-col gap-0.5">
-                    <span class="text-sm font-semibold">Barragem específica</span>
+                    <span class="text-sm font-semibold">Operacional da barragem</span>
                     <span class="text-xs font-normal text-slate-500 dark:text-slate-400">
-                      Pesquisa pelo nome da albufeira
+                      Ocupação, cota e caudais de uma barragem
+                    </span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  phx-click="subject_type"
+                  phx-value-type="basin"
+                  class={subject_type_tile_class(@subject_type == "basin")}
+                >
+                  <span class="text-xl leading-none">🌊</span>
+                  <span class="flex min-w-0 flex-col gap-0.5">
+                    <span class="text-sm font-semibold">Cheias (InfoÁgua)</span>
+                    <span class="text-xs font-normal text-slate-500 dark:text-slate-400">
+                      Nível de alerta de cheia por bacia hidrográfica
                     </span>
                   </span>
                 </button>
               </div>
 
-              <form
-                phx-change="search"
-                phx-submit="search"
-                id="alert-search-form"
-                class="space-y-2"
+              <div
+                :if={@subject_type}
+                class="rounded-lg border border-slate-200 p-3 dark:border-slate-600"
               >
-                <label
-                  for="alert-subject-q"
-                  class="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Agora escolha o alvo {if @subject_type == "basin",
+                    do: "da bacia",
+                    else: "da barragem"}
+                </p>
+                <form
+                  phx-change="search"
+                  phx-submit="search"
+                  id="alert-search-form"
+                  class="space-y-2"
                 >
-                  Pesquisar barragem
-                </label>
-                <input
-                  id="alert-subject-q"
-                  type="text"
-                  name="q"
-                  value={@search_term}
-                  phx-debounce="300"
-                  autocomplete="off"
-                  class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
-                  placeholder="Nome da barragem..."
-                />
-              </form>
+                  <label
+                    for="alert-subject-q"
+                    class="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    {if @subject_type == "basin", do: "Pesquisar bacia", else: "Pesquisar barragem"}
+                  </label>
+                  <input
+                    id="alert-subject-q"
+                    type="text"
+                    name="q"
+                    value={@search_term}
+                    phx-debounce="300"
+                    autocomplete="off"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+                    placeholder={
+                      if @subject_type == "basin",
+                        do: "Nome da bacia...",
+                        else: "Nome da barragem..."
+                    }
+                  />
+                </form>
+              </div>
 
               <ul
                 :if={@search_results != []}
@@ -137,8 +165,15 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                 Selecionado: {@subject_name}
               </p>
 
-              <p :if={!can_next?(@step, assigns)} class="text-sm text-amber-700 dark:text-amber-300">
-                Selecione uma barragem para continuar.
+              <p :if={is_nil(@subject_type)} class="text-sm text-amber-700 dark:text-amber-300">
+                Escolha o tipo de alerta para continuar.
+              </p>
+
+              <p
+                :if={!is_nil(@subject_type) && !can_next?(@step, assigns)}
+                class="text-sm text-amber-700 dark:text-amber-300"
+              >
+                Selecione um alvo para continuar.
               </p>
             </section>
           <% end %>
@@ -148,11 +183,15 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
               <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Defina a condição
               </h2>
-              <p class="text-sm text-slate-600 dark:text-slate-300">
+              <p :if={@subject_type != "basin"} class="text-sm text-slate-600 dark:text-slate-300">
                 Escolha o indicador, o operador e o valor limite.
+              </p>
+              <p :if={@subject_type == "basin"} class="text-sm text-slate-600 dark:text-slate-300">
+                Para cheias, a condição é automática e não pode ser configurada.
               </p>
 
               <form
+                :if={@subject_type != "basin"}
                 phx-change="field"
                 id="alert-condition-form"
                 class="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4 dark:border-slate-600 dark:bg-slate-900/30 md:grid-cols-3"
@@ -198,8 +237,19 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                 </div>
               </form>
 
+              <div
+                :if={@subject_type == "basin"}
+                class="rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-900/30 dark:text-slate-200"
+              >
+                <p class="mt-1">
+                  Irá receber notificações quando a bacia entrar em
+                  <strong>Situação de alerta</strong>
+                  ou <strong>Situação de risco</strong>.
+                </p>
+              </div>
+
               <p
-                :if={@preview_value != nil}
+                :if={@preview_value != nil && @subject_type != "basin"}
                 class="rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900 dark:bg-sky-900/20 dark:text-sky-200"
               >
                 Valor atual aproximado:
@@ -207,7 +257,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
               </p>
 
               <p
-                :if={!valid_threshold?(@threshold)}
+                :if={@subject_type != "basin" && !valid_threshold?(@threshold)}
                 class="text-sm text-amber-700 dark:text-amber-300"
               >
                 Introduza um limiar numérico válido para continuar.
@@ -428,7 +478,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
               |> push_navigate(to: ~p"/dashboard/alerts")
 
             {:ok, alert} ->
-              if alert.subject_type == "dam" do
+              if alert.subject_type in ["dam", "basin"] do
                 assign_from_alert(socket, alert)
               else
                 socket
@@ -446,7 +496,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
   @impl true
   def handle_event("subject_type", %{"type" => t}, socket) do
-    t = if t == "dam", do: t, else: "dam"
+    t = if t in ["dam", "basin"], do: t, else: "dam"
 
     {:noreply,
      socket
@@ -482,6 +532,18 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
             |> Enum.take(15)
           end
 
+        "basin" ->
+          if q == "" do
+            []
+          else
+            Basins.summary_stats([])
+            |> Enum.map(fn b -> %{id: b.id, name: b.name} end)
+            |> Enum.filter(fn b ->
+              String.contains?(String.downcase(b.name || ""), String.downcase(q))
+            end)
+            |> Enum.take(15)
+          end
+
         _ ->
           []
       end
@@ -503,8 +565,20 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       pick_field(params, "metric", socket.assigns.metric)
       |> normalize_metric_for_subject(socket.assigns.subject_type)
 
-    operator = pick_field(params, "operator", socket.assigns.operator)
-    threshold = pick_field(params, "threshold", socket.assigns.threshold)
+    operator =
+      if socket.assigns.subject_type == "basin" do
+        "gt"
+      else
+        pick_field(params, "operator", socket.assigns.operator)
+      end
+
+    threshold =
+      if socket.assigns.subject_type == "basin" do
+        "0"
+      else
+        pick_field(params, "threshold", socket.assigns.threshold)
+      end
+
     cooldown_hours = pick_field(params, "cooldown_hours", socket.assigns.cooldown_hours)
 
     {:noreply,
@@ -539,14 +613,20 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   def handle_event("save", params, socket) do
     user_id = socket.assigns.current_scope.user.id
 
-    threshold_str =
-      if map_size(params) > 0 do
-        pick_field(params, "threshold", socket.assigns.threshold)
+    t =
+      if socket.assigns.subject_type == "basin" do
+        0.0
       else
-        socket.assigns.threshold
+        threshold_str =
+          if map_size(params) > 0 do
+            pick_field(params, "threshold", socket.assigns.threshold)
+          else
+            socket.assigns.threshold
+          end
+
+        parse_float(threshold_str)
       end
 
-    t = parse_float(threshold_str)
     ch_raw = pick_field(params, "cooldown_hours", socket.assigns.cooldown_hours)
     ch = parse_int(ch_raw) || 24
 
@@ -560,13 +640,16 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   defp do_save(socket, user_id, t, ch) do
     metric = normalize_metric_for_subject(socket.assigns.metric, socket.assigns.subject_type)
 
+    {operator, threshold} =
+      fixed_condition(socket.assigns.subject_type, socket.assigns.operator, t)
+
     base = %{
       subject_type: socket.assigns.subject_type,
       subject_id: normalize_subject_id(socket.assigns.subject_type, socket.assigns.subject_id),
       subject_name: socket.assigns.subject_name || "—",
       metric: metric,
-      operator: socket.assigns.operator,
-      threshold: t,
+      operator: operator,
+      threshold: threshold,
       repeat_mode: socket.assigns.repeat_mode,
       cooldown_hours: ch
     }
@@ -613,12 +696,12 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       editing_alert_id: nil,
       step: 1,
       max_step: @max_step,
-      subject_type: "dam",
+      subject_type: nil,
       subject_id: nil,
       subject_name: nil,
       search_term: "",
       search_results: [],
-      metric: "storage_pct",
+      metric: nil,
       operator: "lt",
       threshold: "40",
       repeat_mode: "cooldown",
@@ -667,8 +750,8 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       subject_type: socket.assigns.subject_type,
       subject_id: socket.assigns.subject_id,
       metric: socket.assigns.metric,
-      operator: socket.assigns.operator,
-      threshold: parse_float(socket.assigns.threshold) || 0
+      operator: fixed_preview_operator(socket.assigns.subject_type, socket.assigns.operator),
+      threshold: fixed_preview_threshold(socket.assigns.subject_type, socket.assigns.threshold)
     }
 
     v =
@@ -682,11 +765,13 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   end
 
   defp can_next?(1, assigns), do: ready_subject?(assigns)
+  defp can_next?(2, %{subject_type: "basin"}), do: true
   defp can_next?(2, assigns), do: valid_threshold?(assigns.threshold)
   defp can_next?(3, assigns), do: cooldown_valid?(assigns.repeat_mode, assigns.cooldown_hours)
   defp can_next?(_, _), do: true
 
   defp ready_subject?(%{subject_type: "dam", subject_id: id}), do: subject_id_present?(id)
+  defp ready_subject?(%{subject_type: "basin", subject_id: id}), do: subject_id_present?(id)
   defp ready_subject?(_), do: false
 
   defp valid_threshold?(threshold), do: parse_float(threshold) != nil
@@ -705,6 +790,9 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   defp subject_id_present?(s) when is_binary(s), do: String.trim(s) != ""
   defp subject_id_present?(_), do: true
 
+  defp metric_options("basin"),
+    do: [{"infoagua_alert_level", "Nível de alerta de cheia (InfoÁgua)"}]
+
   defp metric_options(_subject_type) do
     [
       {"storage_pct", "Ocupação (%)"},
@@ -722,8 +810,12 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   end
 
   defp condition_sentence(metric, operator, threshold) do
-    op = if operator == "lt", do: "inferior a", else: "superior a"
-    "#{metric_label(metric)} #{op} #{threshold_with_unit(metric, threshold)}"
+    if metric == "infoagua_alert_level" do
+      "InfoÁgua em Situação de alerta ou Situação de risco"
+    else
+      op = if operator == "lt", do: "inferior a", else: "superior a"
+      "#{metric_label(metric)} #{op} #{threshold_with_unit(metric, threshold)}"
+    end
   end
 
   defp repeat_mode_sentence("once_per_event", _), do: "Uma vez por evento"
@@ -761,6 +853,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   defp metric_label("daily_tributary_flow"), do: "Caudal afluente médio diário"
   defp metric_label("daily_effluent_flow"), do: "Caudal efluente médio diário"
   defp metric_label("daily_turbocharged_flow"), do: "Caudal turbinado médio diário"
+  defp metric_label("infoagua_alert_level"), do: "Nível de alerta de cheia (InfoÁgua)"
   defp metric_label(_), do: "Indicador"
 
   defp threshold_with_unit(metric, threshold)
@@ -779,15 +872,34 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   defp threshold_with_unit("month_change_pct", threshold), do: "#{threshold} pp"
   defp threshold_with_unit("year_change_pct", threshold), do: "#{threshold} pp"
   defp threshold_with_unit("realtime_storage", threshold), do: "#{threshold}%"
+  defp threshold_with_unit("infoagua_alert_level", threshold), do: "#{threshold} (0-3)"
   defp threshold_with_unit(_, threshold), do: to_string(threshold)
 
   defp normalize_metric_for_subject(metric, subject_type) do
-    if UserAlert.realtime_metric?(metric) and subject_type != "dam" do
-      "storage_pct"
+    if is_nil(subject_type) do
+      metric || "storage_pct"
     else
-      metric
+      option_values =
+        subject_type
+        |> metric_options()
+        |> Enum.map(&elem(&1, 0))
+
+      if metric in option_values do
+        metric
+      else
+        option_values |> List.first() || "storage_pct"
+      end
     end
   end
+
+  defp fixed_condition("basin", _operator, _threshold), do: {"gt", 0.0}
+  defp fixed_condition(_, operator, threshold), do: {operator, threshold}
+
+  defp fixed_preview_operator("basin", _operator), do: "gt"
+  defp fixed_preview_operator(_, operator), do: operator
+
+  defp fixed_preview_threshold("basin", _threshold), do: 0.0
+  defp fixed_preview_threshold(_, threshold), do: parse_float(threshold) || 0
 
   defp pick_field(params, key, fallback) do
     params = stringify_form_params(params)

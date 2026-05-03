@@ -43,7 +43,7 @@ defmodule Barragenspt.Workers.EvaluateAlerts do
   defp evaluate_alert(alert, oban_job_id) do
     user = Repo.get(User, alert.user_id)
     value = AlertMetrics.current_value(alert)
-    met? = AlertMetrics.condition_met?(value, alert.operator, alert.threshold)
+    met? = AlertMetrics.condition_met_for_alert(alert)
 
     Logger.debug(
       "----> EvaluateAlerts alert_id=#{alert.id} oban_job_id=#{oban_job_id} " <>

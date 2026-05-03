@@ -93,8 +93,8 @@ defmodule Barragenspt.Accounts.UserNotifier do
     base = BarragensptWeb.Endpoint.url()
     path = "#{base}/dashboard/alerts"
     subject = "Alerta: #{alert.subject_name} — #{format_alert_label(alert)}"
-    condition = describe_condition(alert)
     value_str = format_value_for_email(alert.metric, value)
+    condition = if alert.metric == "infoagua_alert_level", do: nil, else: describe_condition(alert)
 
     template_variables = %{
       brand_name: "barragens.pt",
@@ -127,14 +127,21 @@ defmodule Barragenspt.Accounts.UserNotifier do
          :ok <- validate_telegram_chat_id(chat_id) do
       base = BarragensptWeb.Endpoint.url()
       path = "#{base}/dashboard/alerts"
-      condition = describe_condition(alert) |> String.replace_prefix("Condição: ", "")
       value_str = format_value_for_email(alert.metric, value)
+
+      condition_line =
+        if alert.metric == "infoagua_alert_level" do
+          ""
+        else
+          condition = describe_condition(alert) |> String.replace_prefix("Condição: ", "")
+          "<b>Condição:</b> #{escape_html(condition)}\n"
+        end
 
       text = """
       <b>🚨 Alerta disparado</b>
 
       <b>Alvo:</b> #{escape_html(alert.subject_name)}
-      <b>Condição:</b> #{escape_html(condition)}
+      #{condition_line}\
       <b>Valor atual:</b> <code>#{escape_html(value_str)}</code>
       <a href="#{escape_html(path)}">Abrir alertas no dashboard</a>
       """
@@ -194,9 +201,13 @@ defmodule Barragenspt.Accounts.UserNotifier do
   defp escape_html(v), do: v |> to_string() |> escape_html()
 
   defp describe_condition(%UserAlert{} = a) do
-    op = if a.operator == "lt", do: "inferior a", else: "superior a"
-    metric = condition_metric_label(a.metric)
-    "Condição: #{metric} #{op} #{threshold_with_unit(a.metric, a.threshold)}"
+    if a.metric == "infoagua_alert_level" do
+      "Condição: InfoÁgua em Situação de alerta ou Situação de risco."
+    else
+      op = if a.operator == "lt", do: "inferior a", else: "superior a"
+      metric = condition_metric_label(a.metric)
+      "Condição: #{metric} #{op} #{threshold_with_unit(a.metric, a.threshold)}"
+    end
   end
 
   defp format_metric("storage_pct"), do: "Ocupação (%)"
@@ -210,6 +221,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
   defp format_metric("daily_tributary_flow"), do: "Caudal afluente médio diário (m3/s)"
   defp format_metric("daily_effluent_flow"), do: "Caudal efluente médio diário (m3/s)"
   defp format_metric("daily_turbocharged_flow"), do: "Caudal turbinado médio diário (m3/s)"
+  defp format_metric("infoagua_alert_level"), do: "Nível de alerta de cheia (InfoÁgua)"
   defp format_metric(_), do: "Indicador"
 
   defp condition_metric_label("storage_pct"), do: "Ocupação"
@@ -223,9 +235,11 @@ defmodule Barragenspt.Accounts.UserNotifier do
   defp condition_metric_label("daily_tributary_flow"), do: "Caudal afluente médio diário"
   defp condition_metric_label("daily_effluent_flow"), do: "Caudal efluente médio diário"
   defp condition_metric_label("daily_turbocharged_flow"), do: "Caudal turbinado médio diário"
+  defp condition_metric_label("infoagua_alert_level"), do: "Nível de alerta de cheia"
   defp condition_metric_label(metric), do: format_metric(metric)
 
   defp subject_type_pt("dam"), do: "Barragem"
+  defp subject_type_pt("basin"), do: "Bacia"
   defp subject_type_pt(other), do: to_string(other)
 
   defp format_value_for_email("storage_pct", value) do
@@ -257,13 +271,21 @@ defmodule Barragenspt.Accounts.UserNotifier do
     "#{Float.round(value * 1.0, 2)}%"
   end
 
+  defp format_value_for_email("infoagua_alert_level", value) do
+    infoagua_level_label(value)
+  end
+
   defp format_value_for_email(_metric, value) do
     to_string(Float.round(value * 1.0, 2))
   end
 
   defp format_alert_label(%UserAlert{metric: m, operator: op, threshold: t}) do
-    o = if op == "lt", do: "<", else: ">"
-    "#{condition_metric_label(m)} #{o} #{threshold_with_unit(m, t)}"
+    if m == "infoagua_alert_level" do
+      "InfoÁgua: Situação de alerta/risco"
+    else
+      o = if op == "lt", do: "<", else: ">"
+      "#{condition_metric_label(m)} #{o} #{threshold_with_unit(m, t)}"
+    end
   end
 
   defp threshold_with_unit(metric, threshold)
@@ -282,5 +304,14 @@ defmodule Barragenspt.Accounts.UserNotifier do
   defp threshold_with_unit("month_change_pct", threshold), do: "#{threshold} p.p."
   defp threshold_with_unit("year_change_pct", threshold), do: "#{threshold} p.p."
   defp threshold_with_unit("realtime_storage", threshold), do: "#{threshold}%"
+  defp threshold_with_unit("infoagua_alert_level", threshold), do: "#{threshold} (0-3)"
   defp threshold_with_unit(_, threshold), do: to_string(threshold)
+
+  defp infoagua_level_label(v) when is_number(v) do
+    cond do
+      v >= 2 -> "Situação de risco"
+      v >= 1 -> "Situação de alerta"
+      true -> "Sem alertas ativos"
+    end
+  end
 end

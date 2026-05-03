@@ -145,7 +145,7 @@ defmodule Barragenspt.Notifications do
 
   def compute_status(alert) do
     value = AlertMetrics.current_value(alert)
-    met? = AlertMetrics.condition_met?(value, alert.operator, alert.threshold)
+    met? = AlertMetrics.condition_met_for_alert(alert)
     {met?, value}
   end
 
