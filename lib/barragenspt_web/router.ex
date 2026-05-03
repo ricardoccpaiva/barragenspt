@@ -165,6 +165,11 @@ defmodule BarragensptWeb.Router do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
+
+    live_session :admin_authenticated,
+      on_mount: [{BarragensptWeb.UserAuth, :require_admin}] do
+      live "/dashboard/admin", Dashboard.AdminLive, :index
+    end
   end
 
   scope "/", BarragensptWeb do

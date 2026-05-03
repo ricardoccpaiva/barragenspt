@@ -4,6 +4,7 @@ defmodule Barragenspt.Accounts.User do
 
   schema "users" do
     field :email, :string
+    field :is_admin, :boolean, default: false
     field :avatar_url, :string
     field :email_notifications_enabled, :boolean, default: true
     field :telegram_chat_id, :string

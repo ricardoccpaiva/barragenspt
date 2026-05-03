@@ -21,7 +21,7 @@ defmodule BarragensptWeb.Layouts do
     assigns =
       assigns
       |> assign(:signed_in?, signed_in?(assigns.current_scope))
-      |> assign(:dashboard_sidebar_items, dashboard_sidebar_items())
+      |> assign(:dashboard_sidebar_items, dashboard_sidebar_items(assigns.current_scope))
 
     ~H"""
     <div class="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
@@ -39,7 +39,14 @@ defmodule BarragensptWeb.Layouts do
           onclick="window.toggleAppShellSidebar && window.toggleAppShellSidebar(true)"
           aria-label="Abrir navegação"
         >
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
           </svg>
         </button>
@@ -67,176 +74,176 @@ defmodule BarragensptWeb.Layouts do
 
       <div id="app-top-chrome" class={top_chrome_outer_classes(@mode)}>
         <div class={top_chrome_inner_classes(@mode)}>
-        <%= if @mode != :map and @signed_in? do %>
-          <div class="flex min-w-0 shrink-0 items-center gap-2">
-            <div
-              id="dashboard-app-nav"
-              phx-hook="NavRouteActive"
-              class="inline-flex min-h-10 max-w-[calc(100vw-10rem)] flex-nowrap items-center gap-0.5 overflow-x-auto rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card [-ms-overflow-style:none] [scrollbar-width:none] dark:border-slate-600 dark:bg-slate-800/90 [&::-webkit-scrollbar]:hidden"
-            >
-              <%= for item <- @dashboard_sidebar_items do %>
-                <.link
-                  navigate={item.path}
-                  data-nav-path={item.path}
-                  class="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-                >
-                  <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
-                  {item.label}
-                </.link>
-              <% end %>
-            </div>
-            <.live_component
-              module={BarragensptWeb.EvaluateAlertsShortcutComponent}
-              id="dashboard-evaluate-alerts-top"
-            />
-          </div>
-        <% end %>
-
-        <div class={[
-          "flex shrink-0 items-center gap-2.5",
-          @mode != :map && "ml-auto"
-        ]}>
-          <div
-            id="app-switcher"
-            phx-hook="NavRouteActive"
-            class="inline-flex h-10 items-center gap-0.5 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
-          >
-            <.link
-              navigate={~p"/"}
-              data-nav-path={~p"/"}
-              class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-            >
-              Mapa
-            </.link>
-            <%= if @signed_in? do %>
-              <.link
-                navigate={~p"/dashboard"}
-                data-nav-path={~p"/dashboard"}
-                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+          <%= if @mode != :map and @signed_in? do %>
+            <div class="flex min-w-0 shrink-0 items-center gap-2">
+              <div
+                id="dashboard-app-nav"
+                phx-hook="NavRouteActive"
+                class="inline-flex min-h-10 max-w-[calc(100vw-10rem)] flex-nowrap items-center gap-0.5 overflow-x-auto rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card [-ms-overflow-style:none] [scrollbar-width:none] dark:border-slate-600 dark:bg-slate-800/90 [&::-webkit-scrollbar]:hidden"
               >
-                Dashboard
-              </.link>
-              <.link
-                navigate={~p"/status/workers"}
-                data-nav-path={~p"/status/workers"}
-                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-              >
-                Status
-              </.link>
-            <% else %>
-              <.link
-                href={~p"/dashboard"}
-                data-nav-path={~p"/dashboard"}
-                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-              >
-                Dashboard
-              </.link>
-              <.link
-                href={~p"/status/workers"}
-                data-nav-path={~p"/status/workers"}
-                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-              >
-                Status
-              </.link>
-            <% end %>
-          </div>
-
-          <div
-            id="app-layout-dark-toggle"
-            phx-hook="DarkModeToggle"
-            role="group"
-            aria-label="Selecionar tema"
-            class="inline-flex h-10 items-center gap-0.5 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
-          >
-            <button
-              type="button"
-              data-theme-option="light"
-              aria-label="Modo claro"
-              aria-pressed="true"
-              class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors dark:text-slate-400"
-            >
-              <.icon name="hero-sun" class="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              data-theme-option="dark"
-              aria-label="Modo escuro"
-              aria-pressed="false"
-              class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors dark:text-slate-400"
-            >
-              <.icon name="hero-moon" class="h-3.5 w-3.5" />
-            </button>
-          </div>
-
-          <details
-            id="navbar-avatar-menu"
-            class="group relative inline-flex h-10 list-none items-center rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
-            phx-hook="AvatarMenu"
-          >
-            <summary
-              class="flex h-8 cursor-pointer list-none items-center justify-center rounded-lg marker:content-none [&::-webkit-details-marker]:hidden hover:bg-slate-100/80 dark:hover:bg-slate-700/50"
-              aria-label={
-                if(@signed_in?, do: "Menu da conta", else: "Conta — iniciar sessão ou registo")
-              }
-            >
-              <%= if @signed_in? do %>
-                <%= if src = UserAvatar.image_src(@current_scope.user) do %>
-                  <img
-                    src={src}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    referrerpolicy="no-referrer"
-                    class="h-8 w-8 shrink-0 rounded-lg object-cover ring-1 ring-slate-200/80 dark:ring-slate-600"
-                  />
-                <% else %>
-                  <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-xs font-bold text-white">
-                    {case @current_scope.user.email do
-                      e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
-                      _ -> "U"
-                    end}
-                  </span>
+                <%= for item <- @dashboard_sidebar_items do %>
+                  <.link
+                    navigate={item.path}
+                    data-nav-path={item.path}
+                    class="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                  >
+                    <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
+                    {item.label}
+                  </.link>
                 <% end %>
-              <% else %>
-                <.icon
-                  name="hero-user-circle"
-                  class="h-8 w-8 shrink-0 text-slate-500 dark:text-slate-400"
-                />
-              <% end %>
-            </summary>
+              </div>
+              <.live_component
+                module={BarragensptWeb.EvaluateAlertsShortcutComponent}
+                id="dashboard-evaluate-alerts-top"
+              />
+            </div>
+          <% end %>
 
-            <div class="absolute right-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-600 dark:bg-slate-800">
+          <div class={[
+            "flex shrink-0 items-center gap-2.5",
+            @mode != :map && "ml-auto"
+          ]}>
+            <div
+              id="app-switcher"
+              phx-hook="NavRouteActive"
+              class="inline-flex h-10 items-center gap-0.5 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
+            >
+              <.link
+                navigate={~p"/"}
+                data-nav-path={~p"/"}
+                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+              >
+                Mapa
+              </.link>
               <%= if @signed_in? do %>
                 <.link
-                  navigate={~p"/users/settings"}
-                  class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                  navigate={~p"/dashboard"}
+                  data-nav-path={~p"/dashboard"}
+                  class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
                 >
-                  Definições
+                  Dashboard
                 </.link>
                 <.link
-                  href={~p"/users/log-out"}
-                  method="delete"
-                  class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-900/30"
+                  navigate={~p"/status/workers"}
+                  data-nav-path={~p"/status/workers"}
+                  class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
                 >
-                  Sair
+                  Status
                 </.link>
               <% else %>
                 <.link
-                  navigate={~p"/users/register"}
-                  class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                  href={~p"/dashboard"}
+                  data-nav-path={~p"/dashboard"}
+                  class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
                 >
-                  Registo
+                  Dashboard
                 </.link>
                 <.link
-                  navigate={~p"/users/log-in"}
-                  class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                  href={~p"/status/workers"}
+                  data-nav-path={~p"/status/workers"}
+                  class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
                 >
-                  Iniciar sessão
+                  Status
                 </.link>
               <% end %>
             </div>
-          </details>
-        </div>
+
+            <div
+              id="app-layout-dark-toggle"
+              phx-hook="DarkModeToggle"
+              role="group"
+              aria-label="Selecionar tema"
+              class="inline-flex h-10 items-center gap-0.5 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
+            >
+              <button
+                type="button"
+                data-theme-option="light"
+                aria-label="Modo claro"
+                aria-pressed="true"
+                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors dark:text-slate-400"
+              >
+                <.icon name="hero-sun" class="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                data-theme-option="dark"
+                aria-label="Modo escuro"
+                aria-pressed="false"
+                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors dark:text-slate-400"
+              >
+                <.icon name="hero-moon" class="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <details
+              id="navbar-avatar-menu"
+              class="group relative inline-flex h-10 list-none items-center rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
+              phx-hook="AvatarMenu"
+            >
+              <summary
+                class="flex h-8 cursor-pointer list-none items-center justify-center rounded-lg marker:content-none [&::-webkit-details-marker]:hidden hover:bg-slate-100/80 dark:hover:bg-slate-700/50"
+                aria-label={
+                  if(@signed_in?, do: "Menu da conta", else: "Conta — iniciar sessão ou registo")
+                }
+              >
+                <%= if @signed_in? do %>
+                  <%= if src = UserAvatar.image_src(@current_scope.user) do %>
+                    <img
+                      src={src}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      referrerpolicy="no-referrer"
+                      class="h-8 w-8 shrink-0 rounded-lg object-cover ring-1 ring-slate-200/80 dark:ring-slate-600"
+                    />
+                  <% else %>
+                    <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-xs font-bold text-white">
+                      {case @current_scope.user.email do
+                        e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
+                        _ -> "U"
+                      end}
+                    </span>
+                  <% end %>
+                <% else %>
+                  <.icon
+                    name="hero-user-circle"
+                    class="h-8 w-8 shrink-0 text-slate-500 dark:text-slate-400"
+                  />
+                <% end %>
+              </summary>
+
+              <div class="absolute right-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-600 dark:bg-slate-800">
+                <%= if @signed_in? do %>
+                  <.link
+                    navigate={~p"/users/settings"}
+                    class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                  >
+                    Definições
+                  </.link>
+                  <.link
+                    href={~p"/users/log-out"}
+                    method="delete"
+                    class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-900/30"
+                  >
+                    Sair
+                  </.link>
+                <% else %>
+                  <.link
+                    navigate={~p"/users/register"}
+                    class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                  >
+                    Registo
+                  </.link>
+                  <.link
+                    navigate={~p"/users/log-in"}
+                    class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                  >
+                    Iniciar sessão
+                  </.link>
+                <% end %>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
 
@@ -318,43 +325,59 @@ defmodule BarragensptWeb.Layouts do
   defp signed_in?(%{user: %{}}), do: true
   defp signed_in?(_), do: false
 
-  defp dashboard_sidebar_items do
+  defp dashboard_sidebar_items(scope) do
+    is_admin? = !!(scope && scope.is_admin)
+
     [
       %{
         label: "Dados",
         path: ~p"/dashboard/data-points",
         icon: "hero-chart-bar",
         description: "Acesso a séries e exportação",
-        requires_auth: true
+        requires_auth: true,
+        requires_admin: false
       },
       %{
         label: "Relatório",
         path: ~p"/dashboard/storage-report",
         icon: "hero-chart-bar",
         description: "Armazenamento por bacia e barragem",
-        requires_auth: true
+        requires_auth: true,
+        requires_admin: false
       },
       %{
         label: "Alertas",
         path: ~p"/dashboard/alerts",
         icon: "hero-bell-alert",
         description: "Monitorização de risco",
-        requires_auth: true
+        requires_auth: true,
+        requires_admin: false
       },
       %{
         label: "API",
         path: ~p"/dashboard/api-tokens",
         icon: "hero-key",
         description: "Tokens para integrações",
-        requires_auth: true
+        requires_auth: true,
+        requires_admin: false
       },
       %{
         label: "API docs",
         path: ~p"/dashboard/api-docs",
         icon: "hero-book-open",
         description: "Referência OpenAPI (ReDoc)",
-        requires_auth: true
+        requires_auth: true,
+        requires_admin: false
+      },
+      %{
+        label: "Admin",
+        path: ~p"/dashboard/admin",
+        icon: "hero-lock-closed",
+        description: "Visão global de utilização e risco",
+        requires_auth: true,
+        requires_admin: true
       }
     ]
+    |> Enum.filter(fn item -> !item.requires_admin || is_admin? end)
   end
 end

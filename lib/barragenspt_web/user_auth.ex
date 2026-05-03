@@ -240,8 +240,26 @@ defmodule BarragensptWeb.UserAuth do
     else
       socket =
         socket
-        |> Phoenix.LiveView.put_flash(:error, "Tens de voltar a autenticar-te para aceder a esta página.")
+        |> Phoenix.LiveView.put_flash(
+          :error,
+          "Tens de voltar a autenticar-te para aceder a esta página."
+        )
         |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
+
+      {:halt, socket}
+    end
+  end
+
+  def on_mount(:require_admin, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+
+    if socket.assigns.current_scope && socket.assigns.current_scope.is_admin do
+      {:cont, socket}
+    else
+      socket =
+        socket
+        |> Phoenix.LiveView.put_flash(:error, "Acesso reservado a administradores.")
+        |> Phoenix.LiveView.redirect(to: ~p"/dashboard")
 
       {:halt, socket}
     end
@@ -263,7 +281,9 @@ defmodule BarragensptWeb.UserAuth do
     ~p"/dashboard"
   end
 
-  def signed_in_path(%Phoenix.LiveView.Socket{assigns: %{current_scope: %Scope{user: %Accounts.User{}}}}) do
+  def signed_in_path(%Phoenix.LiveView.Socket{
+        assigns: %{current_scope: %Scope{user: %Accounts.User{}}}
+      }) do
     ~p"/dashboard"
   end
 
@@ -284,6 +304,20 @@ defmodule BarragensptWeb.UserAuth do
     end
   end
 
+  @doc """
+  Plug for routes that require admin privileges.
+  """
+  def require_admin_user(conn, _opts) do
+    if get_in(conn.assigns, [:current_scope, :is_admin]) do
+      conn
+    else
+      conn
+      |> put_flash(:error, "Acesso reservado a administradores.")
+      |> redirect(to: ~p"/dashboard")
+      |> halt()
+    end
+  end
+
   defp maybe_store_return_to(%{method: "GET"} = conn) do
     put_session(conn, :user_return_to, current_path(conn))
   end
@@ -296,4 +330,5 @@ defmodule BarragensptWeb.UserAuth do
       _ -> 1440
     end
   end
+
 end
