@@ -1,4 +1,4 @@
-defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
+defmodule BarragensptWeb.Dashboard.NotificationHistoryLive do
   use BarragensptWeb, :live_view
 
   on_mount {BarragensptWeb.UserAuth, :require_authenticated}
@@ -14,14 +14,14 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
           <.header>
             Histórico de disparos
             <:subtitle>
-              {subject_emoji(@alert.subject_type)} {@alert.subject_name} — {condition_summary(@alert)}
+              {subject_emoji(@notification.subject_type)} {@notification.subject_name} — {condition_summary(@notification)}
             </:subtitle>
           </.header>
         </div>
 
         <%= if @events == [] do %>
           <p class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-            Este alerta ainda não disparou.
+            Esta notificação ainda não disparou.
           </p>
         <% else %>
           <div class="max-w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
@@ -44,7 +44,7 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
                       {format_triggered_at(event.triggered_at)}
                     </td>
                     <td class="px-4 py-3 text-right tabular-nums text-slate-700 dark:text-slate-300">
-                      {format_metric_value(@alert.metric, event.value_at_trigger)}
+                      {format_metric_value(@notification.metric, event.value_at_trigger)}
                     </td>
                     <td class="px-4 py-3 text-slate-700 dark:text-slate-300">
                       <div class="inline-flex flex-wrap items-center gap-1.5">
@@ -70,10 +70,10 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
         <% end %>
 
         <.link
-          navigate={~p"/dashboard/alerts"}
+          navigate={~p"/dashboard/notifications"}
           class="inline-flex text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
         >
-          ← Voltar aos alertas
+          ← Voltar às notificações
         </.link>
       </div>
     </Layouts.app>
@@ -84,15 +84,15 @@ defmodule BarragensptWeb.Dashboard.AlertHistoryLive do
   def mount(%{"id" => id}, _session, socket) do
     user_id = socket.assigns.current_scope.user.id
 
-    case Notifications.fetch_alert_with_events(id, user_id) do
-      {:ok, alert, events} ->
-        {:ok, assign(socket, alert: alert, events: events)}
+    case Notifications.fetch_notification_with_events(id, user_id) do
+      {:ok, notification, events} ->
+        {:ok, assign(socket, notification: notification, events: events)}
 
       {:error, :not_found} ->
         {:ok,
          socket
-         |> put_flash(:error, "Alerta não encontrado.")
-         |> push_navigate(to: ~p"/dashboard/alerts")}
+         |> put_flash(:error, "Notificação não encontrada.")
+         |> push_navigate(to: ~p"/dashboard/notifications")}
     end
   end
 

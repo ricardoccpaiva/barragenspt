@@ -39,14 +39,14 @@
               Relatório
             </.link>
             <.link
-              navigate={~p"/dashboard/alerts"}
+              navigate={~p"/dashboard/notifications"}
               class="rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
             >
-              Alertas
+              Notificações
             </.link>
             <.live_component
-              module={BarragensptWeb.EvaluateAlertsShortcutComponent}
-              id="navbar-evaluate-alerts"
+              module={BarragensptWeb.EvaluateNotificationsShortcutComponent}
+              id="navbar-evaluate-notifications"
             />
             <%= if Mix.env() in [:dev, :test] do %>
               <.link

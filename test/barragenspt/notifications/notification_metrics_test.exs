@@ -1,7 +1,7 @@
-defmodule Barragenspt.Notifications.AlertMetricsTest do
+defmodule Barragenspt.Notifications.NotificationMetricsTest do
   use Barragenspt.DataCase, async: false
 
-  alias Barragenspt.Notifications.AlertMetrics
+  alias Barragenspt.Notifications.NotificationMetrics
   alias Barragenspt.Models.Hydrometrics.{Dam, DataPointRealtime}
   alias Barragenspt.Repo
 
@@ -38,7 +38,7 @@ defmodule Barragenspt.Notifications.AlertMetricsTest do
     })
 
     value =
-      AlertMetrics.current_value(%{
+      NotificationMetrics.current_value(%{
         subject_type: "dam",
         subject_id: site_id,
         metric: "realtime_inflow"
@@ -49,7 +49,7 @@ defmodule Barragenspt.Notifications.AlertMetricsTest do
 
   test "returns nil for unsupported subject type" do
     value =
-      AlertMetrics.current_value(%{
+      NotificationMetrics.current_value(%{
         subject_type: "basin",
         subject_id: nil,
         metric: "realtime_inflow"

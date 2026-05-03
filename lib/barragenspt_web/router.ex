@@ -153,10 +153,10 @@ defmodule BarragensptWeb.Router do
       live "/dashboard/storage-report", Dashboard.StorageReportLive, :index
       live "/dashboard/api-tokens", Dashboard.ApiTokensLive, :index
       live "/dashboard/api-docs", Dashboard.ApiDocsLive, :index
-      live "/dashboard/alerts", Dashboard.AlertsLive, :index
-      live "/dashboard/alerts/new", Dashboard.AlertFormLive, :new
-      live "/dashboard/alerts/:id/history", Dashboard.AlertHistoryLive, :show
-      live "/dashboard/alerts/:id/edit", Dashboard.AlertFormLive, :edit
+      live "/dashboard/notifications", Dashboard.NotificationsLive, :index
+      live "/dashboard/notifications/new", Dashboard.NotificationFormLive, :new
+      live "/dashboard/notifications/:id/history", Dashboard.NotificationHistoryLive, :show
+      live "/dashboard/notifications/:id/edit", Dashboard.NotificationFormLive, :edit
 
       if Mix.env() in [:dev, :test] do
         live "/dashboard/test/force-dam-value", Dashboard.TestDataPointsLive, :index

@@ -5,7 +5,7 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
 
   @refresh_ms 30_000
   @windows ["24h", "7d", "30d"]
-  @tabs ["api", "alerts"]
+  @tabs ["api", "notifications"]
 
   on_mount {BarragensptWeb.UserAuth, :require_admin}
 
@@ -23,10 +23,10 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
       |> assign(:usage_chart, %{labels: [], datasets: []})
       |> assign(:top_users, [])
       |> assign(:top_tokens, [])
-     |> assign(:alerts_totals, %{active_alerts: 0, triggered_events: 0, notified_events: 0, users_with_alert_events: 0})
-     |> assign(:alerts_chart, %{labels: [], datasets: []})
-     |> assign(:top_alert_users, [])
-     |> assign(:top_alerts, [])
+     |> assign(:notifications_totals, %{active_alerts: 0, triggered_events: 0, notified_events: 0, users_with_alert_events: 0})
+     |> assign(:notifications_chart, %{labels: [], datasets: []})
+     |> assign(:top_notification_users, [])
+     |> assign(:top_notifications, [])
      |> load_data()}
   end
 
@@ -63,17 +63,17 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
   defp load_data(socket) do
     window = socket.assigns.window
     usage_chart = Admin.api_usage_stacked_chart(window, 8)
-    alerts_chart = Admin.alerts_stacked_chart(window, 8)
+    notifications_chart = Admin.notifications_stacked_chart(window, 8)
 
     socket
     |> assign(:totals, Admin.api_totals(window))
     |> assign(:usage_chart, usage_chart)
     |> assign(:top_users, Admin.api_usage_by_user(window, 8))
     |> assign(:top_tokens, Admin.api_usage_by_token(window, 8))
-    |> assign(:alerts_totals, Admin.alerts_totals(window))
-    |> assign(:alerts_chart, alerts_chart)
-    |> assign(:top_alert_users, Admin.alerts_by_user(window, 8))
-    |> assign(:top_alerts, Admin.alerts_by_alert(window, 8))
+    |> assign(:notifications_totals, Admin.notifications_totals(window))
+    |> assign(:notifications_chart, notifications_chart)
+    |> assign(:top_notification_users, Admin.notifications_by_user(window, 8))
+    |> assign(:top_notifications, Admin.notifications_by_notification(window, 8))
     |> maybe_push_main_chart()
   end
 
@@ -96,7 +96,7 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
   defp normalize_tab(_), do: "api"
 
   defp maybe_push_main_chart(socket) do
-    chart = if socket.assigns.tab == "alerts", do: socket.assigns.alerts_chart, else: socket.assigns.usage_chart
+    chart = if socket.assigns.tab == "notifications", do: socket.assigns.notifications_chart, else: socket.assigns.usage_chart
 
     if connected?(socket) do
       push_event(socket, "admin-product-chart", chart)

@@ -16,7 +16,7 @@ defmodule Barragenspt.Workers.RefreshMaterializedViews do
 
     Barragenspt.Cache.flush()
 
-    _ = Oban.insert(Barragenspt.Workers.EvaluateAlerts.new(%{"id" => job.id}))
+    _ = Oban.insert(Barragenspt.Workers.EvaluateNotifications.new(%{"id" => job.id}))
 
     :ok
   end

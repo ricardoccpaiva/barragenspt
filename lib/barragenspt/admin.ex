@@ -7,7 +7,7 @@ defmodule Barragenspt.Admin do
   alias Barragenspt.Accounts.{User, UserApiToken}
   alias Barragenspt.ApiUsage
   alias Barragenspt.ApiUsage.ApiTokenUsageBucket
-  alias Barragenspt.Notifications.{AlertEvent, UserAlert}
+  alias Barragenspt.Notifications.{NotificationEvent, UserNotification}
   alias Barragenspt.Repo
 
   @spike_threshold 200
@@ -191,65 +191,65 @@ defmodule Barragenspt.Admin do
     %{labels: labels, datasets: datasets}
   end
 
-  def alerts_totals(window) do
+  def notifications_totals(window) do
     since = since_for_window(window)
 
     triggered_events =
-      from(e in AlertEvent, where: e.triggered_at >= ^since)
+      from(e in NotificationEvent, where: e.triggered_at >= ^since)
       |> Repo.aggregate(:count)
 
     notified_events =
-      from(e in AlertEvent, where: e.triggered_at >= ^since and e.notified == true)
+      from(e in NotificationEvent, where: e.triggered_at >= ^since and e.notified == true)
       |> Repo.aggregate(:count)
 
-    users_with_alert_events =
-      from(e in AlertEvent,
-        join: a in UserAlert,
-        on: a.id == e.alert_id,
+    users_with_notification_events =
+      from(e in NotificationEvent,
+        join: a in UserNotification,
+        on: a.id == e.notification_id,
         where: e.triggered_at >= ^since,
         select: a.user_id,
         distinct: true
       )
       |> Repo.aggregate(:count)
 
-    active_alerts =
-      from(a in UserAlert, where: a.active == true)
+    active_notifications =
+      from(a in UserNotification, where: a.active == true)
       |> Repo.aggregate(:count)
 
     %{
-      active_alerts: active_alerts,
+      active_notifications: active_notifications,
       triggered_events: triggered_events,
       notified_events: notified_events,
-      users_with_alert_events: users_with_alert_events
+      users_with_notification_events: users_with_notification_events
     }
   end
 
-  def alerts_stacked_chart(window, alert_limit \\ 8)
+  def notifications_stacked_chart(window, alert_limit \\ 8)
       when is_integer(alert_limit) and alert_limit > 0 do
     since = since_for_window(window)
     bucket = if window == "24h", do: :hour, else: :day
 
     rows =
-      from(e in AlertEvent,
+      from(e in NotificationEvent,
         where: e.triggered_at >= ^since,
-        select: {e.alert_id, e.triggered_at}
+        select: {e.notification_id, e.triggered_at}
       )
       |> Repo.all()
 
     totals =
       rows
-      |> Enum.reduce(%{}, fn {alert_id, _}, acc -> Map.update(acc, alert_id, 1, &(&1 + 1)) end)
+      |> Enum.reduce(%{}, fn {notification_id, _}, acc -> Map.update(acc, notification_id, 1, &(&1 + 1)) end)
       |> Enum.sort_by(fn {_id, n} -> n end, :desc)
       |> Enum.take(alert_limit)
 
-    alert_ids = Enum.map(totals, &elem(&1, 0))
+    notification_ids = Enum.map(totals, &elem(&1, 0))
 
     grouped =
       rows
-      |> Enum.reduce(%{}, fn {alert_id, triggered_at}, acc ->
-        if alert_id in alert_ids do
+      |> Enum.reduce(%{}, fn {notification_id, triggered_at}, acc ->
+        if notification_id in notification_ids do
           b = truncate_bucket(triggered_at, bucket)
-          Map.update(acc, {alert_id, b}, 1, &(&1 + 1))
+          Map.update(acc, {notification_id, b}, 1, &(&1 + 1))
         else
           acc
         end
@@ -263,8 +263,8 @@ defmodule Barragenspt.Admin do
       |> Enum.sort_by(&DateTime.to_unix(&1, :second))
 
     alert_labels =
-      from(a in UserAlert,
-        where: a.id in ^alert_ids,
+      from(a in UserNotification,
+        where: a.id in ^notification_ids,
         select: {a.id, a.subject_name}
       )
       |> Repo.all()
@@ -278,12 +278,12 @@ defmodule Barragenspt.Admin do
       end)
 
     datasets =
-      alert_ids
+      notification_ids
       |> Enum.with_index()
-      |> Enum.map(fn {alert_id, i} ->
+      |> Enum.map(fn {notification_id, i} ->
         %{
-          label: alert_chart_label(alert_id, alert_labels),
-          data: Enum.map(buckets, fn b -> Map.get(grouped, {alert_id, b}, 0) end),
+          label: notification_chart_label(notification_id, alert_labels),
+          data: Enum.map(buckets, fn b -> Map.get(grouped, {notification_id, b}, 0) end),
           backgroundColor: Enum.at(@stack_colors, rem(i, length(@stack_colors)))
         }
       end)
@@ -291,34 +291,34 @@ defmodule Barragenspt.Admin do
     %{labels: labels, datasets: datasets}
   end
 
-  def alerts_by_user(window, limit \\ 8) when is_integer(limit) and limit > 0 do
+  def notifications_by_user(window, limit \\ 8) when is_integer(limit) and limit > 0 do
     since = since_for_window(window)
 
-    from(e in AlertEvent,
-      join: a in UserAlert,
-      on: a.id == e.alert_id,
+    from(e in NotificationEvent,
+      join: a in UserNotification,
+      on: a.id == e.notification_id,
       join: u in User,
       on: u.id == a.user_id,
       where: e.triggered_at >= ^since,
       group_by: [u.id, u.email],
-      order_by: [desc: count(e.alert_id)],
+      order_by: [desc: count(e.notification_id)],
       limit: ^limit,
-      select: %{user_id: u.id, email: u.email, event_count: count(e.alert_id)}
+      select: %{user_id: u.id, email: u.email, event_count: count(e.notification_id)}
     )
     |> Repo.all()
   end
 
-  def alerts_by_alert(window, limit \\ 8) when is_integer(limit) and limit > 0 do
+  def notifications_by_notification(window, limit \\ 8) when is_integer(limit) and limit > 0 do
     since = since_for_window(window)
 
-    from(e in AlertEvent,
-      join: a in UserAlert,
-      on: a.id == e.alert_id,
+    from(e in NotificationEvent,
+      join: a in UserNotification,
+      on: a.id == e.notification_id,
       where: e.triggered_at >= ^since,
-      group_by: [e.alert_id, a.subject_name],
-      order_by: [desc: count(e.alert_id)],
+      group_by: [e.notification_id, a.subject_name],
+      order_by: [desc: count(e.notification_id)],
       limit: ^limit,
-      select: %{alert_id: e.alert_id, subject_name: a.subject_name, event_count: count(e.alert_id)}
+      select: %{notification_id: e.notification_id, subject_name: a.subject_name, event_count: count(e.notification_id)}
     )
     |> Repo.all()
   end
@@ -401,9 +401,9 @@ defmodule Barragenspt.Admin do
     "##{tid} (#{prefix}…)"
   end
 
-  defp alert_chart_label(alert_id, labels) do
-    subject = Map.get(labels, alert_id, "alerta")
-    "##{alert_id} (#{subject})"
+  defp notification_chart_label(notification_id, labels) do
+    subject = Map.get(labels, notification_id, "notificação")
+    "##{notification_id} (#{subject})"
   end
 
   defp truncate_bucket(%DateTime{} = dt, :hour) do

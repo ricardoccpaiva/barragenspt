@@ -1,69 +1,76 @@
 defmodule Barragenspt.Notifications do
   @moduledoc """
-  User-configured storage alerts and trigger history.
+  User-configured notifications and trigger history.
   """
   import Ecto.Query
 
   alias Barragenspt.Repo
-  alias Barragenspt.Notifications.{UserAlert, AlertEvent, AlertMetrics}
+  alias Barragenspt.Notifications.{UserNotification, NotificationEvent, NotificationMetrics}
 
-  def list_alerts_with_stats(user_id) do
-    alerts =
+  def list_notifications_with_stats(user_id) do
+    notifications =
       Repo.all(
-        from(a in UserAlert,
-          where: a.user_id == ^user_id,
-          order_by: [desc: a.inserted_at]
+        from(n in UserNotification,
+          where: n.user_id == ^user_id,
+          order_by: [desc: n.inserted_at]
         )
       )
 
-    Enum.map(alerts, fn alert ->
+    Enum.map(notifications, fn notification ->
       triggered_count =
-        Repo.aggregate(from(e in AlertEvent, where: e.alert_id == ^alert.id), :count)
+        Repo.aggregate(
+          from(e in NotificationEvent, where: e.notification_id == ^notification.id),
+          :count
+        )
 
       last_triggered_at =
         Repo.one(
-          from(e in AlertEvent,
-            where: e.alert_id == ^alert.id,
+          from(e in NotificationEvent,
+            where: e.notification_id == ^notification.id,
             select: max(e.triggered_at)
           )
         )
 
-      %{alert: alert, triggered_count: triggered_count, last_triggered_at: last_triggered_at}
+      %{
+        notification: notification,
+        triggered_count: triggered_count,
+        last_triggered_at: last_triggered_at
+      }
     end)
   end
 
-  def get_alert!(id, user_id) do
-    Repo.one!(from(a in UserAlert, where: a.id == ^id and a.user_id == ^user_id))
+  def get_notification!(id, user_id) do
+    Repo.one!(from(n in UserNotification, where: n.id == ^id and n.user_id == ^user_id))
   end
 
   @doc """
-  Loads an alert and its trigger events (newest first). Returns `{:error, :not_found}` if the alert
+  Loads a notification and its trigger events (newest first). Returns `{:error, :not_found}` if the notification
   does not belong to the user.
   """
-  def fetch_alert_with_events(id, user_id) do
-    with {:ok, alert} <- get_alert(id, user_id) do
+  def fetch_notification_with_events(id, user_id) do
+    with {:ok, notification} <- get_notification(id, user_id) do
       events =
         Repo.all(
-          from(e in AlertEvent,
-            where: e.alert_id == ^alert.id,
+          from(e in NotificationEvent,
+            where: e.notification_id == ^notification.id,
             order_by: [desc: e.triggered_at]
           )
         )
 
-      {:ok, alert, events}
+      {:ok, notification, events}
     end
   end
 
   @doc """
-  Fetches a single alert for the user, or `{:error, :not_found}`.
+  Fetches a single notification for the user, or `{:error, :not_found}`.
   `id` may be a string (from URL params) or integer.
   """
-  def get_alert(id, user_id) do
-    case parse_alert_id(id) do
+  def get_notification(id, user_id) do
+    case parse_notification_id(id) do
       {:ok, int_id} ->
-        case Repo.get_by(UserAlert, id: int_id, user_id: user_id) do
+        case Repo.get_by(UserNotification, id: int_id, user_id: user_id) do
           nil -> {:error, :not_found}
-          %UserAlert{} = alert -> {:ok, alert}
+          %UserNotification{} = notification -> {:ok, notification}
         end
 
       :error ->
@@ -71,84 +78,86 @@ defmodule Barragenspt.Notifications do
     end
   end
 
-  defp parse_alert_id(id) when is_integer(id), do: {:ok, id}
+  defp parse_notification_id(id) when is_integer(id), do: {:ok, id}
 
-  defp parse_alert_id(id) when is_binary(id) do
+  defp parse_notification_id(id) when is_binary(id) do
     case Integer.parse(String.trim(id)) do
       {int, _} -> {:ok, int}
       :error -> :error
     end
   end
 
-  defp parse_alert_id(_), do: :error
+  defp parse_notification_id(_), do: :error
 
   @doc """
-  Updates alert fields (subject, condition, notifications). Scoped by user.
+  Updates notification fields (subject, condition, notifications). Scoped by user.
   """
-  def update_alert(id, user_id, attrs) do
-    with {:ok, alert} <- get_alert(id, user_id) do
+  def update_notification(id, user_id, attrs) do
+    with {:ok, notification} <- get_notification(id, user_id) do
       attrs = Map.put(attrs, :user_id, user_id)
 
-      alert
-      |> UserAlert.changeset(attrs)
+      notification
+      |> UserNotification.changeset(attrs)
       |> Repo.update()
     end
   end
 
-  def create_alert(attrs) do
-    %UserAlert{}
-    |> UserAlert.changeset(attrs)
+  def create_notification(attrs) do
+    %UserNotification{}
+    |> UserNotification.changeset(attrs)
     |> Repo.insert()
   end
 
-  def delete_alert(id, user_id) do
-    case Repo.one(from(a in UserAlert, where: a.id == ^id and a.user_id == ^user_id)) do
+  def delete_notification(id, user_id) do
+    case Repo.one(from(n in UserNotification, where: n.id == ^id and n.user_id == ^user_id)) do
       nil -> {:error, :not_found}
-      alert -> Repo.delete(alert)
+      notification -> Repo.delete(notification)
     end
   end
 
-  def toggle_active(id, user_id) do
-    case Repo.one(from(a in UserAlert, where: a.id == ^id and a.user_id == ^user_id)) do
+  def toggle_notification_active(id, user_id) do
+    case Repo.one(from(n in UserNotification, where: n.id == ^id and n.user_id == ^user_id)) do
       nil ->
         {:error, :not_found}
 
-      alert ->
-        alert
-        |> UserAlert.update_changeset(%{active: !alert.active})
+      notification ->
+        notification
+        |> UserNotification.update_changeset(%{active: !notification.active})
         |> Repo.update()
     end
   end
 
-  def update_after_notification(alert, attrs) do
-    alert
-    |> UserAlert.update_changeset(attrs)
+  def update_after_notification(notification, attrs) do
+    notification
+    |> UserNotification.update_changeset(attrs)
     |> Repo.update()
   end
 
-  def create_event!(attrs) do
-    %AlertEvent{}
-    |> AlertEvent.changeset(attrs)
+  def create_notification_event!(attrs) do
+    %NotificationEvent{}
+    |> NotificationEvent.changeset(attrs)
     |> Repo.insert!()
   end
 
   @doc """
   When condition is no longer met, clear episodic notification state so the next breach can notify.
   """
-  def clear_breach_state_if_needed(alert, condition_met?) do
-    if !condition_met? && alert.repeat_mode == "once_per_event" && alert.breach_notification_sent do
-      update_after_notification(alert, %{breach_notification_sent: false})
+  def clear_breach_state_if_needed(notification, condition_met?) do
+    if !condition_met? && notification.repeat_mode == "once_per_event" &&
+         notification.breach_notification_sent do
+      update_after_notification(notification, %{breach_notification_sent: false})
     else
-      {:ok, alert}
+      {:ok, notification}
     end
   end
 
-  def compute_status(alert) do
-    value = AlertMetrics.current_value(alert)
-    met? = AlertMetrics.condition_met_for_alert(alert)
+  def compute_status(notification) do
+    value = NotificationMetrics.current_value(notification)
+    met? = NotificationMetrics.condition_met_for_alert(notification)
     {met?, value}
   end
 
-  defdelegate current_value(alert), to: AlertMetrics
-  defdelegate condition_met?(v, op, t), to: AlertMetrics
+  defdelegate current_value(notification), to: NotificationMetrics
+  defdelegate condition_met?(v, op, t), to: NotificationMetrics
+
 end

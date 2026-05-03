@@ -4,7 +4,7 @@
       <div>
         <h1 class="text-xl font-semibold text-slate-900 dark:text-slate-100">Admin Insights</h1>
         <p class="text-sm text-slate-500 dark:text-slate-400">
-          Monitorização operacional de API e Alertas.
+          Monitorização operacional de API e Notificações.
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
@@ -54,19 +54,19 @@
       </div>
     <% else %>
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <.kpi title={"Alert events #{@window}"} value={fmt_int(@alerts_totals.triggered_events)} />
-        <.kpi title={"Notified events #{@window}"} value={fmt_int(@alerts_totals.notified_events)} />
-        <.kpi title="Active alerts" value={fmt_int(@alerts_totals.active_alerts)} />
-        <.kpi title="Users with alert events" value={fmt_int(@alerts_totals.users_with_alert_events)} />
+        <.kpi title={"Notification events #{@window}"} value={fmt_int(@notifications_totals.triggered_events)} />
+        <.kpi title={"Notified events #{@window}"} value={fmt_int(@notifications_totals.notified_events)} />
+        <.kpi title="Active notifications" value={fmt_int(@notifications_totals.active_alerts)} />
+        <.kpi title="Users with notification events" value={fmt_int(@notifications_totals.users_with_alert_events)} />
       </div>
     <% end %>
 
     <div class="grid gap-4 xl:grid-cols-12">
       <section class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800/50 xl:col-span-8">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          <%= if @tab == "api", do: "API requests over time", else: "Alert events over time" %>
+          <%= if @tab == "api", do: "API requests over time", else: "Notification events over time" %>
         </h2>
-        <%= if (@tab == "api" && (@usage_chart.labels == [] || @usage_chart.datasets == [])) || (@tab == "alerts" && (@alerts_chart.labels == [] || @alerts_chart.datasets == [])) do %>
+        <%= if (@tab == "api" && (@usage_chart.labels == [] || @usage_chart.datasets == [])) || (@tab == "notifications" && (@notifications_chart.labels == [] || @notifications_chart.datasets == [])) do %>
           <p class="mt-6 text-sm text-slate-500 dark:text-slate-400">Sem dados para o período.</p>
         <% else %>
           <div id="admin-product-chart" phx-hook="AdminProductChart" class="mt-3 h-56 w-full">
@@ -83,7 +83,7 @@
           <%= if @tab == "api" do %>
             Top users e top tokens ajudam a identificar concentração de tráfego.
           <% else %>
-            Top users e top alertas ajudam a identificar concentração de disparos.
+            Top users e top notificações ajudam a identificar concentração de disparos.
           <% end %>
         </p>
       </section>
@@ -141,20 +141,20 @@
       <div class="grid gap-4 xl:grid-cols-12">
         <section class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800/50 xl:col-span-6">
           <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Top users by alert events
+            Top users by notification events
           </h2>
           <div class="mt-3 space-y-2 text-sm">
-            <%= if @top_alert_users == [] do %>
+            <%= if @top_notification_users == [] do %>
               <p class="text-slate-500 dark:text-slate-400">Sem atividade.</p>
             <% else %>
-              <%= for u <- @top_alert_users do %>
+              <%= for u <- @top_notification_users do %>
                 <div>
                   <div class="mb-1 flex justify-between">
                     <span class="truncate pr-3 text-slate-600 dark:text-slate-300">{u.email}</span>
                     <span class="font-semibold text-slate-900 dark:text-slate-100">{fmt_int(u.event_count)}</span>
                   </div>
                   <div class="h-2 rounded bg-slate-200 dark:bg-slate-700">
-                    <div class="h-2 rounded bg-brand-500" style={"width: #{top_pct(u.event_count, @top_alert_users, :event_count)}%"}></div>
+                    <div class="h-2 rounded bg-brand-500" style={"width: #{top_pct(u.event_count, @top_notification_users, :event_count)}%"}></div>
                   </div>
                 </div>
               <% end %>
@@ -164,20 +164,20 @@
 
         <section class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800/50 xl:col-span-6">
           <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Top alerts by events
+            Top notifications by events
           </h2>
           <div class="mt-3 space-y-2 text-sm">
-            <%= if @top_alerts == [] do %>
+            <%= if @top_notifications == [] do %>
               <p class="text-slate-500 dark:text-slate-400">Sem atividade.</p>
             <% else %>
-              <%= for a <- @top_alerts do %>
+              <%= for a <- @top_notifications do %>
                 <div>
                   <div class="mb-1 flex justify-between">
-                    <span class="truncate pr-3 text-slate-600 dark:text-slate-300">{"#{a.subject_name} (##{a.alert_id})"}</span>
+                    <span class="truncate pr-3 text-slate-600 dark:text-slate-300">{"#{a.subject_name} (##{a.notification_id})"}</span>
                     <span class="font-semibold text-slate-900 dark:text-slate-100">{fmt_int(a.event_count)}</span>
                   </div>
                   <div class="h-2 rounded bg-slate-200 dark:bg-slate-700">
-                    <div class="h-2 rounded bg-sky-500" style={"width: #{top_pct(a.event_count, @top_alerts, :event_count)}%"}></div>
+                    <div class="h-2 rounded bg-sky-500" style={"width: #{top_pct(a.event_count, @top_notifications, :event_count)}%"}></div>
                   </div>
                 </div>
               <% end %>

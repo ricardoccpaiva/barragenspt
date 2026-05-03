@@ -1,16 +1,16 @@
-defmodule Barragenspt.Notifications.AlertMetrics do
+defmodule Barragenspt.Notifications.NotificationMetrics do
   @moduledoc """
-  Resolves current metric values for `UserAlert` configurations.
+  Resolves current metric values for `UserNotification` configurations.
   """
   import Ecto.Query
 
   alias Barragenspt.Hydrometrics.Dams
   alias Barragenspt.Models.Infoagua.Alert, as: InfoaguaAlert
-  alias Barragenspt.Notifications.UserAlert
+  alias Barragenspt.Notifications.UserNotification
   alias Barragenspt.Repo
 
   @doc "Returns the current numeric value for the alert's metric, or nil if unavailable."
-  def current_value(%UserAlert{} = a) do
+  def current_value(%UserNotification{} = a) do
     current_value(%{subject_type: a.subject_type, subject_id: a.subject_id, metric: a.metric})
   end
 
@@ -27,7 +27,7 @@ defmodule Barragenspt.Notifications.AlertMetrics do
   def condition_met?(_, _, _), do: false
 
   @doc "Metric-aware condition evaluation."
-  def condition_met_for_alert(%UserAlert{metric: "infoagua_alert_level", subject_id: subject_id}) do
+  def condition_met_for_alert(%UserNotification{metric: "infoagua_alert_level", subject_id: subject_id}) do
     subject_id
     |> latest_infoagua_alert()
     |> case do
@@ -36,7 +36,7 @@ defmodule Barragenspt.Notifications.AlertMetrics do
     end
   end
 
-  def condition_met_for_alert(%UserAlert{} = alert) do
+  def condition_met_for_alert(%UserNotification{} = alert) do
     value = current_value(alert)
     condition_met?(value, alert.operator, alert.threshold)
   end

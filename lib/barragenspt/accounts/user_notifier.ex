@@ -3,7 +3,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
 
   alias Barragenspt.Mailer
   alias Barragenspt.Accounts.User
-  alias Barragenspt.Notifications.UserAlert
+  alias Barragenspt.Notifications.UserNotification
   alias Barragenspt.Notifications.TelegramClient
   alias Resend.Emails.Email
 
@@ -88,10 +88,10 @@ defmodule Barragenspt.Accounts.UserNotifier do
   @doc """
   Email when a user alert condition is met (storage / change thresholds).
   """
-  def deliver_alert_triggered(%User{} = user, %UserAlert{} = alert, value)
+  def deliver_alert_triggered(%User{} = user, %UserNotification{} = alert, value)
       when is_number(value) do
     base = BarragensptWeb.Endpoint.url()
-    path = "#{base}/dashboard/alerts"
+    path = "#{base}/dashboard/notifications"
     subject = "Alerta: #{alert.subject_name} — #{format_alert_label(alert)}"
     value_str = format_value_for_email(alert.metric, value)
     condition = if alert.metric == "infoagua_alert_level", do: nil, else: describe_condition(alert)
@@ -119,14 +119,14 @@ defmodule Barragenspt.Accounts.UserNotifier do
   @doc """
   Telegram message when a user alert condition is met.
   """
-  def deliver_alert_triggered_telegram(%User{} = user, %UserAlert{} = alert, value)
+  def deliver_alert_triggered_telegram(%User{} = user, %UserNotification{} = alert, value)
       when is_number(value) do
     with true <- user.telegram_enabled || {:error, :telegram_disabled},
          chat_id when is_binary(chat_id) <- user.telegram_chat_id,
          chat_id when chat_id != "" <- String.trim(chat_id),
          :ok <- validate_telegram_chat_id(chat_id) do
       base = BarragensptWeb.Endpoint.url()
-      path = "#{base}/dashboard/alerts"
+      path = "#{base}/dashboard/notifications"
       value_str = format_value_for_email(alert.metric, value)
 
       condition_line =
@@ -200,7 +200,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
 
   defp escape_html(v), do: v |> to_string() |> escape_html()
 
-  defp describe_condition(%UserAlert{} = a) do
+  defp describe_condition(%UserNotification{} = a) do
     if a.metric == "infoagua_alert_level" do
       "Condição: InfoÁgua em Situação de alerta ou Situação de risco."
     else
@@ -279,7 +279,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
     to_string(Float.round(value * 1.0, 2))
   end
 
-  defp format_alert_label(%UserAlert{metric: m, operator: op, threshold: t}) do
+  defp format_alert_label(%UserNotification{metric: m, operator: op, threshold: t}) do
     if m == "infoagua_alert_level" do
       "InfoÁgua: Situação de alerta/risco"
     else

@@ -1,4 +1,4 @@
-defmodule Barragenspt.Notifications.UserAlert do
+defmodule Barragenspt.Notifications.UserNotification do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -18,7 +18,7 @@ defmodule Barragenspt.Notifications.UserAlert do
   @operators ~w(lt gt)
   @repeat_modes_base ~w(once_per_event cooldown)
 
-  schema "user_alerts" do
+  schema "user_notifications" do
     field :subject_type, :string
     field :subject_id, :string
     field :subject_name, :string
@@ -33,7 +33,7 @@ defmodule Barragenspt.Notifications.UserAlert do
 
     belongs_to :user, User
 
-    has_many :alert_events, Barragenspt.Notifications.AlertEvent, foreign_key: :alert_id
+    has_many :notification_events, Barragenspt.Notifications.NotificationEvent, foreign_key: :notification_id
 
     timestamps()
   end
@@ -94,16 +94,16 @@ defmodule Barragenspt.Notifications.UserAlert do
 
     cond do
       metric in @realtime_metrics and subject_type != "dam" ->
-        add_error(changeset, :metric, "is only available for dam alerts")
+        add_error(changeset, :metric, "is only available for dam notifications")
 
       metric in @daily_flow_metrics and subject_type != "dam" ->
-        add_error(changeset, :metric, "is only available for dam alerts")
+        add_error(changeset, :metric, "is only available for dam notifications")
 
       metric in ["storage_pct", "month_change_pct", "year_change_pct"] and subject_type != "dam" ->
-        add_error(changeset, :metric, "is only available for dam alerts")
+        add_error(changeset, :metric, "is only available for dam notifications")
 
       metric in @basin_metrics and subject_type != "basin" ->
-        add_error(changeset, :metric, "is only available for basin alerts")
+        add_error(changeset, :metric, "is only available for basin notifications")
 
       true ->
         changeset

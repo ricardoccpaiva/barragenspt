@@ -10,7 +10,7 @@
             List.first()}</span>.
       </h1>
       <p class="mt-3 max-w-xl text-base text-slate-500 dark:text-slate-400">
-        Analisa dados hidrométricos, gera relatórios e monitoriza albufeiras portuguesas com alertas personalizados.
+        Analisa dados hidrométricos, gera relatórios e monitoriza albufeiras portuguesas com notificações personalizados.
       </p>
     </div>
   <% else %>
@@ -23,7 +23,7 @@
           O teu centro de análise hidrométrica
         </h1>
         <p class="mt-3 max-w-xl text-base text-slate-500 dark:text-slate-400">
-          Analisa dados hidrométricos, gera relatórios e monitoriza albufeiras portuguesas com alertas
+          Analisa dados hidrométricos, gera relatórios e monitoriza albufeiras portuguesas com notificações
           personalizados.
         </p>
       </div>
@@ -32,7 +32,7 @@
           Conta gratuita · Google ou e-mail
         </p>
         <p class="mt-1.5 text-xs leading-snug text-slate-600 dark:text-slate-400">
-          Inicia sessão para dados, relatórios IA e alertas.
+          Inicia sessão para dados, relatórios IA e notificações.
         </p>
         <div class="mt-3 flex flex-col gap-2">
           <.link
@@ -96,9 +96,9 @@
       </div>
     </.link>
 
-    <%!-- Alertas --%>
+    <%!-- Notificações --%>
     <.link
-      {dashboard_link_attrs(@current_scope, ~p"/dashboard/alerts")}
+      {dashboard_link_attrs(@current_scope, ~p"/dashboard/notifications")}
       class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:border-amber-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-amber-600/60"
     >
       <div class="flex flex-1 items-start gap-4 p-6">
@@ -106,7 +106,7 @@
           <.icon name="hero-bell-alert" class="size-5" />
         </span>
         <div class="min-w-0">
-          <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Alertas</p>
+          <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Notificações</p>
           <p class="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
             Define limiares por albufeira e recebe notificações quando os valores de armazenamento ou
             caudal cruzam os teus critérios.

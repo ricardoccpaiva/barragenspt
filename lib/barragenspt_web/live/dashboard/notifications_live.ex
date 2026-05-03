@@ -1,4 +1,4 @@
-defmodule BarragensptWeb.Dashboard.AlertsLive do
+defmodule BarragensptWeb.Dashboard.NotificationsLive do
   use BarragensptWeb, :live_view
 
   on_mount {BarragensptWeb.UserAuth, :require_authenticated}
@@ -12,21 +12,21 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
       <div class="space-y-8">
         <div class="flex flex-wrap items-start justify-between gap-4 sm:items-center sm:gap-6">
           <.link
-            navigate={~p"/dashboard/alerts/new"}
+            navigate={~p"/dashboard/notifications/new"}
             class="inline-flex rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
-            Criar alerta
+            Criar notificação
           </.link>
         </div>
 
         <%= if @rows == [] do %>
           <p class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
-            Ainda não tem alertas.
+            Ainda não tem notificações.
             <.link
-              navigate={~p"/dashboard/alerts/new"}
+              navigate={~p"/dashboard/notifications/new"}
               class="font-semibold text-brand-600 dark:text-brand-400"
             >
-              Criar o primeiro
+              Criar a primeira
             </.link>
           </p>
         <% else %>
@@ -58,22 +58,22 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                 <%= for row <- @rows do %>
                   <tr class={[
                     "border-b border-slate-100/90 transition-colors duration-200 last:border-b-0 dark:border-slate-800/70",
-                    !row.alert.active && "opacity-60"
+                    !row.notification.active && "opacity-60"
                   ]}>
                     <td class="px-4 py-2 align-middle text-[13px] text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
                       <span class="font-medium text-slate-900 dark:text-slate-100">
-                        {subject_emoji(row.alert.subject_type)} {row.alert.subject_name}
+                        {subject_emoji(row.notification.subject_type)} {row.notification.subject_name}
                       </span>
                     </td>
                     <td class="px-4 py-2 align-middle text-[13px] text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
-                      {condition_row(row.alert)}
+                      {condition_row(row.notification)}
                     </td>
                     <td class="px-4 py-2 align-middle text-[13px] first:pl-5 last:pr-5">
                       <.status_badge row={row} />
                     </td>
                     <td class="px-4 py-2 align-middle text-left text-[13px] tabular-nums text-slate-700 first:pl-5 last:pr-5 dark:text-slate-300">
                       <.link
-                        navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
+                        navigate={~p"/dashboard/notifications/#{row.notification.id}/history"}
                         class="font-medium text-brand-600 hover:underline dark:text-brand-400"
                         title="Ver histórico de disparos"
                       >
@@ -86,7 +86,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                     <td class="px-4 py-2 align-middle text-left text-[13px] first:pl-5 last:pr-5">
                       <div class="inline-flex items-center justify-start gap-0.5">
                         <.link
-                          navigate={~p"/dashboard/alerts/#{row.alert.id}/history"}
+                          navigate={~p"/dashboard/notifications/#{row.notification.id}/history"}
                           class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
                           aria-label="Histórico de disparos"
                           title="Histórico de disparos"
@@ -94,9 +94,9 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                           <.icon name="hero-clock" class="size-5" />
                         </.link>
                         <.link
-                          navigate={~p"/dashboard/alerts/#{row.alert.id}/edit"}
+                          navigate={~p"/dashboard/notifications/#{row.notification.id}/edit"}
                           class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
-                          aria-label="Editar alerta"
+                          aria-label="Editar notificação"
                           title="Editar"
                         >
                           <.icon name="hero-pencil-square" class="size-5" />
@@ -104,14 +104,14 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                         <button
                           type="button"
                           phx-click="toggle"
-                          phx-value-id={row.alert.id}
+                          phx-value-id={row.notification.id}
                           class="inline-flex rounded-lg p-1.5 text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:text-brand-400 dark:hover:bg-brand-900/30"
                           aria-label={
-                            if row.alert.active, do: "Pausar alerta", else: "Retomar alerta"
+                            if row.notification.active, do: "Pausar notificação", else: "Retomar notificação"
                           }
-                          title={if row.alert.active, do: "Pausar", else: "Retomar"}
+                          title={if row.notification.active, do: "Pausar", else: "Retomar"}
                         >
-                          <%= if row.alert.active do %>
+                          <%= if row.notification.active do %>
                             <.icon name="hero-pause" class="size-5" />
                           <% else %>
                             <.icon name="hero-play" class="size-5" />
@@ -120,10 +120,10 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
                         <button
                           type="button"
                           phx-click="delete"
-                          phx-value-id={row.alert.id}
-                          data-confirm="Remover este alerta?"
+                          phx-value-id={row.notification.id}
+                          data-confirm="Remover esta notificação?"
                           class="inline-flex rounded-lg p-1.5 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-red-400 dark:hover:bg-red-900/25"
-                          aria-label="Eliminar alerta"
+                          aria-label="Eliminar notificação"
                           title="Eliminar"
                         >
                           <.icon name="hero-trash" class="size-5" />
@@ -145,12 +145,12 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   def handle_event("toggle", %{"id" => id}, socket) do
     user_id = socket.assigns.current_scope.user.id
 
-    case Notifications.toggle_active(id, user_id) do
+    case Notifications.toggle_notification_active(id, user_id) do
       {:ok, _} ->
         {:noreply, assign(socket, rows: load_rows(user_id))}
 
       _ ->
-        {:noreply, put_flash(socket, :error, "Não foi possível atualizar o alerta.")}
+        {:noreply, put_flash(socket, :error, "Não foi possível atualizar a notificação.")}
     end
   end
 
@@ -158,15 +158,15 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   def handle_event("delete", %{"id" => id}, socket) do
     user_id = socket.assigns.current_scope.user.id
 
-    case Notifications.delete_alert(id, user_id) do
+    case Notifications.delete_notification(id, user_id) do
       {:ok, _} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Alerta removido.")
+         |> put_flash(:info, "Notificação removida.")
          |> assign(rows: load_rows(user_id))}
 
       _ ->
-        {:noreply, put_flash(socket, :error, "Não foi possível remover o alerta.")}
+        {:noreply, put_flash(socket, :error, "Não foi possível remover a notificação.")}
     end
   end
 
@@ -178,9 +178,9 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   end
 
   defp load_rows(user_id) do
-    Notifications.list_alerts_with_stats(user_id)
-    |> Enum.map(fn %{alert: a, triggered_count: c, last_triggered_at: t} ->
-      %{alert: a, triggered_count: c, triggered_at: t}
+    Notifications.list_notifications_with_stats(user_id)
+    |> Enum.map(fn %{notification: n, triggered_count: c, last_triggered_at: t} ->
+      %{notification: n, triggered_count: c, triggered_at: t}
     end)
   end
 
@@ -248,7 +248,7 @@ defmodule BarragensptWeb.Dashboard.AlertsLive do
   attr :row, :map, required: true
 
   def status_badge(assigns) do
-    assigns = assign(assigns, :paused?, !assigns.row.alert.active)
+    assigns = assign(assigns, :paused?, !assigns.row.notification.active)
 
     ~H"""
     <%= if @paused? do %>

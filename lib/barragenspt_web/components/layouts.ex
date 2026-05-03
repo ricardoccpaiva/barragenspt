@@ -93,8 +93,8 @@ defmodule BarragensptWeb.Layouts do
                 <% end %>
               </div>
               <.live_component
-                module={BarragensptWeb.EvaluateAlertsShortcutComponent}
-                id="dashboard-evaluate-alerts-top"
+                module={BarragensptWeb.EvaluateNotificationsShortcutComponent}
+                id="dashboard-evaluate-notifications-top"
               />
             </div>
           <% end %>
@@ -346,8 +346,8 @@ defmodule BarragensptWeb.Layouts do
         requires_admin: false
       },
       %{
-        label: "Alertas",
-        path: ~p"/dashboard/alerts",
+        label: "Notificações",
+        path: ~p"/dashboard/notifications",
         icon: "hero-bell-alert",
         description: "Monitorização de risco",
         requires_auth: true,

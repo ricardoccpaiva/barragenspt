@@ -1,4 +1,4 @@
-defmodule BarragensptWeb.Dashboard.AlertFormLive do
+defmodule BarragensptWeb.Dashboard.NotificationFormLive do
   use BarragensptWeb, :live_view
 
   on_mount {BarragensptWeb.UserAuth, :require_authenticated}
@@ -6,7 +6,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   alias Barragenspt.Hydrometrics.Basins
   alias Barragenspt.Hydrometrics.Dams
   alias Barragenspt.Notifications
-  alias Barragenspt.Notifications.AlertMetrics
+  alias Barragenspt.Notifications.NotificationMetrics
 
   @max_step 4
 
@@ -17,7 +17,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       <div class="mx-auto max-w-5xl px-4 pb-4 pt-0 sm:px-6 sm:pb-6 sm:pt-1">
         <div class="-mt-4 mb-3 sm:-mt-6 sm:mb-4">
           <h1 class="text-lg font-semibold leading-8 text-slate-900 dark:text-slate-100">
-            {if @editing_alert_id, do: "Editar alerta", else: "Criar alerta"}
+            {if @editing_notification_id, do: "Editar notificação", else: "Criar notificação"}
           </h1>
         </div>
 
@@ -64,7 +64,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
           <%= if @step == 1 do %>
             <section class="space-y-4">
               <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                Primeiro, escolha o tipo de alerta
+                Primeiro, escolha o tipo de notificação
               </h2>
               <p class="text-sm text-slate-600 dark:text-slate-300">
                 Depois de escolher o tipo, seleciona o alvo correspondente.
@@ -166,7 +166,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
               </p>
 
               <p :if={is_nil(@subject_type)} class="text-sm text-amber-700 dark:text-amber-300">
-                Escolha o tipo de alerta para continuar.
+                Escolha o tipo de notificação para continuar.
               </p>
 
               <p
@@ -271,7 +271,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
                 Configure notificações
               </h2>
               <p class="text-sm text-slate-600 dark:text-slate-300">
-                O alerta envia e-mail para a sua conta: <strong>{@current_scope.user.email}</strong>
+                A notificação envia e-mail para a sua conta: <strong>{@current_scope.user.email}</strong>
               </p>
 
               <div class="space-y-2">
@@ -396,7 +396,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
         <div class="sticky bottom-0 mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white/95 p-3 backdrop-blur dark:border-slate-600 dark:bg-slate-900/95">
           <.link
-            navigate={~p"/dashboard/alerts"}
+            navigate={~p"/dashboard/notifications"}
             class="mr-auto text-sm font-semibold text-slate-600 underline decoration-slate-300 decoration-1 underline-offset-2 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
           >
             Cancelar
@@ -427,7 +427,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
             phx-click="save"
             class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700"
           >
-            {if @editing_alert_id, do: "Guardar alterações", else: "Guardar alerta"}
+            {if @editing_notification_id, do: "Guardar alterações", else: "Guardar notificação"}
           </button>
         </div>
       </div>
@@ -471,19 +471,19 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
         :edit ->
           user_id = socket.assigns.current_scope.user.id
 
-          case Notifications.get_alert(params["id"], user_id) do
+          case Notifications.get_notification(params["id"], user_id) do
             {:error, _} ->
               socket
-              |> put_flash(:error, "Alerta não encontrado.")
-              |> push_navigate(to: ~p"/dashboard/alerts")
+              |> put_flash(:error, "Notificação não encontrada.")
+              |> push_navigate(to: ~p"/dashboard/notifications")
 
-            {:ok, alert} ->
-              if alert.subject_type in ["dam", "basin"] do
-                assign_from_alert(socket, alert)
+            {:ok, notification} ->
+              if notification.subject_type in ["dam", "basin"] do
+                assign_from_notification(socket, notification)
               else
                 socket
-                |> put_flash(:error, "Este tipo de alerta já não é suportado.")
-                |> push_navigate(to: ~p"/dashboard/alerts")
+                |> put_flash(:error, "Este tipo de notificação já não é suportado.")
+                |> push_navigate(to: ~p"/dashboard/notifications")
               end
           end
 
@@ -654,35 +654,35 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
       cooldown_hours: ch
     }
 
-    case socket.assigns.editing_alert_id do
+    case socket.assigns.editing_notification_id do
       nil ->
         attrs = Map.put(base, :user_id, user_id) |> Map.put(:active, true)
 
-        case Notifications.create_alert(attrs) do
+        case Notifications.create_notification(attrs) do
           {:ok, _} ->
             {:noreply,
              socket
-             |> put_flash(:info, "Alerta criado.")
-             |> push_navigate(to: ~p"/dashboard/alerts")}
+             |> put_flash(:info, "Notificação criada.")
+             |> push_navigate(to: ~p"/dashboard/notifications")}
 
           {:error, cs} ->
             {:noreply, put_flash(socket, :error, format_errors(cs))}
         end
 
-      alert_id ->
-        {:ok, existing} = Notifications.get_alert(alert_id, user_id)
+      notification_id ->
+        {:ok, existing} = Notifications.get_notification(notification_id, user_id)
 
         attrs =
           base
           |> Map.put(:user_id, user_id)
           |> Map.put(:active, existing.active)
 
-        case Notifications.update_alert(alert_id, user_id, attrs) do
+        case Notifications.update_notification(notification_id, user_id, attrs) do
           {:ok, _} ->
             {:noreply,
              socket
-             |> put_flash(:info, "Alerta atualizado.")
-             |> push_navigate(to: ~p"/dashboard/alerts")}
+             |> put_flash(:info, "Notificação atualizada.")
+             |> push_navigate(to: ~p"/dashboard/notifications")}
 
           {:error, cs} ->
             {:noreply, put_flash(socket, :error, format_errors(cs))}
@@ -693,7 +693,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
   defp new_form_socket(socket) do
     socket
     |> assign(
-      editing_alert_id: nil,
+      editing_notification_id: nil,
       step: 1,
       max_step: @max_step,
       subject_type: nil,
@@ -710,11 +710,11 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
     )
   end
 
-  defp assign_from_alert(socket, alert) do
-    metric = normalize_metric_for_subject(alert.metric, alert.subject_type)
+  defp assign_from_notification(socket, notification) do
+    metric = normalize_metric_for_subject(notification.metric, notification.subject_type)
 
     sid =
-      case alert.subject_id do
+      case notification.subject_id do
         nil ->
           nil
 
@@ -728,19 +728,20 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
     socket
     |> assign(
-      editing_alert_id: alert.id,
+      editing_notification_id: notification.id,
       step: 1,
       max_step: @max_step,
-      subject_type: alert.subject_type,
+      subject_type: notification.subject_type,
       subject_id: sid,
-      subject_name: alert.subject_name,
-      search_term: if(alert.subject_type == "dam", do: alert.subject_name || "", else: ""),
+      subject_name: notification.subject_name,
+      search_term:
+        if(notification.subject_type == "dam", do: notification.subject_name || "", else: ""),
       search_results: [],
       metric: metric,
-      operator: alert.operator,
-      threshold: format_threshold_field(alert.threshold),
-      repeat_mode: alert.repeat_mode,
-      cooldown_hours: Integer.to_string(alert.cooldown_hours || 24),
+      operator: notification.operator,
+      threshold: format_threshold_field(notification.threshold),
+      repeat_mode: notification.repeat_mode,
+      cooldown_hours: Integer.to_string(notification.cooldown_hours || 24),
       preview_value: nil
     )
   end
@@ -756,7 +757,7 @@ defmodule BarragensptWeb.Dashboard.AlertFormLive do
 
     v =
       if socket.assigns.step >= 2 and ready_subject?(socket.assigns) do
-        AlertMetrics.current_value(a)
+        NotificationMetrics.current_value(a)
       else
         nil
       end

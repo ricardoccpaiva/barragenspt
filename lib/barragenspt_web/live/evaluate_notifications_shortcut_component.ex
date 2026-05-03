@@ -1,6 +1,6 @@
-defmodule BarragensptWeb.EvaluateAlertsShortcutComponent do
+defmodule BarragensptWeb.EvaluateNotificationsShortcutComponent do
   @moduledoc """
-  Navbar control to enqueue `Barragenspt.Workers.EvaluateAlerts`.
+  Navbar control to enqueue `Barragenspt.Workers.EvaluateNotifications`.
   """
   use BarragensptWeb, :live_component
 
@@ -17,21 +17,21 @@ defmodule BarragensptWeb.EvaluateAlertsShortcutComponent do
       phx-click="enqueue"
       phx-target={@myself}
       class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/80"
-      title="Correr agora o job Oban que avalia todas as condições de alerta ativas"
+      title="Correr agora o job Oban que avalia todas as condições de notificação ativas"
     >
-      Avaliar alertas
+      Avaliar notificações
     </button>
     """
   end
 
   @impl true
   def handle_event("enqueue", _, socket) do
-    case Barragenspt.Workers.EvaluateAlerts.schedule_manual("navbar") do
+    case Barragenspt.Workers.EvaluateNotifications.schedule_manual("navbar") do
       {:ok, _job} ->
         {:noreply,
          socket
          |> Phoenix.LiveView.push_event("show_toast", %{
-           message: "Avaliação de alertas agendada.",
+           message: "Avaliação de notificações agendada.",
            type: "success"
          })}
 

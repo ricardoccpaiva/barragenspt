@@ -105,7 +105,7 @@ defmodule BarragensptWeb.UserLive.Settings do
               Tipos de Notificação
             </h2>
             <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              Ative ou pause cada canal de entrega de alertas.
+              Ative ou pause cada canal de entrega de notificações.
             </p>
           </div>
 

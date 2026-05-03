@@ -1,12 +1,12 @@
-defmodule Barragenspt.Workers.EvaluateAlertsTest do
+defmodule Barragenspt.Workers.EvaluateNotificationsTest do
   use Barragenspt.DataCase, async: false
 
   alias Barragenspt.AccountsFixtures
   alias Barragenspt.Models.Hydrometrics.{Dam, DataPointRealtime}
   alias Barragenspt.Notifications
-  alias Barragenspt.Notifications.{AlertEvent, UserAlert}
+  alias Barragenspt.Notifications.{NotificationEvent, UserNotification}
   alias Barragenspt.Repo
-  alias Barragenspt.Workers.EvaluateAlerts
+  alias Barragenspt.Workers.EvaluateNotifications
 
   setup do
     Barragenspt.RealtimeDataPointsCache.flush()
@@ -29,7 +29,7 @@ defmodule Barragenspt.Workers.EvaluateAlertsTest do
     })
 
     {:ok, alert} =
-      Notifications.create_alert(%{
+      Notifications.create_notification(%{
         user_id: user.id,
         subject_type: "dam",
         subject_id: site_id,
@@ -43,14 +43,14 @@ defmodule Barragenspt.Workers.EvaluateAlertsTest do
       })
 
     assert :ok = EvaluateAlerts.perform(%Oban.Job{attempt: 1, args: %{"id" => "test-1"}})
-    assert Repo.aggregate(from(e in AlertEvent, where: e.alert_id == ^alert.id), :count) == 1
+    assert Repo.aggregate(from(e in NotificationEvent, where: e.notification_id == ^alert.id), :count) == 1
 
-    updated = Repo.get!(UserAlert, alert.id)
+    updated = Repo.get!(UserNotification, alert.id)
     assert updated.breach_notification_sent == true
     assert not is_nil(updated.last_notified_at)
 
     assert :ok = EvaluateAlerts.perform(%Oban.Job{attempt: 1, args: %{"id" => "test-2"}})
-    assert Repo.aggregate(from(e in AlertEvent, where: e.alert_id == ^alert.id), :count) == 1
+    assert Repo.aggregate(from(e in NotificationEvent, where: e.notification_id == ^alert.id), :count) == 1
   end
 
   defp insert_dam(site_id) do
