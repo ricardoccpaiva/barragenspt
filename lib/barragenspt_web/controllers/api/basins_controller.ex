@@ -5,6 +5,7 @@ defmodule BarragensptWeb.Api.BasinsController do
   alias Barragenspt.Hydrometrics.{Basins, Dams}
 
   alias BarragensptWeb.Api.Schemas.{
+    ApiErrorResponse,
     BasinDamListResponse,
     BasinDetailResponse,
     BasinListResponse,
@@ -12,19 +13,21 @@ defmodule BarragensptWeb.Api.BasinsController do
   }
 
   tags(["Bacias"])
-  security([%{}, %{"info" => ["basins"]}])
 
   operation(:index,
     summary: "Listar bacias",
-    description: "Devolve uma lista de bacias com resumo por bacia.",
+    description:
+      "Devolve uma lista de bacias com resumo por bacia. Autenticação: `Authorization: Bearer <YOUR_API_TOKEN>`.",
     responses: [
-      ok: {"Lista de bacias", "application/json", BasinListResponse}
+      ok: {"Lista de bacias", "application/json", BasinListResponse},
+      unauthorized: {"Token em falta/inválido", "application/json", ApiErrorResponse}
     ]
   )
 
   operation(:show,
     summary: "Obter resumo de uma bacia",
-    description: "Resumo de uma única bacia.",
+    description:
+      "Resumo de uma única bacia. Autenticação: `Authorization: Bearer <YOUR_API_TOKEN>`.",
     parameters: [
       id: [
         in: :path,
@@ -34,13 +37,15 @@ defmodule BarragensptWeb.Api.BasinsController do
       ]
     ],
     responses: [
-      ok: {"Resumo da bacia", "application/json", BasinDetailResponse}
+      ok: {"Resumo da bacia", "application/json", BasinDetailResponse},
+      unauthorized: {"Token em falta/inválido", "application/json", ApiErrorResponse}
     ]
   )
 
   operation(:dams,
     summary: "Listar barragens de uma bacia",
-    description: "Devolve uma lista de barragens da bacia hidrográfica com resumo por barragem.",
+    description:
+      "Devolve uma lista de barragens da bacia hidrográfica com resumo por barragem. Autenticação: `Authorization: Bearer <YOUR_API_TOKEN>`.",
     parameters: [
       id: [
         in: :path,
@@ -50,14 +55,16 @@ defmodule BarragensptWeb.Api.BasinsController do
       ]
     ],
     responses: [
-      ok: {"Barragens na bacia", "application/json", BasinDamListResponse}
+      ok: {"Barragens na bacia", "application/json", BasinDamListResponse},
+      unauthorized: {"Token em falta/inválido", "application/json", ApiErrorResponse}
     ]
   )
 
   operation(:dam,
     summary:
       "Obter snapshot dos indicadores hidrométricos de uma barragem na bacia hidrográfica.",
-    description: "Resposta equivalente à chamada `GET /basins/{id}/dams`.",
+    description:
+      "Resposta equivalente à chamada `GET /basins/{id}/dams`. Autenticação: `Authorization: Bearer <YOUR_API_TOKEN>`.",
     parameters: [
       id: [
         in: :path,
@@ -75,7 +82,8 @@ defmodule BarragensptWeb.Api.BasinsController do
     responses: [
       ok:
         {"Snapshot dos valores hidrométricos da barragem.", "application/json",
-         DamSnapshotResponse}
+         DamSnapshotResponse},
+      unauthorized: {"Token em falta/inválido", "application/json", ApiErrorResponse}
     ]
   )
 

@@ -2,14 +2,14 @@ defmodule BarragensptWeb.Api.DamsController do
   use BarragensptWeb, :controller
   alias Barragenspt.Hydrometrics.Dams
   use OpenApiSpex.ControllerSpecs
-  alias BarragensptWeb.Api.Schemas.{DamInfoResponse, DamSnapshotResponse}
+  alias BarragensptWeb.Api.Schemas.{ApiErrorResponse, DamInfoResponse, DamSnapshotResponse}
 
   tags(["Barragens"])
-  security([%{}, %{"info" => ["dams:read"]}])
 
   operation(:info,
     summary: "Obter informação descritiva da barragem",
-    description: "Informação descritiva da barragem de acordo com o portal SNIRH.",
+    description:
+      "Informação descritiva da barragem de acordo com o portal SNIRH. Autenticação: `Authorization: Bearer <YOUR_API_TOKEN>`.",
     parameters: [
       id: [
         in: :path,
@@ -19,7 +19,8 @@ defmodule BarragensptWeb.Api.DamsController do
       ]
     ],
     responses: [
-      ok: {"Metadados da barragem", "application/json", DamInfoResponse}
+      ok: {"Metadados da barragem", "application/json", DamInfoResponse},
+      unauthorized: {"Token em falta/inválido", "application/json", ApiErrorResponse}
     ]
   )
 
@@ -47,7 +48,7 @@ defmodule BarragensptWeb.Api.DamsController do
   operation(:show,
     summary: "Obter snapshot dos indicadores hidrométrico da barragem.",
     description:
-      "Últimos valores de armazenamento e quota conhecidos para a janela corrente; 404 se não existir linha hidrométrica.",
+      "Últimos valores de armazenamento e quota conhecidos para a janela corrente; 404 se não existir linha hidrométrica. Autenticação: `Authorization: Bearer <YOUR_API_TOKEN>`.",
     parameters: [
       id: [
         in: :path,
@@ -57,7 +58,8 @@ defmodule BarragensptWeb.Api.DamsController do
       ]
     ],
     responses: [
-      ok: {"Instantâneo da barragem", "application/json", DamSnapshotResponse}
+      ok: {"Instantâneo da barragem", "application/json", DamSnapshotResponse},
+      unauthorized: {"Token em falta/inválido", "application/json", ApiErrorResponse}
     ]
   )
 

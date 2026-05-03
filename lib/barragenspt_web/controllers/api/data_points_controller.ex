@@ -11,7 +11,6 @@ defmodule BarragensptWeb.Api.DataPointsController do
   }
 
   tags(["Pontos de dados"])
-  security([%{}, %{"info" => ["data_points"]}])
 
   operation(:index,
     summary: "Listar leituras de parâmetros hidrométricos.",
@@ -20,6 +19,8 @@ defmodule BarragensptWeb.Api.DataPointsController do
 
     Se usar apenas `basin_id`, é obrigatório indicar também um intervalo de datas em `colected_at[...]`
     ou combinar com `param_id` ou `site_id` (evita consultas demasiado amplas).
+
+    Autenticação: `Authorization: Bearer <YOUR_API_TOKEN>`.
     """,
     parameters: [
       page: [
@@ -64,16 +65,18 @@ defmodule BarragensptWeb.Api.DataPointsController do
     responses: [
       ok: {"Lista de leituras.", "application/json", DataPointsIndexResponse},
       bad_request: {"Filtros inválidos", "application/json", ApiErrorResponse},
-      not_found: {"Recolha não encontrada", "application/json", ApiErrorResponse}
+      not_found: {"Recolha não encontrada", "application/json", ApiErrorResponse},
+      unauthorized: {"Token em falta/inválido", "application/json", ApiErrorResponse}
     ]
   )
 
   operation(:param_catalog,
     summary: "List de parâmetros hidrométricos",
     description:
-      "Devolve o catálogo canónico SNIRH: `id`, `slug` (`param_name`) e descrição em português para cada parâmetro suportado na API e na ingestão.",
+      "Devolve o catálogo canónico SNIRH: `id`, `slug` (`param_name`) e descrição em português para cada parâmetro suportado na API e na ingestão. Autenticação: `Authorization: Bearer <YOUR_API_TOKEN>`.",
     responses: [
-      ok: {"Catálogo de parâmetros", "application/json", DataPointParamCatalogResponse}
+      ok: {"Catálogo de parâmetros", "application/json", DataPointParamCatalogResponse},
+      unauthorized: {"Token em falta/inválido", "application/json", ApiErrorResponse}
     ]
   )
 

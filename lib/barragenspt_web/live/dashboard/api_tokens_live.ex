@@ -199,9 +199,17 @@ defmodule BarragensptWeb.Dashboard.ApiTokensLive do
       <div class="space-y-8">
         <div>
           <div class="flex flex-wrap items-start justify-between gap-4 sm:items-center sm:gap-6">
-            <.header padding="pb-2">
-              Tokens API
-            </.header>
+            <div class="space-y-1">
+              <.header padding="pb-1">
+                Tokens API
+              </.header>
+              <.link
+                navigate={~p"/dashboard/api-docs"}
+                class="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400"
+              >
+                <.icon name="hero-book-open" class="size-3.5" /> Como usar a API
+              </.link>
+            </div>
             <button
               type="button"
               phx-click="open_generate_modal"
