@@ -94,7 +94,7 @@ defmodule Barragenspt.Accounts.UserNotifier do
     path = "#{base}/dashboard/notifications"
     subject = "Alerta: #{alert.subject_name} — #{format_alert_label(alert)}"
     value_str = format_value_for_email(alert.metric, value)
-    condition = if alert.metric == "infoagua_alert_level", do: nil, else: describe_condition(alert)
+    condition = if alert.metric == "infoagua_alert_level", do: "", else: describe_condition(alert)
 
     template_variables = %{
       brand_name: "barragens.pt",
