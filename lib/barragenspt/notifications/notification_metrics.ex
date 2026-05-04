@@ -5,13 +5,17 @@ defmodule Barragenspt.Notifications.NotificationMetrics do
   import Ecto.Query
 
   alias Barragenspt.Hydrometrics.Dams
+  alias Barragenspt.Models.Hydrometrics.{DataPoint, DataPointRealtime, SiteCurrentStorage}
   alias Barragenspt.Models.Infoagua.Alert, as: InfoaguaAlert
   alias Barragenspt.Notifications.UserNotification
   alias Barragenspt.Repo
 
   @doc "Returns the current numeric value for the alert's metric, or nil if unavailable."
   def current_value(%UserNotification{} = a) do
-    current_value(%{subject_type: a.subject_type, subject_id: a.subject_id, metric: a.metric})
+    case metric_snapshot(a) do
+      %{value: value} when is_number(value) -> value
+      _ -> current_value(%{subject_type: a.subject_type, subject_id: a.subject_id, metric: a.metric})
+    end
   end
 
   def current_value(%{subject_type: "dam", subject_id: sid, metric: m}), do: dam_value(sid, m)
@@ -19,6 +23,36 @@ defmodule Barragenspt.Notifications.NotificationMetrics do
   def current_value(%{subject_type: _st}), do: nil
 
   def current_value(_), do: nil
+
+  @doc """
+  Returns both current metric value and the associated source reading timestamp.
+  """
+  def value_and_source_created_at(%UserNotification{} = notification) do
+    case metric_snapshot(notification) do
+      %{value: value, reading_at: reading_at} ->
+        {value, reading_at}
+
+      _ ->
+        {current_value(notification), source_created_at(notification)}
+    end
+  end
+
+  @doc """
+  Returns the source record creation time for flood alerts (`infoagua_alerts.inserted_at`).
+  """
+  def source_created_at(%UserNotification{metric: "infoagua_alert_level", subject_id: subject_id}) do
+    case latest_infoagua_alert(subject_id) do
+      %{inserted_at: %NaiveDateTime{} = ndt} -> DateTime.from_naive!(ndt, "Etc/UTC")
+      _ -> nil
+    end
+  end
+
+  def source_created_at(%UserNotification{subject_type: "dam", subject_id: sid, metric: metric}) do
+    sid = sid |> to_string() |> String.trim()
+    metric_snapshot(%UserNotification{subject_type: "dam", subject_id: sid, metric: metric})[:reading_at]
+  end
+
+  def source_created_at(%UserNotification{}), do: nil
 
   @doc "True if the condition (operator vs threshold) is satisfied."
   def condition_met?(value, _op, _threshold) when value == nil, do: false
@@ -103,6 +137,95 @@ defmodule Barragenspt.Notifications.NotificationMetrics do
   end
 
   defp basin_value(_, _), do: nil
+
+  defp metric_snapshot(%UserNotification{subject_type: "dam", subject_id: sid, metric: metric}) do
+    sid = sid |> to_string() |> String.trim()
+
+    case metric do
+      "storage_pct" ->
+        case Repo.one(from(s in SiteCurrentStorage, where: s.site_id == ^sid, limit: 1)) do
+          %{current_storage_pct: v, colected_at: at} -> %{value: decimal_to_float(v), reading_at: to_utc_datetime(at)}
+          _ -> nil
+        end
+
+      "month_change_pct" ->
+        %{value: dam_value(sid, metric), reading_at: latest_data_point_reading_at(sid, "volume_last_hour")}
+
+      "year_change_pct" ->
+        %{value: dam_value(sid, metric), reading_at: latest_data_point_reading_at(sid, "volume_last_hour")}
+
+      "realtime_level" ->
+        latest_realtime_snapshot(sid, "cota")
+
+      "realtime_inflow" ->
+        latest_realtime_snapshot(sid, "caudal_afluente")
+
+      "realtime_outflow" ->
+        latest_realtime_snapshot(sid, "caudal_efluente")
+
+      "realtime_storage" ->
+        latest_realtime_snapshot(sid, "volume_armazenado")
+
+      "daily_discharged_flow" ->
+        latest_data_point_snapshot(sid, "ouput_flow_rate_daily")
+
+      "daily_tributary_flow" ->
+        latest_data_point_snapshot(sid, "tributary_daily_flow")
+
+      "daily_effluent_flow" ->
+        latest_data_point_snapshot(sid, "effluent_daily_flow")
+
+      "daily_turbocharged_flow" ->
+        latest_data_point_snapshot(sid, "turbocharged_daily_flow")
+
+      _ ->
+        nil
+    end
+  end
+
+  defp metric_snapshot(_), do: nil
+
+  defp latest_realtime_snapshot(site_id, param_name) do
+    case Repo.one(
+           from(d in DataPointRealtime,
+             where: d.site_id == ^site_id and d.param_name == ^param_name,
+             order_by: [desc: d.colected_at],
+             limit: 1
+           )
+         ) do
+      %{value: v, colected_at: at} -> %{value: decimal_to_float(v), reading_at: to_utc_datetime(at)}
+      _ -> nil
+    end
+  end
+
+  defp latest_data_point_snapshot(site_id, param_name) do
+    case Repo.one(
+           from(d in DataPoint,
+             where: d.site_id == ^site_id and d.param_name == ^param_name,
+             order_by: [desc: d.colected_at],
+             limit: 1
+           )
+         ) do
+      %{value: v, colected_at: at} -> %{value: decimal_to_float(v), reading_at: to_utc_datetime(at)}
+      _ -> nil
+    end
+  end
+
+  defp latest_data_point_reading_at(site_id, param_name) do
+    Repo.one(
+      from(d in DataPoint,
+        where: d.site_id == ^site_id and d.param_name == ^param_name,
+        order_by: [desc: d.colected_at],
+        limit: 1,
+        select: d.colected_at
+      )
+    )
+    |> to_utc_datetime()
+  end
+
+  defp to_utc_datetime(%DateTime{} = dt), do: dt
+  defp to_utc_datetime(%NaiveDateTime{} = ndt), do: DateTime.from_naive!(ndt, "Etc/UTC")
+  defp to_utc_datetime(_), do: nil
 
   defp latest_infoagua_alert(subject_id) do
     sid = subject_id |> to_string() |> String.trim()

@@ -42,8 +42,14 @@ defmodule Barragenspt.Workers.EvaluateNotifications do
 
   defp evaluate_notification(notification, oban_job_id) do
     user = Repo.get(User, notification.user_id)
-    value = NotificationMetrics.current_value(notification)
-    met? = NotificationMetrics.condition_met_for_alert(notification)
+    {value, source_created_at} = NotificationMetrics.value_and_source_created_at(notification)
+
+    met? =
+      if notification.metric == "infoagua_alert_level" do
+        NotificationMetrics.condition_met_for_alert(notification)
+      else
+        NotificationMetrics.condition_met?(value, notification.operator, notification.threshold)
+      end
 
     Logger.debug(
       "----> EvaluateNotifications notification_id=#{notification.id} oban_job_id=#{oban_job_id} " <>
@@ -59,7 +65,7 @@ defmodule Barragenspt.Workers.EvaluateNotifications do
         )
 
       met? ->
-        maybe_fire(notification, user, value, oban_job_id)
+        maybe_fire(notification, user, value, source_created_at, oban_job_id)
 
       true ->
         Notifications.clear_breach_state_if_needed(notification, false)
@@ -70,7 +76,7 @@ defmodule Barragenspt.Workers.EvaluateNotifications do
     end
   end
 
-  defp maybe_fire(notification, user, value, oban_job_id) do
+  defp maybe_fire(notification, user, value, source_created_at, oban_job_id) do
     should? =
       case notification.repeat_mode do
         "once_per_event" ->
@@ -94,7 +100,7 @@ defmodule Barragenspt.Workers.EvaluateNotifications do
       end
 
     if should? do
-      fire(notification, user, value, oban_job_id)
+      fire(notification, user, value, source_created_at, oban_job_id)
     else
       Logger.debug(
         "EvaluateNotifications notification_id=#{notification.id} oban_job_id=#{oban_job_id}: " <>
@@ -105,11 +111,12 @@ defmodule Barragenspt.Workers.EvaluateNotifications do
     end
   end
 
-  defp fire(notification, user, value, oban_job_id) do
+  defp fire(notification, user, value, source_created_at, oban_job_id) do
     now = DateTime.utc_now()
+    source_created_at = source_created_at || now
 
-    email_result = maybe_deliver_email(user, notification, value)
-    telegram_result = maybe_deliver_telegram(user, notification, value)
+    email_result = maybe_deliver_email(user, notification, value, source_created_at)
+    telegram_result = maybe_deliver_telegram(user, notification, value, source_created_at)
     channels = delivered_channels(email_result, telegram_result)
     notified? = delivered?(email_result) or delivered?(telegram_result)
 
@@ -140,17 +147,17 @@ defmodule Barragenspt.Workers.EvaluateNotifications do
     end
   end
 
-  defp maybe_deliver_email(user, notification, value) do
+  defp maybe_deliver_email(user, notification, value, triggered_at) do
     if user_email_notifications_enabled?(user) do
-      UserNotifier.deliver_alert_triggered(user, notification, value)
+      UserNotifier.deliver_alert_triggered(user, notification, value, triggered_at)
     else
       {:skipped, :email_disabled}
     end
   end
 
-  defp maybe_deliver_telegram(user, notification, value) do
+  defp maybe_deliver_telegram(user, notification, value, triggered_at) do
     if user.telegram_enabled do
-      UserNotifier.deliver_alert_triggered_telegram(user, notification, value)
+      UserNotifier.deliver_alert_triggered_telegram(user, notification, value, triggered_at)
     else
       {:skipped, :telegram_disabled}
     end
