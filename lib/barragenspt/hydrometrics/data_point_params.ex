@@ -7,15 +7,40 @@ defmodule Barragenspt.Hydrometrics.DataPointParams do
   """
 
   @catalog [
-    %{id: 212_296_818, slug: "effluent_daily_flow", description: "Caudal efluente médio diário (m³/s)"},
+    %{
+      id: 212_296_818,
+      slug: "effluent_daily_flow",
+      description: "Caudal efluente médio diário (m³/s)"
+    },
     %{id: 1_629_599_726, slug: "elevation", description: "Cota da albufeira (m)"},
-    %{id: 354_895_424, slug: "elevation_last_hour", description: "Cota da albufeira na última hora (m)"},
-    %{id: 2284, slug: "ouput_flow_rate_daily", description: "Caudal descarregado médio diário (m³/s)"},
+    %{
+      id: 354_895_424,
+      slug: "elevation_last_hour",
+      description: "Cota da albufeira na última hora (m)"
+    },
+    %{
+      id: 2284,
+      slug: "ouput_flow_rate_daily",
+      description: "Caudal descarregado médio diário (m³/s)"
+    },
     %{id: 2279, slug: "tributary_daily_flow", description: "Caudal afluente médio diário (m³/s)"},
-    %{id: 2282, slug: "turbocharged_daily_flow", description: "Caudal turbinado médio diário (m³/s)"},
+    %{
+      id: 2282,
+      slug: "turbocharged_daily_flow",
+      description: "Caudal turbinado médio diário (m³/s)"
+    },
     %{id: 1_629_599_798, slug: "volume", description: "Volume armazenado (dam³)"},
-    %{id: 304_545_050, slug: "volume_last_day_month", description: "Volume armazenado no último dia do mês (dam³)"},
-    %{id: 354_895_398, slug: "volume_last_hour", description: "Volume armazenado na última hora (dam³)"}
+    %{
+      id: 304_545_050,
+      slug: "volume_last_day_month",
+      description: "Volume armazenado no último dia do mês (dam³)"
+    },
+    %{
+      id: 354_895_398,
+      slug: "volume_last_hour",
+      description: "Volume armazenado na última hora (dam³)"
+    },
+    %{id: 1866, slug: "volume_conventional", description: "Volume armazenado convencional (dam³)"}
   ]
 
   @doc """
