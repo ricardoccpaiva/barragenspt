@@ -39,8 +39,8 @@
               type="date"
               name="date"
               value={date_to_string(@selected_date)}
-              min={date_to_string(earliest_selectable_monday())}
-              max={date_to_string(monday_of_current_week())}
+              min={date_to_string(@week_bounds.min)}
+              max={date_to_string(@week_bounds.max)}
               step="7"
               phx-change="select_date"
               disabled={@loading_report}
