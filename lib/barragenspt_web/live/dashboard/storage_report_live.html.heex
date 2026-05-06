@@ -39,8 +39,6 @@
               type="date"
               name="date"
               value={date_to_string(@selected_date)}
-              min={date_to_string(@week_bounds.min)}
-              max={date_to_string(@week_bounds.max)}
               step="7"
               phx-change="select_date"
               disabled={@loading_report}
@@ -209,7 +207,12 @@
                 <%= for basin <- @report.basins do %>
                   <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
                     <td class="px-3 py-2 font-semibold text-slate-900 dark:text-slate-100">
-                      {basin.name}
+                      <a
+                        href={"##{basin_anchor_id(basin)}"}
+                        class="rounded underline decoration-slate-300 underline-offset-2 hover:decoration-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      >
+                        {basin.name}
+                      </a>
                     </td>
                     <td class="px-3 py-2">
                       <.pct_with_sparkbar pct={basin.current_pct} />
@@ -249,7 +252,10 @@
 
         <div class="space-y-4">
           <%= for basin <- @report.basins do %>
-            <article class="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/70 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900/40">
+            <article
+              id={basin_anchor_id(basin)}
+              class="scroll-mt-24 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/70 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900/40"
+            >
               <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <h3 class="text-base font-semibold text-slate-950 dark:text-slate-50">

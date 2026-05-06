@@ -20,8 +20,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    week_bounds = StorageReport.selectable_week_bounds()
-    default_date = week_bounds.max
+    default_date = current_week_monday()
     month_bounds = MonthlyStorageReport.selectable_month_bounds()
 
     {:ok,
@@ -30,7 +29,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:basin_options, StorageReport.list_basins())
      |> assign(:report_type, "weekly")
      |> assign(:selected_basin, "__all__")
-     |> assign(:week_bounds, week_bounds)
      |> assign(:selected_date, default_date)
      |> assign(:selected_month, month_bounds.max)
      |> assign(:month_bounds, month_bounds)
@@ -51,11 +49,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     report_type = selected_report_type_param(Map.get(params, "report_type"))
     selected_basin = selected_basin_param(Map.get(params, "basin"))
     selected_date =
-      parse_basin_date_param(
-        Map.get(params, "date"),
-        socket.assigns.week_bounds.max,
-        socket.assigns.week_bounds
-      )
+      parse_basin_date_param(Map.get(params, "date"), socket.assigns.selected_date)
     selected_month =
       parse_month_param(
         Map.get(params, "month"),
@@ -82,7 +76,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   @impl true
   def handle_event("select_date", %{"date" => date}, socket) do
-    case parse_basin_date_param(date, nil, socket.assigns.week_bounds) do
+    case parse_basin_date_param(date, nil) do
       nil ->
         {:noreply, socket}
 
@@ -362,23 +356,26 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp ai_configured?("monthly"), do: MonthlyStorageReportAi.configured?()
   defp ai_configured?(_), do: StorageReportAi.configured?()
 
-  defp parse_basin_date_param(nil, fallback, _bounds), do: fallback
+  defp current_week_monday do
+    today = Timex.now("Europe/Lisbon") |> Timex.to_date()
+    Date.add(today, 1 - Date.day_of_week(today))
+  end
 
-  defp parse_basin_date_param("", fallback, _bounds), do: fallback
+  defp parse_basin_date_param(nil, fallback), do: fallback
 
-  defp parse_basin_date_param(date_string, _fallback, bounds) do
+  defp parse_basin_date_param("", fallback), do: fallback
+
+  defp parse_basin_date_param(date_string, fallback) do
     case Date.from_iso8601(date_string) do
       {:ok, date} ->
-        if Date.day_of_week(date) == 1 and
-             Date.compare(date, bounds.min) != :lt and
-             Date.compare(date, bounds.max) != :gt do
+        if Date.day_of_week(date) == 1 do
           date
         else
-          nil
+          fallback
         end
 
       _ ->
-        nil
+        fallback
     end
   end
 
@@ -498,6 +495,23 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   defp format_datetime(%NaiveDateTime{} = value) do
     Calendar.strftime(value, "%d/%m/%Y %H:%M")
+  end
+
+  defp basin_anchor_id(%{basin_id: basin_id, name: name}) do
+    suffix =
+      cond do
+        is_binary(basin_id) and basin_id != "" -> basin_id
+        true -> slugify(name || "basin")
+      end
+
+    "basin-#{suffix}"
+  end
+
+  defp slugify(text) when is_binary(text) do
+    text
+    |> String.downcase()
+    |> String.replace(~r/[^a-z0-9]+/u, "-")
+    |> String.trim("-")
   end
 
   defp format_ai_error(:invalid_report), do: "Não foi possível preparar o relatório para IA."
