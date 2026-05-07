@@ -71,7 +71,7 @@ defmodule BarragensptWeb.DataPointsParamMultiselect do
                 data-ms-filter-text={f}
                 phx-click="toggle_data_points_param"
                 phx-value-slug={slug}
-                class="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-[13px] text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80"
+                class="flex w-full items-center gap-2 rounded px-3 py-1.5 text-left text-[13px] text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-700/80"
               >
                 <span class={[
                   "flex size-4 shrink-0 items-center justify-center rounded border",
@@ -90,7 +90,7 @@ defmodule BarragensptWeb.DataPointsParamMultiselect do
                     </svg>
                   <% end %>
                 </span>
-                <span class="min-w-0 flex-1 truncate">{label}</span>
+                <span class="min-w-0 flex-1 whitespace-normal break-words leading-[1.1]">{label}</span>
               </button>
             <% end %>
           <% end %>
