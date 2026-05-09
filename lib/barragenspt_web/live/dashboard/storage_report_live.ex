@@ -822,11 +822,17 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   end
 
   defp basin_lookup_key(name) do
-    name
-    |> normalize_basin_name()
-    |> String.replace(~r/[^a-z0-9]+/u, " ")
-    |> String.split(" ", trim: true)
-    |> Enum.reject(&(&1 in ~w(e de do da dos das)))
-    |> Enum.join(" ")
+    key =
+      name
+      |> normalize_basin_name()
+      |> String.replace(~r/[^a-z0-9]+/u, " ")
+      |> String.split(" ", trim: true)
+      |> Enum.reject(&(&1 in ~w(e de do da dos das)))
+      |> Enum.join(" ")
+
+    case key do
+      "vouga" -> "vouga ribeiras costeiras"
+      other -> other
+    end
   end
 end
