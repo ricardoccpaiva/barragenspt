@@ -299,7 +299,7 @@ defmodule BarragensptWeb.Layouts do
   end
 
   defp top_chrome_outer_classes(_) do
-    "fixed inset-x-0 top-2 z-50 #{app_shell_horizontal_padding()}"
+    "fixed inset-x-0 top-0 z-50 bg-slate-50/95 py-2 backdrop-blur-md after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-8 after:bg-gradient-to-b after:from-slate-50/85 after:to-transparent after:backdrop-blur-[2px] dark:bg-slate-900/95 dark:after:from-slate-900/85 #{app_shell_horizontal_padding()}"
   end
 
   defp top_chrome_inner_classes(:map) do
