@@ -14,6 +14,8 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
 
   @report_timezone "Europe/Lisbon"
   @volume_param "volume_last_hour"
+  @volume_param_id "354895398"
+  @weekly_reading_lookback_days 5
 
   def build(opts \\ []) do
     basin = opts |> Keyword.get(:basin) |> normalize_basin()
@@ -52,36 +54,37 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
   end
 
   defp current_dam_rows(basin, reference_at) do
-    reference_date = NaiveDateTime.to_date(reference_at)
-    {start_at, end_at} = day_bounds(reference_date)
-    lookback_at = Timex.shift(reference_at, months: -2)
+    start_at = Timex.shift(reference_at, days: -@weekly_reading_lookback_days)
 
     storage_points =
       from dp in DataPoint,
         where:
-          dp.param_name == @volume_param and dp.colected_at >= ^start_at and
-            dp.colected_at < ^end_at,
-        distinct: dp.site_id,
-        order_by: [asc: dp.site_id, desc: dp.colected_at],
+          dp.param_name == @volume_param and dp.param_id == @volume_param_id and
+            dp.colected_at >= ^start_at and
+            dp.colected_at <= ^reference_at,
         select: %{
           site_id: dp.site_id,
           value: dp.value,
-          colected_at: dp.colected_at
-        }
+          colected_at: dp.colected_at,
+          rn:
+            over(
+              row_number(),
+              :site_window
+            )
+        },
+        windows: [site_window: [partition_by: dp.site_id, order_by: [desc: dp.colected_at]]]
+
+    latest_points =
+      from p in subquery(storage_points),
+        where: p.rn == 1,
+        select: %{site_id: p.site_id, value: p.value, colected_at: p.colected_at}
 
     query =
       from d in Dam,
         as: :dam,
-        left_join: p in subquery(storage_points),
+        join: p in subquery(latest_points),
         on: p.site_id == d.site_id,
         where: not is_nil(d.basin) and d.basin != "",
-        where:
-          exists(
-            from dp in DataPoint,
-              where:
-                dp.site_id == parent_as(:dam).site_id and dp.param_name == ^@volume_param and
-                  dp.colected_at >= ^lookback_at
-          ),
         order_by: [asc: d.basin, asc: d.name],
         select: %{
           site_id: d.site_id,
@@ -153,6 +156,7 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
   end
 
   defp build_basin(name, dams) do
+    sorted_dams = Enum.sort_by(dams, &sort_name(&1.name))
     capacity = sum(dams, :total_capacity)
     current_volume = sum(dams, :current_volume)
     previous_volume = weighted_volume(dams, :previous_week_pct)
@@ -174,7 +178,7 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
       reference_delta: delta(current_pct, reference_pct),
       status: status(current_pct),
       centroid: centroid(dams),
-      dams: dams
+      dams: sorted_dams
     }
   end
 
@@ -206,19 +210,16 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
   defp historical_pct(_site_id, nil, _capacity, _mode), do: nil
 
   defp historical_pct(site_id, at, capacity, :previous_week) do
-    target_date =
-      at
-      |> NaiveDateTime.to_date()
-      |> Date.add(-7)
-
-    {start_at, end_at} = day_bounds(target_date)
+    target_at = Timex.shift(at, days: -7)
+    start_at = Timex.shift(target_at, days: -@weekly_reading_lookback_days)
 
     value =
       Repo.one(
         from dp in DataPoint,
           where:
             dp.site_id == ^site_id and dp.param_name == @volume_param and
-              dp.colected_at >= ^start_at and dp.colected_at < ^end_at,
+              dp.param_id == @volume_param_id and dp.colected_at >= ^start_at and
+              dp.colected_at <= ^target_at,
           order_by: [desc: dp.colected_at],
           limit: 1,
           select: dp.value
@@ -236,6 +237,7 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
         from dp in DataPoint,
           where:
             dp.site_id == ^site_id and dp.param_name == @volume_param and
+              dp.param_id == @volume_param_id and
               fragment("extract(week from ?)::int", dp.colected_at) == ^iso_week and
               fragment("extract(isoyear from ?)::int", dp.colected_at) < ^iso_year,
           select: avg(dp.value)
@@ -272,12 +274,6 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
 
   defp current_volume(value, _current_pct, _capacity) when not is_nil(value), do: number(value)
   defp current_volume(_value, current_pct, capacity), do: weighted_value(current_pct, capacity)
-
-  defp day_bounds(%Date{} = date) do
-    start_at = NaiveDateTime.new!(date, ~T[00:00:00])
-    end_at = date |> Date.add(1) |> NaiveDateTime.new!(~T[00:00:00])
-    {start_at, end_at}
-  end
 
   defp weighted_volume(items, pct_key) do
     values =
@@ -324,6 +320,17 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
 
   defp round_or_nil(nil), do: nil
   defp round_or_nil(value) when is_number(value), do: Float.round(value, 1)
+
+  defp sort_name(nil), do: ""
+
+  defp sort_name(value) do
+    value
+    |> to_string()
+    |> String.downcase()
+    |> String.replace(~r/\b(d[aeo]s?|d')\b/u, "")
+    |> String.replace(~r/\s+/u, " ")
+    |> String.trim()
+  end
 
   defp present?(value), do: is_binary(value) and String.trim(value) != ""
 end
