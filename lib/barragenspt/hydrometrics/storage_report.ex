@@ -183,6 +183,7 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
   end
 
   defp build_summary(basins) do
+    dams = Enum.flat_map(basins, & &1.dams)
     capacity = sum(basins, :total_capacity)
     current_volume = sum(basins, :current_volume)
     previous_volume = weighted_volume(basins, :previous_week_pct)
@@ -199,7 +200,10 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
       reference_avg_pct: round_or_nil(reference_pct),
       week_delta: delta(current_pct, previous_pct),
       reference_delta: delta(current_pct, reference_pct),
-      attention_count: Enum.count(basins, &(&1.status in [:alert, :low]))
+      attention_count: Enum.count(basins, &(&1.status in [:alert, :low])),
+      storage_distribution: storage_distribution(dams),
+      fullest_dam: extreme_dam(dams, :max),
+      emptiest_dam: extreme_dam(dams, :min)
     }
   end
 
@@ -312,6 +316,59 @@ defmodule Barragenspt.Hydrometrics.StorageReport do
   defp status(pct) when pct < 50, do: :low
   defp status(pct) when pct < 70, do: :normal
   defp status(_pct), do: :good
+
+  defp storage_distribution(dams) do
+    buckets = [
+      %{key: :pct_0_20, label: "0 - 20", min: 0, max: 20},
+      %{key: :pct_21_40, label: "21 - 40", min: 20, max: 40},
+      %{key: :pct_41_50, label: "41 - 50", min: 40, max: 50},
+      %{key: :pct_51_60, label: "51 - 60", min: 50, max: 60},
+      %{key: :pct_61_80, label: "61 - 80", min: 60, max: 80},
+      %{key: :pct_81_100, label: "81 - 100", min: 80, max: 100}
+    ]
+
+    distribution =
+      Enum.map(buckets, fn bucket ->
+        count =
+          Enum.count(dams, fn dam ->
+            in_storage_bucket?(dam.current_pct, bucket)
+          end)
+
+        Map.take(bucket, [:key, :label]) |> Map.put(:count, count)
+      end)
+
+    unknown_count = Enum.count(dams, &(not is_number(&1.current_pct)))
+
+    if unknown_count > 0 do
+      distribution ++ [%{key: :unknown, label: "n/d", count: unknown_count}]
+    else
+      distribution
+    end
+  end
+
+  defp in_storage_bucket?(pct, %{min: min, max: max}) when is_number(pct) do
+    (min == 0 and pct >= min and pct <= max) or (pct > min and pct <= max)
+  end
+
+  defp in_storage_bucket?(_pct, _bucket), do: false
+
+  defp extreme_dam(dams, mode) do
+    dams
+    |> Enum.filter(&is_number(&1.current_pct))
+    |> case do
+      [] ->
+        nil
+
+      dams ->
+        dam =
+          case mode do
+            :max -> Enum.max_by(dams, & &1.current_pct)
+            :min -> Enum.min_by(dams, & &1.current_pct)
+          end
+
+        Map.take(dam, [:name, :basin, :current_pct, :current_volume, :colected_at])
+    end
+  end
 
   defp number(%Decimal{} = value), do: Decimal.to_float(value)
   defp number(value) when is_integer(value), do: value * 1.0

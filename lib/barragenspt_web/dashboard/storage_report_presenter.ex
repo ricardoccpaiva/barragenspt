@@ -158,6 +158,29 @@ defmodule BarragensptWeb.Dashboard.StorageReportPresenter do
   def storage_color(value) when is_number(value) and value <= 100, do: "#1c9dff"
   def storage_color(_value), do: "#94a3b8"
 
+  def storage_bucket_color(:pct_0_20), do: "#ff675c"
+  def storage_bucket_color(:pct_21_40), do: "#ffc34a"
+  def storage_bucket_color(:pct_41_50), do: "#ffe99c"
+  def storage_bucket_color(:pct_51_60), do: "#c2faaa"
+  def storage_bucket_color(:pct_61_80), do: "#a6d8ff"
+  def storage_bucket_color(:pct_81_100), do: "#1c9dff"
+  def storage_bucket_color(_), do: "#94a3b8"
+
+  def storage_bucket_label(%{key: :unknown, label: label}), do: label
+  def storage_bucket_label(%{label: label}), do: "#{label}%"
+
+  def extreme_dam_name(nil), do: "n/d"
+  def extreme_dam_name(%{name: name}) when is_binary(name), do: name
+  def extreme_dam_name(_), do: "n/d"
+
+  def extreme_dam_detail(nil), do: "Sem dados"
+
+  def extreme_dam_detail(%{current_pct: pct, basin: basin}) do
+    [format_pct(pct), basin]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" · ")
+  end
+
   def report_map_svg(%{basins: basins}) do
     dams = Enum.flat_map(basins, & &1.dams)
 

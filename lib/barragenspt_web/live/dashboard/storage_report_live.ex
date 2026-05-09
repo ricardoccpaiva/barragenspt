@@ -41,6 +41,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:ai_error, nil)
      |> assign(:ai_gen, 0)
      |> assign(:ai_drawer_open, false)
+     |> assign(:methodology_drawer_open, false)
      |> assign(:open_ai_summary_when_ready, false)
      |> assign(:cerebras_configured, StorageReportAi.configured?())
      |> assign(:portugal_map_payload, nil)
@@ -74,6 +75,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:ai_summary, nil)
      |> assign(:ai_error, nil)
      |> assign(:ai_drawer_open, false)
+     |> assign(:methodology_drawer_open, false)
      |> assign(:open_ai_summary_when_ready, false)
      |> assign(:portugal_map_payload, nil)
      |> assign(:report, nil)}
@@ -146,6 +148,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:ai_summary, nil)
      |> assign(:ai_error, nil)
      |> assign(:ai_drawer_open, false)
+     |> assign(:methodology_drawer_open, false)
      |> assign(:open_ai_summary_when_ready, false)
      |> assign(:portugal_map_payload, nil)
      |> assign(:report, nil)}
@@ -218,6 +221,14 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:open_ai_summary_when_ready, false)}
   end
 
+  def handle_event("open_methodology", _params, socket) do
+    {:noreply, assign(socket, :methodology_drawer_open, true)}
+  end
+
+  def handle_event("close_methodology", _params, socket) do
+    {:noreply, assign(socket, :methodology_drawer_open, false)}
+  end
+
   @impl true
   def handle_info(
         {:generate_storage_report, report_type, selected_basin, selected_date, selected_month},
@@ -232,6 +243,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
      |> assign(:ai_summary, nil)
      |> assign(:ai_error, nil)
      |> assign(:ai_drawer_open, false)
+     |> assign(:methodology_drawer_open, false)
      |> assign(:open_ai_summary_when_ready, false)
      |> assign(:cerebras_configured, ai_configured?(report_type))
      |> assign(:portugal_map_payload, portugal_map_payload(report))
@@ -282,6 +294,38 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     """
   end
 
+  attr :summary, :map, required: true
+
+  defp storage_distribution_card(assigns) do
+    ~H"""
+    <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="absolute inset-x-0 bottom-0 h-1 rounded-t-full bg-amber-500"></div>
+      <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        Escalas e extremos
+      </p>
+      <div class="mt-2 grid grid-cols-3 gap-1.5">
+        <%= for bucket <- @summary.storage_distribution do %>
+          <span class="inline-flex min-w-0 items-center justify-between gap-1 rounded-md bg-slate-50 px-1.5 py-1 text-[0.68rem] font-semibold text-slate-700 dark:bg-slate-900/50 dark:text-slate-200">
+            <span class="inline-flex min-w-0 items-center gap-1">
+              <span
+                class="h-2 w-2 shrink-0 rounded-full"
+                style={"background-color: #{storage_bucket_color(bucket.key)}"}
+              >
+              </span>
+              <span class="truncate">{storage_bucket_label(bucket)}</span>
+            </span>
+            <span class="tabular-nums text-slate-950 dark:text-slate-50">{bucket.count}</span>
+          </span>
+        <% end %>
+      </div>
+      <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+        <.compact_extreme_dam label="Cheia" dam={@summary.fullest_dam} />
+        <.compact_extreme_dam label="Vazia" dam={@summary.emptiest_dam} />
+      </div>
+    </div>
+    """
+  end
+
   attr :color, :string, required: true
   attr :label, :string, required: true
 
@@ -323,6 +367,23 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
       <span class="text-slate-500 dark:text-slate-400">{@label}</span>
       <strong class={@class}>{@value}</strong>
     </span>
+    """
+  end
+
+  attr :label, :string, required: true
+  attr :dam, :map, default: nil
+
+  defp compact_extreme_dam(assigns) do
+    ~H"""
+    <div class="min-w-0">
+      <span class="text-slate-500 dark:text-slate-400">{@label}</span>
+      <%= if @dam do %>
+        <p class="truncate font-semibold text-slate-950 dark:text-slate-50">{@dam.name}</p>
+        <p class="tabular-nums text-slate-500 dark:text-slate-400">{format_pct(@dam.current_pct)}</p>
+      <% else %>
+        <p class="font-semibold text-slate-500 dark:text-slate-400">n/d</p>
+      <% end %>
+    </div>
     """
   end
 
@@ -466,9 +527,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   defp storage_metric_label("__all__"), do: "Armazenamento nacional"
   defp storage_metric_label(_basin), do: "Armazenamento da bacia"
-
-  defp attention_metric_label("__all__"), do: "Bacias em atenção"
-  defp attention_metric_label(_basin), do: "Bacia em atenção"
 
   defp format_river(value), do: StorageReportPresenter.format_river(value)
 
@@ -809,6 +867,17 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp storage_color(value) when is_number(value) and value <= 80, do: "#a6d8ff"
   defp storage_color(value) when is_number(value) and value <= 100, do: "#1c9dff"
   defp storage_color(_value), do: "#94a3b8"
+
+  defp storage_bucket_color(:pct_0_20), do: "#ff675c"
+  defp storage_bucket_color(:pct_21_40), do: "#ffc34a"
+  defp storage_bucket_color(:pct_41_50), do: "#ffe99c"
+  defp storage_bucket_color(:pct_51_60), do: "#c2faaa"
+  defp storage_bucket_color(:pct_61_80), do: "#a6d8ff"
+  defp storage_bucket_color(:pct_81_100), do: "#1c9dff"
+  defp storage_bucket_color(_), do: "#94a3b8"
+
+  defp storage_bucket_label(%{key: :unknown, label: label}), do: label
+  defp storage_bucket_label(%{label: label}), do: "#{label}%"
 
   defp normalize_basin_name(nil), do: ""
 
