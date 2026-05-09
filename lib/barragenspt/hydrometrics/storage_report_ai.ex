@@ -5,8 +5,11 @@ defmodule Barragenspt.Hydrometrics.StorageReportAi do
 
   alias Barragenspt.Ai.Cerebras
 
+  @dam3_per_hm3 1000
+
   @spec summarize(map()) :: {:ok, String.t()} | {:error, term()}
-  def summarize(%{basins: basins, summary: summary} = report) when is_list(basins) and is_map(summary) do
+  def summarize(%{basins: basins, summary: summary} = report)
+      when is_list(basins) and is_map(summary) do
     facts = facts_blob(report)
 
     Cerebras.chat_completion([
@@ -94,7 +97,7 @@ defmodule Barragenspt.Hydrometrics.StorageReportAi do
         basin.dams
         |> Enum.filter(&(&1.status in [:alert, :low]))
         |> Enum.map(fn dam ->
-          "- #{dam.name} (#{basin.name}): atual #{format_pct(dam.current_pct)}, semana #{format_delta(dam.week_delta)}, referência #{format_delta(dam.reference_delta)}, volume #{format_volume(dam.current_volume)}, rio #{dam.river || "n/d"}"
+          "- #{dam.name} (#{basin.name}): atual #{format_pct(dam.current_pct)}, semana #{format_delta(dam.week_delta)}, referência #{format_delta(dam.reference_delta)}, volume #{format_volume(dam.current_volume)}, #{format_river(dam.river)}"
         end)
       end)
       |> empty_fallback("- Nenhuma barragem em atenção.")
@@ -143,7 +146,26 @@ defmodule Barragenspt.Hydrometrics.StorageReportAi do
   defp format_delta(value), do: "#{format_number(value)} p.p."
 
   defp format_volume(nil), do: "n/d"
-  defp format_volume(value), do: "#{format_number(value)} hm³"
+  defp format_volume(value), do: "#{format_number(value / @dam3_per_hm3)} hm³"
+
+  defp format_river(nil), do: "Rio n/d"
+
+  defp format_river(value) when is_binary(value) do
+    river =
+      value
+      |> String.trim()
+      |> String.downcase()
+      |> String.split(~r/\s+/, trim: true)
+      |> Enum.map_join(" ", &capitalize_word/1)
+
+    cond do
+      river == "" -> "Rio n/d"
+      String.match?(river, ~r/^Rio\b/u) -> river
+      true -> "Rio #{river}"
+    end
+  end
+
+  defp format_river(_), do: "Rio n/d"
 
   defp format_number(value) when is_number(value),
     do: :erlang.float_to_binary(value * 1.0, decimals: 1)
@@ -158,4 +180,10 @@ defmodule Barragenspt.Hydrometrics.StorageReportAi do
   defp status_label(:low), do: "abaixo de 50%"
   defp status_label(:alert), do: "em atenção"
   defp status_label(_), do: "sem dados"
+
+  defp capitalize_word(<<first::binary-size(1), rest::binary>>) do
+    String.upcase(first) <> rest
+  end
+
+  defp capitalize_word(""), do: ""
 end

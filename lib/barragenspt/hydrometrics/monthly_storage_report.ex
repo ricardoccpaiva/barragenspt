@@ -250,6 +250,7 @@ defmodule Barragenspt.Hydrometrics.MonthlyStorageReport do
   end
 
   defp build_basin(name, dams) do
+    sorted_dams = Enum.sort_by(dams, &sort_name(&1.name))
     capacity = sum(dams, :total_capacity)
     current_volume = sum(dams, :current_volume)
     previous_volume = weighted_volume(dams, :previous_month_pct)
@@ -271,7 +272,7 @@ defmodule Barragenspt.Hydrometrics.MonthlyStorageReport do
       reference_delta: delta(current_pct, reference_pct),
       status: status(current_pct),
       centroid: centroid(dams),
-      dams: dams
+      dams: sorted_dams
     }
   end
 
@@ -385,6 +386,17 @@ defmodule Barragenspt.Hydrometrics.MonthlyStorageReport do
 
   defp round_or_nil(nil), do: nil
   defp round_or_nil(value) when is_number(value), do: Float.round(value, 1)
+
+  defp sort_name(nil), do: ""
+
+  defp sort_name(value) do
+    value
+    |> to_string()
+    |> String.downcase()
+    |> String.replace(~r/\b(d[aeo]s?|d')\b/u, "")
+    |> String.replace(~r/\s+/u, " ")
+    |> String.trim()
+  end
 
   defp present?(value), do: is_binary(value) and String.trim(value) != ""
 end

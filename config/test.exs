@@ -32,3 +32,5 @@ config :phoenix, :plug_init_mode, :runtime
 config :barragenspt, Barragenspt.Mailer, adapter: Swoosh.Adapters.Test
 
 config :barragenspt, Barragenspt.ApiRateLimit, enabled: false
+
+config :barragenspt, :pdf_renderer, BarragensptWeb.PdfRenderer.Mock

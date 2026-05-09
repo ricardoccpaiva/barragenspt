@@ -533,6 +533,50 @@ const StorageReportPortugalMap = {
   }
 }
 
+const StorageReportPdfExport = {
+  mounted() {
+    this.label = this.el.querySelector("[data-export-label]")
+    this.spinner = this.el.querySelector("[data-export-spinner]")
+    this.resetTimer = null
+    this.reset = this.reset.bind(this)
+
+    this.el.addEventListener("click", () => {
+      this.setLoading()
+      this.resetTimer = window.setTimeout(this.reset, 15000)
+    })
+
+    window.addEventListener("pageshow", this.reset)
+    window.addEventListener("focus", this.reset)
+  },
+
+  destroyed() {
+    if (this.resetTimer) window.clearTimeout(this.resetTimer)
+    window.removeEventListener("pageshow", this.reset)
+    window.removeEventListener("focus", this.reset)
+  },
+
+  setLoading() {
+    if (this.label) this.label.textContent = "A exportar..."
+    if (this.spinner) this.spinner.classList.remove("hidden")
+
+    this.el.setAttribute("aria-busy", "true")
+    this.el.classList.add("pointer-events-none", "opacity-75")
+  },
+
+  reset() {
+    if (this.resetTimer) {
+      window.clearTimeout(this.resetTimer)
+      this.resetTimer = null
+    }
+
+    if (this.label) this.label.textContent = "Exportar PDF"
+    if (this.spinner) this.spinner.classList.add("hidden")
+
+    this.el.removeAttribute("aria-busy")
+    this.el.classList.remove("pointer-events-none", "opacity-75")
+  }
+}
+
 const OpenSettingsModal = {
   mounted() {
     this.el.addEventListener("click", () => {
@@ -995,6 +1039,7 @@ export const Hooks = {
   NavRouteActive,
   BasinMiniMap,
   StorageReportPortugalMap,
+  StorageReportPdfExport,
   OpenSettingsModal,
   SettingsModalBackdrop,
   SettingsModalCloseButton,

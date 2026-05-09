@@ -101,6 +101,7 @@ defmodule Barragenspt.MixProject do
       {:html_sanitize_ex, "~> 1.4"},
       {:open_api_spex, "~> 3.21"},
       {:redoc_ui_plug, "~> 0.2.1"},
+      {:chromic_pdf, "~> 1.17"},
       {:hammer, "~> 7.0"}
     ]
   end

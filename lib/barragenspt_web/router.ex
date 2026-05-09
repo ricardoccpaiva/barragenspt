@@ -137,6 +137,7 @@ defmodule BarragensptWeb.Router do
     pipe_through [:browser, :authenticated]
 
     get "/dashboard/data-points/export/csv", Dashboard.DataPointsExportController, :csv
+    get "/dashboard/storage-report/export/pdf", Dashboard.StorageReportPdfController, :show
     post "/users/update-password", UserSessionController, :update_password
   end
 

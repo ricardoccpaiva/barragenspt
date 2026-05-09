@@ -80,8 +80,8 @@ config :barragenspt, Oban,
        {"0 4 * * *", Barragenspt.Workers.DataPointsUpdate,
         args: %{jcid: unique_id}, max_attempts: 50},
        {"*/15 * * * *", Barragenspt.Workers.RealtimeDataPointsUpdate, args: %{}, max_attempts: 3},
-      {"*/15 * * * *", Barragenspt.Workers.EvaluateNotifications,
-       args: %{id: "cron-15m"}, max_attempts: 1},
+       {"*/15 * * * *", Barragenspt.Workers.EvaluateNotifications,
+        args: %{id: "cron-15m"}, max_attempts: 1},
        {"*/30 * * * *", Barragenspt.Workers.InfoaguaAlertsRefresh, args: %{}, max_attempts: 1},
        {"0 5 * * *", Barragenspt.Workers.RefreshMaterializedViews, args: %{}, max_attempts: 3},
        {api_usage_flush_cron, Barragenspt.Workers.FlushApiUsage, args: %{}, max_attempts: 3}
@@ -99,6 +99,13 @@ config :barragenspt, Oban,
 
 # TTL for Nebulex `Barragenspt.ApiTokenCache` entries (resolved bearer → user_id/scopes).
 config :barragenspt, :api_token_cache_ttl, :timer.minutes(3)
+
+config :barragenspt, :chromic_pdf,
+  on_demand: true,
+  no_sandbox: true,
+  session_pool: [size: 2, timeout: 20_000, checkout_timeout: 20_000]
+
+config :barragenspt, :pdf_renderer, BarragensptWeb.PdfRenderer.ChromicPDF
 
 # Required for `Nebulex.Adapters.Local` — without this the cache process may not start
 # (runtime error: "could not lookup Nebulex cache ... because it was not started").

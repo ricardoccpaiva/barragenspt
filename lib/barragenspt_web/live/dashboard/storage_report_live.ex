@@ -9,8 +9,11 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     StorageReport,
     StorageReportAi
   }
+
+  alias BarragensptWeb.Dashboard.StorageReportPresenter
   alias BarragensptWeb.StorageReportComponents
 
+  @dam3_per_hm3 1000
   @hydro_geojson_source_path Path.expand(
                                "../../../../priv/static/geojson/pt100_hidro.json",
                                __DIR__
@@ -48,8 +51,10 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   def handle_params(params, _url, socket) do
     report_type = selected_report_type_param(Map.get(params, "report_type"))
     selected_basin = selected_basin_param(Map.get(params, "basin"))
+
     selected_date =
       parse_basin_date_param(Map.get(params, "date"), socket.assigns.selected_date)
+
     selected_month =
       parse_month_param(
         Map.get(params, "month"),
@@ -415,39 +420,30 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     "#{Enum.at(months, date.month - 1)} #{date.year}"
   end
 
-  defp date_to_naive_datetime(%Date{} = date) do
-    NaiveDateTime.new!(date, ~T[23:00:00])
+  defp storage_report_path(report_type, selected_basin, selected_date, selected_month) do
+    StorageReportPresenter.storage_report_path(
+      report_type,
+      selected_basin,
+      selected_date,
+      selected_month
+    )
   end
 
-  defp storage_report_path(report_type, selected_basin, selected_date, selected_month) do
-    params =
-      case report_type do
-        "monthly" -> [report_type: "monthly", month: month_to_string(selected_month)]
-        _ -> [report_type: "weekly", date: date_to_string(selected_date)]
-      end
-
-    params =
-      if selected_basin == "__all__" do
-        params
-      else
-        Keyword.put(params, :basin, selected_basin)
-      end
-
-    ~p"/dashboard/storage-report?#{params}"
+  defp pdf_export_path(report_type, selected_basin, selected_date, selected_month) do
+    StorageReportPresenter.pdf_export_path(
+      report_type,
+      selected_basin,
+      selected_date,
+      selected_month
+    )
   end
 
   defp build_report("monthly", selected_basin, _selected_date, selected_month) do
-    MonthlyStorageReport.build(
-      basin: selected_basin,
-      report_month: selected_month
-    )
+    StorageReportPresenter.build_report("monthly", selected_basin, nil, selected_month)
   end
 
   defp build_report(_report_type, selected_basin, selected_date, _selected_month) do
-    StorageReport.build(
-      basin: selected_basin,
-      reference_at: date_to_naive_datetime(selected_date)
-    )
+    StorageReportPresenter.build_report("weekly", selected_basin, selected_date, nil)
   end
 
   defp report_reference(%{report_month: month}, "monthly"), do: month_label(month)
@@ -474,6 +470,8 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp attention_metric_label("__all__"), do: "Bacias em atenção"
   defp attention_metric_label(_basin), do: "Bacia em atenção"
 
+  defp format_river(value), do: StorageReportPresenter.format_river(value)
+
   defp format_pct(nil), do: "n/d"
   defp format_pct(value), do: "#{format_number(value)}%"
 
@@ -485,7 +483,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp delta_text(value, label), do: "#{format_delta(value)} #{label}"
 
   defp format_volume(nil), do: "n/d"
-  defp format_volume(value), do: "#{format_number(value)} hm³"
+  defp format_volume(value), do: "#{format_number(value / @dam3_per_hm3)} hm³"
 
   defp format_number(value) when is_number(value) do
     :erlang.float_to_binary(value * 1.0, decimals: 1)

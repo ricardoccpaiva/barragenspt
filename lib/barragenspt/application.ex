@@ -32,7 +32,8 @@ defmodule Barragenspt.Application do
         Barragenspt.Cache,
         Barragenspt.MeteoDataCache,
         Barragenspt.RealtimeDataPointsCache,
-        Barragenspt.ApiTokenCache
+        Barragenspt.ApiTokenCache,
+        {ChromicPDF, chromic_pdf_config()}
       ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -52,5 +53,9 @@ defmodule Barragenspt.Application do
   # Conditionally disable queues or plugins here.
   defp oban_config do
     Application.fetch_env!(:barragenspt, Oban)
+  end
+
+  defp chromic_pdf_config do
+    Application.get_env(:barragenspt, :chromic_pdf, [])
   end
 end
