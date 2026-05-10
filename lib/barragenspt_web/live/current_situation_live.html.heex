@@ -1,0 +1,297 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <section>
+    <div class="flex flex-col gap-5 xl:flex-row xl:items-start">
+      <article
+        id="current-situation-basin-heatmap-card"
+        phx-update="ignore"
+        class="w-fit max-w-full shrink-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-base font-semibold text-slate-950 dark:text-slate-50">
+              Heatmap mensal por bacia
+            </h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Última leitura disponível de cada mês, nos últimos 12 meses.
+            </p>
+          </div>
+          <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-500 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-400">
+            12 meses
+          </span>
+        </div>
+
+        <div class="mt-4 inline-block max-w-full rounded-lg border border-slate-100 bg-slate-50/70 p-2 dark:border-slate-700 dark:bg-slate-900/30">
+          <div class="flex flex-wrap items-center gap-1 text-[9px] text-slate-500 dark:text-slate-400">
+            <span class="font-semibold text-slate-700 dark:text-slate-200">Escala</span>
+            <span class="inline-flex items-center gap-1">
+              <span class="h-1.5 w-1.5 rounded-sm bg-[#ff675c]"></span>0-20
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="h-1.5 w-1.5 rounded-sm bg-[#ffc34a]"></span>21-40
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="h-1.5 w-1.5 rounded-sm bg-[#ffe99c]"></span>41-50
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="h-1.5 w-1.5 rounded-sm bg-[#c2faaa]"></span>51-60
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="h-1.5 w-1.5 rounded-sm bg-[#a6d8ff]"></span>61-80
+            </span>
+            <span class="inline-flex items-center gap-1">
+              <span class="h-1.5 w-1.5 rounded-sm bg-[#1c9dff]"></span>81-100
+            </span>
+          </div>
+
+          <div class="mt-2.5 overflow-x-auto">
+            <table class="w-fit border-separate border-spacing-[3px] text-[9px]">
+              <thead>
+                <tr>
+                  <th class="sticky left-0 z-10 bg-slate-50/95 px-1 py-0.5 text-left font-semibold text-slate-500 dark:bg-slate-900/95 dark:text-slate-400">
+                    Mês
+                  </th>
+                  <%= for basin <- @basin_heatmap.basins do %>
+                    <th class="min-w-[2.4rem] px-0.5 pb-1 text-center align-bottom">
+                      <.link
+                        navigate={~p"/basins/#{basin.id}"}
+                        title={basin.name}
+                        class="block text-[8px] font-semibold leading-[0.7rem] text-slate-600 hover:text-brand-700 dark:text-slate-300 dark:hover:text-brand-300"
+                      >
+                        {basin.short_name}
+                      </.link>
+                    </th>
+                  <% end %>
+                </tr>
+              </thead>
+              <tbody>
+                <%= for row <- @basin_heatmap.rows do %>
+                  <tr>
+                    <td class="sticky left-0 z-10 whitespace-nowrap rounded-md bg-slate-50/95 px-1 py-1 text-[9px] font-semibold text-slate-700 dark:bg-slate-900/95 dark:text-slate-200">
+                      {row.label}
+                    </td>
+                    <%= for cell <- row.cells do %>
+                      <td class="p-0">
+                        <div
+                          class="flex h-5.5 min-w-[2.4rem] items-center justify-center rounded-[0.3rem] border border-white/70 text-[8px] font-semibold text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] dark:border-slate-700/60"
+                          style={"background: #{cell.color};"}
+                          title={"#{cell.basin_name} · #{row.label} · #{cell.pct_label}"}
+                        >
+                          {if cell.pct, do: "#{Float.round(cell.pct, 0)}", else: "—"}
+                        </div>
+                      </td>
+                    <% end %>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+
+      <article
+        id="current-situation-basin-chart-card"
+        phx-hook="MatchHeightFrom"
+        phx-update="ignore"
+        data-match-height-from="#current-situation-basin-heatmap-card"
+        class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 xl:flex xl:flex-col"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-base font-semibold text-slate-950 dark:text-slate-50">
+              Volume mensal por bacia
+            </h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Barras empilhadas com o volume armazenado agregado por bacia nos últimos 12 meses.
+            </p>
+          </div>
+          <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-500 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-400">
+            hm³
+          </span>
+        </div>
+
+        <div class="mt-4 rounded-lg border border-slate-100 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-900/30 xl:flex-1">
+          <div
+            id="current-situation-basin-stack-chart"
+            phx-hook="CurrentSituationBasinStackChart"
+            data-chart={Jason.encode!(@basin_stack_chart)}
+            class="relative h-[14rem] w-full xl:h-full"
+          >
+            <canvas class="h-full w-full"></canvas>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="mt-5">
+    <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h2 class="text-base font-semibold text-slate-950 dark:text-slate-50">
+            Volume diário por barragem
+          </h2>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Última leitura disponível de cada dia, nos últimos {@selected_focus_window_months} meses, para a bacia selecionada.
+          </p>
+        </div>
+
+        <form
+          id="current-situation-volume-form"
+          phx-change="select_focus_basin"
+          class="grid w-full gap-2 sm:grid-cols-2 lg:w-auto"
+        >
+          <label class="block">
+            <span class="sr-only">Escolher bacia</span>
+            <select
+              id="current-situation-volume-basin-select"
+              name="focus_basin_id"
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 lg:min-w-[14rem]"
+            >
+              <%= for basin <- Enum.sort_by(@basins, & &1.name) do %>
+                <option value={basin.id} selected={@selected_focus_basin_id == basin.id}>
+                  {basin.name}
+                </option>
+              <% end %>
+            </select>
+          </label>
+
+          <label class="block">
+            <span class="sr-only">Escolher janela temporal</span>
+            <select
+              id="current-situation-volume-window-select"
+              name="focus_window_months"
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 lg:min-w-[8rem]"
+            >
+              <%= for months <- @focus_window_options do %>
+                <option value={months} selected={@selected_focus_window_months == months}>
+                  {months} {if months == 1, do: "mês", else: "meses"}
+                </option>
+              <% end %>
+            </select>
+          </label>
+        </form>
+      </div>
+
+      <div class="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {@focused_basin.basin.name}
+        </span>
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {@focused_basin.basin.current_pct_label}
+        </span>
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {@focused_basin.basin.current_volume_label}
+        </span>
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {length(@focused_basin.dams)} barragens
+        </span>
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {@selected_focus_window_months} {if @selected_focus_window_months == 1, do: "mês", else: "meses"}
+        </span>
+      </div>
+
+      <div class="mt-4 rounded-lg border border-slate-100 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-900/30">
+        <div
+          id="current-situation-focused-basin-stack-chart"
+          phx-hook="CurrentSituationBasinStackChart"
+          data-chart={Jason.encode!(@focused_basin.stack_chart)}
+          class="relative h-[18rem] w-full"
+        >
+          <canvas class="h-full w-full"></canvas>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="mt-5">
+    <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h2 class="text-base font-semibold text-slate-950 dark:text-slate-50">
+            Caudal diário por barragem
+          </h2>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Última leitura disponível de cada dia, nos últimos {@selected_flow_window_months} meses, para o parâmetro de caudal selecionado.
+          </p>
+        </div>
+
+        <form
+          id="current-situation-flow-form"
+          phx-change="select_flow_chart"
+          class="grid w-full gap-2 md:grid-cols-[minmax(11rem,13rem)_minmax(13rem,18rem)_minmax(7.5rem,9rem)] lg:w-auto"
+        >
+          <label class="block">
+            <span class="sr-only">Escolher bacia</span>
+            <select
+              id="current-situation-flow-basin-select"
+              name="flow_basin_id"
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            >
+              <%= for basin <- Enum.sort_by(@basins, & &1.name) do %>
+                <option value={basin.id} selected={@selected_flow_basin_id == basin.id}>
+                  {basin.name}
+                </option>
+              <% end %>
+            </select>
+          </label>
+
+          <label class="block">
+            <span class="sr-only">Escolher parâmetro de caudal</span>
+            <select
+              id="current-situation-flow-param-select"
+              name="flow_param"
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            >
+              <%= for param <- @flow_param_options do %>
+                <option value={param.slug} selected={@selected_flow_param == param.slug}>
+                  {param.label}
+                </option>
+              <% end %>
+            </select>
+          </label>
+
+          <label class="block">
+            <span class="sr-only">Escolher janela temporal</span>
+            <select
+              id="current-situation-flow-window-select"
+              name="flow_window_months"
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            >
+              <%= for months <- @focus_window_options do %>
+                <option value={months} selected={@selected_flow_window_months == months}>
+                  {months} {if months == 1, do: "mês", else: "meses"}
+                </option>
+              <% end %>
+            </select>
+          </label>
+        </form>
+      </div>
+
+      <div class="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {@focused_flow.basin.name}
+        </span>
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {@focused_flow.param.label}
+        </span>
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {length(@focused_flow.dams)} barragens com dados
+        </span>
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {@selected_flow_window_months} {if @selected_flow_window_months == 1, do: "mês", else: "meses"}
+        </span>
+      </div>
+
+      <div class="mt-4 rounded-lg border border-slate-100 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-900/30">
+        <div
+          id="current-situation-focused-flow-chart"
+          phx-hook="CurrentSituationBasinStackChart"
+          data-chart={Jason.encode!(@focused_flow.stack_chart)}
+          class="relative h-[18rem] w-full"
+        >
+          <canvas class="h-full w-full"></canvas>
+        </div>
+      </div>
+    </article>
+  </section>
+</Layouts.app>

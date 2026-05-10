@@ -981,6 +981,259 @@ const AdminProductChart = {
   }
 }
 
+const CurrentSituationBasinStackChart = {
+  mounted() {
+    this.chart = null
+    this._lastFingerprint = null
+    this._onThemeChange = () => this.render()
+    window.addEventListener("dark-mode-change", this._onThemeChange)
+    this.render()
+  },
+
+  updated() {
+    this.render()
+  },
+
+  destroyed() {
+    window.removeEventListener("dark-mode-change", this._onThemeChange)
+    this._lastFingerprint = null
+    if (this.chart) {
+      this.chart.destroy()
+      this.chart = null
+    }
+  },
+
+  render() {
+    if (typeof window.Chart === "undefined") return
+
+    const canvas = this.el.querySelector("canvas")
+    if (!canvas) return
+
+    let payload
+    try {
+      payload = JSON.parse(this.el.dataset.chart || "{}")
+    } catch (_) {
+      payload = {}
+    }
+
+    const labels = payload.labels || []
+    const datasetsIn = payload.datasets || []
+    const chartType = payload.chart_type || "stacked_bar"
+    const isAreaChart = chartType === "stacked_area"
+    const xMaxTicks = Number(payload.x_max_ticks || 0) || undefined
+    const valueSuffix = payload.value_suffix || ""
+
+    if (labels.length === 0 || datasetsIn.length === 0) {
+      if (this.chart) {
+        this.chart.destroy()
+        this.chart = null
+      }
+      return
+    }
+
+    let fingerprint
+    try {
+      fingerprint = JSON.stringify(payload)
+    } catch (_) {
+      return
+    }
+
+    const isDark = document.documentElement.classList.contains("dark")
+    const themedFingerprint = `${fingerprint}:${isDark ? "dark" : "light"}`
+
+    if (
+      themedFingerprint === this._lastFingerprint &&
+      this.chart &&
+      this.chart.canvas === canvas &&
+      canvas.isConnected
+    ) {
+      this.chart.resize()
+      this.chart.update("none")
+      return
+    }
+
+    this._lastFingerprint = themedFingerprint
+
+    if (this.chart) {
+      this.chart.destroy()
+      this.chart = null
+    }
+
+    const tickColor = isDark ? "#cbd5e1" : "#475569"
+    const mutedColor = isDark ? "#94a3b8" : "#64748b"
+    const gridColor = isDark ? "rgba(148, 163, 184, 0.12)" : "rgba(100, 116, 139, 0.15)"
+    const tooltipBg = isDark ? "#0f172a" : "#ffffff"
+    const tooltipBorder = isDark ? "rgba(148, 163, 184, 0.2)" : "rgba(148, 163, 184, 0.25)"
+    const colorWithAlpha = (color, alpha) => {
+      if (typeof color !== "string") return color
+      if (color.startsWith("#")) {
+        const hex = color.slice(1)
+        const normalized = hex.length === 3
+          ? hex.split("").map((c) => c + c).join("")
+          : hex
+        if (normalized.length === 6) {
+          const r = Number.parseInt(normalized.slice(0, 2), 16)
+          const g = Number.parseInt(normalized.slice(2, 4), 16)
+          const b = Number.parseInt(normalized.slice(4, 6), 16)
+          return `rgba(${r}, ${g}, ${b}, ${alpha})`
+        }
+      }
+      return color
+    }
+
+    this.chart = new window.Chart(canvas, {
+      type: isAreaChart ? "line" : "bar",
+      data: {
+        labels,
+        datasets: datasetsIn.map((ds) => ({
+          label: ds.label,
+          data: ds.data,
+          backgroundColor: isAreaChart ? colorWithAlpha(ds.backgroundColor, 0.82) : ds.backgroundColor,
+          borderColor: ds.borderColor,
+          hoverBackgroundColor: isAreaChart
+            ? colorWithAlpha(ds.hoverBackgroundColor || ds.backgroundColor, 0.9)
+            : ds.hoverBackgroundColor,
+          borderWidth: isAreaChart ? 1.5 : 0,
+          borderRadius: isAreaChart ? 0 : 3,
+          borderSkipped: isAreaChart ? undefined : false,
+          stack: ds.stack || "storage",
+          fill: isAreaChart,
+          pointRadius: 0,
+          pointHoverRadius: isAreaChart ? 2 : 0,
+          pointHitRadius: isAreaChart ? 8 : 0,
+          tension: isAreaChart ? 0.22 : 0,
+          categoryPercentage: isAreaChart ? undefined : 0.58,
+          barPercentage: isAreaChart ? undefined : 0.82,
+          maxBarThickness: isAreaChart ? undefined : 18
+        }))
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 0 },
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              color: tickColor,
+              boxWidth: 8,
+              boxHeight: 8,
+              usePointStyle: true,
+              pointStyle: "circle",
+              padding: 12,
+              font: { size: 10, weight: "500" }
+            }
+          },
+          tooltip: {
+            mode: "index",
+            intersect: false,
+            backgroundColor: tooltipBg,
+            titleColor: tickColor,
+            bodyColor: tickColor,
+            footerColor: mutedColor,
+            borderColor: tooltipBorder,
+            borderWidth: 1,
+            padding: 10,
+            filter(context) {
+              return context.parsed && context.parsed.y !== null && context.parsed.y !== undefined
+            },
+            callbacks: {
+              title(items) {
+                return items[0]?.label || ""
+              },
+              label(context) {
+                const value = Number(context.parsed.y || 0)
+                const formatted = new Intl.NumberFormat("pt-PT", {
+                  maximumFractionDigits: valueSuffix === "m3/s" ? 2 : 0,
+                  minimumFractionDigits: valueSuffix === "m3/s" ? 0 : 0
+                }).format(valueSuffix === "m3/s" ? value : Math.round(value))
+                return `${context.dataset.label}: ${formatted} ${valueSuffix}`.trim()
+              },
+              footer(items) {
+                const total = items.reduce((sum, item) => sum + Number(item.parsed.y || 0), 0)
+                const formatted = new Intl.NumberFormat("pt-PT", {
+                  maximumFractionDigits: valueSuffix === "m3/s" ? 2 : 0,
+                  minimumFractionDigits: valueSuffix === "m3/s" ? 0 : 0
+                }).format(valueSuffix === "m3/s" ? total : Math.round(total))
+                return `Total: ${formatted} ${valueSuffix}`.trim()
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: {
+              color: tickColor,
+              maxRotation: 0,
+              minRotation: 0,
+              autoSkip: isAreaChart,
+              maxTicksLimit: xMaxTicks,
+              font: { size: 10, weight: "600" }
+            },
+            grid: { display: false },
+            border: { display: false }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            ticks: {
+              color: mutedColor,
+              precision: 0,
+              maxTicksLimit: 5,
+              callback(value) {
+                const numeric = Number(value || 0)
+                if (numeric >= 1000000) return `${Math.round(numeric / 1000000)}M`
+                if (numeric >= 1000) return `${Math.round(numeric / 1000)}k`
+                return `${numeric}`
+              }
+            },
+            grid: { color: gridColor },
+            border: { display: false }
+          }
+        }
+      }
+    })
+  }
+}
+
+const MatchHeightFrom = {
+  mounted() {
+    this.syncHeight = this.syncHeight.bind(this)
+    this.sourceSelector = this.el.dataset.matchHeightFrom
+    this.source = this.sourceSelector ? document.querySelector(this.sourceSelector) : null
+
+    this.resizeObserver = typeof window.ResizeObserver === "function"
+      ? new window.ResizeObserver(this.syncHeight)
+      : null
+
+    if (this.source && this.resizeObserver) this.resizeObserver.observe(this.source)
+    window.addEventListener("resize", this.syncHeight)
+    this.syncHeight()
+  },
+
+  updated() {
+    this.syncHeight()
+  },
+
+  destroyed() {
+    if (this.resizeObserver) this.resizeObserver.disconnect()
+    window.removeEventListener("resize", this.syncHeight)
+  },
+
+  syncHeight() {
+    if (!this.source) return
+
+    if (window.innerWidth < 1280) {
+      this.el.style.height = ""
+      return
+    }
+
+    this.el.style.height = `${this.source.offsetHeight}px`
+  }
+}
+
 const CopyButton = {
   mounted() {
     this.el.addEventListener("click", async (e) => {
@@ -1028,6 +1281,8 @@ export const Hooks = {
   DamRealtimeChartMount,
   DataPointsChart,
   AdminProductChart,
+  CurrentSituationBasinStackChart,
+  MatchHeightFrom,
   ExportDamCard,
   ExportBasinCard,
   RiverChanged,
