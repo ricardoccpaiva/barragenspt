@@ -79,17 +79,45 @@ defmodule BarragensptWeb.Layouts do
               <div
                 id="dashboard-app-nav"
                 phx-hook="NavRouteActive"
-                class="inline-flex min-h-10 max-w-[calc(100vw-10rem)] flex-nowrap items-center gap-0.5 overflow-x-auto rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card [-ms-overflow-style:none] [scrollbar-width:none] dark:border-slate-600 dark:bg-slate-800/90 [&::-webkit-scrollbar]:hidden"
+                class="inline-flex min-h-10 max-w-[calc(100vw-10rem)] flex-nowrap items-center gap-0.5 overflow-x-auto overflow-y-visible rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card md:overflow-visible [-ms-overflow-style:none] [scrollbar-width:none] dark:border-slate-600 dark:bg-slate-800/90 [&::-webkit-scrollbar]:hidden"
               >
                 <%= for item <- @dashboard_sidebar_items do %>
-                  <.link
-                    navigate={item.path}
-                    data-nav-path={item.path}
-                    class="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-                  >
-                    <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
-                    {item.label}
-                  </.link>
+                  <%= if Map.get(item, :children, []) != [] do %>
+                    <div
+                      id={"dashboard-nav-menu-#{item.label |> String.downcase() |> String.replace(" ", "-")}"}
+                      class="group relative shrink-0"
+                    >
+                      <div
+                        data-nav-path={item.path}
+                        class="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-sm font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                      >
+                        <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
+                        <span>{item.label}</span>
+                      </div>
+
+                      <div class="invisible absolute left-0 top-full z-50 w-40 pt-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                        <div class="overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-600 dark:bg-slate-800">
+                        <%= for child <- item.children do %>
+                          <.link
+                            navigate={child.path}
+                            class="flex items-center px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700/70 dark:hover:text-slate-50"
+                          >
+                            {child.label}
+                          </.link>
+                        <% end %>
+                        </div>
+                      </div>
+                    </div>
+                  <% else %>
+                    <.link
+                      navigate={item.path}
+                      data-nav-path={item.path}
+                      class="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg px-2.5 text-sm font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                    >
+                      <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
+                      {item.label}
+                    </.link>
+                  <% end %>
                 <% end %>
               </div>
               <.live_component
@@ -349,6 +377,10 @@ defmodule BarragensptWeb.Layouts do
         path: ~p"/dashboard/storage-report",
         icon: "hero-chart-bar",
         description: "Armazenamento por bacia e barragem",
+        children: [
+          %{label: "Semanal", path: ~p"/dashboard/storage-report"},
+          %{label: "Evolução", path: ~p"/situacao-atual"}
+        ],
         requires_auth: true,
         requires_admin: false
       },
