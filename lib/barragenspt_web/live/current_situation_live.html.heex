@@ -125,27 +125,27 @@
 
   <section class="mt-5">
     <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 class="text-base font-semibold text-slate-950 dark:text-slate-50">
             Volume diário por barragem
           </h2>
           <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Última leitura disponível de cada dia, nos últimos {@selected_focus_window_months} meses, para a bacia selecionada.
+            Última leitura disponível de cada dia, para a bacia e o intervalo selecionados.
           </p>
         </div>
 
         <form
           id="current-situation-volume-form"
           phx-change="select_focus_basin"
-          class="grid w-full gap-2 sm:grid-cols-2 lg:w-auto"
+          class="grid w-full gap-2 md:grid-cols-[minmax(11rem,13rem)_minmax(9rem,10rem)_minmax(9rem,10rem)] lg:w-auto"
         >
-          <label class="block">
+          <label class="relative block">
             <span class="sr-only">Escolher bacia</span>
             <select
               id="current-situation-volume-basin-select"
               name="focus_basin_id"
-              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 lg:min-w-[14rem]"
+              class="block h-9.5 w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 pr-11 text-sm font-semibold leading-none text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
             >
               <%= for basin <- Enum.sort_by(@basins, & &1.name) do %>
                 <option value={basin.id} selected={@selected_focus_basin_id == basin.id}>
@@ -153,21 +153,34 @@
                 </option>
               <% end %>
             </select>
+            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-500 dark:text-slate-400">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3.5 6 8 10.5 12.5 6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
           </label>
 
           <label class="block">
-            <span class="sr-only">Escolher janela temporal</span>
-            <select
-              id="current-situation-volume-window-select"
-              name="focus_window_months"
-              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 lg:min-w-[8rem]"
-            >
-              <%= for months <- @focus_window_options do %>
-                <option value={months} selected={@selected_focus_window_months == months}>
-                  {months} {if months == 1, do: "mês", else: "meses"}
-                </option>
-              <% end %>
-            </select>
+            <span class="sr-only">Data inicial</span>
+            <input
+              id="current-situation-volume-start-date"
+              type="date"
+              name="focus_start_date"
+              value={@selected_focus_start_date}
+              class="block h-9.5 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            />
+          </label>
+
+          <label class="block">
+            <span class="sr-only">Data final</span>
+            <input
+              id="current-situation-volume-end-date"
+              type="date"
+              name="focus_end_date"
+              form="current-situation-volume-form"
+              value={@selected_focus_end_date}
+              class="block h-9.5 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            />
           </label>
         </form>
       </div>
@@ -186,7 +199,7 @@
           {length(@focused_basin.dams)} barragens
         </span>
         <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
-          {@selected_focus_window_months} {if @selected_focus_window_months == 1, do: "mês", else: "meses"}
+          {@selected_focus_start_date} → {@selected_focus_end_date}
         </span>
       </div>
 
@@ -205,27 +218,27 @@
 
   <section class="mt-5">
     <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 class="text-base font-semibold text-slate-950 dark:text-slate-50">
             Caudal diário por barragem
           </h2>
           <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Última leitura disponível de cada dia, nos últimos {@selected_flow_window_months} meses, para o parâmetro de caudal selecionado.
+            Última leitura disponível de cada dia, para a bacia, o parâmetro e o intervalo selecionados.
           </p>
         </div>
 
         <form
           id="current-situation-flow-form"
           phx-change="select_flow_chart"
-          class="grid w-full gap-2 md:grid-cols-[minmax(11rem,13rem)_minmax(13rem,18rem)_minmax(7.5rem,9rem)] lg:w-auto"
+          class="grid w-full gap-2 md:grid-cols-[minmax(11rem,13rem)_minmax(13rem,18rem)_minmax(9rem,10rem)_minmax(9rem,10rem)] lg:w-auto"
         >
-          <label class="block">
+          <label class="relative block">
             <span class="sr-only">Escolher bacia</span>
             <select
               id="current-situation-flow-basin-select"
               name="flow_basin_id"
-              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              class="block h-9.5 w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 pr-11 text-sm font-semibold leading-none text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
             >
               <%= for basin <- Enum.sort_by(@basins, & &1.name) do %>
                 <option value={basin.id} selected={@selected_flow_basin_id == basin.id}>
@@ -233,14 +246,19 @@
                 </option>
               <% end %>
             </select>
+            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-500 dark:text-slate-400">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3.5 6 8 10.5 12.5 6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
           </label>
 
-          <label class="block">
+          <label class="relative block">
             <span class="sr-only">Escolher parâmetro de caudal</span>
             <select
               id="current-situation-flow-param-select"
               name="flow_param"
-              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              class="block h-9.5 w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 pr-11 text-sm font-semibold leading-none text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
             >
               <%= for param <- @flow_param_options do %>
                 <option value={param.slug} selected={@selected_flow_param == param.slug}>
@@ -248,21 +266,33 @@
                 </option>
               <% end %>
             </select>
+            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-500 dark:text-slate-400">
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3.5 6 8 10.5 12.5 6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
           </label>
 
           <label class="block">
-            <span class="sr-only">Escolher janela temporal</span>
-            <select
-              id="current-situation-flow-window-select"
-              name="flow_window_months"
-              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
-            >
-              <%= for months <- @focus_window_options do %>
-                <option value={months} selected={@selected_flow_window_months == months}>
-                  {months} {if months == 1, do: "mês", else: "meses"}
-                </option>
-              <% end %>
-            </select>
+            <span class="sr-only">Data inicial</span>
+            <input
+              id="current-situation-flow-start-date"
+              type="date"
+              name="flow_start_date"
+              value={@selected_flow_start_date}
+              class="block h-9.5 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            />
+          </label>
+
+          <label class="block">
+            <span class="sr-only">Data final</span>
+            <input
+              id="current-situation-flow-end-date"
+              type="date"
+              name="flow_end_date"
+              value={@selected_flow_end_date}
+              class="block h-9.5 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            />
           </label>
         </form>
       </div>
@@ -278,7 +308,7 @@
           {length(@focused_flow.dams)} barragens com dados
         </span>
         <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
-          {@selected_flow_window_months} {if @selected_flow_window_months == 1, do: "mês", else: "meses"}
+          {@selected_flow_start_date} → {@selected_flow_end_date}
         </span>
       </div>
 

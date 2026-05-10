@@ -24,7 +24,6 @@ defmodule BarragensptWeb.CurrentSituationLive do
     "#a9cf8f"
   ]
 
-  @focus_window_options [1, 3, 6, 9, 12]
   @flow_param_options [
     %{
       slug: "tributary_daily_flow",
@@ -50,14 +49,25 @@ defmodule BarragensptWeb.CurrentSituationLive do
 
   def mount(_params, _session, socket) do
     basins = current_basins()
-    dams = current_dams()
+    dams = chart_dams()
     basin_heatmap = basin_heatmap(basins)
     basin_stack_chart = basin_stack_chart_payload(basins)
     selected_focus_basin_id = default_focus_basin_id(dams, basins)
-    selected_focus_window_months = 6
-    focused_basin = focused_basin_payload(basins, dams, selected_focus_basin_id, selected_focus_window_months)
+    {selected_focus_start_date, selected_focus_end_date} =
+      default_focus_date_range()
+
+    focused_basin =
+      focused_basin_payload(
+        basins,
+        dams,
+        selected_focus_basin_id,
+        selected_focus_start_date,
+        selected_focus_end_date
+      )
+
     selected_flow_basin_id = selected_focus_basin_id
-    selected_flow_window_months = 6
+    {selected_flow_start_date, selected_flow_end_date} =
+      default_focus_date_range()
     selected_flow_param = default_flow_param()
 
     focused_flow =
@@ -65,7 +75,8 @@ defmodule BarragensptWeb.CurrentSituationLive do
         basins,
         dams,
         selected_flow_basin_id,
-        selected_flow_window_months,
+        selected_flow_start_date,
+        selected_flow_end_date,
         selected_flow_param
       )
 
@@ -77,12 +88,13 @@ defmodule BarragensptWeb.CurrentSituationLive do
       |> assign(:basin_heatmap, basin_heatmap)
       |> assign(:basin_stack_chart, basin_stack_chart)
       |> assign(:selected_focus_basin_id, selected_focus_basin_id)
-      |> assign(:selected_focus_window_months, selected_focus_window_months)
-      |> assign(:focus_window_options, @focus_window_options)
+      |> assign(:selected_focus_start_date, Date.to_iso8601(selected_focus_start_date))
+      |> assign(:selected_focus_end_date, Date.to_iso8601(selected_focus_end_date))
       |> assign(:flow_param_options, @flow_param_options)
       |> assign(:focused_basin, focused_basin)
       |> assign(:selected_flow_basin_id, selected_flow_basin_id)
-      |> assign(:selected_flow_window_months, selected_flow_window_months)
+      |> assign(:selected_flow_start_date, Date.to_iso8601(selected_flow_start_date))
+      |> assign(:selected_flow_end_date, Date.to_iso8601(selected_flow_end_date))
       |> assign(:selected_flow_param, selected_flow_param)
       |> assign(:focused_flow, focused_flow)
 
@@ -91,43 +103,47 @@ defmodule BarragensptWeb.CurrentSituationLive do
 
   def handle_event("select_focus_basin", params, socket) do
     basin_id = Map.get(params, "focus_basin_id")
-    window_months = resolve_focus_window_months(Map.get(params, "focus_window_months"))
     selected_focus_basin_id = resolve_focus_basin_id(socket.assigns.basins, basin_id)
+    {start_date, end_date} = resolve_date_range(params, "focus_start_date", "focus_end_date")
 
     focused_basin =
       focused_basin_payload(
         socket.assigns.basins,
         socket.assigns.current_dams,
         selected_focus_basin_id,
-        window_months
+        start_date,
+        end_date
       )
 
     {:noreply,
      socket
      |> assign(:selected_focus_basin_id, selected_focus_basin_id)
-     |> assign(:selected_focus_window_months, window_months)
+     |> assign(:selected_focus_start_date, Date.to_iso8601(start_date))
+     |> assign(:selected_focus_end_date, Date.to_iso8601(end_date))
      |> assign(:focused_basin, focused_basin)}
   end
 
   def handle_event("select_flow_chart", params, socket) do
     basin_id = Map.get(params, "flow_basin_id")
-    window_months = resolve_focus_window_months(Map.get(params, "flow_window_months"))
     param_slug = resolve_flow_param(Map.get(params, "flow_param"))
     selected_flow_basin_id = resolve_focus_basin_id(socket.assigns.basins, basin_id)
+    {start_date, end_date} = resolve_date_range(params, "flow_start_date", "flow_end_date")
 
     focused_flow =
       focused_flow_payload(
         socket.assigns.basins,
         socket.assigns.current_dams,
         selected_flow_basin_id,
-        window_months,
+        start_date,
+        end_date,
         param_slug
       )
 
     {:noreply,
      socket
      |> assign(:selected_flow_basin_id, selected_flow_basin_id)
-     |> assign(:selected_flow_window_months, window_months)
+     |> assign(:selected_flow_start_date, Date.to_iso8601(start_date))
+     |> assign(:selected_flow_end_date, Date.to_iso8601(end_date))
      |> assign(:selected_flow_param, param_slug)
      |> assign(:focused_flow, focused_flow)}
   end
@@ -149,7 +165,7 @@ defmodule BarragensptWeb.CurrentSituationLive do
     |> Enum.sort_by(&{-&1.current_pct, &1.name})
   end
 
-  defp current_dams do
+  defp chart_dams do
     Repo.all(
       from(s in SiteCurrentStorage,
         join: d in Dam,
@@ -159,8 +175,7 @@ defmodule BarragensptWeb.CurrentSituationLive do
           site_id: s.site_id,
           basin_id: d.basin_id,
           site_name: d.name,
-          current_volume: fragment("round(?)::integer", s.current_storage_value),
-          colected_at: s.colected_at
+          current_volume: fragment("round(?)::integer", s.current_storage_value)
         }
       )
     )
@@ -171,8 +186,7 @@ defmodule BarragensptWeb.CurrentSituationLive do
         site_id: dam.site_id,
         basin_id: dam.basin_id,
         site_name: normalize_dam_name(dam.site_name),
-        current_volume: current_volume,
-        colected_at: dam.colected_at
+        current_volume: current_volume
       }
     end)
   end
@@ -242,8 +256,8 @@ defmodule BarragensptWeb.CurrentSituationLive do
     }
   end
 
-  defp focused_basin_payload(basins, dams, basin_id, window_months) do
-    days = trailing_days_from_months(window_months)
+  defp focused_basin_payload(basins, dams, basin_id, start_date, end_date) do
+    days = days_in_range(start_date, end_date)
     basin = Enum.find(basins, &(&1.id == basin_id)) || List.first(basins)
     dams_in_basin = focused_basin_dams(dams, basin && basin.id)
     dam_ids = Enum.map(dams_in_basin, & &1.site_id)
@@ -262,10 +276,9 @@ defmodule BarragensptWeb.CurrentSituationLive do
     %{
       basin: basin,
       dams: series_dams,
-      window_months: window_months,
       stack_chart: %{
         chart_type: "stacked_area",
-        x_max_ticks: focus_chart_tick_limit(window_months),
+        x_max_ticks: focus_chart_tick_limit_from_days(length(days)),
         value_suffix: "hm³",
         labels: Enum.map(Enum.reverse(days), &format_day_label/1),
         datasets:
@@ -288,8 +301,8 @@ defmodule BarragensptWeb.CurrentSituationLive do
     }
   end
 
-  defp focused_flow_payload(basins, dams, basin_id, window_months, param_slug) do
-    days = trailing_days_from_months(window_months)
+  defp focused_flow_payload(basins, dams, basin_id, start_date, end_date, param_slug) do
+    days = days_in_range(start_date, end_date)
     basin = Enum.find(basins, &(&1.id == basin_id)) || List.first(basins)
     dams_in_basin = focused_basin_dams(dams, basin && basin.id)
     dam_ids = Enum.map(dams_in_basin, & &1.site_id)
@@ -313,10 +326,9 @@ defmodule BarragensptWeb.CurrentSituationLive do
       basin: basin,
       param: param_meta,
       dams: series_dams,
-      window_months: window_months,
       stack_chart: %{
         chart_type: "stacked_area",
-        x_max_ticks: focus_chart_tick_limit(window_months),
+        x_max_ticks: focus_chart_tick_limit_from_days(length(days)),
         value_suffix: param_meta.unit,
         labels: Enum.map(Enum.reverse(days), &format_day_label/1),
         datasets:
@@ -541,19 +553,18 @@ defmodule BarragensptWeb.CurrentSituationLive do
     |> Enum.map(fn index -> Timex.shift(current_month, months: -index) end)
   end
 
-  defp trailing_days_from_months(month_count) do
-    current_day = Date.utc_today()
-    start_day = Timex.shift(current_day, months: -month_count)
+  defp days_in_range(%Date{} = start_date, %Date{} = end_date) do
+    {start_date, end_date} = normalize_date_range(start_date, end_date)
 
-    Date.range(start_day, current_day)
+    Date.range(start_date, end_date)
     |> Enum.to_list()
     |> Enum.reverse()
   end
 
-  defp focus_chart_tick_limit(months) when months <= 1, do: 8
-  defp focus_chart_tick_limit(months) when months <= 3, do: 10
-  defp focus_chart_tick_limit(months) when months <= 6, do: 12
-  defp focus_chart_tick_limit(_months), do: 14
+  defp focus_chart_tick_limit_from_days(days) when days <= 45, do: 8
+  defp focus_chart_tick_limit_from_days(days) when days <= 120, do: 10
+  defp focus_chart_tick_limit_from_days(days) when days <= 220, do: 12
+  defp focus_chart_tick_limit_from_days(_days), do: 14
 
   defp format_month_label(%Date{} = date) do
     month =
@@ -637,14 +648,41 @@ defmodule BarragensptWeb.CurrentSituationLive do
     end
   end
 
-  defp resolve_focus_window_months(value) do
-    parsed =
-      case Integer.parse(to_string(value || "")) do
-        {months, _} -> months
-        :error -> nil
-      end
+  defp default_focus_date_range do
+    end_date = Date.utc_today()
+    start_date = Timex.shift(end_date, years: -1)
+    {start_date, end_date}
+  end
 
-    if parsed in @focus_window_options, do: parsed, else: 6
+  defp resolve_date_range(params, start_key, end_key) do
+    {default_start_date, default_end_date} = default_focus_date_range()
+
+    start_date =
+      params
+      |> Map.get(start_key)
+      |> parse_date_param(default_start_date)
+
+    end_date =
+      params
+      |> Map.get(end_key)
+      |> parse_date_param(default_end_date)
+
+    normalize_date_range(start_date, end_date)
+  end
+
+  defp parse_date_param(value, fallback) do
+    case Date.from_iso8601(to_string(value || "")) do
+      {:ok, date} -> date
+      _ -> fallback
+    end
+  end
+
+  defp normalize_date_range(%Date{} = start_date, %Date{} = end_date) do
+    if Date.compare(start_date, end_date) == :gt do
+      {end_date, start_date}
+    else
+      {start_date, end_date}
+    end
   end
 
   defp default_flow_param, do: @flow_param_options |> List.first() |> Map.fetch!(:slug)
