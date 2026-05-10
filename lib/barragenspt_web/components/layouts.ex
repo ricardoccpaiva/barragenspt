@@ -143,13 +143,6 @@ defmodule BarragensptWeb.Layouts do
               >
                 Mapa
               </.link>
-              <.link
-                navigate={~p"/situacao-atual"}
-                data-nav-path={~p"/situacao-atual"}
-                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-              >
-                Situação
-              </.link>
               <%= if @signed_in? do %>
                 <.link
                   navigate={~p"/dashboard"}
@@ -379,7 +372,7 @@ defmodule BarragensptWeb.Layouts do
         description: "Armazenamento por bacia e barragem",
         children: [
           %{label: "Semanal", path: ~p"/dashboard/storage-report"},
-          %{label: "Evolução", path: ~p"/situacao-atual"}
+          %{label: "Evolução", path: ~p"/dashboard/overview"}
         ],
         requires_auth: true,
         requires_admin: false

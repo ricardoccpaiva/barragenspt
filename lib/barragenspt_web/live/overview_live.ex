@@ -1,4 +1,4 @@
-defmodule BarragensptWeb.CurrentSituationLive do
+defmodule BarragensptWeb.OverviewLive do
   use BarragensptWeb, :live_view
   import Ecto.Query
 
@@ -82,7 +82,7 @@ defmodule BarragensptWeb.CurrentSituationLive do
 
     socket =
       socket
-      |> assign(:page_title, "Situação atual")
+      |> assign(:page_title, "Overview")
       |> assign(:basins, basins)
       |> assign(:current_dams, dams)
       |> assign(:basin_heatmap, basin_heatmap)

@@ -96,7 +96,7 @@ defmodule BarragensptWeb.Router do
     live_session :default,
       on_mount: [{BarragensptWeb.UserAuth, :mount_current_scope}] do
       live("/", HomepageV2Live, :index)
-      live("/situacao-atual", CurrentSituationLive, :index)
+      live("/dashboard/overview", OverviewLive, :index)
       live("/status/workers", WorkerStatusLive, :index)
       live("/basins/:basin_id", HomepageV2Live, :index)
       live("/basins/:basin_id/dams/:dam_id", HomepageV2Live, :index)
