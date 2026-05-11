@@ -476,11 +476,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
 
   defp month_to_string(%Date{} = date), do: Calendar.strftime(date, "%Y-%m")
 
-  defp month_label(%Date{} = date) do
-    months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-    "#{Enum.at(months, date.month - 1)} #{date.year}"
-  end
-
   defp storage_report_path(report_type, selected_basin, selected_date, selected_month) do
     StorageReportPresenter.storage_report_path(
       report_type,
@@ -506,9 +501,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp build_report(_report_type, selected_basin, selected_date, _selected_month) do
     StorageReportPresenter.build_report("weekly", selected_basin, selected_date, nil)
   end
-
-  defp report_reference(%{report_month: month}, "monthly"), do: month_label(month)
-  defp report_reference(%{report_date: dt}, _), do: format_datetime(dt)
 
   defp period_delta(summary, "monthly"), do: Map.get(summary, :month_delta)
   defp period_delta(summary, _), do: Map.get(summary, :week_delta)

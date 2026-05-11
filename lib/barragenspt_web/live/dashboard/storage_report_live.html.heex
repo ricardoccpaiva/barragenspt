@@ -70,17 +70,13 @@
               {if @report_type == "monthly", do: "Gerar relatório mensal", else: "Gerar relatório"}
             <% end %>
           </button>
-        </form>
-      </div>
-
-      <%= if @report do %>
-        <div class="flex flex-wrap items-center gap-2 self-start sm:ml-auto sm:self-auto">
           <a
+            :if={@report}
             id="storage-report-export-pdf"
             href={pdf_export_path(@report_type, @selected_basin, @selected_date, @selected_month)}
             download
             phx-hook="StorageReportPdfExport"
-            class="inline-flex h-9 items-center justify-center rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+            class="inline-flex h-10 items-center justify-center rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
           >
             <svg
               data-export-spinner
@@ -108,27 +104,20 @@
             </svg>
             <span data-export-label>Exportar PDF</span>
           </a>
-          <div
-            id="storage-report-reference"
-            class="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs text-slate-500 shadow-sm dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-400"
+        </form>
+      </div>
+
+      <%= if @report do %>
+        <div class="flex flex-wrap items-center gap-2 self-start sm:ml-auto sm:self-auto">
+          <button
+            type="button"
+            phx-click="open_methodology"
+            class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            aria-label="Ver metodologia do relatório"
+            title="Como é calculado"
           >
-            <span>
-              <span class="font-semibold text-slate-700 dark:text-slate-200">Ref.</span>
-              <span class="tabular-nums">{report_reference(@report, @report_type)}</span>
-              <span class="ml-2 tabular-nums">
-                {@report.basin_count} bacias · {@report.dam_count} barragens
-              </span>
-            </span>
-            <button
-              type="button"
-              phx-click="open_methodology"
-              class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-200 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:text-slate-500 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-              aria-label="Ver metodologia do relatório"
-              title="Como é calculado"
-            >
-              <.icon name="hero-information-circle" class="h-5 w-5" />
-            </button>
-          </div>
+            <span class="text-base font-bold leading-none">?</span>
+          </button>
         </div>
       <% end %>
     </div>
