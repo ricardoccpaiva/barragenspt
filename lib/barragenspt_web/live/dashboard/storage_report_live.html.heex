@@ -2,104 +2,57 @@
   <div class="space-y-5">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="min-w-0">
-        <form
-          id="storage-report-controls"
-          class="flex min-w-0 flex-col gap-2 sm:w-auto sm:flex-row"
-          phx-change="select_basin"
-        >
+        <form id="storage-report-controls" class="flex min-w-0 flex-col gap-2 sm:w-auto sm:flex-row"
+          phx-change="select_basin">
           <label class="min-w-0">
             <span class="sr-only">Tipo de relatório</span>
-            <select
-              name="report_type"
-              phx-change="select_report_type"
-              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[13rem]"
-            >
-              <option value="weekly" selected={@report_type == "weekly"}>Semanal</option>
-              <option value="monthly" selected={@report_type == "monthly"}>Mensal</option>
+            <select name="report_type" phx-change="select_report_type"
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[13rem]">
+              <option value="weekly" selected={@report_type=="weekly" }>Semanal</option>
+              <option value="monthly" selected={@report_type=="monthly" }>Mensal</option>
             </select>
           </label>
           <label class="min-w-0 flex-1">
             <span class="sr-only">Bacia</span>
-            <select
-              name="basin"
-              disabled={@loading_report}
-              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[18rem]"
-            >
-              <option value="__all__" selected={@selected_basin == "__all__"}>
+            <select name="basin" disabled={@loading_report}
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[18rem]">
+              <option value="__all__" selected={@selected_basin=="__all__" }>
                 Todas as bacias
               </option>
               <%= for basin <- @basin_options do %>
-                <option value={basin} selected={@selected_basin == basin}>{basin}</option>
-              <% end %>
+                <option value={basin} selected={@selected_basin==basin}>{basin}</option>
+                <% end %>
             </select>
           </label>
-          <label :if={@report_type == "weekly"} class="min-w-0">
+          <label :if={@report_type=="weekly" } class="min-w-0">
             <span class="sr-only">Data</span>
-            <input
-              type="date"
-              name="date"
-              value={date_to_string(@selected_date)}
-              step="7"
-              phx-change="select_date"
+            <input type="date" name="date" value={date_to_string(@selected_date)} step="7" phx-change="select_date"
               disabled={@loading_report}
-              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[12rem]"
-            />
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[12rem]" />
           </label>
-          <label :if={@report_type == "monthly"} class="min-w-0">
+          <label :if={@report_type=="monthly" } class="min-w-0">
             <span class="sr-only">Mês</span>
-            <input
-              type="month"
-              name="month"
-              value={month_to_string(@selected_month)}
-              min={month_to_string(@month_bounds.min)}
-              max={month_to_string(@month_bounds.max)}
-              phx-change="select_month"
-              disabled={@loading_report}
-              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[12rem]"
-            />
+            <input type="month" name="month" value={month_to_string(@selected_month)}
+              min={month_to_string(@month_bounds.min)} max={month_to_string(@month_bounds.max)}
+              phx-change="select_month" disabled={@loading_report}
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[12rem]" />
           </label>
-          <button
-            type="button"
-            phx-click="generate_report"
-            disabled={@loading_report}
-            class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-slate-900"
-          >
+          <button type="button" phx-click="generate_report" disabled={@loading_report}
+            class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-slate-900">
             <%= if @loading_report do %>
               A gerar...
-            <% else %>
-              {if @report_type == "monthly", do: "Gerar relatório mensal", else: "Gerar relatório"}
-            <% end %>
+              <% else %>
+                {if @report_type == "monthly", do: "Gerar relatório mensal", else: "Gerar relatório"}
+                <% end %>
           </button>
-          <a
-            :if={@report}
-            id="storage-report-export-pdf"
-            href={pdf_export_path(@report_type, @selected_basin, @selected_date, @selected_month)}
-            download
-            phx-hook="StorageReportPdfExport"
-            class="inline-flex h-10 items-center justify-center rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
-          >
-            <svg
-              data-export-spinner
-              class="mr-2 hidden h-4 w-4 animate-spin"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              >
+          <a :if={@report} id="storage-report-export-pdf" href={pdf_export_path(@report_type, @selected_basin,
+            @selected_date, @selected_month)} download phx-hook="StorageReportPdfExport"
+            class="inline-flex h-10 items-center justify-center rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
+            <svg data-export-spinner class="mr-2 hidden h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
+              fill="none" viewBox="0 0 24 24" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
               </circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
-              >
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z">
               </path>
             </svg>
             <span data-export-label>Exportar PDF</span>
@@ -109,21 +62,18 @@
 
       <%= if @report do %>
         <div class="flex flex-wrap items-center gap-2 self-start sm:ml-auto sm:self-auto">
-          <button
-            type="button"
-            phx-click="open_methodology"
+          <button type="button" phx-click="open_methodology"
             class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-            aria-label="Ver metodologia do relatório"
-            title="Como é calculado"
-          >
+            aria-label="Ver metodologia do relatório" title="Como é calculado">
             <span class="text-base font-bold leading-none">?</span>
           </button>
         </div>
-      <% end %>
+        <% end %>
     </div>
 
     <%= if @loading_report do %>
-      <div class="flex min-h-[12rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-12 text-center dark:border-slate-600 dark:bg-slate-800/30">
+      <div
+        class="flex min-h-[12rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-12 text-center dark:border-slate-600 dark:bg-slate-800/30">
         <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
           A gerar o relatório…
         </p>
@@ -131,299 +81,245 @@
           Isto pode demorar um pouco, dependendo do número de barragens.
         </p>
       </div>
-    <% end %>
+      <% end %>
 
-    <%= if is_nil(@report) and not @loading_report do %>
-      <div class="flex min-h-[10rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-10 text-center dark:border-slate-600 dark:bg-slate-800/20">
-        <p class="text-sm text-slate-600 dark:text-slate-400">
-          Escolha a bacia e clique em «Gerar relatório».
-        </p>
-      </div>
-    <% end %>
-
-    <%= if @report do %>
-      <section class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <.metric_card
-          label={storage_metric_label(@selected_basin)}
-          value={format_pct(@report.summary.current_pct)}
-          sub={
-            delta_text(period_delta(@report.summary, @report_type), period_subtitle(@report_type))
-          }
-          accent="brand"
-        />
-        <.metric_card
-          label="Volume estimado"
-          value={format_volume(@report.summary.current_volume)}
-          sub={"Capacidade: #{format_volume(@report.summary.total_capacity)}"}
-          accent="sky"
-        />
-        <.metric_card
-          label="Média de referência"
-          value={format_delta(@report.summary.reference_delta)}
-          sub={reference_subtitle(@report_type)}
-          accent="teal"
-        />
-        <.storage_distribution_card summary={@report.summary} />
-      </section>
-
-      <section class="grid grid-cols-1 items-stretch gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 lg:grid-cols-[26rem_minmax(0,1fr)] sm:p-5">
-        <div class="flex h-full flex-col rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
-          <div class="mb-3 flex items-center justify-between gap-3 px-1 text-sm">
-            <p class="font-semibold text-slate-900 dark:text-slate-100">Portugal continental</p>
-            <p class="text-xs text-slate-500 dark:text-slate-400">% armazenamento</p>
-          </div>
-          <div class="min-h-[28rem] flex-1">
-            <%= if @portugal_map_payload do %>
-              <div
-                id="storage-report-portugal-map"
-                phx-update="ignore"
-                phx-hook="StorageReportPortugalMap"
-                data-basins-geojson={@portugal_map_payload.basins_geojson}
-                data-dams-geojson={@portugal_map_payload.dams_geojson}
-                data-fit-bounds={@portugal_map_payload.fit_bounds}
-                class="mx-auto h-full min-h-[30rem] w-full overflow-hidden rounded-xl border border-slate-200/70 dark:border-slate-700/70"
-                aria-label="Mapa de Portugal continental com bacias hidrográficas coloridas por armazenamento"
-              >
-              </div>
-            <% else %>
-              <div class="flex h-full min-h-[28rem] items-center justify-center rounded-xl border border-slate-200/70 text-sm text-slate-500 dark:border-slate-700/70 dark:text-slate-400">
-                Sem dados de mapa
-              </div>
-            <% end %>
-          </div>
-          <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-3 lg:grid-cols-2">
-            <.legend_item color="#ff675c" label="0 - 20" />
-            <.legend_item color="#ffc34a" label="21 - 40" />
-            <.legend_item color="#ffe99c" label="41 - 50" />
-            <.legend_item color="#c2faaa" label="51 - 60" />
-            <.legend_item color="#a6d8ff" label="61 - 80" />
-            <.legend_item color="#1c9dff" label="81 - 100" />
-          </div>
-        </div>
-
-        <div class="min-w-0">
-          <div class="mb-3">
-            <h2 class="text-lg font-semibold text-slate-950 dark:text-slate-50">
-              Síntese por bacia
-            </h2>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Valores agregados pela capacidade das barragens em cada bacia.
+        <%= if is_nil(@report) and not @loading_report do %>
+          <div
+            class="flex min-h-[10rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-10 text-center dark:border-slate-600 dark:bg-slate-800/20">
+            <p class="text-sm text-slate-600 dark:text-slate-400">
+              Escolha a bacia e clique em «Gerar relatório».
             </p>
           </div>
-          <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
-            <table class="min-w-[680px] w-full text-sm">
-              <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
-                <tr>
-                  <th class="px-3 py-2 text-left font-semibold">Bacia</th>
-                  <th class="px-3 py-2 text-right font-semibold">Atual</th>
-                  <th class="px-3 py-2 text-right font-semibold">
-                    {period_header(@report_type)}
-                  </th>
-                  <th class="px-3 py-2 text-right font-semibold">Referência</th>
-                  <th class="px-3 py-2 text-right font-semibold">Volume</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
-                <%= for basin <- @report.basins do %>
-                  <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
-                    <td class="px-3 py-2 font-semibold text-slate-900 dark:text-slate-100">
-                      <a
-                        href={"##{basin_anchor_id(basin)}"}
-                        class="rounded underline decoration-slate-300 underline-offset-2 hover:decoration-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400"
-                      >
-                        {basin.name}
-                      </a>
-                    </td>
-                    <td class="px-3 py-2">
-                      <.pct_with_sparkbar pct={basin.current_pct} />
-                    </td>
-                    <td class={[
-                      "px-3 py-2 text-right tabular-nums font-semibold",
-                      delta_class(period_delta_from(basin, @report_type))
-                    ]}>
-                      {format_delta(period_delta_from(basin, @report_type))}
-                    </td>
-                    <td class={[
-                      "px-3 py-2 text-right tabular-nums font-semibold",
-                      delta_class(basin.reference_delta)
-                    ]}>
-                      {format_delta(basin.reference_delta)}
-                    </td>
-                    <td class="px-3 py-2 text-right tabular-nums text-slate-700 dark:text-slate-300">
-                      {format_volume(basin.current_volume)}
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:p-5">
-        <div class="mb-4">
-          <h2 class="text-lg font-semibold text-slate-950 dark:text-slate-50">
-            Detalhe por bacia e barragem
-          </h2>
-          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Cada bloco mostra o mapa da bacia com pontos das barragens e os mesmos indicadores de comparação.
-          </p>
-        </div>
-
-        <div class="space-y-4">
-          <%= for basin <- @report.basins do %>
-            <article
-              id={basin_anchor_id(basin)}
-              class="scroll-mt-28 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/70 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900/40"
-            >
-              <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <h3 class="text-base font-semibold text-slate-950 dark:text-slate-50">
-                    Bacia do {basin.name}
-                  </h3>
-                  <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    {status_label(basin.status)} · {basin.dam_count} barragem(ns) monitorizada(s)
-                  </p>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                  <.pill label="Atual" value={format_pct(basin.current_pct)} />
-                  <.pill
-                    label={period_header(@report_type)}
-                    value={format_delta(period_delta_from(basin, @report_type))}
-                    class={delta_class(period_delta_from(basin, @report_type))}
-                  />
-                  <.pill
-                    label="Referência"
-                    value={format_delta(basin.reference_delta)}
-                    class={delta_class(basin.reference_delta)}
-                  />
-                  <.pill
-                    label="Volume"
-                    value={"#{format_volume(basin.current_volume)} / #{format_volume(basin.total_capacity)}"}
-                  />
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 gap-4 lg:grid-cols-[24rem_minmax(0,1fr)]">
-                <StorageReportComponents.mini_map
-                  basin={basin}
-                  map_payload={mini_basin_map_payload(basin)}
-                />
-                <div class="min-w-0 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-                  <table class="min-w-[720px] w-full text-sm">
-                    <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
-                      <tr>
-                        <th class="px-3 py-2 text-left font-semibold">Barragem</th>
-                        <th class="px-3 py-2 text-right font-semibold">Armazenamento</th>
-                        <th class="px-3 py-2 text-right font-semibold">
-                          {period_header(@report_type)}
-                        </th>
-                        <th class="px-3 py-2 text-right font-semibold">Referência</th>
-                        <th class="px-3 py-2 text-right font-semibold">Volume</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
-                      <%= for dam <- basin.dams do %>
-                        <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
-                          <td class="px-3 py-2">
-                            <p class="font-semibold text-slate-900 dark:text-slate-100">
-                              {dam.name}
-                            </p>
-                            <p class="text-xs leading-[1.1rem] text-slate-500 dark:text-slate-400">
-                              {format_river(dam.river)}
-                            </p>
-                            <p class="text-xs leading-[1.1rem] text-slate-500 dark:text-slate-400">
-                              Leitura: {format_datetime(dam.colected_at)}
-                            </p>
-                          </td>
-                          <td class="px-3 py-2">
-                            <.pct_with_sparkbar pct={dam.current_pct} />
-                          </td>
-                          <td class={[
-                            "px-3 py-2 text-right tabular-nums font-semibold",
-                            delta_class(period_delta_from(dam, @report_type))
-                          ]}>
-                            {format_delta(period_delta_from(dam, @report_type))}
-                          </td>
-                          <td class={[
-                            "px-3 py-2 text-right tabular-nums font-semibold",
-                            delta_class(dam.reference_delta)
-                          ]}>
-                            {format_delta(dam.reference_delta)}
-                          </td>
-                          <td class="px-3 py-2 text-right tabular-nums text-slate-700 dark:text-slate-300">
-                            {format_volume(dam.current_volume)}
-                          </td>
-                        </tr>
-                      <% end %>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </article>
           <% end %>
-        </div>
-      </section>
-    <% end %>
+
+            <%= if @report do %>
+              <section class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <.metric_card label={storage_metric_label(@selected_basin)}
+                  value={format_pct(@report.summary.current_pct)} sub={ delta_text(period_delta(@report.summary,
+                  @report_type), period_subtitle(@report_type)) } accent="brand" />
+                <.metric_card label="Volume estimado" value={format_volume(@report.summary.current_volume)}
+                  sub={"Capacidade: #{format_volume(@report.summary.total_capacity)}"} accent="sky" />
+                <.metric_card label="Média de referência" value={format_delta(@report.summary.reference_delta)}
+                  sub={reference_subtitle(@report_type)} accent="teal" />
+                <.storage_distribution_card summary={@report.summary} />
+              </section>
+
+              <section
+                class="grid grid-cols-1 items-stretch gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 lg:grid-cols-[26rem_minmax(0,1fr)] sm:p-5">
+                <div
+                  class="flex h-full flex-col rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+                  <div class="mb-3 flex items-center justify-between gap-3 px-1 text-sm">
+                    <p class="font-semibold text-slate-900 dark:text-slate-100">Portugal continental</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">% armazenamento</p>
+                  </div>
+                  <div class="min-h-[28rem] flex-1">
+                    <%= if @portugal_map_payload do %>
+                      <div id="storage-report-portugal-map" phx-update="ignore" phx-hook="StorageReportPortugalMap"
+                        data-basins-geojson={@portugal_map_payload.basins_geojson}
+                        data-dams-geojson={@portugal_map_payload.dams_geojson}
+                        data-fit-bounds={@portugal_map_payload.fit_bounds}
+                        class="mx-auto h-full min-h-[30rem] w-full overflow-hidden rounded-xl border border-slate-200/70 dark:border-slate-700/70"
+                        aria-label="Mapa de Portugal continental com bacias hidrográficas coloridas por armazenamento">
+                      </div>
+                      <% else %>
+                        <div
+                          class="flex h-full min-h-[28rem] items-center justify-center rounded-xl border border-slate-200/70 text-sm text-slate-500 dark:border-slate-700/70 dark:text-slate-400">
+                          Sem dados de mapa
+                        </div>
+                        <% end %>
+                  </div>
+                  <div
+                    class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-3 lg:grid-cols-2">
+                    <.legend_item color="#ff675c" label="0 - 20" />
+                    <.legend_item color="#ffc34a" label="21 - 40" />
+                    <.legend_item color="#ffe99c" label="41 - 50" />
+                    <.legend_item color="#c2faaa" label="51 - 60" />
+                    <.legend_item color="#a6d8ff" label="61 - 80" />
+                    <.legend_item color="#1c9dff" label="81 - 100" />
+                  </div>
+                </div>
+
+                <div class="min-w-0">
+                  <div class="mb-3">
+                    <h2 class="text-lg font-semibold text-slate-950 dark:text-slate-50">
+                      Síntese por bacia
+                    </h2>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                      Valores agregados pela capacidade das barragens em cada bacia.
+                    </p>
+                  </div>
+                  <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                    <table class="min-w-[680px] w-full text-sm">
+                      <thead
+                        class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
+                        <tr>
+                          <th class="px-3 py-2 text-left font-semibold">Bacia</th>
+                          <th class="px-3 py-2 text-right font-semibold">Atual</th>
+                          <th class="px-3 py-2 text-right font-semibold">
+                            {period_header(@report_type)}
+                          </th>
+                          <th class="px-3 py-2 text-right font-semibold">Referência</th>
+                          <th class="px-3 py-2 text-right font-semibold">Volume</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
+                        <%= for basin <- @report.basins do %>
+                          <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
+                            <td class="px-3 py-2 font-semibold text-slate-900 dark:text-slate-100">
+                              <a href={"##{basin_anchor_id(basin)}"}
+                                class="rounded underline decoration-slate-300 underline-offset-2 hover:decoration-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400">
+                                {basin.name}
+                              </a>
+                            </td>
+                            <td class="px-3 py-2">
+                              <.pct_with_sparkbar pct={basin.current_pct} />
+                            </td>
+                            <td class={[ "px-3 py-2 text-right tabular-nums font-semibold" ,
+                              delta_class(period_delta_from(basin, @report_type)) ]}>
+                              {format_delta(period_delta_from(basin, @report_type))}
+                            </td>
+                            <td class={[ "px-3 py-2 text-right tabular-nums font-semibold" ,
+                              delta_class(basin.reference_delta) ]}>
+                              {format_delta(basin.reference_delta)}
+                            </td>
+                            <td class="px-3 py-2 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                              {format_volume(basin.current_volume)}
+                            </td>
+                          </tr>
+                          <% end %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:p-5">
+                <div class="mb-4">
+                  <h2 class="text-lg font-semibold text-slate-950 dark:text-slate-50">
+                    Detalhe por bacia e barragem
+                  </h2>
+                </div>
+
+                <div class="space-y-4">
+                  <%= for basin <- @report.basins do %>
+            <article id={basin_anchor_id(basin)}
+              class="scroll-mt-28 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/70 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900/40">
+                      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                          <h3 class="text-base font-semibold text-slate-950 dark:text-slate-50">
+                            Bacia do {basin.name}
+                          </h3>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                          <.pill label="Atual" value={format_pct(basin.current_pct)} />
+                          <.pill label={period_header(@report_type)} value={format_delta(period_delta_from(basin,
+                            @report_type))} class={delta_class(period_delta_from(basin, @report_type))} />
+                          <.pill label="Referência" value={format_delta(basin.reference_delta)}
+                            class={delta_class(basin.reference_delta)} />
+                          <.pill label="Volume" value={"#{format_volume(basin.current_volume)} /
+                            #{format_volume(basin.total_capacity)}"} />
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 gap-4 lg:grid-cols-[24rem_minmax(0,1fr)]">
+                        <StorageReportComponents.mini_map basin={basin} map_payload={mini_basin_map_payload(basin)} />
+                        <div
+                          class="min-w-0 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                          <table class="min-w-[720px] w-full text-sm">
+                            <thead
+                              class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
+                              <tr>
+                                <th class="px-3 py-2 text-left font-semibold">Barragem</th>
+                                <th class="px-3 py-2 text-right font-semibold">Armazenamento</th>
+                                <th class="px-3 py-2 text-right font-semibold">
+                                  {period_header(@report_type)}
+                                </th>
+                                <th class="px-3 py-2 text-right font-semibold">Referência</th>
+                                <th class="px-3 py-2 text-right font-semibold">Volume</th>
+                              </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
+                              <%= for dam <- basin.dams do %>
+                                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
+                                  <td class="px-3 py-2">
+                                    <p class="font-semibold text-slate-900 dark:text-slate-100">
+                                      {dam.name}
+                                    </p>
+                                    <p class="text-xs leading-[1.1rem] text-slate-500 dark:text-slate-400">
+                                      {format_river(dam.river)}
+                                    </p>
+                                    <p class="text-xs leading-[1.1rem] text-slate-500 dark:text-slate-400">
+                                      Leitura: {format_datetime(dam.colected_at)}
+                                    </p>
+                                  </td>
+                                  <td class="px-3 py-2">
+                                    <.pct_with_sparkbar pct={dam.current_pct} />
+                                  </td>
+                                  <td class={[ "px-3 py-2 text-right tabular-nums font-semibold" ,
+                                    delta_class(period_delta_from(dam, @report_type)) ]}>
+                                    {format_delta(period_delta_from(dam, @report_type))}
+                                  </td>
+                                  <td class={[ "px-3 py-2 text-right tabular-nums font-semibold" ,
+                                    delta_class(dam.reference_delta) ]}>
+                                    {format_delta(dam.reference_delta)}
+                                  </td>
+                                  <td class="px-3 py-2 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                                    {format_volume(dam.current_volume)}
+                                  </td>
+                                </tr>
+                                <% end %>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </article>
+                    <% end %>
+                </div>
+              </section>
+              <% end %>
   </div>
 
   <%= if @report do %>
-    <div
-      id="storage-report-methodology-drawer"
-      class={[
-        "fixed inset-0 z-[70] transition-opacity duration-200",
-        @methodology_drawer_open && "opacity-100",
-        not @methodology_drawer_open && "pointer-events-none opacity-0"
-      ]}
-      aria-labelledby="storage-report-methodology-title"
-      aria-modal="true"
-      role="dialog"
-    >
-      <div
-        phx-click="close_methodology"
-        class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]"
-        aria-hidden="true"
-      >
+    <div id="storage-report-methodology-drawer" class={[ "fixed inset-0 z-[70] transition-opacity duration-200" ,
+      @methodology_drawer_open && "opacity-100" , not @methodology_drawer_open && "pointer-events-none opacity-0" ]}
+      aria-labelledby="storage-report-methodology-title" aria-modal="true" role="dialog">
+      <div phx-click="close_methodology" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]"
+        aria-hidden="true">
       </div>
 
       <div class="absolute inset-y-0 right-0 z-[71] flex w-full justify-end overflow-hidden">
-        <div
-          id="storage-report-methodology-panel"
-          phx-click-away="close_methodology"
+        <div id="storage-report-methodology-panel" phx-click-away="close_methodology"
           class={[
             "flex h-full w-full max-w-[42rem] flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl transition-transform duration-200 dark:border-slate-700 dark:bg-slate-900",
             @methodology_drawer_open && "translate-x-0",
             not @methodology_drawer_open && "translate-x-full"
-          ]}
-        >
-          <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-700 sm:px-6">
+          ]}>
+          <div
+            class="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-700 sm:px-6">
             <div class="min-w-0">
-              <h2
-                id="storage-report-methodology-title"
-                class="text-lg font-semibold text-slate-950 dark:text-slate-50"
-              >
+              <h2 id="storage-report-methodology-title" class="text-lg font-semibold text-slate-950 dark:text-slate-50">
                 Como este relatório é gerado
               </h2>
               <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Metodologia de seleção, agregação e comparação dos valores apresentados.
               </p>
             </div>
-            <button
-              type="button"
-              phx-click="close_methodology"
+            <button type="button" phx-click="close_methodology"
               class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:focus:ring-slate-600"
-              aria-label="Fechar metodologia"
-            >
+              aria-label="Fechar metodologia">
               <.icon name="hero-x-mark" class="h-5 w-5" />
             </button>
           </div>
 
           <div class="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
             <div class="mb-4 flex flex-wrap items-center gap-2">
-              <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              <span
+                class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                 {if @report_type == "monthly", do: "Relatório mensal", else: "Relatório semanal"}
               </span>
-              <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              <span
+                class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                 {if @selected_basin == "__all__", do: "Todas as bacias", else: @selected_basin}
               </span>
             </div>
@@ -433,18 +329,19 @@
                 <h3 class="font-semibold text-slate-950 dark:text-slate-50">Fonte e período</h3>
                 <ul class="mt-2 list-disc space-y-1 pl-5">
                   <li>Os dados vêm do SNIRH e das barragens guardadas na base de dados local.</li>
-                  <%= if @report_type == "monthly" do %>
+                  <%= if @report_type=="monthly" do %>
                     <li>
                       O relatório mensal usa o parâmetro <code>volume_last_day_month</code>
                       e considera o último valor disponível dentro do mês selecionado.
                     </li>
                     <li>Por defeito, o mês selecionável mais recente é o último mês fechado.</li>
-                  <% else %>
-                    <li>O relatório semanal usa o parâmetro <code>volume_last_hour</code>.</li>
-                    <li>
-                      Para reduzir falsos <code>n/d</code>, usa o último valor disponível até à referência, com uma tolerância máxima de 5 dias.
-                    </li>
-                  <% end %>
+                    <% else %>
+                      <li>O relatório semanal usa o parâmetro <code>volume_last_hour</code>.</li>
+                      <li>
+                        Para reduzir falsos <code>n/d</code>, usa o último valor disponível até à referência, com uma
+                        tolerância máxima de 5 dias.
+                      </li>
+                      <% end %>
                 </ul>
               </section>
 
@@ -458,13 +355,15 @@
                   </li>
                   <li>O volume mostrado é convertido de dam³ para hm³.</li>
                   <li>
-                    Os totais de bacia e nacional somam volumes e capacidades, por isso são ponderados pela capacidade real das barragens.
+                    Os totais de bacia e nacional somam volumes e capacidades, por isso são ponderados pela capacidade
+                    real das barragens.
                   </li>
                   <li>
                     As escalas contam barragens por percentagem atual: 0-20, 21-40, 41-50, 51-60, 61-80 e 81-100.
                   </li>
                   <li>
-                    A mais cheia e a mais vazia são as barragens com maior e menor percentagem válida no relatório atual.
+                    A mais cheia e a mais vazia são as barragens com maior e menor percentagem válida no relatório
+                    atual.
                   </li>
                 </ul>
               </section>
@@ -472,21 +371,22 @@
               <section>
                 <h3 class="font-semibold text-slate-950 dark:text-slate-50">Comparações</h3>
                 <ul class="mt-2 list-disc space-y-1 pl-5">
-                  <%= if @report_type == "monthly" do %>
+                  <%= if @report_type=="monthly" do %>
                     <li>
                       A variação mensal compara com o último valor disponível no mês anterior.
                     </li>
                     <li>
                       A referência histórica compara com a média do mesmo mês em anos anteriores.
                     </li>
-                  <% else %>
-                    <li>
-                      A variação semanal compara com o último valor disponível até à referência da semana anterior, também com tolerância de 5 dias.
-                    </li>
-                    <li>
-                      A referência histórica compara com a média da mesma semana ISO em anos anteriores.
-                    </li>
-                  <% end %>
+                    <% else %>
+                      <li>
+                        A variação semanal compara com o último valor disponível até à referência da semana anterior,
+                        também com tolerância de 5 dias.
+                      </li>
+                      <li>
+                        A referência histórica compara com a média da mesma semana ISO em anos anteriores.
+                      </li>
+                      <% end %>
                 </ul>
               </section>
 
@@ -508,76 +408,60 @@
       </div>
     </div>
 
-    <div
-      id="storage-report-ai-drawer"
-      class={[
-        "fixed inset-0 z-[70] transition-opacity duration-200",
-        @ai_drawer_open && "opacity-100",
-        not @ai_drawer_open && "pointer-events-none opacity-0"
-      ]}
-      aria-labelledby="storage-report-ai-title"
-      aria-modal="true"
-      role="dialog"
-    >
-      <div
-        phx-click="close_ai_summary"
-        class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]"
-        aria-hidden="true"
-      >
+    <div id="storage-report-ai-drawer" class={[ "fixed inset-0 z-[70] transition-opacity duration-200" , @ai_drawer_open
+      && "opacity-100" , not @ai_drawer_open && "pointer-events-none opacity-0" ]}
+      aria-labelledby="storage-report-ai-title" aria-modal="true" role="dialog">
+      <div phx-click="close_ai_summary" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]" aria-hidden="true">
       </div>
 
       <div class="absolute inset-y-0 right-0 z-[71] flex w-full justify-end overflow-hidden">
-        <div
-          id="storage-report-ai-drawer-panel"
-          phx-click-away="close_ai_summary"
+        <div id="storage-report-ai-drawer-panel" phx-click-away="close_ai_summary"
           class={[
             "flex h-full w-full max-w-[42rem] flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl transition-transform duration-200 dark:border-slate-700 dark:bg-slate-900",
             @ai_drawer_open && "translate-x-0",
             not @ai_drawer_open && "translate-x-full"
-          ]}
-        >
-          <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-700 sm:px-6">
+          ]}>
+          <div
+            class="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-700 sm:px-6">
             <div class="min-w-0">
-              <h2
-                id="storage-report-ai-title"
-                class="text-lg font-semibold text-slate-950 dark:text-slate-50"
-              >
+              <h2 id="storage-report-ai-title" class="text-lg font-semibold text-slate-950 dark:text-slate-50">
                 Sumário IA
               </h2>
               <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Síntese textual construída a partir do relatório já gerado.
               </p>
             </div>
-            <button
-              type="button"
-              phx-click="close_ai_summary"
+            <button type="button" phx-click="close_ai_summary"
               class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:focus:ring-slate-600"
-              aria-label="Fechar sumário IA"
-            >
+              aria-label="Fechar sumário IA">
               <.icon name="hero-x-mark" class="h-5 w-5" />
             </button>
           </div>
 
           <div class="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
             <div class="mb-4 flex flex-wrap items-center gap-2">
-              <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              <span
+                class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                 {if @selected_basin == "__all__", do: "Todas as bacias", else: @selected_basin}
               </span>
-              <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              <span
+                class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                 {if @report_type == "monthly",
-                  do: "Mês de #{month_to_string(@selected_month)}",
-                  else: "Semana de #{date_to_string(@selected_date)}"}
+                do: "Mês de #{month_to_string(@selected_month)}",
+                else: "Semana de #{date_to_string(@selected_date)}"}
               </span>
               <%= if not @cerebras_configured do %>
-                <span class="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+                <span
+                  class="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
                   Integração IA não configurada
                 </span>
-              <% end %>
+                <% end %>
             </div>
 
             <%= cond do %>
               <% @loading_ai_summary -> %>
-                <div class="flex min-h-[14rem] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-10 text-center dark:border-slate-600 dark:bg-slate-800/40">
+                <div
+                  class="flex min-h-[14rem] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-10 text-center dark:border-slate-600 dark:bg-slate-800/40">
                   <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
                     A gerar o sumário IA…
                   </p>
@@ -585,32 +469,31 @@
                     O modelo vai resumir os sinais principais do relatório atual.
                   </p>
                 </div>
-              <% @ai_error -> %>
-                <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-100">
-                  {@ai_error}
-                </div>
-              <% @ai_summary -> %>
-                <div class="rounded-2xl border border-slate-200 bg-slate-50/60 p-5 dark:border-slate-700 dark:bg-slate-800/40">
-                  <.safe_markdown content={@ai_summary} />
-                </div>
-              <% true -> %>
-                <div class="flex min-h-[12rem] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-8 text-center dark:border-slate-600 dark:bg-slate-900/20">
-                  <p class="text-sm text-slate-600 dark:text-slate-400">
-                    Clique abaixo para gerar uma síntese textual do relatório atual.
-                  </p>
-                  <button
-                    :if={@cerebras_configured}
-                    type="button"
-                    phx-click="generate_ai_summary"
-                    class="mt-4 inline-flex items-center justify-center rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:focus:ring-slate-500 dark:focus:ring-offset-slate-900"
-                  >
-                    Gerar sumário IA
-                  </button>
-                </div>
-            <% end %>
+                <% @ai_error -> %>
+                  <div
+                    class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-100">
+                    {@ai_error}
+                  </div>
+                  <% @ai_summary -> %>
+                    <div
+                      class="rounded-2xl border border-slate-200 bg-slate-50/60 p-5 dark:border-slate-700 dark:bg-slate-800/40">
+                      <.safe_markdown content={@ai_summary} />
+                    </div>
+                    <% true -> %>
+                      <div
+                        class="flex min-h-[12rem] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-8 text-center dark:border-slate-600 dark:bg-slate-900/20">
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                          Clique abaixo para gerar uma síntese textual do relatório atual.
+                        </p>
+                        <button :if={@cerebras_configured} type="button" phx-click="generate_ai_summary"
+                          class="mt-4 inline-flex items-center justify-center rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:focus:ring-slate-500 dark:focus:ring-offset-slate-900">
+                          Gerar sumário IA
+                        </button>
+                      </div>
+                      <% end %>
           </div>
         </div>
       </div>
     </div>
-  <% end %>
+    <% end %>
 </Layouts.app>

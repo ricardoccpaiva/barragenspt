@@ -580,12 +580,6 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp bar_width(nil), do: 0
   defp bar_width(value), do: value |> max(0) |> min(100)
 
-  defp status_label(:good), do: "acima de 70%"
-  defp status_label(:normal), do: "entre 50% e 70%"
-  defp status_label(:low), do: "abaixo de 50%"
-  defp status_label(:alert), do: "em atenção"
-  defp status_label(_), do: "sem dados"
-
   defp delta_class(nil), do: "text-slate-500 dark:text-slate-400"
   defp delta_class(value) when value > 0, do: "text-emerald-600 dark:text-emerald-400"
   defp delta_class(value) when value < 0, do: "text-rose-600 dark:text-rose-400"
