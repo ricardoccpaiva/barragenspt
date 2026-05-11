@@ -128,10 +128,11 @@
       <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 class="text-base font-semibold text-slate-950 dark:text-slate-50">
-            Volume diário por barragem
+            Volume <%= String.downcase(@focused_basin.granularity_label) %> por barragem
           </h2>
           <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Última leitura disponível de cada dia, para a bacia e o intervalo selecionados.
+            Última leitura disponível de cada <%= String.downcase(@focused_basin.granularity_label) %>,
+            para a bacia e o intervalo selecionados.
           </p>
         </div>
 
@@ -199,6 +200,9 @@
           {length(@focused_basin.dams)} barragens
         </span>
         <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {@focused_basin.granularity_label}
+        </span>
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
           {@selected_focus_start_date} → {@selected_focus_end_date}
         </span>
       </div>
@@ -221,10 +225,11 @@
       <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 class="text-base font-semibold text-slate-950 dark:text-slate-50">
-            Caudal diário por barragem
+            Caudal <%= String.downcase(@focused_flow.granularity_label) %> por barragem
           </h2>
           <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Última leitura disponível de cada dia, para a bacia, o parâmetro e o intervalo selecionados.
+            Última leitura disponível de cada <%= String.downcase(@focused_flow.granularity_label) %>,
+            para a bacia, o parâmetro e o intervalo selecionados.
           </p>
         </div>
 
@@ -306,6 +311,9 @@
         </span>
         <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
           {length(@focused_flow.dams)} barragens com dados
+        </span>
+        <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
+          {@focused_flow.granularity_label}
         </span>
         <span class="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 dark:border-slate-600 dark:bg-slate-900/60">
           {@selected_flow_start_date} → {@selected_flow_end_date}

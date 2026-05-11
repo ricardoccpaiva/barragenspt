@@ -3,7 +3,7 @@ defmodule BarragensptWeb.OverviewLive do
   import Ecto.Query
 
   alias Barragenspt.Mappers.Colors
-  alias Barragenspt.Hydrometrics.Basins
+  alias Barragenspt.Hydrometrics.{Basins, Dams}
   alias Barragenspt.Models.Hydrometrics.{Dam, DataPoint, SiteCurrentStorage}
   alias Barragenspt.Repo
 
@@ -257,11 +257,8 @@ defmodule BarragensptWeb.OverviewLive do
   end
 
   defp focused_basin_payload(basins, dams, basin_id, start_date, end_date) do
-    days = days_in_range(start_date, end_date)
     basin = Enum.find(basins, &(&1.id == basin_id)) || List.first(basins)
     dams_in_basin = focused_basin_dams(dams, basin && basin.id)
-    dam_ids = Enum.map(dams_in_basin, & &1.site_id)
-    volume_values = dam_daily_volumes(days, dam_ids)
 
     series_dams =
       dams_in_basin
@@ -273,48 +270,32 @@ defmodule BarragensptWeb.OverviewLive do
         |> Map.put(:series_color, indexed_series_color(idx))
       end)
 
+    chart_payload =
+      bucketed_focus_chart_payload(
+        series_dams,
+        "volume_last_hour",
+        start_date,
+        end_date,
+        "hm³"
+      )
+
     %{
       basin: basin,
-      dams: series_dams,
-      stack_chart: %{
-        chart_type: "stacked_area",
-        x_max_ticks: focus_chart_tick_limit_from_days(length(days)),
-        value_suffix: "hm³",
-        labels: Enum.map(Enum.reverse(days), &format_day_label/1),
-        datasets:
-          Enum.map(series_dams, fn dam ->
-            %{
-              label: dam.short_name,
-              full_label: dam.site_name,
-              series_id: dam.site_id,
-              data:
-                Enum.map(Enum.reverse(days), fn day ->
-                  Map.get(volume_values, {day, dam.site_id}, 0)
-                end),
-              backgroundColor: dam.series_color,
-              borderColor: dam.series_color,
-              hoverBackgroundColor: dam.series_color,
-              stack: "storage"
-            }
-          end)
-      }
+      granularity: chart_payload.granularity,
+      granularity_label: chart_payload.granularity_label,
+      dams: chart_payload.series_dams,
+      stack_chart: chart_payload.stack_chart
     }
   end
 
   defp focused_flow_payload(basins, dams, basin_id, start_date, end_date, param_slug) do
-    days = days_in_range(start_date, end_date)
     basin = Enum.find(basins, &(&1.id == basin_id)) || List.first(basins)
     dams_in_basin = focused_basin_dams(dams, basin && basin.id)
-    dam_ids = Enum.map(dams_in_basin, & &1.site_id)
-    values = dam_daily_param_values(days, dam_ids, param_slug)
     param_meta = flow_param_meta(param_slug)
 
     series_dams =
       dams_in_basin
       |> Enum.with_index()
-      |> Enum.filter(fn {dam, _idx} ->
-        Enum.any?(days, &Map.has_key?(values, {&1, dam.site_id}))
-      end)
       |> Enum.map(fn {dam, idx} ->
         dam
         |> Map.take([:site_id, :site_name])
@@ -322,32 +303,22 @@ defmodule BarragensptWeb.OverviewLive do
         |> Map.put(:series_color, indexed_series_color(idx))
       end)
 
+    chart_payload =
+      bucketed_focus_chart_payload(
+        series_dams,
+        param_slug,
+        start_date,
+        end_date,
+        param_meta.unit
+      )
+
     %{
       basin: basin,
       param: param_meta,
-      dams: series_dams,
-      stack_chart: %{
-        chart_type: "stacked_area",
-        x_max_ticks: focus_chart_tick_limit_from_days(length(days)),
-        value_suffix: param_meta.unit,
-        labels: Enum.map(Enum.reverse(days), &format_day_label/1),
-        datasets:
-          Enum.map(series_dams, fn dam ->
-            %{
-              label: dam.short_name,
-              full_label: dam.site_name,
-              series_id: dam.site_id,
-              data:
-                Enum.map(Enum.reverse(days), fn day ->
-                  Map.get(values, {day, dam.site_id})
-                end),
-              backgroundColor: dam.series_color,
-              borderColor: dam.series_color,
-              hoverBackgroundColor: dam.series_color,
-              stack: "storage"
-            }
-          end)
-      }
+      granularity: chart_payload.granularity,
+      granularity_label: chart_payload.granularity_label,
+      dams: chart_payload.series_dams,
+      stack_chart: chart_payload.stack_chart
     }
   end
 
@@ -448,104 +419,6 @@ defmodule BarragensptWeb.OverviewLive do
     end)
   end
 
-  defp dam_daily_volumes(days, dam_ids) do
-    if dam_ids == [] do
-      %{}
-    else
-      start_day = List.last(days) |> Timex.to_naive_datetime()
-      next_day_start = List.first(days) |> Timex.shift(days: 1) |> Timex.to_naive_datetime()
-
-      daily_points =
-        from(dp in DataPoint,
-          join: d in Dam,
-          on: d.site_id == dp.site_id,
-          where:
-            dp.param_name == "volume_last_hour" and
-              dp.colected_at >= ^start_day and
-              dp.colected_at < ^next_day_start and
-              d.site_id in ^dam_ids,
-          select: %{
-            site_id: d.site_id,
-            value: dp.value,
-            day: fragment("date_trunc('day', ?)::date", dp.colected_at),
-            rn:
-              over(
-                row_number(),
-                :site_day_window
-              )
-          },
-          windows: [
-            site_day_window: [
-              partition_by: [dp.site_id, fragment("date_trunc('day', ?)", dp.colected_at)],
-              order_by: [desc: dp.colected_at]
-            ]
-          ]
-        )
-
-      from(p in subquery(daily_points),
-        where: p.rn == 1,
-        select: %{
-          day: p.day,
-          site_id: p.site_id,
-          volume: fragment("round(?)::integer", p.value)
-        }
-      )
-      |> Repo.all()
-      |> Map.new(fn row ->
-        {{row.day, row.site_id}, to_int(row.volume)}
-      end)
-    end
-  end
-
-  defp dam_daily_param_values(days, dam_ids, param_slug) do
-    if dam_ids == [] do
-      %{}
-    else
-      start_day = List.last(days) |> Timex.to_naive_datetime()
-      next_day_start = List.first(days) |> Timex.shift(days: 1) |> Timex.to_naive_datetime()
-
-      daily_points =
-        from(dp in DataPoint,
-          join: d in Dam,
-          on: d.site_id == dp.site_id,
-          where:
-            dp.param_name == ^param_slug and
-              dp.colected_at >= ^start_day and
-              dp.colected_at < ^next_day_start and
-              d.site_id in ^dam_ids,
-          select: %{
-            site_id: d.site_id,
-            value: dp.value,
-            day: fragment("date_trunc('day', ?)::date", dp.colected_at),
-            rn:
-              over(
-                row_number(),
-                :site_day_window
-              )
-          },
-          windows: [
-            site_day_window: [
-              partition_by: [dp.site_id, fragment("date_trunc('day', ?)", dp.colected_at)],
-              order_by: [desc: dp.colected_at]
-            ]
-          ]
-        )
-
-      from(p in subquery(daily_points),
-        where: p.rn == 1,
-        select: %{
-          day: p.day,
-          site_id: p.site_id,
-          value: fragment("round(?, 2)", p.value)
-        }
-      )
-      |> Repo.all()
-      |> Map.new(fn row ->
-        {{row.day, row.site_id}, to_float(row.value)}
-      end)
-    end
-  end
-
   defp trailing_months(count) do
     current_month = Date.utc_today() |> Date.beginning_of_month()
 
@@ -553,18 +426,91 @@ defmodule BarragensptWeb.OverviewLive do
     |> Enum.map(fn index -> Timex.shift(current_month, months: -index) end)
   end
 
-  defp days_in_range(%Date{} = start_date, %Date{} = end_date) do
-    {start_date, end_date} = normalize_date_range(start_date, end_date)
+  defp focus_chart_granularity(%Date{} = start_date, %Date{} = end_date) do
+    two_year_threshold = Timex.shift(end_date, years: -2)
+    nine_month_threshold = Timex.shift(end_date, months: -9)
 
-    Date.range(start_date, end_date)
-    |> Enum.to_list()
-    |> Enum.reverse()
+    cond do
+      Date.compare(start_date, two_year_threshold) in [:lt, :eq] -> :month
+      Date.compare(start_date, nine_month_threshold) in [:lt, :eq] -> :week
+      true -> :day
+    end
   end
 
-  defp focus_chart_tick_limit_from_days(days) when days <= 45, do: 8
-  defp focus_chart_tick_limit_from_days(days) when days <= 120, do: 10
-  defp focus_chart_tick_limit_from_days(days) when days <= 220, do: 12
-  defp focus_chart_tick_limit_from_days(_days), do: 14
+  defp bucketed_focus_chart_payload(series_dams, param_slug, start_date, end_date, value_suffix) do
+    preferred_grain = focus_chart_granularity(start_date, end_date)
+    site_ids = Enum.map(series_dams, & &1.site_id)
+
+    case Dams.bucketed_site_series_for_ui(site_ids, param_slug, start_date, end_date, preferred_grain) do
+      {:ok, rows, meta} ->
+        granularity = Map.get(meta, :grain, preferred_grain)
+        buckets = rows |> Enum.map(& &1["bucket"]) |> Enum.reject(&is_nil/1) |> Enum.uniq() |> Enum.sort()
+        labels = Enum.map(buckets, &format_focus_bucket_label(&1, granularity))
+        label_by_bucket = Map.new(Enum.zip(buckets, labels))
+
+        rows_by_series_and_bucket =
+          Map.new(rows, fn row ->
+            {{row["site_id"], row["bucket"]}, row["avg_value"]}
+          end)
+
+        datasets =
+          series_dams
+          |> Enum.map(fn dam ->
+            %{
+              label: dam.short_name,
+              full_label: dam.site_name,
+              series_id: dam.site_id,
+              data: Enum.map(buckets, &Map.get(rows_by_series_and_bucket, {dam.site_id, &1})),
+              backgroundColor: dam.series_color,
+              borderColor: dam.series_color,
+              hoverBackgroundColor: dam.series_color,
+              stack: "storage"
+            }
+          end)
+          |> Enum.filter(fn dataset -> Enum.any?(dataset.data, &(!is_nil(&1))) end)
+
+        visible_series_ids = MapSet.new(Enum.map(datasets, & &1.series_id))
+
+        %{
+          granularity: granularity,
+          granularity_label: focus_chart_granularity_label(granularity),
+          series_dams: Enum.filter(series_dams, &MapSet.member?(visible_series_ids, &1.site_id)),
+          stack_chart: %{
+            chart_type: "stacked_area",
+            x_max_ticks: focus_chart_tick_limit(length(labels), granularity),
+            value_suffix: value_suffix,
+            labels: Enum.map(buckets, &label_by_bucket[&1]),
+            datasets: datasets
+          }
+        }
+
+      _ ->
+        %{
+          granularity: preferred_grain,
+          granularity_label: focus_chart_granularity_label(preferred_grain),
+          series_dams: [],
+          stack_chart: %{
+            chart_type: "stacked_area",
+            x_max_ticks: focus_chart_tick_limit(0, preferred_grain),
+            value_suffix: value_suffix,
+            labels: [],
+            datasets: []
+          }
+        }
+    end
+  end
+
+  defp focus_chart_tick_limit(count, :day) when count <= 45, do: 8
+  defp focus_chart_tick_limit(count, :day) when count <= 120, do: 10
+  defp focus_chart_tick_limit(count, :day) when count <= 220, do: 12
+  defp focus_chart_tick_limit(_count, :day), do: 14
+  defp focus_chart_tick_limit(count, :week) when count <= 18, do: 8
+  defp focus_chart_tick_limit(count, :week) when count <= 30, do: 10
+  defp focus_chart_tick_limit(count, :week) when count <= 45, do: 12
+  defp focus_chart_tick_limit(_count, :week), do: 14
+  defp focus_chart_tick_limit(count, :month) when count <= 18, do: 8
+  defp focus_chart_tick_limit(count, :month) when count <= 30, do: 10
+  defp focus_chart_tick_limit(_count, :month), do: 12
 
   defp format_month_label(%Date{} = date) do
     month =
@@ -581,6 +527,22 @@ defmodule BarragensptWeb.OverviewLive do
 
     "#{date.day} #{month}"
   end
+
+  defp format_focus_bucket_label(bucket, granularity) when is_binary(bucket) do
+    with {:ok, ndt} <- NaiveDateTime.from_iso8601(bucket) do
+      format_focus_bucket_label(NaiveDateTime.to_date(ndt), granularity)
+    else
+      _ -> bucket
+    end
+  end
+
+  defp format_focus_bucket_label(%Date{} = date, :day), do: format_day_label(date)
+  defp format_focus_bucket_label(%Date{} = date, :week), do: "Sem #{format_day_label(date)}"
+  defp format_focus_bucket_label(%Date{} = date, :month), do: format_month_label(date)
+
+  defp focus_chart_granularity_label(:day), do: "Diário"
+  defp focus_chart_granularity_label(:week), do: "Semanal"
+  defp focus_chart_granularity_label(:month), do: "Mensal"
 
   defp short_basin_name(nil), do: "—"
 

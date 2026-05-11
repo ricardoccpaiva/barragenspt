@@ -1174,7 +1174,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
   Aggregates `data_points_with_dam` rows by a Postgres `date_trunc` bucket and `dam_name`,
   using the same Flop filters as `list_data_points/1` (no table pagination).
 
-  Returns `avg(value)` per `(bucket, dam_name)`. Use `data_points_chart_series_for_ui/2` to
+  Returns `avg(value)` per `(bucket, site_id, dam_name)`. Use `data_points_chart_series_for_ui/2` to
   pick a default grain and optionally coarsen when the series exceeds a cap.
   """
   @spec data_points_chart_series(map(), :hour | :day | :week | :month) ::
@@ -1264,6 +1264,48 @@ defmodule Barragenspt.Hydrometrics.Dams do
   end
 
   @doc """
+  Bucketed average series for a fixed set of dam `site_ids`, parameter slug and date range.
+
+  This is a thin wrapper around `data_points_chart_series_for_ui/2` so UI code can reuse the
+  same coarsening/aggregation logic without rebuilding Flop params by hand.
+  """
+  @spec bucketed_site_series_for_ui([String.t()], String.t(), Date.t(), Date.t(), :day | :week | :month) ::
+          {:ok, [map()], map()}
+          | {:error, Meta.t()}
+          | {:error, :missing_param_name_filter}
+  def bucketed_site_series_for_ui(site_ids, param_slug, %Date{} = start_date, %Date{} = end_date, preferred_grain)
+      when is_list(site_ids) and is_binary(param_slug) and preferred_grain in [:day, :week, :month] do
+    site_ids =
+      site_ids
+      |> Enum.filter(&is_binary/1)
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.uniq()
+
+    if site_ids == [] do
+      {:ok, [], chart_response_meta(preferred_grain, preferred_grain, false, false)}
+    else
+      params = %{
+        "filters" => %{
+          "0" => %{"field" => "param_name", "op" => "in", "value" => [param_slug]},
+          "1" => %{"field" => "site_id", "op" => "in", "value" => site_ids},
+          "2" => %{
+            "field" => "colected_at",
+            "op" => ">=",
+            "value" => Date.to_iso8601(start_date)
+          },
+          "3" => %{
+            "field" => "colected_at",
+            "op" => "<=",
+            "value" => Date.to_iso8601(end_date)
+          }
+        }
+      }
+
+      data_points_chart_series_for_ui(params, preferred_grain)
+    end
+  end
+
+  @doc """
   Heuristic default chart bucket from `colected_at` filter span (fallback: last 60 days).
   """
   @spec default_chart_grain_from_flop(Flop.t()) :: :hour | :day | :week | :month
@@ -1346,6 +1388,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
       from(d in subquery(filtered),
         select: %{
           bucket: fragment("date_trunc(?, ?)", ^pg, d.colected_at),
+          site_id: d.site_id,
           dam_name: d.dam_name,
           param_name: d.param_name,
           value: d.value
@@ -1353,10 +1396,11 @@ defmodule Barragenspt.Hydrometrics.Dams do
       )
 
     from(r in subquery(bucketed),
-      group_by: [r.bucket, r.dam_name, r.param_name],
-      order_by: [asc: r.bucket, asc: r.dam_name, asc: r.param_name],
+      group_by: [r.bucket, r.site_id, r.dam_name, r.param_name],
+      order_by: [asc: r.bucket, asc: r.site_id, asc: r.dam_name, asc: r.param_name],
       select: %{
         bucket: r.bucket,
+        site_id: r.site_id,
         dam_name: r.dam_name,
         param_name: r.param_name,
         avg_value: avg(r.value)
@@ -1367,12 +1411,14 @@ defmodule Barragenspt.Hydrometrics.Dams do
 
   defp chart_row_to_json_map(%{
          bucket: bucket,
+         site_id: site_id,
          dam_name: dam_name,
          param_name: param_name,
          avg_value: avg
        }) do
     %{
       "bucket" => naive_bucket_to_iso(bucket),
+      "site_id" => site_id,
       "dam_name" => dam_name,
       "param_name" => param_name,
       "avg_value" => decimal_avg_to_float(avg)
