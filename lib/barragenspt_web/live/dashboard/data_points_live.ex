@@ -28,17 +28,12 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(:data_points_export_href, ~p"/dashboard/data-points/export/csv")
       |> assign(:awaiting_param_filter, true)
-      |> assign(:data_points_export_enabled, false)
       |> assign(:data_points_basins, Dams.list_data_points_filter_basins())
       |> assign(:data_points_dam_names, Dams.list_data_points_filter_dam_names())
       |> assign(:dam_multiselect_open, false)
       |> assign(:param_multiselect_open, false)
       |> assign(:data_points_single_select_open, nil)
-      |> assign(:data_points_table_menu_open, false)
-      |> assign(:data_points_chart_modal_open, false)
-      |> assign(:data_points_chart_meta, nil)
       |> assign(:data_points_query_params, %{})
 
     {:ok,
@@ -49,8 +44,6 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
 
   @impl true
   def handle_params(params, _uri, socket) do
-    export_href = data_points_export_csv_href(params)
-
     case Dams.list_data_points(params) do
       {:ok, {rows, meta}} ->
         case prune_dam_selection_for_basin(meta) do
@@ -62,39 +55,35 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
             param_set? = Dams.data_points_param_name_filter_set?(meta.flop)
             awaiting = not param_set?
             dam_names = data_points_dam_names_for_basin(meta)
+            export_href = data_points_export_csv_href(params)
 
             {:noreply,
              socket
              |> assign(data_points: rows, meta: meta, form: to_form(meta))
-             |> assign(:data_points_export_href, export_href)
              |> assign(:awaiting_param_filter, awaiting)
-             |> assign(:data_points_export_enabled, param_set?)
              |> assign(:data_points_dam_names, dam_names)
+             |> assign(:data_points_export_href, export_href)
+             |> assign(:data_points_export_enabled, param_set?)
              |> assign(:table_opts, table_opts_flex_fill(awaiting))
-             |> assign(:data_points_table_menu_open, false)
              |> assign(:param_multiselect_open, false)
-             |> assign(:data_points_query_params, params)
-             |> assign(:data_points_chart_modal_open, false)
-             |> assign(:data_points_chart_meta, nil)}
+             |> assign(:data_points_query_params, params)}
         end
 
       {:error, meta} ->
         dam_names = data_points_dam_names_for_basin(meta)
+        export_href = data_points_export_csv_href(params)
 
         {:noreply,
          socket
          |> put_flash(:error, "Parâmetros de filtro ou paginação inválidos.")
          |> assign(data_points: [], meta: meta, form: to_form(meta))
-         |> assign(:data_points_export_href, export_href)
          |> assign(:awaiting_param_filter, true)
-         |> assign(:data_points_export_enabled, false)
          |> assign(:data_points_dam_names, dam_names)
+         |> assign(:data_points_export_href, export_href)
+         |> assign(:data_points_export_enabled, false)
          |> assign(:table_opts, table_opts_flex_fill(true))
-         |> assign(:data_points_table_menu_open, false)
          |> assign(:param_multiselect_open, false)
-         |> assign(:data_points_query_params, params)
-         |> assign(:data_points_chart_modal_open, false)
-         |> assign(:data_points_chart_meta, nil)}
+         |> assign(:data_points_query_params, params)}
     end
   end
 
@@ -181,37 +170,6 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
     else
       {:noreply, socket}
     end
-  end
-
-  @impl true
-  def handle_event("data_points_table_menu_toggle", _, socket) do
-    {:noreply,
-     update(socket, :data_points_table_menu_open, fn open? -> not open? end)}
-  end
-
-  @impl true
-  def handle_event("data_points_table_menu_close", _, socket) do
-    {:noreply, assign(socket, :data_points_table_menu_open, false)}
-  end
-
-  @impl true
-  def handle_event("open_data_points_chart", _, socket) do
-    socket =
-      socket
-      |> assign(:data_points_chart_modal_open, true)
-      |> assign(:data_points_table_menu_open, false)
-      |> refresh_data_points_chart()
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("close_data_points_chart", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:data_points_chart_modal_open, false)
-     |> assign(:data_points_chart_meta, nil)
-     |> push_event("data-points-chart-data", %{chart: nil})}
   end
 
   def handle_event("data_points_single_select_close", _, socket), do: {:noreply, socket}
@@ -304,6 +262,10 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
     Dams.list_data_points_filter_dam_names(if(basin_value == "", do: nil, else: basin_value))
   end
 
+  defp assign_filter_fields(socket) do
+    assign(socket, :filter_fields, filter_field_configs(socket.assigns))
+  end
+
   defp data_points_export_csv_href(params) when is_map(params) do
     base = ~p"/dashboard/data-points/export/csv"
 
@@ -311,10 +273,6 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
       p when map_size(p) == 0 -> base
       p -> base <> "?" <> Plug.Conn.Query.encode(p)
     end
-  end
-
-  defp assign_filter_fields(socket) do
-    assign(socket, :filter_fields, filter_field_configs(socket.assigns))
   end
 
   defp dam_names_from_flop(%Flop.Meta{flop: flop}), do: dam_names_from_flop(flop)
@@ -464,15 +422,6 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
 
   defp eq_flop_filter_field?(_, _), do: false
 
-  defp chart_modal_param_summary(%Flop.Meta{} = meta) do
-    meta
-    |> param_names_from_flop()
-    |> Enum.map(&DataPointParams.label/1)
-    |> Enum.join(", ")
-  end
-
-  defp chart_modal_param_summary(_), do: ""
-
   defp basin_value_from_flop(%Flop.Meta{flop: flop}), do: basin_value_from_flop(flop)
 
   defp basin_value_from_flop(%Flop{filters: filters}) do
@@ -507,150 +456,6 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
 
   defp basin_filter_options(basins) do
     [{"— todas as bacias —", ""} | Enum.map(basins, fn basin -> {basin, basin} end)]
-  end
-
-  defp refresh_data_points_chart(socket) do
-    params = socket.assigns.data_points_query_params
-
-    case Dams.data_points_chart_series_for_ui(params, nil) do
-      {:ok, rows, meta} ->
-        grain = Map.get(meta, :grain, :day)
-        chart = chart_js_payload_from_rows(rows, grain)
-
-        socket
-        |> assign(:data_points_chart_meta, meta)
-        |> push_event("data-points-chart-data", %{chart: chart})
-
-      {:error, :missing_param_name_filter} ->
-        socket
-        |> put_flash(:error, "Escolha pelo menos um parâmetro nos filtros para ver o gráfico.")
-        |> assign(:data_points_chart_meta, nil)
-        |> push_event("data-points-chart-data", %{chart: nil})
-
-      {:error, %Flop.Meta{}} ->
-        socket
-        |> put_flash(:error, "Parâmetros de gráfico inválidos.")
-        |> assign(:data_points_chart_meta, nil)
-        |> push_event("data-points-chart-data", %{chart: nil})
-    end
-  end
-
-  defp chart_js_payload_from_rows(rows, grain) when is_list(rows) do
-    labels =
-      rows
-      |> Enum.map(& &1["bucket"])
-      |> Enum.reject(&is_nil/1)
-      |> Enum.uniq()
-      |> Enum.sort()
-
-    display_labels = Enum.map(labels, &format_chart_axis_label(&1, grain))
-
-    param_slugs =
-      rows
-      |> Enum.map(& &1["param_name"])
-      |> Enum.reject(&is_nil/1)
-      |> Enum.uniq()
-
-    multi_param? = length(param_slugs) > 1
-
-    series =
-      rows
-      |> Enum.map(fn r -> {r["dam_name"], r["param_name"]} end)
-      |> Enum.reject(fn {d, p} -> is_nil(d) or is_nil(p) end)
-      |> Enum.uniq()
-      |> Enum.sort()
-
-    datasets =
-      series
-      |> Enum.with_index()
-      |> Enum.map(fn {{dam, param_slug}, idx} ->
-        color = chart_series_color(idx)
-
-        label =
-          if multi_param? do
-            "#{dam} — #{DataPointParams.label(param_slug)}"
-          else
-            dam
-          end
-
-        data =
-          Enum.map(labels, fn ts ->
-            row =
-              Enum.find(rows, fn r ->
-                r["dam_name"] == dam && r["param_name"] == param_slug && r["bucket"] == ts
-              end)
-
-            if row, do: row["avg_value"], else: nil
-          end)
-
-        %{
-          label: label,
-          data: data,
-          borderColor: color,
-          backgroundColor: color <> "26",
-          tension: 0.35,
-          spanGaps: true,
-          pointRadius: 2
-        }
-      end)
-
-    %{labels: display_labels, datasets: datasets}
-  end
-
-  defp format_chart_axis_label(bucket_str, grain) when is_binary(bucket_str) do
-    case parse_chart_bucket_naive(bucket_str) do
-      {:ok, ndt} ->
-        Calendar.strftime(ndt, chart_axis_strftime_pattern(grain))
-
-      :error ->
-        if byte_size(bucket_str) > 16, do: binary_part(bucket_str, 0, 16) <> "…", else: bucket_str
-    end
-  end
-
-  defp format_chart_axis_label(_, _), do: "—"
-
-  defp chart_axis_strftime_pattern(:hour), do: "%d/%m %H:%M"
-  defp chart_axis_strftime_pattern(:day), do: "%d/%m/%Y"
-  defp chart_axis_strftime_pattern(:week), do: "%d/%m/%Y"
-  defp chart_axis_strftime_pattern(:month), do: "%m/%Y"
-  defp chart_axis_strftime_pattern(_), do: "%d/%m/%Y"
-
-  defp parse_chart_bucket_naive(str) do
-    str = String.trim_trailing(str)
-
-    case NaiveDateTime.from_iso8601(str) do
-      {:ok, ndt} ->
-        {:ok, ndt}
-
-      {:error, _} ->
-        case String.split(str, "T", parts: 2) do
-          [date_part, _] ->
-            case Date.from_iso8601(date_part) do
-              {:ok, d} -> {:ok, NaiveDateTime.new!(d, ~T[00:00:00.000000])}
-              {:error, _} -> :error
-            end
-
-          _ ->
-            :error
-        end
-    end
-  end
-
-  defp chart_series_color(idx) do
-    palette = [
-      "#0ea5e9",
-      "#6366f1",
-      "#10b981",
-      "#f59e0b",
-      "#ef4444",
-      "#8b5cf6",
-      "#ec4899",
-      "#14b8a6",
-      "#f97316",
-      "#84cc16"
-    ]
-
-    Enum.at(palette, rem(idx, length(palette)))
   end
 
   defp filter_field_configs(assigns) do
