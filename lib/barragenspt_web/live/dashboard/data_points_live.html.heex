@@ -101,6 +101,11 @@
           <:col :let={row} label="Bacia" field={:basin}>
             <span class="text-slate-600 dark:text-slate-400">{row.basin}</span>
           </:col>
+          <:col :let={row} label="Parâmetro" field={:param_name}>
+            <span class="text-slate-600 dark:text-slate-400">
+              {DataPointParams.label(row.param_name)}
+            </span>
+          </:col>
           <:col :let={row} label="Valor" field={:value}>
             <span class="tabular-nums text-slate-900 dark:text-slate-100">
               {format_decimal(row.value)}
