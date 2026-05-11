@@ -515,7 +515,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
   defp period_subtitle(_), do: "vs semana anterior"
 
   defp reference_subtitle("monthly"), do: "Mesmo mês, anos anteriores"
-  defp reference_subtitle(_), do: "Mesma semana ISO, anos anteriores"
+  defp reference_subtitle(_), do: "Mesma semana do ano, anos anteriores"
 
   defp storage_metric_label("__all__"), do: "Armazenamento nacional"
   defp storage_metric_label(_basin), do: "Armazenamento da bacia"
