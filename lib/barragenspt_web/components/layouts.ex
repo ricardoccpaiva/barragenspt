@@ -280,6 +280,17 @@ defmodule BarragensptWeb.Layouts do
           <.flash_group flash={@flash} />
           {render_slot(@inner_block)}
         </main>
+
+        <%= if @mode != :map do %>
+          <footer class="mx-auto mt-8 flex w-full max-w-[1600px] items-center justify-end border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            <.link
+              href="/tos.html"
+              class="font-medium hover:text-slate-700 hover:underline dark:hover:text-slate-200"
+            >
+              Termos
+            </.link>
+          </footer>
+        <% end %>
       </div>
 
       <%= if @mode != :map do %>
