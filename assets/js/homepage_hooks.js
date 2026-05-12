@@ -282,6 +282,35 @@ const NavRouteActive = {
   }
 }
 
+const InlineLoadingForm = {
+  mounted() {
+    this.loadingTarget = document.getElementById(this.el.dataset.loadingTarget || "")
+
+    this.showLoading = () => {
+      if (!this.loadingTarget) return
+      this.loadingTarget.classList.remove("hidden")
+      this.loadingTarget.classList.add("flex")
+    }
+
+    this.hideLoading = () => {
+      if (!this.loadingTarget) return
+      this.loadingTarget.classList.add("hidden")
+      this.loadingTarget.classList.remove("flex")
+    }
+
+    this.el.addEventListener("change", this.showLoading)
+    this.hideLoading()
+  },
+
+  updated() {
+    this.hideLoading()
+  },
+
+  destroyed() {
+    this.el.removeEventListener("change", this.showLoading)
+  }
+}
+
 const BasinMiniMap = {
   mounted() {
     this.map = null
@@ -1226,6 +1255,7 @@ export const Hooks = {
   UsageTypeChanged,
   SearchDam,
   DamMultiselectSearch,
+  InlineLoadingForm,
   DarkModeToggle,
   AvatarMenu,
   NavRouteActive,

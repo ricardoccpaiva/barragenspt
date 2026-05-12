@@ -106,21 +106,30 @@ defmodule BarragensptWeb.OverviewLive do
     selected_focus_basin_id = resolve_focus_basin_id(socket.assigns.basins, basin_id)
     {start_date, end_date} = resolve_date_range(params, "focus_start_date", "focus_end_date")
 
-    focused_basin =
-      focused_basin_payload(
-        socket.assigns.basins,
-        socket.assigns.current_dams,
-        selected_focus_basin_id,
-        start_date,
-        end_date
-      )
+    if same_focus_filters?(
+         socket.assigns,
+         selected_focus_basin_id,
+         start_date,
+         end_date
+       ) do
+      {:noreply, socket}
+    else
+      focused_basin =
+        focused_basin_payload(
+          socket.assigns.basins,
+          socket.assigns.current_dams,
+          selected_focus_basin_id,
+          start_date,
+          end_date
+        )
 
-    {:noreply,
-     socket
-     |> assign(:selected_focus_basin_id, selected_focus_basin_id)
-     |> assign(:selected_focus_start_date, Date.to_iso8601(start_date))
-     |> assign(:selected_focus_end_date, Date.to_iso8601(end_date))
-     |> assign(:focused_basin, focused_basin)}
+      {:noreply,
+       socket
+       |> assign(:selected_focus_basin_id, selected_focus_basin_id)
+       |> assign(:selected_focus_start_date, Date.to_iso8601(start_date))
+       |> assign(:selected_focus_end_date, Date.to_iso8601(end_date))
+       |> assign(:focused_basin, focused_basin)}
+    end
   end
 
   def handle_event("select_flow_chart", params, socket) do
@@ -129,23 +138,33 @@ defmodule BarragensptWeb.OverviewLive do
     selected_flow_basin_id = resolve_focus_basin_id(socket.assigns.basins, basin_id)
     {start_date, end_date} = resolve_date_range(params, "flow_start_date", "flow_end_date")
 
-    focused_flow =
-      focused_flow_payload(
-        socket.assigns.basins,
-        socket.assigns.current_dams,
-        selected_flow_basin_id,
-        start_date,
-        end_date,
-        param_slug
-      )
+    if same_flow_filters?(
+         socket.assigns,
+         selected_flow_basin_id,
+         param_slug,
+         start_date,
+         end_date
+       ) do
+      {:noreply, socket}
+    else
+      focused_flow =
+        focused_flow_payload(
+          socket.assigns.basins,
+          socket.assigns.current_dams,
+          selected_flow_basin_id,
+          start_date,
+          end_date,
+          param_slug
+        )
 
-    {:noreply,
-     socket
-     |> assign(:selected_flow_basin_id, selected_flow_basin_id)
-     |> assign(:selected_flow_start_date, Date.to_iso8601(start_date))
-     |> assign(:selected_flow_end_date, Date.to_iso8601(end_date))
-     |> assign(:selected_flow_param, param_slug)
-     |> assign(:focused_flow, focused_flow)}
+      {:noreply,
+       socket
+       |> assign(:selected_flow_basin_id, selected_flow_basin_id)
+       |> assign(:selected_flow_start_date, Date.to_iso8601(start_date))
+       |> assign(:selected_flow_end_date, Date.to_iso8601(end_date))
+       |> assign(:selected_flow_param, param_slug)
+       |> assign(:focused_flow, focused_flow)}
+    end
   end
 
   defp current_basins do
@@ -614,6 +633,19 @@ defmodule BarragensptWeb.OverviewLive do
     end_date = Date.utc_today()
     start_date = Timex.shift(end_date, years: -1)
     {start_date, end_date}
+  end
+
+  defp same_focus_filters?(assigns, basin_id, %Date{} = start_date, %Date{} = end_date) do
+    assigns.selected_focus_basin_id == basin_id and
+      assigns.selected_focus_start_date == Date.to_iso8601(start_date) and
+      assigns.selected_focus_end_date == Date.to_iso8601(end_date)
+  end
+
+  defp same_flow_filters?(assigns, basin_id, param_slug, %Date{} = start_date, %Date{} = end_date) do
+    assigns.selected_flow_basin_id == basin_id and
+      assigns.selected_flow_param == param_slug and
+      assigns.selected_flow_start_date == Date.to_iso8601(start_date) and
+      assigns.selected_flow_end_date == Date.to_iso8601(end_date)
   end
 
   defp resolve_date_range(params, start_key, end_key) do
