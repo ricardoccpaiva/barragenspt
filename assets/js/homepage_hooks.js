@@ -228,9 +228,16 @@ const NavRouteActive = {
   mounted() {
     this.markActive = () => {
       const pathname = window.location.pathname || "/"
-      this.el.querySelectorAll("[data-nav-path]").forEach((link) => {
-        const target = link.getAttribute("data-nav-path") || "/"
-        const active = target === "/" ? pathname === "/" : (pathname === target || pathname.startsWith(target + "/"))
+      this.el.querySelectorAll("[data-nav-path], [data-nav-paths]").forEach((link) => {
+        const targets =
+          (link.getAttribute("data-nav-paths") || link.getAttribute("data-nav-path") || "/")
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean)
+
+        const active = targets.some((target) =>
+          target === "/" ? pathname === "/" : (pathname === target || pathname.startsWith(target + "/"))
+        )
 
         const activeNav = [
           "bg-brand-100",

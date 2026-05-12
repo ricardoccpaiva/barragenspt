@@ -88,7 +88,7 @@ defmodule BarragensptWeb.Layouts do
                       class="group relative shrink-0"
                     >
                       <div
-                        data-nav-path={item.path}
+                        data-nav-paths={Enum.join([item.path | Enum.map(item.children, & &1.path)], ",")}
                         class="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-sm font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
                       >
                         <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
