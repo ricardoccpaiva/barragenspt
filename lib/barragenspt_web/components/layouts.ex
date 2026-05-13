@@ -88,7 +88,9 @@ defmodule BarragensptWeb.Layouts do
                       class="group relative shrink-0"
                     >
                       <div
-                        data-nav-paths={Enum.join([item.path | Enum.map(item.children, & &1.path)], ",")}
+                        data-nav-paths={
+                          Enum.join([item.path | Enum.map(item.children, & &1.path)], ",")
+                        }
                         class="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-sm font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
                       >
                         <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
@@ -97,14 +99,14 @@ defmodule BarragensptWeb.Layouts do
 
                       <div class="invisible absolute left-0 top-full z-50 w-40 pt-1 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100">
                         <div class="overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-600 dark:bg-slate-800">
-                        <%= for child <- item.children do %>
-                          <.link
-                            navigate={child.path}
-                            class="flex items-center px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700/70 dark:hover:text-slate-50"
-                          >
-                            {child.label}
-                          </.link>
-                        <% end %>
+                          <%= for child <- item.children do %>
+                            <.link
+                              navigate={child.path}
+                              class="flex items-center px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700/70 dark:hover:text-slate-50"
+                            >
+                              {child.label}
+                            </.link>
+                          <% end %>
                         </div>
                       </div>
                     </div>
@@ -400,15 +402,11 @@ defmodule BarragensptWeb.Layouts do
         label: "API",
         path: ~p"/dashboard/api-tokens",
         icon: "hero-key",
-        description: "Tokens para integrações",
-        requires_auth: true,
-        requires_admin: false
-      },
-      %{
-        label: "API docs",
-        path: ~p"/dashboard/api-docs",
-        icon: "hero-book-open",
-        description: "Referência OpenAPI (ReDoc)",
+        description: "Acesso e documentação da API",
+        children: [
+          %{label: "Acesso", path: ~p"/dashboard/api-tokens"},
+          %{label: "Documentação", path: ~p"/dashboard/api-docs"}
+        ],
         requires_auth: true,
         requires_admin: false
       },
