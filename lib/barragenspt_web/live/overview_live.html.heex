@@ -104,9 +104,10 @@
         </div>
 
         <div
-          class="mt-4 rounded-lg border border-slate-100 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-900/30 xl:flex-1">
+          class="mt-4 rounded-lg border border-slate-100 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-900/30 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col">
           <div id="current-situation-basin-stack-chart" phx-hook="CurrentSituationBasinStackChart"
-            data-chart={Jason.encode!(@basin_stack_chart)} class="relative h-[14rem] w-full xl:h-full">
+            data-chart={Jason.encode!(@basin_stack_chart)}
+            class="relative h-[14rem] w-full xl:min-h-0 xl:flex-1">
             <canvas class="h-full w-full"></canvas>
           </div>
         </div>

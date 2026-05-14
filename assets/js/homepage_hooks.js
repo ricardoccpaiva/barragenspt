@@ -953,7 +953,18 @@ const CurrentSituationBasinStackChart = {
     this.chart = null
     this._lastFingerprint = null
     this._onThemeChange = () => this.render()
+    this._onResizeObserved = () => {
+      if (!this.chart) return
+      this.chart.resize()
+      this.chart.update("none")
+    }
+
+    this.resizeObserver = typeof window.ResizeObserver === "function"
+      ? new window.ResizeObserver(() => this._onResizeObserved())
+      : null
+
     window.addEventListener("dark-mode-change", this._onThemeChange)
+    if (this.resizeObserver) this.resizeObserver.observe(this.el)
     this.render()
   },
 
@@ -963,6 +974,7 @@ const CurrentSituationBasinStackChart = {
 
   destroyed() {
     window.removeEventListener("dark-mode-change", this._onThemeChange)
+    if (this.resizeObserver) this.resizeObserver.disconnect()
     this._lastFingerprint = null
     if (this.chart) {
       this.chart.destroy()
@@ -1133,8 +1145,8 @@ const CurrentSituationBasinStackChart = {
             stacked: true,
             ticks: {
               color: tickColor,
-              maxRotation: 0,
-              minRotation: 0,
+              maxRotation: isAreaChart ? 0 : 32,
+              minRotation: isAreaChart ? 0 : 32,
               autoSkip: isAreaChart,
               maxTicksLimit: xMaxTicks,
               font: { size: 10, weight: "600" }
