@@ -20,13 +20,13 @@ defmodule BarragensptWeb.UserLive.Settings do
       <div class="space-y-6">
         <section class="rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm dark:border-slate-600 dark:bg-slate-800/40">
           <div class="mb-3 border-b border-slate-200 pb-3 dark:border-slate-600">
-            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Foto de Perfil</h2>
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Perfil</h2>
             <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              Carregue uma imagem PNG, JPG ou WebP até 5 MB.
+              Defina o nome apresentado na aplicação e atualize a foto de perfil.
             </p>
           </div>
 
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
             <%= if src = UserAvatar.image_src(@current_scope.user) do %>
               <img
                 src={src}
@@ -34,68 +34,114 @@ defmodule BarragensptWeb.UserLive.Settings do
                 loading="lazy"
                 decoding="async"
                 referrerpolicy="no-referrer"
-                class="h-20 w-20 rounded-full object-cover ring-1 ring-slate-200/80 dark:ring-slate-600"
+                class="h-20 w-20 shrink-0 rounded-full object-cover ring-1 ring-slate-200/80 dark:ring-slate-600"
               />
             <% else %>
-              <div class="inline-flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-2xl font-bold text-white">
-                {case @current_scope.user.email do
+              <div class="inline-flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-2xl font-bold text-white">
+                {case to_string(@current_scope.user.display_name || @current_scope.user.email || "") |> String.trim() do
                   e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
                   _ -> "U"
                 end}
               </div>
             <% end %>
 
-            <.form
-              id="avatar_form"
-              for={%{}}
-              phx-change="validate_avatar_upload"
-              phx-submit="upload_avatar"
-              class="w-full max-w-xl"
-            >
-              <div class="space-y-3">
-                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <div class="relative min-w-[12rem] flex-1 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 pr-12 text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800/40 dark:text-slate-300">
-                    <div class="truncate">
-                      <%= if @uploads.avatar.entries == [] do %>
-                        Nenhum ficheiro selecionado
-                      <% else %>
-                        <%= for entry <- @uploads.avatar.entries do %>
-                          <span>{entry.client_name}</span>
-                        <% end %>
-                      <% end %>
+            <div class="min-w-0 flex-1 space-y-5">
+              <.form
+                for={@display_name_form}
+                id="display_name_form"
+                phx-change="validate_display_name"
+                phx-submit="update_display_name"
+                class="max-w-xl"
+              >
+                <label
+                  for={@display_name_form[:display_name].id}
+                  class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300"
+                >
+                  Nome
+                </label>
+                <div class="flex flex-wrap items-center gap-2">
+                  <input
+                    id={@display_name_form[:display_name].id}
+                    name={@display_name_form[:display_name].name}
+                    type="text"
+                    value={@display_name_form[:display_name].value}
+                    placeholder="Ex. Ricardo Paiva"
+                    class="h-10 w-full max-w-[18rem] rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                  />
+                  <.button
+                    variant="primary"
+                    phx-disable-with="A guardar..."
+                    class="h-10 min-w-[5.5rem] px-3 whitespace-nowrap"
+                  >
+                    Gravar
+                  </.button>
+                </div>
+                <%= for error <- @display_name_form[:display_name].errors do %>
+                  <p class="mt-1 text-sm text-rose-600 dark:text-rose-400">{translate_error(error)}</p>
+                <% end %>
+              </.form>
+
+              <div class="border-t border-slate-200 pt-4 dark:border-slate-600">
+                <p class="mb-2 text-sm font-semibold text-slate-900 dark:text-slate-100">Foto de perfil</p>
+                <.form
+                  id="avatar_form"
+                  for={%{}}
+                  phx-change="validate_avatar_upload"
+                  phx-submit="upload_avatar"
+                  class="w-full max-w-2xl"
+                >
+                  <div class="space-y-3">
+                    <div class="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                      <div class="relative min-w-[12rem] flex-1 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 pr-12 text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800/40 dark:text-slate-300">
+                        <div class="truncate">
+                          <%= if @uploads.avatar.entries == [] do %>
+                            Nenhum ficheiro selecionado
+                          <% else %>
+                            <%= for entry <- @uploads.avatar.entries do %>
+                              <span>{entry.client_name}</span>
+                            <% end %>
+                          <% end %>
+                        </div>
+
+                        <label class="absolute inset-y-1.5 right-1.5 inline-flex w-9 cursor-pointer items-center justify-center rounded-md border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
+                          <.icon name="hero-pencil-square" class="size-4" />
+                          <span class="sr-only">Escolher imagem</span>
+                          <.live_file_input
+                            upload={@uploads.avatar}
+                            class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                          />
+                        </label>
+                      </div>
+
+                      <.button
+                        variant="primary"
+                        phx-disable-with="A enviar..."
+                        class="h-10 px-4 whitespace-nowrap"
+                      >
+                        Atualizar foto
+                      </.button>
                     </div>
 
-                    <label class="absolute inset-y-1.5 right-1.5 inline-flex w-9 cursor-pointer items-center justify-center rounded-md border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600">
-                      <.icon name="hero-pencil-square" class="size-4" />
-                      <span class="sr-only">Escolher imagem</span>
-                      <.live_file_input
-                        upload={@uploads.avatar}
-                        class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                      />
-                    </label>
-                  </div>
-
-                  <.button variant="primary" phx-disable-with="A enviar...">Atualizar foto</.button>
-                </div>
-
-                <p class="text-xs text-slate-500 dark:text-slate-400">
-                  Formatos aceites: PNG, JPG e WebP. Tamanho máximo: 5 MB.
-                </p>
-
-                <%= for entry <- @uploads.avatar.entries do %>
-                  <%= for error <- upload_errors(@uploads.avatar, entry) do %>
-                    <p class="text-xs text-red-600 dark:text-red-400">
-                      {avatar_upload_error_to_message(error)}
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                      Formatos aceites: PNG, JPG e WebP. Tamanho máximo: 5 MB.
                     </p>
-                  <% end %>
-                <% end %>
-                <%= for error <- upload_errors(@uploads.avatar) do %>
-                  <p class="text-xs text-red-600 dark:text-red-400">
-                    {avatar_upload_error_to_message(error)}
-                  </p>
-                <% end %>
+
+                    <%= for entry <- @uploads.avatar.entries do %>
+                      <%= for error <- upload_errors(@uploads.avatar, entry) do %>
+                        <p class="text-xs text-red-600 dark:text-red-400">
+                          {avatar_upload_error_to_message(error)}
+                        </p>
+                      <% end %>
+                    <% end %>
+                    <%= for error <- upload_errors(@uploads.avatar) do %>
+                      <p class="text-xs text-red-600 dark:text-red-400">
+                        {avatar_upload_error_to_message(error)}
+                      </p>
+                    <% end %>
+                  </div>
+                </.form>
               </div>
-            </.form>
+            </div>
           </div>
         </section>
 
@@ -312,6 +358,7 @@ defmodule BarragensptWeb.UserLive.Settings do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
     password_changeset = Accounts.change_user_password(user, %{}, hash_password: false)
+    display_name_changeset = Accounts.change_user_display_name(user, display_name_form_attrs(user))
 
     {telegram_link_token, telegram_deep_link} = ensure_telegram_link(user)
 
@@ -321,6 +368,7 @@ defmodule BarragensptWeb.UserLive.Settings do
       |> assign(:telegram_bot_username, Application.get_env(:barragenspt, :telegram_bot_username))
       |> assign(:telegram_link_token, telegram_link_token)
       |> assign(:telegram_deep_link, telegram_deep_link)
+      |> assign(:display_name_form, to_form(display_name_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
       |> allow_upload(:avatar,
@@ -335,6 +383,36 @@ defmodule BarragensptWeb.UserLive.Settings do
 
   def handle_event("validate_avatar_upload", _params, socket) do
     {:noreply, socket}
+  end
+
+  def handle_event("validate_display_name", %{"user" => user_params}, socket) do
+    display_name_form =
+      socket.assigns.current_scope.user
+      |> Accounts.change_user_display_name(user_params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:noreply, assign(socket, display_name_form: display_name_form)}
+  end
+
+  def handle_event("update_display_name", %{"user" => user_params}, socket) do
+    user = socket.assigns.current_scope.user
+    true = Accounts.sudo_mode?(user, -sudo_mode_validity_minutes())
+
+    case Accounts.update_user_display_name(user, user_params) do
+      {:ok, updated_user} ->
+        {:noreply,
+         socket
+         |> assign(:current_scope, Scope.for_user(updated_user))
+         |> assign(
+           :display_name_form,
+           to_form(Accounts.change_user_display_name(updated_user, display_name_form_attrs(updated_user)))
+         )
+         |> put_flash(:info, "Display name atualizado.")}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, display_name_form: to_form(changeset, action: :validate))}
+    end
   end
 
   def handle_event("upload_avatar", _params, socket) do
@@ -630,6 +708,10 @@ defmodule BarragensptWeb.UserLive.Settings do
 
   defp build_r2_public_url(remote_path) do
     R2.public_url(remote_path)
+  end
+
+  defp display_name_form_attrs(user) do
+    %{"display_name" => to_string(user.display_name || user.email || "")}
   end
 
   defp sudo_mode_validity_minutes do

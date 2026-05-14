@@ -170,6 +170,23 @@ defmodule Barragenspt.Accounts do
     |> Repo.update()
   end
 
+  @doc """
+  Returns a changeset for updating the user display name.
+  """
+  def change_user_display_name(user, attrs \\ %{}) do
+    user
+    |> User.display_name_changeset(normalize_display_name_attrs(user, attrs))
+  end
+
+  @doc """
+  Updates the user display name.
+  """
+  def update_user_display_name(user, attrs) do
+    user
+    |> User.display_name_changeset(normalize_display_name_attrs(user, attrs))
+    |> Repo.update()
+  end
+
   ## Settings
 
   @doc """
@@ -185,6 +202,31 @@ defmodule Barragenspt.Accounts do
   end
 
   def sudo_mode?(_user, _minutes), do: false
+
+  defp normalize_display_name_attrs(user, attrs) when is_map(attrs) do
+    cond do
+      Map.has_key?(attrs, "display_name") ->
+        Map.put(attrs, "display_name", normalize_display_name_value(user, Map.get(attrs, "display_name")))
+
+      Map.has_key?(attrs, :display_name) ->
+        Map.put(attrs, :display_name, normalize_display_name_value(user, Map.get(attrs, :display_name)))
+
+      true ->
+        attrs
+    end
+  end
+
+  defp normalize_display_name_attrs(_user, attrs), do: attrs
+
+  defp normalize_display_name_value(%User{email: email}, value) do
+    normalized = value |> to_string() |> String.trim()
+
+    if normalized == "" or normalized == to_string(email || "") do
+      nil
+    else
+      normalized
+    end
+  end
 
   @doc """
   Returns an `%Ecto.Changeset{}` for changing the user email.

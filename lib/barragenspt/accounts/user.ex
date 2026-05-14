@@ -4,6 +4,7 @@ defmodule Barragenspt.Accounts.User do
 
   schema "users" do
     field :email, :string
+    field :display_name, :string
     field :is_admin, :boolean, default: false
     field :avatar_url, :string
     field :email_notifications_enabled, :boolean, default: true
@@ -162,6 +163,20 @@ defmodule Barragenspt.Accounts.User do
       "" -> nil
       value -> value
     end)
+  end
+
+  @doc """
+  Updates the user-facing display name.
+  """
+  def display_name_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:display_name])
+    |> update_change(:display_name, fn
+      nil -> nil
+      value when is_binary(value) -> value |> String.trim() |> blank_to_nil()
+      value -> value |> to_string() |> String.trim() |> blank_to_nil()
+    end)
+    |> validate_length(:display_name, max: 80)
   end
 
   @doc false

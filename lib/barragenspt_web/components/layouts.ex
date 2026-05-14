@@ -228,7 +228,7 @@ defmodule BarragensptWeb.Layouts do
                     />
                   <% else %>
                     <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-xs font-bold text-white">
-                      {case @current_scope.user.email do
+                      {case display_name_or_email(@current_scope.user) do
                         e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
                         _ -> "U"
                       end}
@@ -365,6 +365,16 @@ defmodule BarragensptWeb.Layouts do
 
   defp signed_in?(%{user: %{}}), do: true
   defp signed_in?(_), do: false
+
+  defp display_name_or_email(%{display_name: name, email: email}) do
+    case to_string(name || "") |> String.trim() do
+      "" -> email
+      value -> value
+    end
+  end
+
+  defp display_name_or_email(%{email: email}), do: email
+  defp display_name_or_email(_), do: nil
 
   defp dashboard_sidebar_items(scope) do
     is_admin? = !!(scope && scope.is_admin)

@@ -6,8 +6,7 @@
           barragens.pt · Dashboard
         </p>
         <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">
-          Bem-vindo, <span class="text-brand-600 dark:text-brand-400">{String.split(@current_scope.user.email, "@") |>
-            List.first()}</span>.
+          Bem-vindo(a), <span class="text-brand-600 dark:text-brand-400">{user_display_name(@current_scope.user)}</span>.
         </h1>
         <p class="mt-3 max-w-xl text-base text-slate-500 dark:text-slate-400">
           Analisa dados hidrométricos, gera relatórios e monitoriza albufeiras portuguesas com notificações
