@@ -44,10 +44,6 @@
             >
               Notificações
             </.link>
-            <.live_component
-              module={BarragensptWeb.EvaluateNotificationsShortcutComponent}
-              id="navbar-evaluate-notifications"
-            />
             <%= if Mix.env() in [:dev, :test] do %>
               <.link
                 navigate={~p"/dashboard/test/force-dam-value"}

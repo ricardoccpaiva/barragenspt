@@ -12,15 +12,18 @@ defmodule BarragensptWeb.EvaluateNotificationsShortcutComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <button
-      type="button"
-      phx-click="enqueue"
-      phx-target={@myself}
-      class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/80"
-      title="Correr agora o job Oban que avalia todas as condições de notificação ativas"
-    >
-      Avaliar notificações
-    </button>
+    <div>
+      <.button
+        variant="primary"
+        phx-click="enqueue"
+        phx-target={@myself}
+        type="button"
+        class="px-3 py-1.5"
+        title="Correr agora o job Oban que avalia todas as condições de notificação ativas"
+      >
+        Avaliar notificações
+      </.button>
+    </div>
     """
   end
 

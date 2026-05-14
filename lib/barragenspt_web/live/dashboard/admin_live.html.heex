@@ -8,6 +8,10 @@
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
+        <.live_component
+          module={BarragensptWeb.EvaluateNotificationsShortcutComponent}
+          id="admin-evaluate-notifications"
+        />
         <div class="inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-800">
           <%= for tab <- @tabs do %>
             <button

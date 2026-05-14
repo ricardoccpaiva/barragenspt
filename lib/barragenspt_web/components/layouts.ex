@@ -122,10 +122,6 @@ defmodule BarragensptWeb.Layouts do
                   <% end %>
                 <% end %>
               </div>
-              <.live_component
-                module={BarragensptWeb.EvaluateNotificationsShortcutComponent}
-                id="dashboard-evaluate-notifications-top"
-              />
             </div>
           <% end %>
 
