@@ -132,7 +132,7 @@ defmodule BarragensptWeb.Layouts do
             <div
               id="app-switcher"
               phx-hook="NavRouteActive"
-              class="inline-flex h-10 items-center gap-0.5 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
+              class="inline-flex h-10 items-center gap-0.5 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card max-md:hidden dark:border-slate-600 dark:bg-slate-800/90"
             >
               <.link
                 navigate={~p"/"}
