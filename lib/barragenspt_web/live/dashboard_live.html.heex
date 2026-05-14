@@ -50,7 +50,7 @@
         <% end %>
 
           <%!-- Feature cards --%>
-            <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
               <%!-- Relatório semanal --%>
                 <.link {dashboard_link_attrs(@current_scope, ~p"/dashboard/storage-report")}
                   class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:border-sky-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600/60">
@@ -127,42 +127,5 @@
                         </div>
                       </.link>
 
-                      <%!-- Documentação API --%>
-                        <.link {dashboard_link_attrs(@current_scope, ~p"/dashboard/api-docs")}
-                          class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:border-indigo-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-indigo-600/60">
-                          <div class="flex flex-1 items-start gap-4 p-6">
-                            <span
-                              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-400 dark:ring-indigo-800/60">
-                              <.icon name="hero-book-open" class="size-5" />
-                            </span>
-                            <div class="min-w-0">
-                              <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">API Docs</p>
-                              <p class="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                                Consulta endpoints, parâmetros e exemplos para integrar bacias, barragens e medições
-                                noutras ferramentas.
-                              </p>
-                            </div>
-                          </div>
-                        </.link>
-
-                        <%!-- Status dos dados --%>
-                          <.link {dashboard_link_attrs(@current_scope, ~p"/status/workers")}
-                            class="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:border-emerald-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-600/60">
-                            <div class="flex flex-1 items-start gap-4 p-6">
-                              <span
-                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 dark:ring-emerald-800/60">
-                                <.icon name="hero-clock" class="size-5" />
-                              </span>
-                              <div class="min-w-0">
-                                <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                                  Status dos dados
-                                </p>
-                                <p class="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                                  Acompanha as rotinas de atualização, últimas execuções, linhas processadas e eventuais
-                                  erros.
-                                </p>
-                              </div>
-                            </div>
-                          </.link>
             </div>
 </Layouts.app>
