@@ -11,18 +11,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Smooch+Sans:wght@400;500;600;700&display=swap"
-    rel="stylesheet" />
   <style>
     :root {
-      --bg: #f4f8fc;
-      --ink: #132238;
-      --muted: #5f718f;
-      --line: #d7e3f0;
-      --card: rgba(255, 255, 255, 0.9);
+      --bg: #f8fafc;
+      --bg-soft: #f1f5f9;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #dbe4ee;
+      --card: #ffffff;
       --brand: #0284c7;
       --brand-soft: #e0f2fe;
-      --shadow: 0 18px 44px rgb(15 35 62 / 0.12);
+      --shadow: 0 10px 28px rgb(15 23 42 / 0.06);
     }
 
     * {
@@ -38,10 +37,7 @@
       min-height: 100vh;
       font-family: "Plus Jakarta Sans", system-ui, sans-serif;
       color: var(--ink);
-      background:
-        radial-gradient(circle at 14% -4%, #dff2ff 0 18rem, transparent 31rem),
-        radial-gradient(circle at 88% 10%, #ecfeff 0 14rem, transparent 24rem),
-        linear-gradient(180deg, #f9fbff 0%, var(--bg) 56%, #edf3fa 100%);
+      background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
       line-height: 1.6;
     }
 
@@ -50,9 +46,9 @@
     }
 
     .page {
-      width: min(1100px, calc(100vw - 32px));
+      width: min(1180px, calc(100vw - 32px));
       margin: 0 auto;
-      padding: 22px 0 48px;
+      padding: 20px 0 40px;
     }
 
     .topbar {
@@ -60,7 +56,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .brand {
@@ -75,11 +71,11 @@
     .brand-mark {
       display: grid;
       place-items: center;
-      width: 40px;
-      height: 40px;
-      border-radius: 13px;
-      background: #e0f2fe;
-      border: 1px solid #bae6fd;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: #f0f9ff;
+      border: 1px solid #cbe8fb;
       color: var(--brand);
       overflow: hidden;
     }
@@ -102,16 +98,16 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 36px;
-      padding: 0 13px;
+      min-height: 34px;
+      padding: 0 12px;
       border-radius: 11px;
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.82);
+      background: #ffffff;
       color: #334155;
       text-decoration: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+      box-shadow: 0 1px 2px rgb(15 23 42 / 0.03);
     }
 
     .nav a.primary {
@@ -121,24 +117,12 @@
     }
 
     .hero {
-      position: relative;
-      overflow: hidden;
-      border-radius: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.72);
-      background:
-        linear-gradient(140deg, rgba(15, 32, 51, 0.9) 0%, rgba(15, 32, 51, 0.78) 52%, rgba(2, 132, 199, 0.72) 100%);
-      color: #ffffff;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      color: var(--ink);
       box-shadow: var(--shadow);
-      padding: 28px 30px 26px;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      inset: auto -10% -34% 42%;
-      height: 220px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
-      transform: rotate(-8deg);
+      padding: 24px 26px 22px;
     }
 
     .eyebrow {
@@ -146,11 +130,11 @@
       align-items: center;
       gap: 8px;
       margin: 0 0 12px;
-      padding: 6px 11px;
+      padding: 5px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(255, 255, 255, 0.1);
-      color: #d9f1ff;
+      border: 1px solid #d6ebfb;
+      background: #f0f9ff;
+      color: #0369a1;
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
@@ -159,87 +143,85 @@
 
     .hero h1 {
       margin: 0;
-      max-width: 760px;
-      font-family: "Smooch Sans", "Plus Jakarta Sans", system-ui, sans-serif;
-      font-size: clamp(28px, 4.1vw, 42px);
-      line-height: 0.98;
-      letter-spacing: 0.02em;
+      max-width: 780px;
+      font-size: clamp(28px, 4vw, 38px);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
     }
 
     .hero p {
-      margin: 12px 0 0;
+      margin: 10px 0 0;
       max-width: 760px;
-      color: #d9e8f8;
-      font-size: clamp(13px, 1.25vw, 15px);
+      color: var(--muted);
+      font-size: 14px;
     }
 
     .hero-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 18px;
+      gap: 8px;
+      margin-top: 16px;
     }
 
     .chip {
       display: inline-flex;
       align-items: center;
-      min-height: 34px;
-      padding: 0 12px;
+      min-height: 32px;
+      padding: 0 11px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.1);
-      color: #eef8ff;
-      font-size: 13px;
+      border: 1px solid #dbe8f5;
+      background: #ffffff;
+      color: #475569;
+      font-size: 12px;
       font-weight: 600;
     }
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 290px;
-      gap: 18px;
-      margin-top: 20px;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: 16px;
+      margin-top: 16px;
       align-items: start;
     }
 
     .content {
       display: grid;
-      gap: 16px;
+      gap: 12px;
     }
 
     .card {
       background: var(--card);
       border: 1px solid var(--line);
-      border-radius: 20px;
-      box-shadow: 0 14px 34px rgb(15 35 62 / 0.07);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
     }
 
     .section {
-      padding: 20px 22px;
+      padding: 18px 20px;
     }
 
     .section h2 {
-      margin: 0 0 10px;
-      font-size: 20px;
-      line-height: 1.1;
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
     }
 
     .section p {
       margin: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .section ul {
-      margin: 14px 0 0;
+      margin: 12px 0 0;
       padding-left: 20px;
       color: #314560;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .section li+li {
-      margin-top: 7px;
+      margin-top: 6px;
     }
 
     .section strong {
@@ -253,12 +235,13 @@
     .toc {
       position: sticky;
       top: 16px;
-      padding: 18px;
+      padding: 16px;
+      background: #f8fbff;
     }
 
     .toc h2 {
-      margin: 0 0 12px;
-      font-size: 13px;
+      margin: 0 0 10px;
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #45617f;
@@ -268,9 +251,9 @@
       margin: 0;
       padding-left: 18px;
       display: grid;
-      gap: 8px;
+      gap: 7px;
       color: #36506f;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .toc a {
@@ -282,24 +265,24 @@
     }
 
     .notice {
-      margin-top: 14px;
-      padding: 14px;
+      margin-top: 12px;
+      padding: 12px;
       border-radius: 16px;
       background: var(--brand-soft);
       border: 1px solid #bae6fd;
       color: #0c4a6e;
-      font-size: 13px;
+      font-size: 12px;
       line-height: 1.5;
     }
 
     .footer {
-      margin-top: 18px;
-      padding: 18px 20px;
+      margin-top: 16px;
+      padding: 16px 18px;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       gap: 12px 16px;
-      font-size: 13px;
+      font-size: 12px;
       color: #4d6484;
     }
 
@@ -343,11 +326,11 @@
       }
 
       .hero {
-        padding: 22px 18px 20px;
+        padding: 20px 18px 18px;
       }
 
       .section {
-        padding: 18px 16px;
+        padding: 16px;
       }
     }
   </style>
@@ -371,11 +354,17 @@
     </header>
 
     <section class="hero">
+      <div class="eyebrow">Documento legal</div>
       <h1>Condições de utilização do barragens.pt</h1>
       <p>
         Estes Termos regulam a utilização do website, dashboard, relatórios, alertas, exportações,
         API e restantes funcionalidades disponibilizadas pela plataforma.
       </p>
+      <div class="hero-meta">
+        <span class="chip">Em vigor desde 26 de abril de 2026</span>
+        <span class="chip">Versão pública</span>
+        <span class="chip">Leitura estimada: 6 min</span>
+      </div>
     </section>
 
     <div class="layout">
