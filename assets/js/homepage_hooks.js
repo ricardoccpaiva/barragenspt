@@ -613,28 +613,6 @@ const StorageReportPdfExport = {
   }
 }
 
-const OpenSettingsModal = {
-  mounted() {
-    this.el.addEventListener("click", () => {
-      gtagEvent("open_modal", { modal: "settings" })
-    })
-  }
-}
-
-const SettingsModalBackdrop = {
-  mounted() {
-    this.el.addEventListener("click", (e) => {
-      if (e.target === this.el) this.pushEvent("close_settings_modal", {})
-    })
-  }
-}
-
-const SettingsModalCloseButton = {
-  mounted() {
-    this.el.addEventListener("click", () => this.pushEvent("close_settings_modal", {}))
-  }
-}
-
 const ContactForm = {
   mounted() {
     this.el.addEventListener("submit", () => {
@@ -1274,9 +1252,6 @@ export const Hooks = {
   BasinMiniMap,
   StorageReportPortugalMap,
   StorageReportPdfExport,
-  OpenSettingsModal,
-  SettingsModalBackdrop,
-  SettingsModalCloseButton,
   ContactForm,
   OpenContactModal,
   ContactModalBackdrop,

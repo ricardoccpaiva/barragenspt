@@ -334,10 +334,6 @@ html.map-loaded .loading-overlay {
   z-index: 10001;
 }
 
-.settings-modal-backdrop {
-  z-index: 10001;
-}
-
 .contact-modal-backdrop {
   z-index: 10001;
 }

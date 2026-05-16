@@ -30,7 +30,6 @@ defmodule BarragensptWeb.HomepageV2Live do
         dam_names: [],
         search_rivers: [],
         search_term: "",
-        settings_modal_open: false,
         logo_path: Routes.static_path(socket.endpoint, "/images/droplets.svg")
       )
       |> push_event("draw_map_layers", %{basins: basins, dams: dams})
@@ -655,14 +654,6 @@ defmodule BarragensptWeb.HomepageV2Live do
   end
 
   def handle_event("toggle_alerts", _, socket), do: {:noreply, socket}
-
-  def handle_event("open_settings_modal", _, socket) do
-    {:noreply, assign(socket, settings_modal_open: true)}
-  end
-
-  def handle_event("close_settings_modal", _, socket) do
-    {:noreply, assign(socket, settings_modal_open: false)}
-  end
 
   def handle_event(
         "submit_contact",
