@@ -1,4 +1,4 @@
-defmodule BarragensptWeb.HomepageV2Live do
+defmodule BarragensptWeb.HomepageLive do
   use BarragensptWeb, :live_view
   import Ecto.Query
   alias Barragenspt.Repo

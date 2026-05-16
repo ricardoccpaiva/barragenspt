@@ -1,4 +1,4 @@
-defmodule BarragensptWeb.HomepageV2Live.BasinCardComponent do
+defmodule BarragensptWeb.HomepageLive.BasinCardComponent do
   use BarragensptWeb, :live_component
 
   @impl true

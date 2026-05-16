@@ -1,4 +1,4 @@
-defmodule BarragensptWeb.HomepageV2Live.SpainBasinCardComponent do
+defmodule BarragensptWeb.HomepageLive.SpainBasinCardComponent do
   @moduledoc """
   Card for Spanish basin data (Embalses.net): basin_name, current_pct, capacity_color, id.
   Expects basin_card with :name, :avg_observed (number, string like "79,29", or nil), :color (hex).

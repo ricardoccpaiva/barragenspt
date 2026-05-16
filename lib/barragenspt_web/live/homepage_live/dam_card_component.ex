@@ -1,4 +1,4 @@
-defmodule BarragensptWeb.HomepageV2Live.DamCardComponent do
+defmodule BarragensptWeb.HomepageLive.DamCardComponent do
   use BarragensptWeb, :live_component
   alias Barragenspt.Hydrometrics.{DamChartSeries, Dams}
 
