@@ -13,16 +13,18 @@
     rel="stylesheet" />
   <style>
     :root {
-      --bg: #f4f8fc;
+      --bg: #f8fafc;
       --card: #ffffff;
-      --ink: #0f1e35;
-      --muted: #5a6b84;
-      --line: #d6e2f0;
-      --brand: #0d89cf;
-      --brand-deep: #0b5a96;
-      --mint: #dff8ef;
-      --mint-ink: #0f766e;
-      --shadow: 0 30px 60px -42px rgba(6, 40, 66, 0.45);
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --brand: #0284c7;
+      --brand-soft: #e0f2fe;
+      --brand-ink: #0369a1;
+      --amber-soft: #fffbeb;
+      --amber-line: #fde68a;
+      --amber-ink: #92400e;
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
     }
 
     * {
@@ -33,50 +35,107 @@
       margin: 0;
       color: var(--ink);
       font-family: "Plus Jakarta Sans", "Avenir Next", "Segoe UI", sans-serif;
-      background:
-        radial-gradient(900px 440px at 0% -10%, #ddf1ff 0%, transparent 66%),
-        radial-gradient(900px 440px at 100% 0%, #dff6ff 0%, transparent 70%),
-        var(--bg);
+      background: var(--bg);
     }
 
     .page {
       width: min(1160px, calc(100vw - 32px));
       margin: 0 auto;
-      padding: 28px 0 56px;
+      padding: 24px 0 56px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #334155;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--brand);
+      box-shadow: var(--shadow);
+      mask-image: url("/images/droplets.svg");
+      mask-repeat: no-repeat;
+      mask-position: center;
+      mask-size: contain;
+      -webkit-mask-image: url("/images/droplets.svg");
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      -webkit-mask-size: contain;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      border-radius: 10px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: #334155;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+    }
+
+    .button.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #fff;
     }
 
     .hero {
       position: relative;
       overflow: hidden;
-      border: 1px solid #c7dbef;
-      border-radius: 28px;
-      padding: 34px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 28px;
       background:
-        linear-gradient(120deg, rgba(9, 30, 52, 0.55) 0%, rgba(9, 30, 52, 0.38) 42%, rgba(9, 30, 52, 0.22) 100%),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.84) 0%, rgba(255, 255, 255, 0.64) 46%, rgba(255, 255, 255, 0.16) 100%),
         url("/images/dashboard-hero-illustration.png") center / cover no-repeat;
       box-shadow: var(--shadow);
     }
 
-    .hero::after {
-      content: "";
-      position: absolute;
-      width: 420px;
-      height: 420px;
-      right: -170px;
-      top: -210px;
-      border-radius: 999px;
-      background: radial-gradient(circle, rgba(11, 137, 207, 0.25), rgba(11, 137, 207, 0));
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
     }
 
     .eyebrow {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
+      width: fit-content;
+      padding: 6px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(186, 230, 253, 0.65);
-      background: rgba(186, 230, 253, 0.18);
-      color: #dff2ff;
+      border: 1px solid #bae6fd;
+      background: var(--brand-soft);
+      color: var(--brand-ink);
       font-size: 11px;
       font-weight: 800;
       letter-spacing: 0.04em;
@@ -85,20 +144,19 @@
 
     h1 {
       margin: 14px 0 10px;
-      font-family: "Plus Jakarta Sans", sans-serif;
-      font-size: clamp(22px, 2.9vw, 34px);
-      line-height: 1.04;
-      letter-spacing: -0.02em;
-      max-width: none;
-      color: #f8fcff;
+      font-size: clamp(28px, 4vw, 46px);
+      line-height: 1.02;
+      letter-spacing: 0;
+      max-width: 18ch;
+      color: var(--ink);
     }
 
     .lead {
       margin: 0;
       max-width: 72ch;
-      font-size: 14px;
-      line-height: 1.5;
-      color: #dbeaf8;
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--ink);
     }
 
     .pill-row {
@@ -109,19 +167,34 @@
     }
 
     .pill {
-      border: 1px solid rgba(219, 234, 254, 0.45);
-      background: rgba(255, 255, 255, 0.15);
-      color: #eff8ff;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      color: #475569;
       border-radius: 999px;
-      padding: 7px 12px;
+      padding: 6px 10px;
       font-size: 12px;
       font-weight: 700;
     }
 
     .section-title {
-      margin: 26px 0 10px;
-      font-family: "Plus Jakarta Sans", sans-serif;
+      margin: 28px 0 12px;
       font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .notice {
+      margin: 18px 0 0;
+      border: 1px solid var(--amber-line);
+      border-radius: 14px;
+      background: var(--amber-soft);
+      color: var(--amber-ink);
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .notice strong {
+      color: #713f12;
     }
 
     .section-kicker {
@@ -135,26 +208,17 @@
     }
 
     .cards {
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      background: var(--card);
-      box-shadow: 0 20px 50px -42px rgba(8, 30, 56, 0.42);
-    }
-
-    .cards {
-      padding: 8px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
     }
 
     .feature {
-      border: 1px solid #d9e6f3;
-      border-radius: 16px;
-      padding: 16px;
-      background:
-        linear-gradient(170deg, #ffffff, #fbfdff 70%);
-    }
-
-    .feature+.feature {
-      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      background: var(--card);
+      box-shadow: var(--shadow);
     }
 
     .feature-head {
@@ -165,21 +229,21 @@
     }
 
     .icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
       display: grid;
       place-items: center;
-      background: #e6f4ff;
-      border: 1px solid #cce4f8;
-      color: #0369a1;
-      font-size: 18px;
+      background: var(--brand-soft);
+      border: 1px solid #bae6fd;
+      color: var(--brand-ink);
+      font-size: 12px;
+      font-weight: 800;
     }
 
     .feature h4 {
       margin: 0;
-      font-size: 19px;
-      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 18px;
     }
 
     .feature p {
@@ -192,8 +256,9 @@
     .feature ul {
       margin: 0;
       padding-left: 18px;
-      color: #4f6078;
+      color: #475569;
       font-size: 14px;
+      line-height: 1.55;
     }
 
     .feature li {
@@ -203,9 +268,9 @@
     .meta {
       margin-top: 10px;
       border-radius: 12px;
-      border: 1px solid #d8ebe2;
-      background: #f1fbf7;
-      color: var(--mint-ink);
+      border: 1px solid #bae6fd;
+      background: #f0f9ff;
+      color: var(--brand-ink);
       padding: 9px 11px;
       font-size: 14px;
     }
@@ -222,25 +287,29 @@
         padding-top: 12px;
       }
 
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
       .hero {
-        padding: 24px 18px;
-        border-radius: 20px;
+        padding: 20px;
       }
 
       h1 {
-        font-size: 35px;
+        font-size: 32px;
       }
 
       .lead {
-        font-size: 16px;
+        font-size: 15px;
       }
 
-      .section-title {
-        font-size: 24px;
+      .cards {
+        grid-template-columns: 1fr;
       }
 
       .feature h4 {
-        font-size: 19px;
+        font-size: 17px;
       }
     }
   </style>
@@ -248,12 +317,31 @@
 
 <body>
   <main class="page">
+    <header class="topbar">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true"></span>
+        barragens.pt
+      </a>
+      <nav class="top-actions" aria-label="Navegação">
+        <a class="button" href="/">Mapa</a>
+        <a class="button primary" href="/dashboard">Dashboard</a>
+      </nav>
+    </header>
+
     <section class="hero">
-      <h1>O barragens.pt alargou horizontes e está mais útil.</h1>
-      <p class="lead">
-        Nesta nova versão, o barragens.pt deixa de ser apenas uma aplicação "map-centric" para se tornar uma
-        plataforma de monitorização hídrica mais abrangente.
-      </p>
+      <div class="hero-content">
+        <h1>O barragens.pt alargou horizontes e está mais útil.</h1>
+        <p class="lead">
+          Nesta nova versão, o barragens.pt deixa de ser apenas uma aplicação "map-centric" para se tornar uma
+          plataforma de monitorização hídrica mais abrangente.
+        </p>
+      </div>
+    </section>
+
+    <section class="notice" aria-label="Aviso sobre resolução de ecrã">
+      <strong>Nota sobre telemóveis:</strong>
+      a nova área do dashboard ainda não está otimizada para resoluções típicas de telemóvel. Para já, a melhor
+      experiência é em tablet, portátil ou desktop.
     </section>
 
     <h2 class="section-title">Novidades por área</h2>
@@ -261,8 +349,8 @@
     <section class="layout" aria-label="Release notes">
       <div class="cards">
         <article class="feature">
-          <div class="feature-head"><span class="icon">👤</span>
-            <h4>Login e registro</h4>
+          <div class="feature-head"><span class="icon">01</span>
+            <h4>Login e registo</h4>
           </div>
           <p>Fluxo completo de conta para entrada e gestão no dashboard.</p>
           <ul>
@@ -273,7 +361,7 @@
         </article>
 
         <article class="feature">
-          <div class="feature-head"><span class="icon">📊</span>
+          <div class="feature-head"><span class="icon">02</span>
             <h4>Dados</h4>
           </div>
           <p>Consulta operacional de indicadores de barragens e bacias, com leitura rápida do estado atual.</p>
@@ -284,32 +372,35 @@
         </article>
 
         <article class="feature">
-          <div class="feature-head"><span class="icon">🧾</span>
+          <div class="feature-head"><span class="icon">03</span>
             <h4>Relatório</h4>
           </div>
-          <p>Geração de relatórios semanais e mensais</p>
+          <p>Relatórios de armazenamento para análise semanal ou mensal, por bacia ou para o conjunto nacional.</p>
           <ul>
-            <li>Seleção da data de avaliação dos dados sendo possível "recuar no tempo".</li>
-            <li>Análise por bacia com tabelas e mapas com indicação dos valorea atuais.</li>
-            <li>Comparação face ao período anterior e também ao período de referência.</li>
+            <li>Escolha da semana ou mês de referência para consultar períodos anteriores.</li>
+            <li>Resumo de percentagem e volume armazenado, com leitura por bacia e por barragem.</li>
+            <li>Mapa de Portugal continental e mapas por bacia com cores por estado de armazenamento.</li>
+            <li>Comparação com o período anterior e com a média de referência histórica.</li>
+            <li>Exportação do relatório em PDF.</li>
           </ul>
         </article>
 
         <article class="feature">
-          <div class="feature-head"><span class="icon">📈</span>
+          <div class="feature-head"><span class="icon">04</span>
             <h4>Overview</h4>
           </div>
-          <p>Nova página de visão transversal para leitura rápida da situação hídrica recente.</p>
+          <p>Página de leitura transversal para acompanhar rapidamente a evolução recente por bacia e barragem.</p>
           <ul>
-            <li>Heatmap mensal por bacia para perceber rapidamente a evolução do armazenamento.</li>
-            <li>Gráfico agregado por bacia com leitura visual do peso de cada sistema no total.</li>
-            <li>Gráficos diários por barragem e por tipo de caudal, com filtros por bacia, intervalo temporal e
-              parâmetro.</li>
+            <li>Heatmap mensal por bacia com a última leitura disponível de cada mês.</li>
+            <li>Volume mensal agregado por bacia, em barras empilhadas, para comparar sistemas ao longo dos últimos
+              meses.</li>
+            <li>Volume por barragem para a bacia e intervalo selecionados.</li>
+            <li>Caudais por barragem, com filtros por bacia, parâmetro e intervalo temporal.</li>
           </ul>
         </article>
 
         <article class="feature">
-          <div class="feature-head"><span class="icon">🔔</span>
+          <div class="feature-head"><span class="icon">05</span>
             <h4>Notificações</h4>
           </div>
           <p>Configuração de notificações automáticas com gestão completa de ciclo de vida.</p>
@@ -323,7 +414,7 @@
         </article>
 
         <article class="feature">
-          <div class="feature-head"><span class="icon">🔑</span>
+          <div class="feature-head"><span class="icon">06</span>
             <h4>API</h4>
           </div>
           <p>Gestão de acesso programático à plataforma para integrações externas.</p>
@@ -334,7 +425,7 @@
         </article>
 
         <article class="feature">
-          <div class="feature-head"><span class="icon">🟢</span>
+          <div class="feature-head"><span class="icon">07</span>
             <h4>Status e Workers</h4>
           </div>
           <p>Visibilidade operacional sobre rotinas de atualização de dados. Agora é possível saber o estado de cada um
