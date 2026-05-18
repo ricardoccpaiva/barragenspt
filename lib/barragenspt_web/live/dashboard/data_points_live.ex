@@ -20,6 +20,7 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
 
   on_mount {BarragensptWeb.UserAuth, :require_authenticated}
 
+  alias Barragenspt.Activity
   alias Barragenspt.Hydrometrics.{Dams, DataPointParams}
   alias BarragensptWeb.DataPointsFilterDateClass
   alias Flop.Filter
@@ -56,6 +57,7 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
             awaiting = not param_set?
             dam_names = data_points_dam_names_for_basin(meta)
             export_href = data_points_export_csv_href(params)
+            if param_set?, do: track_data_points_view(socket, params, rows, meta)
 
             {:noreply,
              socket
@@ -275,6 +277,18 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
     end
   end
 
+  defp track_data_points_view(socket, params, rows, meta) do
+    user_id = get_in(socket.assigns, [:current_scope, Access.key(:user), Access.key(:id)])
+
+    metadata =
+      params
+      |> Map.take(["filters", "order_by", "order_directions", "page", "page_size"])
+      |> Map.put("row_count", length(rows))
+      |> Map.put("total_count", Map.get(meta, :total_count))
+
+    _ = Activity.record_event(user_id, Activity.data_view_event(), metadata)
+  end
+
   defp dam_names_from_flop(%Flop.Meta{flop: flop}), do: dam_names_from_flop(flop)
 
   defp dam_names_from_flop(%Flop{filters: filters}) do
@@ -303,7 +317,8 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
 
   defp param_names_from_flop(%Flop{filters: filters}) do
     Enum.find_value(filters || [], fn
-      %Flop.Filter{field: f, op: :in, value: v} when f in [:param_name, "param_name"] and is_list(v) ->
+      %Flop.Filter{field: f, op: :in, value: v}
+      when f in [:param_name, "param_name"] and is_list(v) ->
         v |> Enum.filter(&is_binary/1) |> Enum.reject(&(&1 == "")) |> Enum.uniq() |> Enum.sort()
 
       %Flop.Filter{field: f, op: :==, value: v}
@@ -313,7 +328,11 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
       %{field: f, op: op, value: v} = fl ->
         cond do
           f in [:param_name, "param_name"] and op in [:in, "in"] and is_list(v) ->
-            v |> Enum.filter(&is_binary/1) |> Enum.reject(&(&1 == "")) |> Enum.uniq() |> Enum.sort()
+            v
+            |> Enum.filter(&is_binary/1)
+            |> Enum.reject(&(&1 == ""))
+            |> Enum.uniq()
+            |> Enum.sort()
 
           f in [:param_name, "param_name"] and filter_op_eq?(fl) and is_binary(v) and v != "" ->
             [v]
@@ -330,7 +349,9 @@ defmodule BarragensptWeb.Dashboard.DataPointsLive do
   defp param_names_from_flop(_), do: []
 
   defp put_param_name_filters(%Flop{filters: filters} = flop, slugs) do
-    slugs = slugs |> Enum.filter(&is_binary/1) |> Enum.reject(&(&1 == "")) |> Enum.uniq() |> Enum.sort()
+    slugs =
+      slugs |> Enum.filter(&is_binary/1) |> Enum.reject(&(&1 == "")) |> Enum.uniq() |> Enum.sort()
+
     base = (filters || []) |> Enum.reject(&param_name_flop_filter?/1)
 
     new_flop =

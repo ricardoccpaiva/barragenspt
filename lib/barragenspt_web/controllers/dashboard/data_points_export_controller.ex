@@ -1,12 +1,15 @@
 defmodule BarragensptWeb.Dashboard.DataPointsExportController do
   use BarragensptWeb, :controller
 
+  alias Barragenspt.Activity
   alias Barragenspt.Hydrometrics.{Dams, DataPointParams}
   alias Barragenspt.Models.Hydrometrics.DataPointWithDam
 
   def csv(conn, params) do
     case Dams.list_data_points_for_csv_export(params) do
       {:ok, rows} ->
+        track_csv_export(conn, params, rows)
+
         body = encode_csv(rows)
         filename = "pontos-dados-#{Date.utc_today()}.csv"
 
@@ -70,4 +73,15 @@ defmodule BarragensptWeb.Dashboard.DataPointsExportController do
   end
 
   defp csv_cell(other), do: other |> to_string() |> csv_cell()
+
+  defp track_csv_export(conn, params, rows) do
+    user_id = get_in(conn.assigns, [:current_scope, Access.key(:user), Access.key(:id)])
+
+    metadata =
+      params
+      |> Map.take(["basin_id", "site_id", "param_name", "from", "to"])
+      |> Map.put("row_count", length(rows))
+
+    _ = Activity.record_event(user_id, Activity.data_export_event(), metadata)
+  end
 end

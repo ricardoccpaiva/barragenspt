@@ -74,6 +74,13 @@ defmodule Barragenspt.ApiUsage do
     end)
   end
 
+  def total_request_count(user_id) when is_integer(user_id) do
+    user_id
+    |> request_counts_by_token_id()
+    |> Map.values()
+    |> Enum.sum()
+  end
+
   defp int_request_count(nil), do: 0
 
   defp int_request_count(n) when is_integer(n), do: n

@@ -10,6 +10,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
     StorageReportAi
   }
 
+  alias Barragenspt.Activity
   alias BarragensptWeb.Dashboard.StorageReportPresenter
   alias BarragensptWeb.StorageReportComponents
 
@@ -235,6 +236,7 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
         socket
       ) do
     report = build_report(report_type, selected_basin, selected_date, selected_month)
+    track_report_generated(socket, report_type, selected_basin, report)
 
     {:noreply,
      socket
@@ -492,6 +494,18 @@ defmodule BarragensptWeb.Dashboard.StorageReportLive do
       selected_date,
       selected_month
     )
+  end
+
+  defp track_report_generated(socket, report_type, selected_basin, report) do
+    user_id = get_in(socket.assigns, [:current_scope, Access.key(:user), Access.key(:id)])
+
+    metadata = %{
+      "report_type" => report_type,
+      "selected_basin" => selected_basin,
+      "basin_count" => length(Map.get(report, :basins, []))
+    }
+
+    _ = Activity.record_event(user_id, Activity.report_generated_event(), metadata)
   end
 
   defp build_report("monthly", selected_basin, _selected_date, selected_month) do
