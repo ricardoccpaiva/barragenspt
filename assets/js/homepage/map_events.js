@@ -29,36 +29,55 @@ export function registerMapEvents(deps) {
   } = deps
 
   let damsSymbolClickBound = false
+  const boundBasinLayerIds = new Set()
 
   function drawBasins(basins = []) {
     basins.forEach((item) => {
       const fillLayerId = item.id + "_fill"
-      map.addSource(item.id, {
-        type: "geojson",
-        data: "/geojson/" + String(item.name || "").toLowerCase() + ".geojson"
-      })
-      map.addLayer({
-        id: fillLayerId,
-        type: "fill",
-        source: item.id,
-        layout: {},
-        paint: {
-          "fill-color": getStorageColor(item.observed_value),
-          "fill-opacity": 0.7
-        }
-      })
-      map.addLayer({
-        id: item.id + "_outline",
-        type: "line",
-        source: item.id,
-        layout: {},
-        paint: { "line-color": "#000", "line-width": 0.5 }
-      })
-      map.on("click", fillLayerId, (ev) => {
-        navigateToBasin(ev.features[0].source)
-      })
-      map.on("mouseenter", fillLayerId, () => { map.getCanvas().style.cursor = "pointer" })
-      map.on("mouseleave", fillLayerId, () => { map.getCanvas().style.cursor = "" })
+      const outlineLayerId = item.id + "_outline"
+      const sourceUrl = "/geojson/" + String(item.name || "").toLowerCase() + ".geojson"
+
+      if (!map.getSource(item.id)) {
+        map.addSource(item.id, {
+          type: "geojson",
+          data: sourceUrl
+        })
+      }
+
+      if (!map.getLayer(fillLayerId)) {
+        map.addLayer({
+          id: fillLayerId,
+          type: "fill",
+          source: item.id,
+          layout: {},
+          paint: {
+            "fill-color": getStorageColor(item.observed_value),
+            "fill-opacity": 0.7
+          }
+        })
+      } else {
+        map.setPaintProperty(fillLayerId, "fill-color", getStorageColor(item.observed_value))
+        map.setPaintProperty(fillLayerId, "fill-opacity", 0.7)
+      }
+
+      if (!map.getLayer(outlineLayerId)) {
+        map.addLayer({
+          id: outlineLayerId,
+          type: "line",
+          source: item.id,
+          layout: {},
+          paint: { "line-color": "#000", "line-width": 0.5 }
+        })
+      }
+
+      if (!boundBasinLayerIds.has(fillLayerId)) {
+        boundBasinLayerIds.add(fillLayerId)
+        map.on("click", fillLayerId, (ev) => {
+          navigateToBasin(ev.features[0].source)
+        })
+        map.on("mouseenter", fillLayerId, () => { map.getCanvas().style.cursor = "pointer" })
+        map.on("mouseleave", fillLayerId, () => { map.getCanvas().style.cursor = "" })
+      }
     })
     window.cachedBasinsSummary = basins.map((item) => ({
       id: item.id,

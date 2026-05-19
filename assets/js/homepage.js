@@ -33,7 +33,16 @@ import "./homepage/pdsi_layer"
 import "./basin_chart"
 import "./dam_card_charts"
 
-const Hooks = { ...LayerToggleHooks, ...HooksFromFile }
+const HomepageMap = {
+  mounted() {
+    ensureHomepageMap()
+  },
+  updated() {
+    ensureHomepageMap()
+  }
+}
+
+const Hooks = { HomepageMap, ...LayerToggleHooks, ...HooksFromFile }
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, { hooks: Hooks, params: { _csrf_token: csrfToken } })
