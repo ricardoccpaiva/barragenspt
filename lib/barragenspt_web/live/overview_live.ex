@@ -2,6 +2,7 @@ defmodule BarragensptWeb.OverviewLive do
   use BarragensptWeb, :live_view
   import Ecto.Query
 
+  alias Barragenspt.Activity
   alias Barragenspt.Mappers.Colors
   alias Barragenspt.Hydrometrics.{Basins, Dams}
   alias Barragenspt.Models.Hydrometrics.{Dam, DataPoint, SiteCurrentStorage}
@@ -48,6 +49,10 @@ defmodule BarragensptWeb.OverviewLive do
   ]
 
   def mount(_params, _session, socket) do
+    if connected?(socket) do
+      track_overview_report_view(socket)
+    end
+
     basins = current_basins()
     dams = chart_dams()
     basin_heatmap = basin_heatmap(basins)
@@ -99,6 +104,17 @@ defmodule BarragensptWeb.OverviewLive do
       |> assign(:focused_flow, focused_flow)
 
     {:ok, socket}
+  end
+
+  defp track_overview_report_view(socket) do
+    user_id = get_in(socket.assigns, [:current_scope, Access.key(:user), Access.key(:id)])
+
+    metadata = %{
+      "report_type" => "overview",
+      "source" => "dashboard_overview"
+    }
+
+    _ = Activity.record_event(user_id, Activity.report_generated_event(), metadata)
   end
 
   def handle_event("select_focus_basin", params, socket) do
