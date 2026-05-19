@@ -20,6 +20,19 @@ const CapacityColor = {
   updated() { applyCapacityColor(this.el) }
 }
 
+const MobileSidebar = {
+  mounted() {
+    if (typeof window.applyHomepageSidebarState === "function") {
+      window.applyHomepageSidebarState()
+    }
+  },
+  updated() {
+    if (typeof window.applyHomepageSidebarState === "function") {
+      window.applyHomepageSidebarState()
+    }
+  }
+}
+
 const BasinChartTimeWindow = {
   mounted() {
     this.el.addEventListener("click", () => this.pushEvent("basin_change_window", { value: this.el.value }))
@@ -1230,6 +1243,7 @@ const ExportBasinCard = {
 export const Hooks = {
   CopyButton,
   ApiTokensUsageChart,
+  MobileSidebar,
   CapacityColor,
   BasinChartTimeWindow,
   DamChartTimeWindow,
