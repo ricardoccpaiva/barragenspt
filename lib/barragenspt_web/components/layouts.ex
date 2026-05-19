@@ -21,6 +21,7 @@ defmodule BarragensptWeb.Layouts do
     assigns =
       assigns
       |> assign(:signed_in?, signed_in?(assigns.current_scope))
+      |> assign(:show_new_features, show_new_features?())
       |> assign(:dashboard_sidebar_items, dashboard_sidebar_items(assigns.current_scope))
 
     ~H"""
@@ -74,7 +75,7 @@ defmodule BarragensptWeb.Layouts do
 
       <div id="app-top-chrome" class={top_chrome_outer_classes(@mode)}>
         <div class={top_chrome_inner_classes(@mode)}>
-          <%= if @mode != :map and @signed_in? do %>
+          <%= if @mode != :map and @signed_in? and @show_new_features do %>
             <div class="flex min-w-0 shrink-0 items-center gap-2">
               <div
                 id="dashboard-app-nav"
@@ -129,50 +130,52 @@ defmodule BarragensptWeb.Layouts do
             "flex shrink-0 items-center gap-2.5",
             @mode != :map && "ml-auto"
           ]}>
-            <div
-              id="app-switcher"
-              phx-hook="NavRouteActive"
-              class="inline-flex h-10 items-center gap-0.5 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card max-md:hidden dark:border-slate-600 dark:bg-slate-800/90"
-            >
-              <.link
-                navigate={~p"/"}
-                data-nav-path={~p"/"}
-                class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+            <%= if @show_new_features do %>
+              <div
+                id="app-switcher"
+                phx-hook="NavRouteActive"
+                class="inline-flex h-10 items-center gap-0.5 rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card max-md:hidden dark:border-slate-600 dark:bg-slate-800/90"
               >
-                Mapa
-              </.link>
-              <%= if @signed_in? do %>
                 <.link
-                  navigate={~p"/dashboard"}
-                  data-nav-path={~p"/dashboard"}
+                  navigate={~p"/"}
+                  data-nav-path={~p"/"}
                   class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
                 >
-                  Dashboard
+                  Mapa
                 </.link>
-                <.link
-                  navigate={~p"/status/workers"}
-                  data-nav-path={~p"/status/workers"}
-                  class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-                >
-                  Status
-                </.link>
-              <% else %>
-                <.link
-                  href={~p"/dashboard"}
-                  data-nav-path={~p"/dashboard"}
-                  class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-                >
-                  Dashboard
-                </.link>
-                <.link
-                  href={~p"/status/workers"}
-                  data-nav-path={~p"/status/workers"}
-                  class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
-                >
-                  Status
-                </.link>
-              <% end %>
-            </div>
+                <%= if @signed_in? do %>
+                  <.link
+                    navigate={~p"/dashboard"}
+                    data-nav-path={~p"/dashboard"}
+                    class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                  >
+                    Dashboard
+                  </.link>
+                  <.link
+                    navigate={~p"/status/workers"}
+                    data-nav-path={~p"/status/workers"}
+                    class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                  >
+                    Status
+                  </.link>
+                <% else %>
+                  <.link
+                    href={~p"/dashboard"}
+                    data-nav-path={~p"/dashboard"}
+                    class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                  >
+                    Dashboard
+                  </.link>
+                  <.link
+                    href={~p"/status/workers"}
+                    data-nav-path={~p"/status/workers"}
+                    class="inline-flex h-8 items-center rounded-lg px-3 text-sm font-semibold leading-none text-slate-500 transition-colors hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                  >
+                    Status
+                  </.link>
+                <% end %>
+              </div>
+            <% end %>
 
             <div
               id="app-layout-dark-toggle"
@@ -201,74 +204,93 @@ defmodule BarragensptWeb.Layouts do
               </button>
             </div>
 
-            <details
-              id="navbar-avatar-menu"
-              class="group relative inline-flex h-10 list-none items-center rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
-              phx-hook="AvatarMenu"
-            >
-              <summary
-                class="flex h-8 cursor-pointer list-none items-center justify-center rounded-lg marker:content-none [&::-webkit-details-marker]:hidden hover:bg-slate-100/80 dark:hover:bg-slate-700/50"
-                aria-label={
-                  if(@signed_in?, do: "Menu da conta", else: "Conta — iniciar sessão ou registo")
-                }
+            <%= if @show_new_features do %>
+              <details
+                id="navbar-avatar-menu"
+                class="group relative inline-flex h-10 list-none items-center rounded-xl border border-slate-200 bg-white/90 p-1 shadow-card dark:border-slate-600 dark:bg-slate-800/90"
+                phx-hook="AvatarMenu"
               >
-                <%= if @signed_in? do %>
-                  <%= if src = UserAvatar.image_src(@current_scope.user) do %>
-                    <img
-                      src={src}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      referrerpolicy="no-referrer"
-                      class="h-8 w-8 shrink-0 rounded-lg object-cover ring-1 ring-slate-200/80 dark:ring-slate-600"
-                    />
+                <summary
+                  class="flex h-8 cursor-pointer list-none items-center justify-center rounded-lg marker:content-none [&::-webkit-details-marker]:hidden hover:bg-slate-100/80 dark:hover:bg-slate-700/50"
+                  aria-label={
+                    if(@signed_in?, do: "Menu da conta", else: "Conta — iniciar sessão ou registo")
+                  }
+                >
+                  <%= if @signed_in? do %>
+                    <%= if src = UserAvatar.image_src(@current_scope.user) do %>
+                      <img
+                        src={src}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        referrerpolicy="no-referrer"
+                        class="h-8 w-8 shrink-0 rounded-lg object-cover ring-1 ring-slate-200/80 dark:ring-slate-600"
+                      />
+                    <% else %>
+                      <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-xs font-bold text-white">
+                        {case display_name_or_email(@current_scope.user) do
+                          e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
+                          _ -> "U"
+                        end}
+                      </span>
+                    <% end %>
                   <% else %>
-                    <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-xs font-bold text-white">
-                      {case display_name_or_email(@current_scope.user) do
-                        e when is_binary(e) and e != "" -> e |> String.first() |> String.upcase()
-                        _ -> "U"
-                      end}
-                    </span>
+                    <.icon
+                      name="hero-user-circle"
+                      class="h-8 w-8 shrink-0 text-slate-500 dark:text-slate-400"
+                    />
                   <% end %>
-                <% else %>
-                  <.icon
-                    name="hero-user-circle"
-                    class="h-8 w-8 shrink-0 text-slate-500 dark:text-slate-400"
-                  />
-                <% end %>
-              </summary>
+                </summary>
 
-              <div class="absolute right-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-600 dark:bg-slate-800">
-                <%= if @signed_in? do %>
-                  <.link
-                    navigate={~p"/users/settings"}
-                    class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
-                  >
-                    Definições
-                  </.link>
-                  <.link
-                    href={~p"/users/log-out"}
-                    method="delete"
-                    class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-900/30"
-                  >
-                    Sair
-                  </.link>
-                <% else %>
+                <div class="absolute right-0 top-full z-20 mt-1.5 w-44 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-600 dark:bg-slate-800">
+                  <%= if @signed_in? do %>
+                    <.link
+                      navigate={~p"/users/settings"}
+                      class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                    >
+                      Definições
+                    </.link>
+                    <.link
+                      href={~p"/users/log-out"}
+                      method="delete"
+                      class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-900/30"
+                    >
+                      Sair
+                    </.link>
+                  <% else %>
+                    <.link
+                      navigate={~p"/users/register"}
+                      class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                    >
+                      Registo
+                    </.link>
+                    <.link
+                      navigate={~p"/users/log-in"}
+                      class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                    >
+                      Iniciar sessão
+                    </.link>
+                  <% end %>
+                </div>
+              </details>
+            <% else %>
+              <%= if not @signed_in? do %>
+                <div class="flex items-center gap-2 text-sm">
                   <.link
                     navigate={~p"/users/register"}
-                    class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                    class="font-semibold text-slate-600 hover:text-slate-900 hover:underline dark:text-slate-300 dark:hover:text-slate-100"
                   >
                     Registo
                   </.link>
                   <.link
                     navigate={~p"/users/log-in"}
-                    class="mt-1 block rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700/70"
+                    class="font-semibold text-slate-600 hover:text-slate-900 hover:underline dark:text-slate-300 dark:hover:text-slate-100"
                   >
                     Iniciar sessão
                   </.link>
-                <% end %>
-              </div>
-            </details>
+                </div>
+              <% end %>
+            <% end %>
           </div>
         </div>
       </div>
@@ -291,11 +313,15 @@ defmodule BarragensptWeb.Layouts do
         <% end %>
       </div>
 
-      <%= if @mode != :map do %>
+      <%= if @mode != :map and @show_new_features do %>
         <.beta_corner_notice />
       <% end %>
     </div>
     """
+  end
+
+  defp show_new_features? do
+    Application.get_env(:barragenspt, :show_new_features, true)
   end
 
   def beta_corner_notice(assigns) do

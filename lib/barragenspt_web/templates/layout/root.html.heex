@@ -73,56 +73,58 @@
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
   {@inner_content}
 
-  <div id="release-modal-backdrop" class="fixed inset-0 z-[10002] hidden bg-slate-900/60 backdrop-blur-sm"
-    aria-hidden="true">
-  </div>
-  <div id="release-modal"
-    class="fixed left-1/2 top-1/2 z-[10003] hidden w-[min(96vw,420px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-600 dark:bg-slate-800"
-    role="dialog" aria-label="Nova versão do barragens.pt" aria-modal="true">
-    <img src="/images/flyer_v5.jpg" alt="Flyer da nova versão do barragens.pt"
-      class="w-full rounded-lg border border-slate-200 object-cover dark:border-slate-500"
-      style="max-height: 260px; object-fit: cover;" />
-    <div class="mt-2 flex flex-wrap items-center justify-end gap-2">
-      <a href="/release-notes.html" target="_blank" rel="noopener noreferrer"
-        class="inline-flex rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700">
-        Ver release notes
-      </a>
-      <button type="button" id="release-modal-ok"
-        class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600">
-        Fechar
-      </button>
+  <%= if Application.get_env(:barragenspt, :show_new_features, true) do %>
+    <div id="release-modal-backdrop" class="fixed inset-0 z-[10002] hidden bg-slate-900/60 backdrop-blur-sm"
+      aria-hidden="true">
     </div>
-  </div>
+    <div id="release-modal"
+      class="fixed left-1/2 top-1/2 z-[10003] hidden w-[min(96vw,420px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-600 dark:bg-slate-800"
+      role="dialog" aria-label="Nova versão do barragens.pt" aria-modal="true">
+      <img src="/images/flyer_v5.jpg" alt="Flyer da nova versão do barragens.pt"
+        class="w-full rounded-lg border border-slate-200 object-cover dark:border-slate-500"
+        style="max-height: 260px; object-fit: cover;" />
+      <div class="mt-2 flex flex-wrap items-center justify-end gap-2">
+        <a href="/release-notes.html" target="_blank" rel="noopener noreferrer"
+          class="inline-flex rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700">
+          Ver release notes
+        </a>
+        <button type="button" id="release-modal-ok"
+          class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600">
+          Fechar
+        </button>
+      </div>
+    </div>
 
-  <script>
-    (function () {
-      var COOKIE_NAME = 'barragenspt_seen_release_modal_2026_05_1';
-      function getCookie(name) {
-        var m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-        return m ? m[2] : null;
-      }
-      function setCookie(name) {
-        var maxAge = 2147483647;
-        document.cookie = name + '=1;path=/;max-age=' + maxAge + ';SameSite=Lax';
-      }
-      if (getCookie(COOKIE_NAME)) return;
-      var backdrop = document.getElementById('release-modal-backdrop');
-      var modal = document.getElementById('release-modal');
-      function close() {
-        if (backdrop) backdrop.classList.add('hidden');
-        if (modal) modal.classList.add('hidden');
-        setCookie(COOKIE_NAME);
-      }
-      if (backdrop) backdrop.classList.remove('hidden');
-      if (modal) modal.classList.remove('hidden');
-      backdrop && (backdrop.onclick = close);
-      var btn = document.getElementById('release-modal-ok');
-      if (btn) btn.onclick = close;
-      document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') close();
-      });
-    })();
-  </script>
+    <script>
+      (function () {
+        var COOKIE_NAME = 'barragenspt_seen_release_modal_2026_05_1';
+        function getCookie(name) {
+          var m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+          return m ? m[2] : null;
+        }
+        function setCookie(name) {
+          var maxAge = 2147483647;
+          document.cookie = name + '=1;path=/;max-age=' + maxAge + ';SameSite=Lax';
+        }
+        if (getCookie(COOKIE_NAME)) return;
+        var backdrop = document.getElementById('release-modal-backdrop');
+        var modal = document.getElementById('release-modal');
+        function close() {
+          if (backdrop) backdrop.classList.add('hidden');
+          if (modal) modal.classList.add('hidden');
+          setCookie(COOKIE_NAME);
+        }
+        if (backdrop) backdrop.classList.remove('hidden');
+        if (modal) modal.classList.remove('hidden');
+        backdrop && (backdrop.onclick = close);
+        var btn = document.getElementById('release-modal-ok');
+        if (btn) btn.onclick = close;
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape') close();
+        });
+      })();
+    </script>
+  <% end %>
 </body>
 
 </html>
