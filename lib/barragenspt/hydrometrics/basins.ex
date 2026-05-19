@@ -128,6 +128,13 @@ defmodule Barragenspt.Hydrometrics.Basins do
     |> Enum.sort(&(Timex.compare(&1.date, &2.date) < 0))
   end
 
+  @doc """
+  Per-basin snapshot for the current calendar day/month: map/UI uses `observed_value` and
+  `historical_average` (percent, one decimal). API clients can use `current_storage_volume` and
+  `historical_average_volume` — rounded total hm³ (sum of latest `volume_last_hour` per dam, and
+  historical % scaled by summed `total_capacity`). `total_capacity` is the basin total: sum of each
+  dam’s `total_capacity` (same dams as the volume snapshot).
+  """
   @decorate cacheable(
               cache: Cache,
               key: "basins.summary_stats_#{Enum.join(usage_types, "-")}",
@@ -143,11 +150,46 @@ defmodule Barragenspt.Hydrometrics.Basins do
           id: d.basin_id,
           name: b.name,
           observed_value: fragment("round(?, 1)", b.current_storage),
-          historical_average: fragment("round(?, 1)", d.value)
+          historical_average: fragment("round(?, 1)", d.value),
+          current_storage_volume: fragment("round(?)::integer", b.total_volume),
+          historical_average_volume: fragment("round(?)::integer", d.capacity_value),
+          total_capacity: b.capacity_sum
         }
       )
 
     Repo.all(query)
+  end
+
+  @doc """
+  Same aggregate fields as `summary_stats/1` for a single `basin_id`, or `nil` if there is no
+  matching snapshot (e.g. no historical row for today’s day–month). Not to be confused with
+  `summary_stats/2`, which returns per-dam rows for charts.
+  """
+  @decorate cacheable(
+              cache: Cache,
+              key: "basins.basin_summary_#{basin_id}",
+              ttl: :timer.hours(24)
+            )
+  def basin_summary(basin_id) do
+    period = "#{Timex.now().day}-#{Timex.now().month}"
+
+    query =
+      from(d in subquery(daily_average_storage_by_basin_query(basin_id, [])),
+        join: b in subquery(basin_current_storage_query([])),
+        on: d.basin_id == b.id,
+        where: d.period == ^period,
+        select: %{
+          id: d.basin_id,
+          name: b.name,
+          observed_value: fragment("round(?, 1)", b.current_storage),
+          historical_average: fragment("round(?, 1)", d.value),
+          current_storage_volume: fragment("round(?)", b.total_volume),
+          historical_average_volume: fragment("round(? * ? / 100.0)", d.value, b.capacity_sum),
+          total_capacity: fragment("round(?)", b.capacity_sum)
+        }
+      )
+
+    Repo.one(query)
   end
 
   @decorate cacheable(
@@ -173,24 +215,44 @@ defmodule Barragenspt.Hydrometrics.Basins do
       from(d in subquery(Dams.daily_average_storage_by_site_query(id, usage_types)),
         join: b in subquery(Dams.sites_current_storage_query(id, usage_types)),
         on: d.site_id == b.site_id,
+        left_join: e in subquery(Dams.sites_current_elevation_query(id, usage_types)),
+        on: b.site_id == e.site_id,
         join: du in DamUsage,
         on: b.site_id == du.site_id,
         join: dd in Dam,
         on: d.site_id == dd.site_id,
         where: ^filter,
+        group_by: [
+          d.site_id,
+          dd.name,
+          dd.basin,
+          b.value,
+          d.value,
+          b.colected_at,
+          dd.total_capacity,
+          e.value
+        ],
         select: %{
           site_id: d.site_id,
           site_name: dd.name,
           basin_name: dd.basin,
           observed_value: fragment("round((?/?)*100, 1)", b.value, dd.total_capacity),
+          current_storage_quota: fragment("round(?, 2)", e.value),
           historical_average: fragment("round(?, 1)", d.value),
+          current_storage_volume: fragment("round(?)", b.value),
+          historical_average_volume: fragment("round(? * ? / 100.0)", d.value, dd.total_capacity),
           colected_at: b.colected_at,
-          total_capacity: dd.total_capacity
+          total_capacity: dd.total_capacity,
+          usage_types:
+            fragment(
+              "string_agg(distinct ?::text, ',' order by ?::text)",
+              du.usage_name,
+              du.usage_name
+            )
         }
       )
 
     query
-    |> distinct(true)
     |> Repo.all()
   end
 
@@ -236,6 +298,7 @@ defmodule Barragenspt.Hydrometrics.Basins do
           basin_id: dp.basin_id,
           site_id: dp.site_id,
           average: dp.value / d.total_capacity,
+          value: dp.value,
           period:
             fragment(
               "EXTRACT(day FROM ?) || '-' || EXTRACT(month FROM ?)",
@@ -254,7 +317,8 @@ defmodule Barragenspt.Hydrometrics.Basins do
       select: %{
         period: q.period,
         basin_id: q.basin_id,
-        value: avg(q.average) * 100
+        value: avg(q.average) * 100,
+        capacity_value: avg(q.value)
       }
   end
 
@@ -313,7 +377,9 @@ defmodule Barragenspt.Hydrometrics.Basins do
       select: %{
         id: d.basin_id,
         name: d.basin,
-        current_storage: sum(dp.value) / sum(d.total_capacity) * 100
+        current_storage: sum(dp.value) / sum(d.total_capacity) * 100,
+        total_volume: sum(dp.value),
+        capacity_sum: sum(d.total_capacity)
       }
     )
   end

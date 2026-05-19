@@ -7,8 +7,26 @@
 # General application configuration
 import Config
 
+config :barragenspt, :scopes,
+  user: [
+    default: true,
+    module: Barragenspt.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: Barragenspt.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :barragenspt,
   ecto_repos: [Barragenspt.Repo]
+
+# Mirrors MIX_ENV via `config_env()` (available at runtime as Application.get_env(:barragenspt, :env))
+config :barragenspt, :env, :dev
+
+config :barragenspt, Barragenspt.Mailer, adapter: Resend.Swoosh.Adapter
 
 # Configures the endpoint
 config :barragenspt, BarragensptWeb.Endpoint,
@@ -49,6 +67,10 @@ config :phoenix, :json_library, Jason
 {seconds, micro_seconds} = DateTime.to_gregorian_seconds(DateTime.utc_now())
 unique_id = "#{seconds}_#{micro_seconds}"
 
+api_usage_flush_cron = if config_env() == :dev, do: "* * * * *", else: "0 * * * *"
+
+config :barragenspt, :api_usage_bucket, :hour
+
 config :barragenspt, Oban,
   repo: Barragenspt.Repo,
   plugins: [
@@ -58,8 +80,11 @@ config :barragenspt, Oban,
        {"0 4 * * *", Barragenspt.Workers.DataPointsUpdate,
         args: %{jcid: unique_id}, max_attempts: 50},
        {"*/15 * * * *", Barragenspt.Workers.RealtimeDataPointsUpdate, args: %{}, max_attempts: 3},
+       {"*/15 * * * *", Barragenspt.Workers.EvaluateNotifications,
+        args: %{id: "cron-15m"}, max_attempts: 1},
        {"*/30 * * * *", Barragenspt.Workers.InfoaguaAlertsRefresh, args: %{}, max_attempts: 1},
-       {"0 5 * * *", Barragenspt.Workers.RefreshMaterializedViews, args: %{}, max_attempts: 3}
+       {"0 5 * * *", Barragenspt.Workers.RefreshMaterializedViews, args: %{}, max_attempts: 3},
+       {api_usage_flush_cron, Barragenspt.Workers.FlushApiUsage, args: %{}, max_attempts: 3}
      ]}
   ],
   queues: [
@@ -67,12 +92,42 @@ config :barragenspt, Oban,
     dam_levels: 5,
     stats_cacher: 5,
     data_points_update: 1,
-    meteo_data: 5
+    meteo_data: 5,
+    notifications: 2,
+    api_usage: 1
   ]
+
+# TTL for Nebulex `Barragenspt.ApiTokenCache` entries (resolved bearer → user_id/scopes).
+config :barragenspt, :api_token_cache_ttl, :timer.minutes(3)
+
+config :barragenspt, :chromic_pdf,
+  on_demand: true,
+  no_sandbox: true,
+  session_pool: [size: 2, timeout: 20_000, checkout_timeout: 20_000]
+
+config :barragenspt, :pdf_renderer, BarragensptWeb.PdfRenderer.ChromicPDF
+
+# Required for `Nebulex.Adapters.Local` — without this the cache process may not start
+# (runtime error: "could not lookup Nebulex cache ... because it was not started").
+config :barragenspt, Barragenspt.ApiTokenCache,
+  gc_interval: :timer.hours(1),
+  max_size: 50_000,
+  allocated_memory: 50_000_000,
+  gc_cleanup_min_timeout: :timer.seconds(10),
+  gc_cleanup_max_timeout: :timer.minutes(10)
+
+# Hammer fixed window (ETS): at most `limit` requests per `window_ms` per key.
+# Tuned per environment in `dev.exs` / `runtime.exs` if needed.
+config :barragenspt, Barragenspt.ApiRateLimit,
+  enabled: true,
+  window_ms: :timer.minutes(1),
+  limit: 25
 
 config :barragenspt, :snirh,
   csv_data_url: "https://snirh.apambiente.pt/snirh/_dadosbase/site/paraCSV/dados_csv.php",
   proxy: nil
+
+config :barragenspt, :r2_upload_client, Barragenspt.Services.R2
 
 config :ex_aws, :s3,
   scheme: "https://",
@@ -83,6 +138,12 @@ config :mogrify,
   convert_command: [
     path: "convert",
     args: []
+  ]
+
+config :ueberauth, Ueberauth,
+  providers: [
+    google:
+      {Ueberauth.Strategy.Google, [default_scope: "email profile", prompt: "select_account"]}
   ]
 
 # Import environment specific config. This must remain at the bottom

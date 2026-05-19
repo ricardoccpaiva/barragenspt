@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>barragens.pt - Termos de Serviço</title>
+  <meta name="description"
+    content="Termos de Serviço do barragens.pt para utilização do website, dashboard, alertas, relatórios e API." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --bg-soft: #f1f5f9;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #dbe4ee;
+      --card: #ffffff;
+      --brand: #0284c7;
+      --brand-soft: #e0f2fe;
+      --shadow: 0 10px 28px rgb(15 23 42 / 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 20px 0 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #0f172a;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: #f0f9ff;
+      border: 1px solid #cbe8fb;
+      color: var(--brand);
+      overflow: hidden;
+    }
+
+    .brand-mark img {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 11px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: #334155;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgb(15 23 42 / 0.03);
+    }
+
+    .nav a.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #ffffff;
+    }
+
+    .hero {
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      padding: 24px 26px 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid #d6ebfb;
+      background: #f0f9ff;
+      color: #0369a1;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+    }
+
+    .hero h1 {
+      margin: 0;
+      max-width: 780px;
+      font-size: clamp(28px, 4vw, 38px);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 11px;
+      border-radius: 999px;
+      border: 1px solid #dbe8f5;
+      background: #ffffff;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: 16px;
+      margin-top: 16px;
+      align-items: start;
+    }
+
+    .content {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .section {
+      padding: 18px 20px;
+    }
+
+    .section h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .section p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .section ul {
+      margin: 12px 0 0;
+      padding-left: 20px;
+      color: #314560;
+      font-size: 13px;
+    }
+
+    .section li+li {
+      margin-top: 6px;
+    }
+
+    .section strong {
+      color: #12243d;
+    }
+
+    .section-anchor {
+      scroll-margin-top: 24px;
+    }
+
+    .toc {
+      position: sticky;
+      top: 16px;
+      padding: 16px;
+      background: #f8fbff;
+    }
+
+    .toc h2 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #45617f;
+    }
+
+    .toc ol {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 7px;
+      color: #36506f;
+      font-size: 12px;
+    }
+
+    .toc a {
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      color: var(--brand);
+    }
+
+    .notice {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 16px;
+      background: var(--brand-soft);
+      border: 1px solid #bae6fd;
+      color: #0c4a6e;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .footer {
+      margin-top: 16px;
+      padding: 16px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px 16px;
+      font-size: 12px;
+      color: #4d6484;
+    }
+
+    .footer a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        width: min(100vw - 20px, 100%);
+        padding: 14px 0 28px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .nav {
+        justify-content: stretch;
+      }
+
+      .nav a {
+        flex: 1 1 auto;
+      }
+
+      .hero {
+        padding: 20px 18px 18px;
+      }
+
+      .section {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header class="topbar">
+      <a class="brand" href="/">
+        <span class="brand-mark">
+          <img src="/images/droplets.svg" alt="" aria-hidden="true" />
+        </span>
+        <span>barragens.pt</span>
+      </a>
+
+      <nav class="nav" aria-label="Navegação de topo">
+        <a href="/">Mapa</a>
+        <a href="/dashboard">Dashboard</a>
+        <a class="primary" href="/users/log-in">Entrar</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">Documento legal</div>
+      <h1>Condições de utilização do barragens.pt</h1>
+      <p>
+        Estes Termos regulam a utilização do website, dashboard, relatórios, alertas, exportações,
+        API e restantes funcionalidades disponibilizadas pela plataforma.
+      </p>
+      <div class="hero-meta">
+        <span class="chip">Em vigor desde 26 de abril de 2026</span>
+        <span class="chip">Versão pública</span>
+        <span class="chip">Leitura estimada: 6 min</span>
+      </div>
+    </section>
+
+    <div class="layout">
+      <main class="content">
+        <section id="aceitacao" class="card section section-anchor">
+          <h2>1. Aceitação dos Termos</h2>
+          <p>
+            Ao aceder ou utilizar o <strong>barragens.pt</strong>, o utilizador aceita estes Termos
+            de Serviço. Se não concordar com eles, não deverá utilizar a plataforma.
+          </p>
+        </section>
+
+        <section id="objeto" class="card section section-anchor">
+          <h2>2. Objeto do serviço</h2>
+          <p>
+            O <strong>barragens.pt</strong> disponibiliza ferramentas de consulta, visualização e
+            análise de dados hidrométricos, incluindo mapas, relatórios, alertas, exportações e
+            acesso por API.
+          </p>
+          <div class="notice">
+            A plataforma tem natureza informativa e de apoio à análise. Não constitui um sistema de
+            controlo operacional, proteção civil, decisão de emergência, certificação técnica ou
+            aconselhamento profissional.
+          </div>
+        </section>
+
+        <section id="contas" class="card section section-anchor">
+          <h2>3. Contas de utilizador</h2>
+          <p>
+            Algumas funcionalidades podem exigir conta ou autenticação. O utilizador compromete-se
+            a fornecer informação verdadeira, atual e completa e a manter a confidencialidade dos
+            seus dados de acesso.
+          </p>
+          <ul>
+            <li>O utilizador é responsável por toda a atividade realizada através da sua conta.</li>
+            <li>Não deve permitir o uso indevido da sua conta por terceiros.</li>
+            <li>O barragens.pt pode suspender contas em caso de utilização abusiva ou insegura.</li>
+          </ul>
+        </section>
+
+        <section id="dados" class="card section section-anchor">
+          <h2>4. Natureza informativa dos dados</h2>
+          <p>
+            Os dados, mapas, relatórios, indicadores e alertas apresentados na plataforma podem
+            depender de fontes externas, integrações automáticas e processos de transformação de
+            dados.
+          </p>
+          <ul>
+            <li>Os dados podem conter atrasos, lacunas, erros, imprecisões ou omissões.</li>
+            <li>A disponibilidade e atualização da informação pode variar ao longo do tempo.</li>
+            <li>Os resultados podem não refletir, em permanência, o estado real ou mais recente de uma barragem, bacia
+              ou parâmetro.</li>
+          </ul>
+          <p>
+            O barragens.pt não garante que qualquer informação disponibilizada seja exata, completa,
+            contínua ou adequada a um fim específico.
+          </p>
+        </section>
+
+        <section id="relatorios-alertas" class="card section section-anchor">
+          <h2>5. Relatórios, alertas e entregas automáticas</h2>
+          <p>
+            As funcionalidades de alertas, relatórios semanais, notificações por e-mail, Telegram
+            ou outros canais são disponibilizadas numa base de <strong>melhor esforço</strong>.
+          </p>
+          <ul>
+            <li>A entrega de alertas ou relatórios pode falhar, atrasar-se ou não ocorrer.</li>
+            <li>Podem existir falhas associadas a e-mail, Telegram, APIs externas, rede ou outros serviços de terceiros.
+            </li>
+            <li>O utilizador não deve depender exclusivamente destas entregas automáticas para monitorização crítica.
+            </li>
+          </ul>
+          <p>
+            Sempre que necessário, o utilizador deverá consultar diretamente o dashboard e as
+            restantes fontes relevantes.
+          </p>
+        </section>
+
+        <section id="utilizacao" class="card section section-anchor">
+          <h2>6. Utilização permitida</h2>
+          <p>
+            O utilizador compromete-se a utilizar a plataforma de forma lícita, responsável e
+            compatível com a sua finalidade.
+          </p>
+          <ul>
+            <li>É proibida a utilização da plataforma para fins ilegais ou fraudulentos.</li>
+            <li>Não é permitido interferir com o funcionamento, segurança ou disponibilidade do serviço.</li>
+            <li>É proibido contornar limitações técnicas, autenticação ou regras de acesso.</li>
+            <li>Não é permitido realizar automação abusiva ou consumo excessivo de recursos.</li>
+          </ul>
+        </section>
+
+        <section id="api" class="card section section-anchor">
+          <h2>7. API e tokens de acesso</h2>
+          <p>
+            O acesso à API pode estar sujeito a autenticação, limites de utilização, regras
+            operacionais e revogação de tokens.
+          </p>
+          <ul>
+            <li>Os tokens devem ser mantidos confidenciais.</li>
+            <li>Não devem ser partilhados nem expostos indevidamente.</li>
+            <li>O barragens.pt pode limitar, suspender ou revogar o acesso à API em caso de abuso, risco de segurança ou
+              necessidade operacional.</li>
+          </ul>
+        </section>
+
+        <section id="propriedade" class="card section section-anchor">
+          <h2>8. Propriedade intelectual</h2>
+          <p>
+            Salvo indicação em contrário, o barragens.pt, incluindo software, design, marca,
+            organização de conteúdos e elementos gráficos, encontra-se protegido por direitos de
+            propriedade intelectual.
+          </p>
+          <p>
+            As fontes de dados, mapas ou conteúdos de terceiros mantêm a titularidade própria dos
+            respetivos direitos.
+          </p>
+        </section>
+
+        <section id="terceiros" class="card section section-anchor">
+          <h2>9. Fontes externas e serviços de terceiros</h2>
+          <p>
+            A plataforma pode integrar ou depender de serviços, dados ou infraestruturas de
+            terceiros.
+          </p>
+          <ul>
+            <li>O barragens.pt não é responsável por indisponibilidade de serviços de terceiros.</li>
+            <li>Não responde por alterações de formatos, políticas ou condições impostas por terceiros.</li>
+            <li>Não garante a ausência de erros, omissões ou atrasos provenientes de fontes externas.</li>
+          </ul>
+        </section>
+
+        <section id="alteracoes-servico" class="card section section-anchor">
+          <h2>10. Disponibilidade e alterações ao serviço</h2>
+          <p>
+            O barragens.pt pode modificar, suspender, limitar ou descontinuar funcionalidades, total
+            ou parcialmente, a qualquer momento, com ou sem aviso prévio.
+          </p>
+          <ul>
+            <li>Isto inclui alterações de interface, relatórios, alertas, API, autenticação e limites de utilização.
+            </li>
+            <li>As funcionalidades podem evoluir por razões técnicas, operacionais, legais ou de produto.</li>
+          </ul>
+        </section>
+
+        <section id="garantias" class="card section section-anchor">
+          <h2>11. Exclusão de garantias</h2>
+          <p>
+            O serviço é disponibilizado <strong>tal como está</strong> e <strong>conforme disponível</strong>.
+            Na máxima extensão permitida por lei, o barragens.pt exclui quaisquer garantias,
+            expressas ou implícitas, incluindo disponibilidade contínua, adequação a um fim
+            específico, ausência de erros e fiabilidade operacional para contextos críticos.
+          </p>
+        </section>
+
+        <section id="responsabilidade" class="card section section-anchor">
+          <h2>12. Limitação de responsabilidade</h2>
+          <p>
+            Na máxima extensão permitida por lei, o barragens.pt não será responsável por danos
+            diretos, indiretos, incidentais, especiais, consequenciais ou perda de dados, lucros,
+            oportunidades ou decisões resultantes da utilização da plataforma.
+          </p>
+          <ul>
+            <li>Isto inclui confiança depositada em dados, relatórios, mapas, alertas, exportações ou notificações.</li>
+            <li>Inclui também falhas de entrega, interrupções, indisponibilidade ou erros de terceiros.</li>
+            <li>A plataforma não substitui validação técnica, supervisão humana ou consulta de fontes oficiais.</li>
+          </ul>
+        </section>
+
+        <section id="cessacao" class="card section section-anchor">
+          <h2>13. Suspensão e cessação</h2>
+          <p>
+            O barragens.pt pode suspender ou terminar o acesso do utilizador, temporária ou
+            definitivamente, em caso de incumprimento destes Termos, utilização abusiva, risco para
+            a segurança da plataforma ou necessidade técnica, operacional ou legal.
+          </p>
+        </section>
+
+        <section id="alteracoes-termos" class="card section section-anchor">
+          <h2>14. Alterações aos Termos</h2>
+          <p>
+            O barragens.pt pode atualizar estes Termos de Serviço a qualquer momento. A versão mais
+            recente será disponibilizada na plataforma com indicação da respetiva data de entrada em
+            vigor. A continuação da utilização após essa data constitui aceitação da versão
+            atualizada.
+          </p>
+        </section>
+
+        <section id="lei" class="card section section-anchor">
+          <h2>15. Lei aplicável e foro</h2>
+          <p>
+            Estes Termos regem-se pela lei portuguesa. Em caso de litígio, e sem prejuízo das normas
+            legais imperativas aplicáveis, será competente o foro legalmente aplicável em Portugal.
+          </p>
+        </section>
+
+        <section id="contacto" class="card section section-anchor">
+          <h2>16. Contacto</h2>
+          <p>
+            Para questões relacionadas com estes Termos ou com a utilização da plataforma, o
+            utilizador poderá contactar o responsável pelo barragens.pt através do canal de contacto
+            disponibilizado no website.
+          </p>
+        </section>
+      </main>
+
+      <aside class="card toc">
+        <h2>Nesta página</h2>
+        <ol>
+          <li><a href="#aceitacao">Aceitação dos Termos</a></li>
+          <li><a href="#objeto">Objeto do serviço</a></li>
+          <li><a href="#contas">Contas de utilizador</a></li>
+          <li><a href="#dados">Natureza informativa dos dados</a></li>
+          <li><a href="#relatorios-alertas">Relatórios, alertas e entregas automáticas</a></li>
+          <li><a href="#utilizacao">Utilização permitida</a></li>
+          <li><a href="#api">API e tokens de acesso</a></li>
+          <li><a href="#propriedade">Propriedade intelectual</a></li>
+          <li><a href="#terceiros">Fontes externas e serviços de terceiros</a></li>
+          <li><a href="#alteracoes-servico">Disponibilidade e alterações ao serviço</a></li>
+          <li><a href="#garantias">Exclusão de garantias</a></li>
+          <li><a href="#responsabilidade">Limitação de responsabilidade</a></li>
+          <li><a href="#cessacao">Suspensão e cessação</a></li>
+          <li><a href="#alteracoes-termos">Alterações aos Termos</a></li>
+          <li><a href="#lei">Lei aplicável e foro</a></li>
+          <li><a href="#contacto">Contacto</a></li>
+        </ol>
+      </aside>
+    </div>
+
+    <footer class="card footer">
+      <span>© barragens.pt</span>
+      <span>Termos de Serviço em vigor desde 26 de abril de 2026</span>
+      <a href="/">Voltar ao mapa</a>
+    </footer>
+  </div>
+</body>
+
+</html>

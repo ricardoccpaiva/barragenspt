@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <title>{Report.report_title(@report_type)}</title>
+    <style>
+      @page { size: A4; margin: 14mm; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        color: #0f172a;
+        background: #ffffff;
+        font-family: "Plus Jakarta Sans", "DejaVu Sans", Arial, sans-serif;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+      h1, h2, h3, p { margin: 0; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { border-bottom: 1px solid #e2e8f0; padding: 6px 7px; vertical-align: top; }
+      th { background: #f8fafc; color: #475569; font-size: 9px; letter-spacing: .05em; text-transform: uppercase; }
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding-bottom: 14px;
+        border-bottom: 2px solid #0ea5e9;
+      }
+      .eyebrow { color: #0284c7; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+      .title { margin-top: 4px; font-size: 28px; line-height: 1.05; letter-spacing: -0.04em; }
+      .meta { color: #475569; text-align: right; }
+      .meta strong { display: block; color: #0f172a; font-size: 13px; }
+      .grid { display: grid; gap: 10px; }
+      .metrics { grid-template-columns: repeat(4, 1fr); margin: 16px 0; }
+      .metric {
+        min-height: 76px;
+        padding: 11px;
+        border: 1px solid #dbeafe;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
+      }
+      .metric-label { color: #64748b; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+      .metric-value { margin-top: 5px; font-size: 20px; font-weight: 850; letter-spacing: -.03em; }
+      .metric-sub { margin-top: 5px; color: #64748b; font-size: 10px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 2px 5px;
+        background: #f8fafc;
+        font-size: 9px;
+        font-weight: 750;
+      }
+      .dot { width: 6px; height: 6px; border-radius: 999px; }
+      .extreme-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 7px;
+        font-size: 9px;
+      }
+      .extreme-name { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .panel {
+        margin-top: 12px;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        background: #ffffff;
+        break-inside: avoid;
+      }
+      .panel-title { margin-bottom: 8px; font-size: 15px; letter-spacing: -.02em; }
+      .overview { grid-template-columns: 230px 1fr; align-items: start; }
+      .map svg { display: block; width: 100%; height: auto; }
+      .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .name { font-weight: 750; }
+      .muted { color: #64748b; }
+      .delta-positive { color: #059669; font-weight: 750; }
+      .delta-negative { color: #e11d48; font-weight: 750; }
+      .delta-neutral { color: #64748b; font-weight: 750; }
+      .basin {
+        margin-top: 12px;
+        break-inside: avoid;
+      }
+      .basin-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+      .basin-title { font-size: 16px; letter-spacing: -.025em; }
+      .pills { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+      .pill {
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
+        padding: 3px 7px;
+        background: #f8fafc;
+        font-size: 9px;
+        white-space: nowrap;
+      }
+      .basin-grid { display: grid; grid-template-columns: 160px 1fr; gap: 10px; }
+      .footer {
+        margin-top: 18px;
+        padding-top: 8px;
+        border-top: 1px solid #e2e8f0;
+        color: #64748b;
+        font-size: 9px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">barragens.pt</p>
+        <h1 class="title">{Report.report_title(@report_type)}</h1>
+        <p class="muted">
+          {if @selected_basin == "__all__",
+            do: "Todas as bacias",
+            else: "Bacia #{@selected_basin}"}
+        </p>
+      </div>
+      <div class="meta">
+        <strong>Ref. {Report.report_reference(@report, @report_type)}</strong>
+        <span>{@report.basin_count} bacias · {@report.dam_count} barragens</span> <br />
+        <span>Gerado em {Report.format_datetime(@report.generated_at)} UTC</span>
+      </div>
+    </header>
+
+    <section class="grid metrics">
+      <div class="metric">
+        <p class="metric-label">{Report.storage_metric_label(@selected_basin)}</p>
+        <p class="metric-value">{Report.format_pct(@report.summary.current_pct)}</p>
+        <p class="metric-sub">
+          {Report.delta_text(
+            Report.period_delta(@report.summary, @report_type),
+            Report.period_subtitle(@report_type)
+          )}
+        </p>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Volume estimado</p>
+        <p class="metric-value">{Report.format_volume(@report.summary.current_volume)}</p>
+        <p class="metric-sub">
+          Capacidade: {Report.format_volume(@report.summary.total_capacity)}
+        </p>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Média de referência</p>
+        <p class="metric-value">{Report.format_delta(@report.summary.reference_delta)}</p>
+        <p class="metric-sub">{Report.reference_subtitle(@report_type)}</p>
+      </div>
+      <div class="metric">
+        <p class="metric-label">Escalas e extremos</p>
+        <div class="chips">
+          <%= for bucket <- @report.summary.storage_distribution do %>
+            <span class="chip">
+              <span class="dot" style={"background: #{Report.storage_bucket_color(bucket.key)}"}>
+              </span>
+              {Report.storage_bucket_label(bucket)}
+              <strong>{bucket.count}</strong>
+            </span>
+          <% end %>
+        </div>
+        <div class="extreme-row">
+          <div>
+            <span class="muted">Cheia</span>
+            <p class="extreme-name">{Report.extreme_dam_name(@report.summary.fullest_dam)}</p>
+            <span class="muted">{Report.extreme_dam_detail(@report.summary.fullest_dam)}</span>
+          </div>
+          <div>
+            <span class="muted">Vazia</span>
+            <p class="extreme-name">{Report.extreme_dam_name(@report.summary.emptiest_dam)}</p>
+            <span class="muted">{Report.extreme_dam_detail(@report.summary.emptiest_dam)}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel grid overview">
+      <div class="map">{raw(Report.report_map_svg(@report))}</div>
+      <div>
+        <h2 class="panel-title">Síntese por bacia</h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left">Bacia</th>
+              <th class="num">Atual</th>
+              <th class="num">{Report.period_header(@report_type)}</th>
+              <th class="num">Referência</th>
+              <th class="num">Volume</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= for basin <- @report.basins do %>
+              <tr>
+                <td class="name">{basin.name}</td>
+                <td class="num">{Report.format_pct(basin.current_pct)}</td>
+                <td class={[
+                  "num",
+                  Report.delta_class(Report.period_delta_from(basin, @report_type))
+                ]}>
+                  {Report.format_delta(Report.period_delta_from(basin, @report_type))}
+                </td>
+                <td class={["num", Report.delta_class(basin.reference_delta)]}>
+                  {Report.format_delta(basin.reference_delta)}
+                </td>
+                <td class="num">{Report.format_volume(basin.current_volume)}</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <%= for basin <- @report.basins do %>
+      <section class="panel basin">
+        <div class="basin-head">
+          <div>
+            <h2 class="basin-title">Bacia do {basin.name}</h2>
+            <p class="muted">
+              {Report.status_label(basin.status)} · {basin.dam_count} barragem(ns) monitorizada(s)
+            </p>
+          </div>
+          <div class="pills">
+            <span class="pill">
+              Atual <strong>{Report.format_pct(basin.current_pct)}</strong>
+            </span>
+            <span class="pill">
+              {Report.period_header(@report_type)}
+              <strong>
+                {Report.format_delta(Report.period_delta_from(basin, @report_type))}
+              </strong>
+            </span>
+            <span class="pill">
+              Referência <strong>{Report.format_delta(basin.reference_delta)}</strong>
+            </span>
+            <span class="pill">
+              Volume <strong>{Report.format_volume(basin.current_volume)}</strong>
+            </span>
+          </div>
+        </div>
+
+        <div class="basin-grid">
+          <div class="map">{raw(Report.basin_map_svg(basin))}</div>
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:left">Barragem</th>
+                <th class="num">Armazenamento</th>
+                <th class="num">{Report.period_header(@report_type)}</th>
+                <th class="num">Referência</th>
+                <th class="num">Volume</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= for dam <- basin.dams do %>
+                <tr>
+                  <td>
+                    <span class="name">{dam.name}</span> <br />
+                    <span class="muted">{Report.format_river(dam.river)}</span> <br />
+                    <span class="muted">Leitura: {Report.format_datetime(dam.colected_at)}</span>
+                  </td>
+                  <td class="num">{Report.format_pct(dam.current_pct)}</td>
+                  <td class={[
+                    "num",
+                    Report.delta_class(Report.period_delta_from(dam, @report_type))
+                  ]}>
+                    {Report.format_delta(Report.period_delta_from(dam, @report_type))}
+                  </td>
+                  <td class={["num", Report.delta_class(dam.reference_delta)]}>
+                    {Report.format_delta(dam.reference_delta)}
+                  </td>
+                  <td class="num">{Report.format_volume(dam.current_volume)}</td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    <% end %>
+
+    <footer class="footer">
+      Relatório gerado automaticamente a partir dos dados disponíveis no barragens.pt.
+    </footer>
+  </body>
+</html>

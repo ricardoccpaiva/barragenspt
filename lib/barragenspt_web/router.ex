@@ -1,5 +1,7 @@
 defmodule BarragensptWeb.Router do
   use BarragensptWeb, :router
+
+  import BarragensptWeb.UserAuth
   import Oban.Web.Router
   import Plug.BasicAuth
 
@@ -10,6 +12,11 @@ defmodule BarragensptWeb.Router do
     plug(:put_root_layout, {BarragensptWeb.LayoutView, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
+    plug(:fetch_current_scope_for_user)
+  end
+
+  pipeline :authenticated do
+    plug(:require_authenticated_user)
   end
 
   pipeline :private do
@@ -20,6 +27,60 @@ defmodule BarragensptWeb.Router do
 
   pipeline :api do
     plug(:accepts, ["json"])
+    plug OpenApiSpex.Plug.PutApiSpec, module: BarragensptWeb.ApiSpec
+  end
+
+  pipeline :api_basins do
+    plug(BarragensptWeb.Plugs.ApiTokenAuth)
+    plug(BarragensptWeb.Plugs.ApiRateLimit)
+    plug(BarragensptWeb.Plugs.ApiUsage)
+  end
+
+  pipeline :api_dams do
+    plug(BarragensptWeb.Plugs.ApiTokenAuth)
+    plug(BarragensptWeb.Plugs.ApiRateLimit)
+    plug(BarragensptWeb.Plugs.ApiUsage)
+  end
+
+  pipeline :api_data_points do
+    plug(BarragensptWeb.Plugs.ApiTokenAuth)
+    plug(BarragensptWeb.Plugs.ApiRateLimit)
+    plug(BarragensptWeb.Plugs.ApiUsage)
+  end
+
+  scope "/telegram", BarragensptWeb do
+    pipe_through(:api)
+
+    post("/webhook", TelegramWebhookController, :create)
+  end
+
+  scope "/api" do
+    pipe_through(:api)
+    get "/openapi", OpenApiSpex.Plug.RenderSpec, []
+    get "/redoc", Redoc.Plug.RedocUI, spec_url: "/api/openapi"
+  end
+
+  scope "/api", BarragensptWeb do
+    pipe_through([:api_basins])
+
+    get("/basins", Api.BasinsController, :index)
+    get("/basins/:id", Api.BasinsController, :show)
+    get("/basins/:id/dams/:site_id", Api.BasinsController, :dam)
+    get("/basins/:id/dams", Api.BasinsController, :dams)
+  end
+
+  scope "/api", BarragensptWeb do
+    pipe_through([:api_dams])
+
+    get("/dams/:id/info", Api.DamsController, :info)
+    get("/dams/:id", Api.DamsController, :show)
+  end
+
+  scope "/api", BarragensptWeb do
+    pipe_through([:api_data_points])
+
+    get("/data-points", Api.DataPointsController, :index)
+    get("/data-points/params", Api.DataPointsController, :param_catalog)
   end
 
   scope "/oban", BarragensptWeb do
@@ -32,10 +93,13 @@ defmodule BarragensptWeb.Router do
   scope "/", BarragensptWeb do
     pipe_through(:browser)
 
-    live_session :default do
-      live("/", HomepageV2Live, :index)
-      live("/basins/:basin_id", HomepageV2Live, :index)
-      live("/basins/:basin_id/dams/:dam_id", HomepageV2Live, :index)
+    live_session :default,
+      on_mount: [{BarragensptWeb.UserAuth, :mount_current_scope}] do
+      live("/", HomepageLive, :index)
+      live("/dashboard/overview", OverviewLive, :index)
+      live("/status/workers", WorkerStatusLive, :index)
+      live("/basins/:basin_id", HomepageLive, :index)
+      live("/basins/:basin_id/dams/:dam_id", HomepageLive, :index)
     end
   end
 
@@ -52,7 +116,7 @@ defmodule BarragensptWeb.Router do
     scope "/" do
       pipe_through(:browser)
 
-      live_dashboard("/dashboard", metrics: BarragensptWeb.Telemetry)
+      live_dashboard("/dev/dashboard", metrics: BarragensptWeb.Telemetry)
     end
   end
 
@@ -66,5 +130,67 @@ defmodule BarragensptWeb.Router do
 
       forward("/mailbox", Plug.Swoosh.MailboxPreview)
     end
+  end
+
+  ## Authenticated controllers (plug runs before action)
+
+  scope "/", BarragensptWeb do
+    pipe_through [:browser, :authenticated]
+
+    get "/dashboard/data-points/export/csv", Dashboard.DataPointsExportController, :csv
+    get "/dashboard/storage-report/export/pdf", Dashboard.StorageReportPdfController, :show
+    post "/users/update-password", UserSessionController, :update_password
+  end
+
+  ## Dashboard & account LiveViews: browser pipeline only — guests may open /dashboard;
+  ## each tool enforces auth via `on_mount {UserAuth, :require_authenticated}`.
+
+  scope "/", BarragensptWeb do
+    pipe_through [:browser]
+
+    live_session :authenticated,
+      on_mount: [{BarragensptWeb.UserAuth, :mount_current_scope}] do
+      live "/dashboard", DashboardLive, :index
+      live "/dashboard/data-points", Dashboard.DataPointsLive, :index
+      live "/dashboard/storage-report", Dashboard.StorageReportLive, :index
+      live "/dashboard/api-tokens", Dashboard.ApiTokensLive, :index
+      live "/dashboard/api-docs", Dashboard.ApiDocsLive, :index
+      live "/dashboard/notifications", Dashboard.NotificationsLive, :index
+      live "/dashboard/notifications/new", Dashboard.NotificationFormLive, :new
+      live "/dashboard/notifications/:id/history", Dashboard.NotificationHistoryLive, :show
+      live "/dashboard/notifications/:id/edit", Dashboard.NotificationFormLive, :edit
+
+      if Mix.env() in [:dev, :test] do
+        live "/dashboard/test/force-dam-value", Dashboard.TestDataPointsLive, :index
+      end
+
+      live "/users/settings", UserLive.Settings, :edit
+      live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+    end
+
+    live_session :admin_authenticated,
+      on_mount: [{BarragensptWeb.UserAuth, :require_admin}] do
+      live "/dashboard/admin", Dashboard.AdminLive, :index
+    end
+  end
+
+  scope "/", BarragensptWeb do
+    pipe_through [:browser]
+
+    get "/auth/:provider", UserOAuthController, :request
+    get "/auth/:provider/callback", UserOAuthController, :callback
+
+    live_session :current_user,
+      on_mount: [{BarragensptWeb.UserAuth, :mount_current_scope}] do
+      live "/users/register", UserLive.Registration, :new
+      live "/users/log-in", UserLive.Login, :new
+      live "/users/log-in/:token", UserLive.Confirmation, :new
+      live "/users/confirm/:token", UserLive.Confirmation, :new
+      live "/users/reset-password", UserLive.ForgotPassword, :new
+      live "/users/reset-password/:token", UserLive.ResetPassword, :edit
+    end
+
+    post "/users/log-in", UserSessionController, :create
+    delete "/users/log-out", UserSessionController, :delete
   end
 end

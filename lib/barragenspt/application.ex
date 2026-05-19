@@ -14,21 +14,27 @@ defmodule Barragenspt.Application do
     OpentelemetryOban.setup()
     OpentelemetryLoggerMetadata.setup()
 
-    children = [
-      Barragenspt.PromEx,
-      # Start the Ecto repository
-      Barragenspt.Repo,
-      # Start the Telemetry supervisor
-      BarragensptWeb.Telemetry,
-      # Start the PubSub system
-      {Phoenix.PubSub, name: Barragenspt.PubSub},
-      # Start the Endpoint (http/https)
-      BarragensptWeb.Endpoint,
-      {Oban, oban_config()},
-      Barragenspt.Cache,
-      Barragenspt.MeteoDataCache,
-      Barragenspt.RealtimeDataPointsCache
-    ]
+    children =
+      [
+        Barragenspt.PromEx,
+        # Start the Ecto repository
+        Barragenspt.Repo,
+        # Start the Telemetry supervisor
+        BarragensptWeb.Telemetry,
+        # Start the PubSub system
+        {Phoenix.PubSub, name: Barragenspt.PubSub},
+        # Start the Endpoint (http/https)
+        BarragensptWeb.Endpoint,
+        {Oban, oban_config()},
+        Barragenspt.ApiUsage.EtsHolder,
+        {Barragenspt.ApiRateLimit,
+         clean_period: :timer.minutes(1), key_older_than: :timer.hours(2)},
+        Barragenspt.Cache,
+        Barragenspt.MeteoDataCache,
+        Barragenspt.RealtimeDataPointsCache,
+        Barragenspt.ApiTokenCache,
+        {ChromicPDF, chromic_pdf_config()}
+      ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -47,5 +53,9 @@ defmodule Barragenspt.Application do
   # Conditionally disable queues or plugins here.
   defp oban_config do
     Application.fetch_env!(:barragenspt, Oban)
+  end
+
+  defp chromic_pdf_config do
+    Application.get_env(:barragenspt, :chromic_pdf, [])
   end
 end

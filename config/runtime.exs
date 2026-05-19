@@ -1,8 +1,29 @@
 import Config
 
-config :barragenspt, :resend_api_key, System.get_env("RESEND_API_KEY")
+resend_api_key = System.get_env("RESEND_API_KEY")
+telegram_bot_token = System.get_env("TELEGRAM_BOT_TOKEN")
+telegram_bot_username = System.get_env("TELEGRAM_BOT_USERNAME")
+telegram_webhook_secret = System.get_env("TELEGRAM_WEBHOOK_SECRET")
+
+config :barragenspt, :resend_api_key, resend_api_key
+config :barragenspt, :telegram_bot_token, telegram_bot_token
+config :barragenspt, :telegram_bot_username, telegram_bot_username
+config :barragenspt, :telegram_webhook_secret, telegram_webhook_secret
+config :barragenspt, Barragenspt.Mailer, api_key: resend_api_key
 
 config :barragenspt, :snirh, proxy: System.get_env("SNIRH_PROXY")
+
+cerebras_api_key = System.get_env("CEREBRAS_API_KEY")
+cerebras_base_url = System.get_env("CEREBRAS_BASE_URL") || "https://api.cerebras.ai/v1"
+cerebras_model = System.get_env("CEREBRAS_MODEL") || "llama3.1-8b"
+
+config :barragenspt, :cerebras_api_key, cerebras_api_key
+config :barragenspt, :cerebras_base_url, cerebras_base_url
+config :barragenspt, :cerebras_model, cerebras_model
+
+config :ueberauth, Ueberauth.Strategy.Google.OAuth,
+  client_id: System.get_env("GOOGLE_CLIENT_ID"),
+  client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the

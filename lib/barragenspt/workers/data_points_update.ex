@@ -2,11 +2,16 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
   use Oban.Worker, queue: :data_points_update
   import Ecto.Query
   require Logger
+  alias Barragenspt.Hydrometrics.DataPointParams
   alias Barragenspt.Models.Hydrometrics.Dam
+  alias Barragenspt.WorkerStatus
 
   @impl Oban.Worker
-  def perform(%Oban.Job{attempt: 1, args: %{"jcid" => jcid}}) do
+  def perform(%Oban.Job{id: job_id, attempt: 1}) do
+    run_key = "data-points-update:#{job_id}"
     Barragenspt.Cache.flush()
+
+    _ = WorkerStatus.start_run(__MODULE__, run_key, job_id)
 
     # 354895424 - Cota da Albufeira na última hora
     # 1629599726 - Cota da Albufeira
@@ -17,17 +22,7 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
     # 2282 - Caudal turbinado médio diário
     # 212296818 - Caudal efluente médio diário
 
-    data_params = [
-      {1_629_599_798, "volume"},
-      {354_895_398, "volume_last_hour"},
-      {304_545_050, "volume_last_day_month"},
-      {1_629_599_726, "elevation"},
-      {354_895_424, "elevation_last_hour"},
-      {2279, "tributary_daily_flow"},
-      {2284, "ouput_flow_rate_daily"},
-      {2282, "turbocharged_daily_flow"},
-      {212_296_818, "effluent_daily_flow"}
-    ]
+    data_params = DataPointParams.tuples()
 
     current_date = Timex.now()
     {:ok, end_date_str} = Timex.format(current_date, "{D}/{M}/{YYYY}")
@@ -47,7 +42,8 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
         Enum.map(data_params, fn {param_id, param_name} ->
           Barragenspt.Workers.FetchDamParameters.new(%{
             "id" => :rand.uniform(999_999_999),
-            "parent_jcid" => jcid,
+            "parent_jcid" => run_key,
+            "run_key" => run_key,
             "dam_code" => dam.code,
             "basin_id" => dam.basin_id,
             "site_id" => dam.site_id,
@@ -72,11 +68,12 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
     {:snooze, 30}
   end
 
-  def perform(%Oban.Job{attempt: attempt, args: %{"jcid" => jcid}}) when attempt > 1 do
-    handle_retry(jcid)
+  def perform(%Oban.Job{id: job_id, attempt: attempt}) when attempt > 1 do
+    run_key = "data-points-update:#{job_id}"
+    handle_retry(run_key)
   end
 
-  defp handle_retry(jcid) do
+  defp handle_retry(run_key) do
     {:ok,
      %Postgrex.Result{
        columns: ["count"],
@@ -85,17 +82,25 @@ defmodule Barragenspt.Workers.DataPointsUpdate do
        rows: [[rows]]
      }} =
       Barragenspt.Repo.query(
-        "select count(1) from oban_jobs where args->>'parent_jcid' = '#{jcid}'"
+        "select count(1) from oban_jobs where args->>'parent_jcid' = $1 and state in ('available', 'scheduled', 'executing', 'retryable')",
+        [run_key]
       )
 
     if rows == 0 do
-      Logger.info("DataPointsUpdate coordinator job has finished. parent_jcid = '#{jcid}'")
+      Logger.info("DataPointsUpdate coordinator job has finished. parent_jcid = '#{run_key}'")
       Barragenspt.Cache.flush()
+
+      status =
+        if WorkerStatus.child_jobs_have_errors?(run_key, Barragenspt.Workers.FetchDamParameters),
+          do: "error",
+          else: "ok"
+
+      _ = WorkerStatus.finish_run(run_key, status)
 
       :ok
     else
       Logger.info(
-        "DataPointsUpdate coordinator job still has child #{rows} jobs running. parent_jcid = '#{jcid}'"
+        "DataPointsUpdate coordinator job still has child #{rows} jobs running. parent_jcid = '#{run_key}'"
       )
 
       {:snooze, 30}

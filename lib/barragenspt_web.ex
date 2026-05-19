@@ -1,7 +1,7 @@
 defmodule BarragensptWeb do
   def static_paths,
     do:
-      ~w(assets fonts images favicon.ico robots.txt geojson dashboard_semanal_demo.html concept_facelift.html concept_facelift_v2.html concept_facelift.css design_showcase.html release-notes.html)
+      ~w(assets fonts images favicon.ico robots.txt geojson dashboard_semanal_demo.html concept_facelift.html concept_facelift_v2.html concept_facelift.css design_showcase.html release-notes.html release-notes-dashboard.html tos.html overview-launch.html)
 
   @moduledoc """
   The entrypoint for defining your web interface, such
@@ -104,8 +104,13 @@ defmodule BarragensptWeb do
       # Import LiveView and .heex helpers (live_render, live_patch, <.form>, etc)
       import Phoenix.LiveView.Helpers
 
+      alias Phoenix.LiveView.JS
+
       # Import basic rendering functionality (render, render_layout, etc)
       import Phoenix.View
+
+      import BarragensptWeb.CoreComponents
+      alias BarragensptWeb.Layouts, as: Layouts
 
       import BarragensptWeb.ErrorHelpers
       import BarragensptWeb.Gettext

@@ -19,7 +19,17 @@ defmodule Barragenspt.MixProject do
   def application do
     [
       mod: {Barragenspt.Application, []},
-      extra_applications: [:logger, :runtime_tools, :httpoison, :scrivener, :xmerl, :bugsnag]
+      extra_applications: [
+        :logger,
+        :runtime_tools,
+        :httpoison,
+        :scrivener,
+        :xmerl,
+        :bugsnag,
+        # Markdown preview: ensure OTP loads these in releases (not only as passive deps)
+        :earmark,
+        :html_sanitize_ex
+      ]
     ]
   end
 
@@ -32,6 +42,7 @@ defmodule Barragenspt.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.8"},
       {:phoenix_ecto, "~> 4.6"},
       {:ecto_sql, "~> 3.6"},
@@ -60,6 +71,8 @@ defmodule Barragenspt.MixProject do
       {:nebulex, "~> 2.2"},
       {:decorator, "~> 1.4"},
       {:scrivener_ecto, "~> 2.7"},
+      {:flop, "~> 0.26"},
+      {:flop_phoenix, "~> 0.23"},
       {:prom_ex, "~> 1.9.0"},
       {:plug_canonical_host, "~> 2.0"},
       {:tesla, "~> 1.4"},
@@ -81,7 +94,15 @@ defmodule Barragenspt.MixProject do
       {:bugsnag, "~> 3.0.2"},
       {:resend, "~> 0.4"},
       {:swoosh, "~> 1.6"},
-      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev}
+      {:ueberauth, "~> 0.10"},
+      {:ueberauth_google, "~> 0.12"},
+      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
+      {:earmark, "~> 1.4"},
+      {:html_sanitize_ex, "~> 1.4"},
+      {:open_api_spex, "~> 3.21"},
+      {:redoc_ui_plug, "~> 0.2.1"},
+      {:chromic_pdf, "~> 1.17"},
+      {:hammer, "~> 7.0"}
     ]
   end
 

@@ -1,0 +1,302 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="space-y-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0">
+        <form id="storage-report-controls" class="flex min-w-0 flex-col gap-2 sm:w-auto sm:flex-row"
+          phx-change="select_basin">
+          <label class="min-w-0">
+            <span class="sr-only">Tipo de relatório</span>
+            <select name="report_type" phx-change="select_report_type"
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[13rem]">
+              <option value="weekly" selected={@report_type=="weekly" }>Semanal</option>
+              <option value="monthly" selected={@report_type=="monthly" }>Mensal</option>
+            </select>
+          </label>
+          <label class="min-w-0 flex-1">
+            <span class="sr-only">Bacia</span>
+            <select name="basin" disabled={@loading_report}
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[18rem]">
+              <option value="__all__" selected={@selected_basin=="__all__" }>
+                Todas as bacias
+              </option>
+              <%= for basin <- @basin_options do %>
+                <option value={basin} selected={@selected_basin==basin}>{basin}</option>
+                <% end %>
+            </select>
+          </label>
+          <label :if={@report_type=="weekly" } class="min-w-0">
+            <span class="sr-only">Data</span>
+            <input type="date" name="date" value={date_to_string(@selected_date)} step="7" phx-change="select_date"
+              disabled={@loading_report}
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[12rem]" />
+          </label>
+          <label :if={@report_type=="monthly" } class="min-w-0">
+            <span class="sr-only">Mês</span>
+            <input type="month" name="month" value={month_to_string(@selected_month)}
+              min={month_to_string(@month_bounds.min)} max={month_to_string(@month_bounds.max)}
+              phx-change="select_month" disabled={@loading_report}
+              class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 sm:w-[12rem]" />
+          </label>
+          <button type="button" phx-click="generate_report" disabled={@loading_report}
+            class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-slate-900">
+            <%= if @loading_report do %>
+              A gerar...
+              <% else %>
+                {if @report_type == "monthly", do: "Gerar relatório mensal", else: "Gerar relatório"}
+                <% end %>
+          </button>
+          <a :if={@report} id="storage-report-export-pdf" href={pdf_export_path(@report_type, @selected_basin,
+            @selected_date, @selected_month)} download phx-hook="StorageReportPdfExport"
+            class="inline-flex h-10 items-center justify-center rounded-lg bg-brand-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900">
+            <svg data-export-spinner class="mr-2 hidden h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg"
+              fill="none" viewBox="0 0 24 24" aria-hidden="true">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+              </circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z">
+              </path>
+            </svg>
+            <span data-export-label>Exportar PDF</span>
+          </a>
+        </form>
+      </div>
+
+      <%= if @report do %>
+        <div class="flex flex-wrap items-center gap-2 self-start sm:ml-auto sm:self-auto">
+          <button type="button" phx-click="open_methodology"
+            class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-500 shadow-sm transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-400 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            aria-label="Ver metodologia do relatório" title="Como é calculado">
+            <span class="text-base font-bold leading-none">?</span>
+          </button>
+        </div>
+        <% end %>
+    </div>
+
+    <%= if @loading_report do %>
+      <div
+        class="flex min-h-[12rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-12 text-center dark:border-slate-600 dark:bg-slate-800/30">
+        <p class="text-sm font-medium text-slate-600 dark:text-slate-300">
+          A gerar o relatório…
+        </p>
+        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          Isto pode demorar um pouco, dependendo do número de barragens.
+        </p>
+      </div>
+      <% end %>
+
+        <%= if is_nil(@report) and not @loading_report do %>
+          <div
+            class="flex min-h-[10rem] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 px-6 py-10 text-center dark:border-slate-600 dark:bg-slate-800/20">
+            <p class="text-sm text-slate-600 dark:text-slate-400">
+              Escolha a bacia e clique em «Gerar relatório».
+            </p>
+          </div>
+          <% end %>
+
+            <%= if @report do %>
+              <section class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <.metric_card label={storage_metric_label(@selected_basin)}
+                  value={format_pct(@report.summary.current_pct)} sub={ delta_text(period_delta(@report.summary,
+                  @report_type), period_subtitle(@report_type)) } accent="brand" />
+                <.metric_card label="Volume estimado" value={format_volume(@report.summary.current_volume)}
+                  sub={"Capacidade: #{format_volume(@report.summary.total_capacity)}"} accent="sky" />
+                <.metric_card label="Média de referência" value={format_delta(@report.summary.reference_delta)}
+                  sub={reference_subtitle(@report_type)} accent="teal" />
+                <.storage_distribution_card summary={@report.summary} />
+              </section>
+
+              <section
+                class="grid grid-cols-1 items-stretch gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 lg:grid-cols-[26rem_minmax(0,1fr)] sm:p-5">
+                <div
+                  class="flex h-full flex-col rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+                  <div class="mb-3 flex items-center justify-between gap-3 px-1 text-sm">
+                    <p class="font-semibold text-slate-900 dark:text-slate-100">Portugal continental</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">% armazenamento</p>
+                  </div>
+                  <div class="min-h-[28rem] flex-1">
+                    <%= if @portugal_map_payload do %>
+                      <div id="storage-report-portugal-map" phx-update="ignore" phx-hook="StorageReportPortugalMap"
+                        data-basins-geojson={@portugal_map_payload.basins_geojson}
+                        data-dams-geojson={@portugal_map_payload.dams_geojson}
+                        data-fit-bounds={@portugal_map_payload.fit_bounds}
+                        class="mx-auto h-full min-h-[30rem] w-full overflow-hidden rounded-xl border border-slate-200/70 dark:border-slate-700/70"
+                        aria-label="Mapa de Portugal continental com bacias hidrográficas coloridas por armazenamento">
+                      </div>
+                      <% else %>
+                        <div
+                          class="flex h-full min-h-[28rem] items-center justify-center rounded-xl border border-slate-200/70 text-sm text-slate-500 dark:border-slate-700/70 dark:text-slate-400">
+                          Sem dados de mapa
+                        </div>
+                        <% end %>
+                  </div>
+                  <div
+                    class="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-3 lg:grid-cols-2">
+                    <.legend_item color="#ff675c" label="0 - 20" />
+                    <.legend_item color="#ffc34a" label="21 - 40" />
+                    <.legend_item color="#ffe99c" label="41 - 50" />
+                    <.legend_item color="#c2faaa" label="51 - 60" />
+                    <.legend_item color="#a6d8ff" label="61 - 80" />
+                    <.legend_item color="#1c9dff" label="81 - 100" />
+                  </div>
+                </div>
+
+                <div class="min-w-0">
+                  <div class="mb-3">
+                    <h2 class="text-lg font-semibold text-slate-950 dark:text-slate-50">
+                      Síntese por bacia
+                    </h2>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                      Valores agregados pela capacidade das barragens em cada bacia.
+                    </p>
+                  </div>
+                  <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                    <table class="min-w-[680px] w-full text-sm">
+                      <thead
+                        class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
+                        <tr>
+                          <th class="px-3 py-2 text-left font-semibold">Bacia</th>
+                          <th class="px-3 py-2 text-right font-semibold">Atual</th>
+                          <th class="px-3 py-2 text-right font-semibold">
+                            {period_header(@report_type)}
+                          </th>
+                          <th class="px-3 py-2 text-right font-semibold">Referência</th>
+                          <th class="px-3 py-2 text-right font-semibold">Volume</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
+                        <%= for basin <- @report.basins do %>
+                          <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
+                            <td class="px-3 py-2 font-semibold text-slate-900 dark:text-slate-100">
+                              <a href={"##{basin_anchor_id(basin)}"}
+                                class="rounded underline decoration-slate-300 underline-offset-2 hover:decoration-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400">
+                                {basin.name}
+                              </a>
+                            </td>
+                            <td class="px-3 py-2">
+                              <.pct_with_sparkbar pct={basin.current_pct} />
+                            </td>
+                            <td class={[ "px-3 py-2 text-right tabular-nums font-semibold" ,
+                              delta_class(period_delta_from(basin, @report_type)) ]}>
+                              {format_delta(period_delta_from(basin, @report_type))}
+                            </td>
+                            <td class={[ "px-3 py-2 text-right tabular-nums font-semibold" ,
+                              delta_class(basin.reference_delta) ]}>
+                              {format_delta(basin.reference_delta)}
+                            </td>
+                            <td class="px-3 py-2 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                              {format_volume(basin.current_volume)}
+                            </td>
+                          </tr>
+                          <% end %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800 sm:p-5">
+                <div class="mb-4">
+                  <h2 class="text-lg font-semibold text-slate-950 dark:text-slate-50">
+                    Detalhe por bacia e barragem
+                  </h2>
+                </div>
+
+                <div class="space-y-4">
+                  <%= for basin <- @report.basins do %>
+            <article id={basin_anchor_id(basin)}
+              class="scroll-mt-28 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/70 p-4 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900/40">
+                      <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                          <h3 class="text-base font-semibold text-slate-950 dark:text-slate-50">
+                            Bacia do {basin.name}
+                          </h3>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                          <.pill label="Atual" value={format_pct(basin.current_pct)} />
+                          <.pill label={period_header(@report_type)} value={format_delta(period_delta_from(basin,
+                            @report_type))} class={delta_class(period_delta_from(basin, @report_type))} />
+                          <.pill label="Referência" value={format_delta(basin.reference_delta)}
+                            class={delta_class(basin.reference_delta)} />
+                          <.pill label="Volume" value={"#{format_volume(basin.current_volume)} /
+                            #{format_volume(basin.total_capacity)}"} />
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 gap-4 lg:grid-cols-[24rem_minmax(0,1fr)]">
+                        <StorageReportComponents.mini_map basin={basin} map_payload={mini_basin_map_payload(basin)} />
+                        <div
+                          class="min-w-0 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                          <table class="min-w-[720px] w-full text-sm">
+                            <thead
+                              class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-900/60 dark:text-slate-400">
+                              <tr>
+                                <th class="px-3 py-2 text-left font-semibold">Barragem</th>
+                                <th class="px-3 py-2 text-right font-semibold">Armazenamento</th>
+                                <th class="px-3 py-2 text-right font-semibold">
+                                  {period_header(@report_type)}
+                                </th>
+                                <th class="px-3 py-2 text-right font-semibold">Referência</th>
+                                <th class="px-3 py-2 text-right font-semibold">Volume</th>
+                              </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-700/70">
+                              <%= for dam <- basin.dams do %>
+                                <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30">
+                                  <td class="px-3 py-2">
+                                    <p class="font-semibold text-slate-900 dark:text-slate-100">
+                                      {dam.name}
+                                    </p>
+                                    <p class="text-xs leading-[1.1rem] text-slate-500 dark:text-slate-400">
+                                      {format_river(dam.river)}
+                                    </p>
+                                    <p class="text-xs leading-[1.1rem] text-slate-500 dark:text-slate-400">
+                                      Leitura: {format_datetime(dam.colected_at)}
+                                    </p>
+                                  </td>
+                                  <td class="px-3 py-2">
+                                    <.pct_with_sparkbar pct={dam.current_pct} />
+                                  </td>
+                                  <td class={[ "px-3 py-2 text-right tabular-nums font-semibold" ,
+                                    delta_class(period_delta_from(dam, @report_type)) ]}>
+                                    {format_delta(period_delta_from(dam, @report_type))}
+                                  </td>
+                                  <td class={[ "px-3 py-2 text-right tabular-nums font-semibold" ,
+                                    delta_class(dam.reference_delta) ]}>
+                                    {format_delta(dam.reference_delta)}
+                                  </td>
+                                  <td class="px-3 py-2 text-right tabular-nums text-slate-700 dark:text-slate-300">
+                                    {format_volume(dam.current_volume)}
+                                  </td>
+                                </tr>
+                                <% end %>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </article>
+                    <% end %>
+                </div>
+              </section>
+              <% end %>
+  </div>
+
+  <%= if @report do %>
+    <StorageReportComponents.methodology_drawer
+      open?={@methodology_drawer_open}
+      report_type={@report_type}
+      selected_basin={@selected_basin}
+    />
+
+    <StorageReportComponents.ai_drawer
+      open?={@ai_drawer_open}
+      loading?={@loading_ai_summary}
+      summary={@ai_summary}
+      error={@ai_error}
+      configured?={@cerebras_configured}
+      selected_basin={@selected_basin}
+      report_type={@report_type}
+      selected_month={@selected_month}
+      selected_date={@selected_date}
+    />
+    <% end %>
+</Layouts.app>

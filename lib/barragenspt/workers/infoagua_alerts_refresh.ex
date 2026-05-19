@@ -7,11 +7,14 @@ defmodule Barragenspt.Workers.InfoaguaAlertsRefresh do
   alias Barragenspt.Repo
   alias Barragenspt.Models.Infoagua.Alert
   alias Barragenspt.Services.InfoAgua
+  alias Barragenspt.WorkerStatus
 
   @impl Oban.Worker
   @spec perform(Oban.Job.t()) :: :ok | {:error, any()}
-  def perform(%Oban.Job{}) do
+  def perform(%Oban.Job{id: job_id}) do
+    run_key = "infoagua-alerts-refresh:#{job_id}"
     basins_map = load_basins_map()
+    _ = WorkerStatus.start_run(__MODULE__, run_key, job_id)
 
     case InfoAgua.fetch_alerts_map() do
       {:ok, alerts} when is_list(alerts) ->
@@ -22,26 +25,38 @@ defmodule Barragenspt.Workers.InfoaguaAlertsRefresh do
           |> Enum.map(&build_row(&1, now, basins_map))
           |> Enum.reject(&is_nil/1)
 
-        Repo.transaction(fn ->
-          Repo.insert_all(Alert, rows)
-        end)
+        {created_rows, _result} =
+          Repo.transaction(fn ->
+            Repo.insert_all(Alert, rows)
+          end)
+          |> case do
+            {:ok, {count, _}} -> {count, :ok}
+            _ -> {0, :error}
+          end
+
+        _ = WorkerStatus.add_rows(run_key, created_rows, 0)
+        _ = WorkerStatus.finish_run(run_key, "ok")
 
         Logger.info("Infoagua alerts refreshed: #{Enum.count(rows)} rows")
         :ok
 
       {:ok, _} ->
         Logger.warning("Infoagua alerts refresh returned unexpected payload")
+        _ = WorkerStatus.finish_run(run_key, "ok")
         :ok
 
       # DATA_AlertsMap not found in page => no alerts active; clear all records
       {:error, :data_alerts_map_not_found} ->
         result = Repo.delete_all(from(Alert))
         deleted = if is_tuple(result), do: elem(result, 0), else: result
+        _ = WorkerStatus.add_rows(run_key, 0, deleted)
+        _ = WorkerStatus.finish_run(run_key, "ok")
         Logger.info("Infoagua: no alerts map (no active alerts), deleted #{deleted} records")
         :ok
 
       {:error, reason} ->
         Logger.error("Infoagua alerts refresh failed: #{inspect(reason)}")
+        _ = WorkerStatus.finish_run(run_key, "error", inspect(reason))
         {:error, reason}
     end
   end

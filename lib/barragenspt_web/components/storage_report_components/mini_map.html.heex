@@ -1,0 +1,21 @@
+<aside
+  class="aspect-square rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+  <div class="mb-2 flex items-center justify-between gap-2 text-xs">
+    <p class="font-semibold text-slate-900 dark:text-slate-100">Mapa da bacia</p>
+    <p class="text-slate-500 dark:text-slate-400">{@basin.dam_count} ponto(s)</p>
+  </div>
+  <div
+    class="h-[calc(100%-1.5rem)] w-full overflow-hidden rounded-lg border border-slate-200/70 bg-slate-100 dark:border-slate-700/70 dark:bg-slate-800/40">
+    <%= if @map_payload do %>
+      <div id={@map_payload.dom_id} phx-hook="BasinMiniMap" data-basin-geojson={@map_payload.basin_geojson}
+        data-context-geojson={@map_payload.context_geojson} data-dams-geojson={@map_payload.dams_geojson}
+        data-fit-bounds={@map_payload.fit_bounds} class="h-full w-full" aria-label={"Mapa da bacia #{@basin.name} com
+        pontos das barragens"}>
+      </div>
+      <% else %>
+        <div class="flex h-full items-center justify-center text-xs text-slate-500 dark:text-slate-400">
+          Sem geometria disponível
+        </div>
+        <% end %>
+  </div>
+</aside>

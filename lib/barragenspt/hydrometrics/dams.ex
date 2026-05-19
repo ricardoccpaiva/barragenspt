@@ -9,6 +9,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
     DailyAverageStorageBySite,
     SiteCurrentStorage,
     DataPoint,
+    DataPointWithDam,
     DataPointRealtime,
     Dam,
     DamUsage
@@ -17,6 +18,10 @@ defmodule Barragenspt.Hydrometrics.Dams do
   alias Barragenspt.Repo
   alias Barragenspt.Cache
   alias Barragenspt.RealtimeDataPointsCache
+
+  alias Flop.{Filter, Meta}
+
+  alias Barragenspt.Helpers.FilterParser
 
   @discharge_flow_params [
     "ouput_flow_rate_daily",
@@ -31,7 +36,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
               ttl: :timer.hours(1)
             )
   def get(id) do
-    Repo.one!(
+    Repo.one(
       from(b in SiteCurrentStorage,
         join: d in Dam,
         on: b.site_id == d.site_id,
@@ -78,6 +83,35 @@ defmodule Barragenspt.Hydrometrics.Dams do
         Map.put(acc, String.to_atom(row.param_name), decimal_to_float(row.value))
       end)
     end)
+  end
+
+  @decorate cacheable(
+              cache: RealtimeDataPointsCache,
+              key: "realtime_latest_#{site_id}_#{param_name}",
+              ttl: :timer.minutes(15)
+            )
+  def realtime_latest_value(site_id, param_name)
+      when is_binary(site_id) and is_binary(param_name) do
+    from(d in DataPointRealtime,
+      where: d.site_id == ^site_id and d.param_name == ^param_name,
+      order_by: [desc: d.colected_at],
+      limit: 1,
+      select: d.value
+    )
+    |> Repo.one()
+    |> decimal_to_float()
+  end
+
+  def latest_data_point_value(site_id, param_name)
+      when is_binary(site_id) and is_binary(param_name) do
+    from(dp in DataPoint,
+      where: dp.site_id == ^site_id and dp.param_name == ^param_name,
+      order_by: [desc: dp.colected_at],
+      limit: 1,
+      select: dp.value
+    )
+    |> Repo.one()
+    |> decimal_to_float()
   end
 
   defp decimal_to_float(%Decimal{} = d), do: Decimal.to_float(d)
@@ -129,6 +163,7 @@ defmodule Barragenspt.Hydrometrics.Dams do
           id: d.site_id,
           name: d.name,
           basin_id: d.basin_id,
+          basin: d.basin,
           current_storage: b.current_storage_pct
         }
       )
@@ -136,6 +171,42 @@ defmodule Barragenspt.Hydrometrics.Dams do
     query
     |> distinct(true)
     |> Repo.all()
+  end
+
+  @doc """
+  Name search for UI pickers (e.g. alert subject). Same filters as `search/2` but does **not**
+  require a `SiteCurrentStorage` row, so dams still appear before matviews are populated.
+  """
+  def search_for_picker(name, usage_types \\ []) when is_binary(name) do
+    name = String.trim(name)
+
+    if name == "" do
+      []
+    else
+      like = "%#{name}%"
+
+      filter = dynamic([d, _du], ilike(d.name, ^like))
+
+      filter =
+        if usage_types != [] do
+          dynamic([_d, du], ^filter and du.usage_name in ^usage_types)
+        else
+          filter
+        end
+
+      from(d in Dam,
+        join: du in DamUsage,
+        on: d.site_id == du.site_id,
+        where: ^filter,
+        select: %{
+          id: d.site_id,
+          name: d.name,
+          basin_id: d.basin_id
+        }
+      )
+      |> distinct(true)
+      |> Repo.all()
+    end
   end
 
   @decorate cacheable(
@@ -642,6 +713,65 @@ defmodule Barragenspt.Hydrometrics.Dams do
       }
   end
 
+  def dam_summary_stats(site_id) do
+    basin_id =
+      Repo.one(from(d in Dam, where: d.site_id == ^site_id, select: d.basin_id))
+
+    case basin_id do
+      nil ->
+        {:error, :not_found}
+
+      basin_id ->
+        dam_summary_stats_for_basin(site_id, basin_id)
+    end
+  end
+
+  defp dam_summary_stats_for_basin(site_id, basin_id) do
+    usage_types = []
+
+    query =
+      from(b in subquery(sites_current_storage_query(basin_id, usage_types)),
+        left_join: e in subquery(sites_current_elevation_query(basin_id, usage_types)),
+        on: b.site_id == e.site_id,
+        join: du in DamUsage,
+        on: b.site_id == du.site_id,
+        join: dd in Dam,
+        on: b.site_id == dd.site_id,
+        where: b.site_id == ^site_id,
+        group_by: [
+          b.site_id,
+          dd.basin_id,
+          dd.name,
+          dd.basin,
+          b.value,
+          b.colected_at,
+          dd.total_capacity,
+          e.value
+        ],
+        select: %{
+          site_id: b.site_id,
+          basin_id: dd.basin_id,
+          site_name: dd.name,
+          basin_name: dd.basin,
+          current_storage_volume: fragment("round(?)", b.value),
+          current_storage_quota: e.value,
+          colected_at: b.colected_at,
+          total_capacity: dd.total_capacity,
+          usage_types:
+            fragment(
+              "string_agg(distinct ?::text, ',' order by ?::text)",
+              du.usage_name,
+              du.usage_name
+            )
+        }
+      )
+
+    case Repo.one(query) do
+      nil -> {:error, :no_snapshot}
+      row -> {:ok, row}
+    end
+  end
+
   def sites_current_storage_query(basin_id, usage_types) do
     filter = dynamic([dp, _du], dp.param_name == "volume_last_hour")
 
@@ -674,6 +804,60 @@ defmodule Barragenspt.Hydrometrics.Dams do
               "row_number() OVER (PARTITION BY ? ORDER BY ? DESC)",
               dp.site_id,
               dp.colected_at
+            )
+        }
+      )
+
+    from(dp in subquery(subquery),
+      join: d in Dam,
+      on: dp.site_id == d.site_id,
+      where: dp.rn == 1,
+      select: %{
+        site_id: dp.site_id,
+        basin_id: dp.basin_id,
+        value: dp.value,
+        colected_at: dp.colected_at
+      }
+    )
+  end
+
+  def sites_current_elevation_query(basin_id, usage_types) do
+    filter =
+      dynamic(
+        [dp, _du],
+        dp.param_name in ^["elevation_last_hour", "elevation"]
+      )
+
+    filter =
+      if basin_id do
+        dynamic([dp, _du], ^filter and dp.basin_id == ^basin_id)
+      else
+        filter
+      end
+
+    filter =
+      if usage_types != [] do
+        dynamic([_dp, du], ^filter and du.usage_name in ^usage_types)
+      else
+        filter
+      end
+
+    subquery =
+      from(dp in DataPoint,
+        join: du in DamUsage,
+        on: dp.site_id == du.site_id,
+        where: ^filter,
+        select: %{
+          site_id: dp.site_id,
+          basin_id: dp.basin_id,
+          value: dp.value,
+          colected_at: dp.colected_at,
+          rn:
+            fragment(
+              "row_number() OVER (PARTITION BY ? ORDER BY ? DESC, CASE WHEN ? = 'elevation_last_hour' THEN 0 ELSE 1 END)",
+              dp.site_id,
+              dp.colected_at,
+              dp.param_name
             )
         }
       )
@@ -728,6 +912,759 @@ defmodule Barragenspt.Hydrometrics.Dams do
         }
       )
     )
+  end
+
+  @data_points_flop_opts [for: DataPointWithDam, repo: Repo, replace_invalid_params: true]
+
+  # Export ignores UI page size; opts `max_limit` overrides schema (100) for this call only.
+  @data_points_csv_export_max 50_000
+
+  @data_points_chart_max_points 2_000
+
+  @data_points_csv_export_flop_opts [
+    for: DataPointWithDam,
+    repo: Repo,
+    replace_invalid_params: true,
+    max_limit: @data_points_csv_export_max
+  ]
+
+  # Total-row count for Flop pagination is expensive on large tables. Cache it
+  # per filter set (not per page/order) with a short TTL; stale totals are acceptable
+  # briefly while new data_points are ingested.
+  @data_points_count_cache_ttl :timer.minutes(2)
+
+  @doc """
+  Distinct dam names from `dam`, ordered alphabetically (for dashboard filter dropdowns).
+
+  Pass a basin name to restrict names to that basin; pass `nil` or `""` (via default)
+  for all basins.
+  """
+  @spec list_data_points_filter_dam_names(String.t() | nil) :: [String.t()]
+  def list_data_points_filter_dam_names(basin \\ nil)
+
+  def list_data_points_filter_dam_names(basin) when basin in [nil, ""] do
+    from(d in Dam,
+      where: not is_nil(d.name) and d.name != "",
+      distinct: [asc: d.name],
+      order_by: [asc: d.name],
+      select: d.name
+    )
+    |> Repo.all()
+  end
+
+  def list_data_points_filter_dam_names(basin) when is_binary(basin) do
+    from(d in Dam,
+      where: not is_nil(d.name) and d.name != "",
+      where: d.basin == ^basin,
+      distinct: [asc: d.name],
+      order_by: [asc: d.name],
+      select: d.name
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Distinct basin names from `dam`, ordered alphabetically (for dashboard filter dropdowns).
+  """
+  @spec list_data_points_filter_basins() :: [String.t()]
+  def list_data_points_filter_basins do
+    from(d in Dam,
+      where: not is_nil(d.basin) and d.basin != "",
+      distinct: [asc: d.basin],
+      order_by: [asc: d.basin],
+      select: d.basin
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns true if validated Flop params include a non-empty `param_name` filter.
+
+  The data-points dashboard only loads rows when this is true.
+  """
+  @spec data_points_param_name_filter_set?(Flop.t()) :: boolean()
+  def data_points_param_name_filter_set?(%Flop{filters: filters}) do
+    Enum.any?(filters || [], &param_name_filter_has_value?/1)
+  end
+
+  defp param_name_filter_has_value?(%Filter{field: field, value: value})
+       when field in [:param_name, "param_name"] do
+    nonempty_filter_value?(value)
+  end
+
+  defp param_name_filter_has_value?(%{field: field, value: value})
+       when field in [:param_name, "param_name"] do
+    nonempty_filter_value?(value)
+  end
+
+  defp param_name_filter_has_value?(_), do: false
+
+  defp nonempty_filter_value?(v) when is_binary(v), do: v != ""
+
+  defp nonempty_filter_value?(v) when is_list(v) do
+    Enum.any?(v, fn
+      s when is_binary(s) -> s != ""
+      _ -> false
+    end)
+  end
+
+  defp nonempty_filter_value?(v) when not is_nil(v), do: true
+  defp nonempty_filter_value?(_), do: false
+
+  @doc """
+  Lists rows from the `data_points_with_dam` view (`dam` ⋈ `data_points` on `site_id`)
+  with Flop filtering, sorting and pagination.
+
+  Rows are returned only when a `param_name` filter with a value is present; otherwise
+  the result list is empty and no query is run against the view.
+
+  The **total row count** used for pagination metadata is cached in `Barragenspt.Cache`
+  for #{div(@data_points_count_cache_ttl, 60_000)} minutes per distinct filter set
+  (same filters → same count; page and sort do not affect the cached value).
+  """
+  @spec list_data_points(map()) ::
+          {:ok, {[DataPointWithDam.t()], Meta.t()}} | {:error, Meta.t()}
+  def list_data_points(params \\ %{}) when is_map(params) do
+    params = normalize_data_points_query_params(params)
+
+    case Flop.validate(params, @data_points_flop_opts) do
+      {:ok, flop} ->
+        if data_points_param_name_filter_set?(flop) do
+          count = cached_data_points_total_count(flop)
+
+          {:ok,
+           Flop.run(DataPointWithDam, flop, Keyword.put(@data_points_flop_opts, :count, count))}
+        else
+          meta =
+            Flop.meta(
+              DataPointWithDam,
+              flop,
+              Keyword.put(@data_points_flop_opts, :count, 0)
+            )
+
+          {:ok, {[], meta}}
+        end
+
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+    end
+  end
+
+  def list_data_points_api(params) when is_map(params) do
+    case validate_api_data_points_scope(params) do
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+
+      :ok ->
+        list_data_points_api_validated(params)
+    end
+  end
+
+  defp list_data_points_api_validated(params) do
+    page = FilterParser.parse_int(Map.get(params, "page"), 1)
+    per_page = FilterParser.parse_int(Map.get(params, "per_page"), 20)
+
+    filters =
+      FilterParser.parse(params["colected_at"]) ++ data_points_api_equality_filters(params)
+
+    flop_params = %Flop{
+      filters: filters,
+      page: page,
+      page_size: per_page
+    }
+
+    case Flop.validate(flop_params, @data_points_flop_opts) do
+      {:ok, flop} ->
+        count = cached_data_points_total_count(flop)
+
+        {:ok,
+         Flop.run(DataPointWithDam, flop, Keyword.put(@data_points_flop_opts, :count, count))}
+
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+    end
+  end
+
+  defp validate_api_data_points_scope(params) do
+    basin = api_query_param_present?(Map.get(params, "basin_id") || Map.get(params, :basin_id))
+    param = api_query_param_present?(Map.get(params, "param_id") || Map.get(params, :param_id))
+    site = api_query_param_present?(Map.get(params, "site_id") || Map.get(params, :site_id))
+    time_bound? = FilterParser.parse(params["colected_at"]) != []
+
+    if basin && !param && !site && !time_bound? do
+      {:error,
+       Meta.with_errors(
+         params,
+         [
+           query: [
+             "When filtering only by basin_id, add a colected_at range (for example colected_at[gte] and colected_at[lte]) or also pass param_id or site_id."
+           ]
+         ],
+         @data_points_flop_opts
+       )}
+    else
+      :ok
+    end
+  end
+
+  defp api_query_param_present?(v) when v in [nil, ""], do: false
+
+  defp api_query_param_present?(v) when is_binary(v) do
+    v |> String.trim() |> Kernel.!=("")
+  end
+
+  defp api_query_param_present?(_), do: true
+
+  defp data_points_api_equality_filters(params) when is_map(params) do
+    []
+    |> maybe_api_eq_filter(:param_id, Map.get(params, "param_id") || Map.get(params, :param_id))
+    |> maybe_api_eq_filter(:basin_id, Map.get(params, "basin_id") || Map.get(params, :basin_id))
+    |> maybe_api_eq_filter(:site_id, Map.get(params, "site_id") || Map.get(params, :site_id))
+  end
+
+  defp maybe_api_eq_filter(acc, _field, v) when v in [nil, ""], do: acc
+
+  defp maybe_api_eq_filter(acc, field, v) do
+    value = if is_binary(v), do: v, else: to_string(v)
+    [%Filter{field: field, op: :==, value: value} | acc]
+  end
+
+  @doc """
+  Returns up to #{@data_points_csv_export_max} rows from `data_points_with_dam` using the
+  same Flop filters and ordering as `list_data_points/1`, but always from page 1 with a
+  large page size (pagination params in `params` are replaced for the export).
+  """
+  @spec list_data_points_for_csv_export(map()) ::
+          {:ok, [DataPointWithDam.t()]}
+          | {:error, Meta.t()}
+          | {:error, :missing_param_name_filter}
+  def list_data_points_for_csv_export(params) when is_map(params) do
+    params = normalize_data_points_query_params(params)
+
+    export_params =
+      params
+      |> Map.drop([
+        "page",
+        "page_size",
+        "offset",
+        "limit",
+        :page,
+        :page_size,
+        :offset,
+        :limit
+      ])
+      |> Map.put("page", 1)
+      |> Map.put("page_size", @data_points_csv_export_max)
+
+    case Flop.validate(export_params, @data_points_csv_export_flop_opts) do
+      {:ok, flop} ->
+        if data_points_param_name_filter_set?(flop) do
+          rows = Flop.all(DataPointWithDam, flop, @data_points_csv_export_flop_opts)
+          {:ok, rows}
+        else
+          {:error, :missing_param_name_filter}
+        end
+
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+    end
+  end
+
+  @doc """
+  Aggregates `data_points_with_dam` rows by a Postgres `date_trunc` bucket and `dam_name`,
+  using the same Flop filters as `list_data_points/1` (no table pagination).
+
+  Returns `avg(value)` per `(bucket, site_id, dam_name)`. Use `data_points_chart_series_for_ui/2` to
+  pick a default grain and optionally coarsen when the series exceeds a cap.
+  """
+  @spec data_points_chart_series(map(), :hour | :day | :week | :month) ::
+          {:ok, [map()]}
+          | {:error, Meta.t()}
+          | {:error, :missing_param_name_filter}
+  def data_points_chart_series(params, grain) when grain in [:hour, :day, :week, :month] do
+    params = normalize_data_points_query_params(params)
+    chart_params = prepare_data_points_chart_flop_params(params)
+
+    case Flop.validate(chart_params, @data_points_flop_opts) do
+      {:ok, flop} ->
+        if data_points_param_name_filter_set?(flop) do
+          rows = data_points_chart_aggregated_rows(flop, grain)
+          {:ok, rows}
+        else
+          {:error, :missing_param_name_filter}
+        end
+
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+    end
+  end
+
+  @doc """
+  Like `data_points_chart_series/2`, but chooses `preferred_grain` or a heuristic from date
+  filters, then coarsens (`hour` → `day` → `week` → `month`) until row count is ≤
+  #{@data_points_chart_max_points} (or `:month` is reached).
+
+  Each row map has string keys for JSON: `"bucket"`, `"dam_name"`, `"avg_value"` (float).
+  """
+  @spec data_points_chart_series_for_ui(map(), :hour | :day | :week | :month | nil) ::
+          {:ok, [map()], map()}
+          | {:error, Meta.t()}
+          | {:error, :missing_param_name_filter}
+  def data_points_chart_series_for_ui(params, preferred_grain \\ nil) do
+    params = normalize_data_points_query_params(params)
+    chart_params = prepare_data_points_chart_flop_params(params)
+
+    case Flop.validate(chart_params, @data_points_flop_opts) do
+      {:ok, flop} ->
+        if data_points_param_name_filter_set?(flop) do
+          start_grain = preferred_grain || default_chart_grain_from_flop(flop)
+          start_grain = normalize_chart_grain(start_grain)
+          chain = chart_grain_escalation_chain(start_grain)
+
+          result =
+            Enum.reduce_while(chain, nil, fn grain, _ ->
+              rows = data_points_chart_aggregated_rows(flop, grain)
+
+              cond do
+                rows == [] ->
+                  {:halt, {:empty, grain}}
+
+                length(rows) <= @data_points_chart_max_points ->
+                  {:halt, {:ok, rows, grain, grain != start_grain, false}}
+
+                grain == :month ->
+                  {:halt, {:ok, rows, grain, grain != start_grain, true}}
+
+                true ->
+                  {:cont, nil}
+              end
+            end)
+
+          case result do
+            {:empty, grain} ->
+              json_rows = []
+              meta = chart_response_meta(grain, start_grain, false, false)
+              {:ok, json_rows, meta}
+
+            {:ok, rows, used_grain, escalated, over_cap} ->
+              json_rows = Enum.map(rows, &chart_row_to_json_map/1)
+
+              meta =
+                chart_response_meta(used_grain, start_grain, escalated, over_cap)
+
+              {:ok, json_rows, meta}
+          end
+        else
+          {:error, :missing_param_name_filter}
+        end
+
+      {:error, %Meta{} = meta} ->
+        {:error, meta}
+    end
+  end
+
+  @doc """
+  Bucketed average series for a fixed set of dam `site_ids`, parameter slug and date range.
+
+  This is a thin wrapper around `data_points_chart_series_for_ui/2` so UI code can reuse the
+  same coarsening/aggregation logic without rebuilding Flop params by hand.
+  """
+  @spec bucketed_site_series_for_ui([String.t()], String.t(), Date.t(), Date.t(), :day | :week | :month) ::
+          {:ok, [map()], map()}
+          | {:error, Meta.t()}
+          | {:error, :missing_param_name_filter}
+  def bucketed_site_series_for_ui(site_ids, param_slug, %Date{} = start_date, %Date{} = end_date, preferred_grain)
+      when is_list(site_ids) and is_binary(param_slug) and preferred_grain in [:day, :week, :month] do
+    site_ids =
+      site_ids
+      |> Enum.filter(&is_binary/1)
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.uniq()
+
+    if site_ids == [] do
+      {:ok, [], chart_response_meta(preferred_grain, preferred_grain, false, false)}
+    else
+      params = %{
+        "filters" => %{
+          "0" => %{"field" => "param_name", "op" => "in", "value" => [param_slug]},
+          "1" => %{"field" => "site_id", "op" => "in", "value" => site_ids},
+          "2" => %{
+            "field" => "colected_at",
+            "op" => ">=",
+            "value" => Date.to_iso8601(start_date)
+          },
+          "3" => %{
+            "field" => "colected_at",
+            "op" => "<=",
+            "value" => Date.to_iso8601(end_date)
+          }
+        }
+      }
+
+      data_points_chart_series_for_ui(params, preferred_grain)
+    end
+  end
+
+  @doc """
+  Heuristic default chart bucket from `colected_at` filter span (fallback: last 60 days).
+  """
+  @spec default_chart_grain_from_flop(Flop.t()) :: :hour | :day | :week | :month
+  def default_chart_grain_from_flop(%Flop{} = flop) do
+    {from_ndt, to_ndt} = colected_at_range_from_flop_filters(flop.filters || [])
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+    {from_ndt, to_ndt} =
+      case {from_ndt, to_ndt} do
+        {nil, nil} -> {NaiveDateTime.add(now, -60, :day), now}
+        {nil, t} -> {NaiveDateTime.add(t, -60, :day), t}
+        {f, nil} -> {f, now}
+        {f, t} -> {f, t}
+      end
+
+    seconds = NaiveDateTime.diff(to_ndt, from_ndt, :second)
+
+    cond do
+      seconds <= 48 * 3600 -> :hour
+      seconds <= 60 * 86400 -> :day
+      seconds <= 550 * 86400 -> :week
+      true -> :month
+    end
+  end
+
+  defp chart_response_meta(used_grain, start_grain, escalated, over_cap) do
+    %{
+      grain: used_grain,
+      grain_label: chart_grain_label_pt(used_grain),
+      grain_auto_adjusted: escalated,
+      over_point_cap: over_cap,
+      start_grain: start_grain
+    }
+  end
+
+  defp chart_grain_label_pt(:hour), do: "hora"
+  defp chart_grain_label_pt(:day), do: "dia"
+  defp chart_grain_label_pt(:week), do: "semana"
+  defp chart_grain_label_pt(:month), do: "mês"
+
+  defp normalize_chart_grain(g) when g in [:hour, :day, :week, :month], do: g
+  defp normalize_chart_grain(_), do: :day
+
+  defp chart_grain_escalation_chain(:hour), do: [:hour, :day, :week, :month]
+  defp chart_grain_escalation_chain(:day), do: [:day, :week, :month]
+  defp chart_grain_escalation_chain(:week), do: [:week, :month]
+  defp chart_grain_escalation_chain(:month), do: [:month]
+
+  defp prepare_data_points_chart_flop_params(params) do
+    params
+    |> Map.drop([
+      "page",
+      "page_size",
+      "offset",
+      "limit",
+      :page,
+      :page_size,
+      :offset,
+      :limit
+    ])
+    |> Map.put("page", 1)
+    |> Map.put("page_size", 1)
+  end
+
+  defp chart_grain_to_pg_string(:hour), do: "hour"
+  defp chart_grain_to_pg_string(:day), do: "day"
+  defp chart_grain_to_pg_string(:week), do: "week"
+  defp chart_grain_to_pg_string(:month), do: "month"
+
+  defp data_points_chart_aggregated_rows(%Flop{} = flop, grain) do
+    pg = chart_grain_to_pg_string(grain)
+    base = from(d in DataPointWithDam, as: :data_point_with_dam)
+    filtered = Flop.filter(base, flop, @data_points_flop_opts)
+
+    # Two-step aggregation: PostgreSQL rejects GROUP BY when SELECT uses
+    # date_trunc($1, ...) and GROUP BY date_trunc($3, ...) — different params
+    # are not considered the same expression. Here the outer query groups by
+    # bucket/dam_name columns projected once in the inner query.
+    bucketed =
+      from(d in subquery(filtered),
+        select: %{
+          bucket: fragment("date_trunc(?, ?)", ^pg, d.colected_at),
+          site_id: d.site_id,
+          dam_name: d.dam_name,
+          param_name: d.param_name,
+          value: d.value
+        }
+      )
+
+    from(r in subquery(bucketed),
+      group_by: [r.bucket, r.site_id, r.dam_name, r.param_name],
+      order_by: [asc: r.bucket, asc: r.site_id, asc: r.dam_name, asc: r.param_name],
+      select: %{
+        bucket: r.bucket,
+        site_id: r.site_id,
+        dam_name: r.dam_name,
+        param_name: r.param_name,
+        avg_value: avg(r.value)
+      }
+    )
+    |> Repo.all()
+  end
+
+  defp chart_row_to_json_map(%{
+         bucket: bucket,
+         site_id: site_id,
+         dam_name: dam_name,
+         param_name: param_name,
+         avg_value: avg
+       }) do
+    %{
+      "bucket" => naive_bucket_to_iso(bucket),
+      "site_id" => site_id,
+      "dam_name" => dam_name,
+      "param_name" => param_name,
+      "avg_value" => decimal_avg_to_float(avg)
+    }
+  end
+
+  defp naive_bucket_to_iso(%NaiveDateTime{} = ndt),
+    do: NaiveDateTime.to_iso8601(ndt)
+
+  defp naive_bucket_to_iso(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
+
+  defp naive_bucket_to_iso(_), do: nil
+
+  defp decimal_avg_to_float(nil), do: nil
+  defp decimal_avg_to_float(%Decimal{} = d), do: Decimal.to_float(d)
+  defp decimal_avg_to_float(n) when is_number(n), do: n * 1.0
+
+  defp colected_at_range_from_flop_filters(filters) when is_list(filters) do
+    lower =
+      filters
+      |> Enum.find_value(fn f -> colected_at_bound_value(f, [:>=, :>, ">=", ">"]) end)
+
+    upper =
+      filters
+      |> Enum.find_value(fn f -> colected_at_bound_value(f, [:<=, :<, "<=", "<"]) end)
+
+    {parse_filter_naive_datetime(lower), parse_filter_naive_datetime(upper)}
+  end
+
+  defp colected_at_bound_value(%Filter{field: field, op: op, value: v}, ops) do
+    if colected_at_field?(field) and op in ops, do: v, else: nil
+  end
+
+  defp colected_at_bound_value(%{"field" => field, "op" => op, "value" => v}, ops) do
+    atom_op = op_to_atom(op)
+    if colected_at_field?(field) and atom_op in ops, do: v, else: nil
+  end
+
+  defp colected_at_bound_value(%{field: field, op: op, value: v}, ops) do
+    atom_op = op_to_atom(op)
+    if colected_at_field?(field) and atom_op in ops, do: v, else: nil
+  end
+
+  defp colected_at_bound_value(_, _), do: nil
+
+  defp colected_at_field?(field),
+    do: field in [:colected_at, "colected_at"]
+
+  defp op_to_atom(op) when is_atom(op), do: op
+
+  defp op_to_atom(op) when is_binary(op) do
+    case op do
+      "==" ->
+        :==
+
+      ">=" ->
+        :>=
+
+      "<=" ->
+        :<=
+
+      ">" ->
+        :>
+
+      "<" ->
+        :<
+
+      other ->
+        try do
+          String.to_existing_atom(other)
+        rescue
+          ArgumentError -> op
+        end
+    end
+  end
+
+  defp parse_filter_naive_datetime(nil), do: nil
+
+  defp parse_filter_naive_datetime(%NaiveDateTime{} = ndt), do: ndt
+
+  defp parse_filter_naive_datetime(s) when is_binary(s) do
+    case NaiveDateTime.from_iso8601(s) do
+      {:ok, dt} -> dt
+      _ -> parse_filter_naive_datetime_from_date_only(s)
+    end
+  end
+
+  defp parse_filter_naive_datetime_from_date_only(<<_::binary-size(10)>> = date_only) do
+    case Date.from_iso8601(date_only) do
+      {:ok, %Date{} = date} -> NaiveDateTime.new!(date, ~T[00:00:00])
+      _ -> nil
+    end
+  end
+
+  defp parse_filter_naive_datetime_from_date_only(_), do: nil
+
+  defp cached_data_points_total_count(%Flop{} = flop) do
+    key = data_points_count_cache_key(flop)
+
+    case Cache.get(key) do
+      nil ->
+        count = Flop.count(DataPointWithDam, flop, @data_points_flop_opts)
+        :ok = Cache.put(key, count, ttl: @data_points_count_cache_ttl)
+        count
+
+      count when is_integer(count) ->
+        count
+    end
+  end
+
+  # Remove optional dam/basin filters when the dropdown is left blank so Flop does not
+  # build `field == ""` (or stale ilike) conditions.
+  defp normalize_data_points_query_params(params) when is_map(params) do
+    case params do
+      %{"filters" => filters} when is_map(filters) ->
+        normalized =
+          filters
+          |> drop_blank_geo_filters()
+          |> reindex_filters()
+          |> expand_colected_at_date_filters()
+
+        Map.put(params, "filters", normalized)
+
+      %{filters: filters} when is_map(filters) ->
+        normalized =
+          filters
+          |> drop_blank_geo_filters()
+          |> reindex_filters()
+          |> expand_colected_at_date_filters()
+
+        Map.put(params, :filters, normalized)
+
+      _ ->
+        params
+    end
+  end
+
+  # UI uses type="date" (YYYY-MM-DD). Expand to naive datetimes so Flop/Ecto filtering
+  # matches the full calendar days in the DB.
+  defp expand_colected_at_date_filters(filters) when is_map(filters) do
+    Map.new(filters, fn {k, f} -> {k, maybe_expand_colected_at_date_filter(f)} end)
+  end
+
+  defp maybe_expand_colected_at_date_filter(%{} = f) do
+    field = Map.get(f, "field") || Map.get(f, :field)
+    op = Map.get(f, "op") || Map.get(f, :op)
+    value = Map.get(f, "value") || Map.get(f, :value)
+
+    if colected_at_filter_field?(field) and is_binary(value) and date_only_string?(value) do
+      expanded = expand_colected_at_day_boundary(value, op)
+      put_filter_map_value(f, expanded)
+    else
+      f
+    end
+  end
+
+  defp colected_at_filter_field?(:colected_at), do: true
+  defp colected_at_filter_field?("colected_at"), do: true
+  defp colected_at_filter_field?(_), do: false
+
+  defp date_only_string?(value) do
+    Regex.match?(~r/^\d{4}-\d{2}-\d{2}$/, value)
+  end
+
+  defp expand_colected_at_day_boundary(date, op) do
+    case normalize_filter_op(op) do
+      x when x in [:>, :>=] -> "#{date} 00:00:00"
+      x when x in [:<, :<=] -> "#{date} 23:59:59"
+      _ -> "#{date} 00:00:00"
+    end
+  end
+
+  defp normalize_filter_op(op) when op in [:>, :>=, :<, :<=], do: op
+  defp normalize_filter_op(">"), do: :>
+  defp normalize_filter_op(">="), do: :>=
+  defp normalize_filter_op("<"), do: :<
+  defp normalize_filter_op("<="), do: :<=
+  defp normalize_filter_op(_), do: :>=
+
+  defp put_filter_map_value(%{} = f, new_value) do
+    cond do
+      Map.has_key?(f, "value") -> Map.put(f, "value", new_value)
+      Map.has_key?(f, :value) -> Map.put(f, :value, new_value)
+      true -> Map.put(f, "value", new_value)
+    end
+  end
+
+  defp drop_blank_geo_filters(filters) when is_map(filters) do
+    filters
+    |> Enum.reject(fn {_idx, f} -> blank_geo_filter?(f) end)
+    |> Map.new()
+  end
+
+  defp blank_geo_filter?(f) when is_map(f) do
+    field =
+      case Map.get(f, "field") || Map.get(f, :field) do
+        f when is_atom(f) -> Atom.to_string(f)
+        f when is_binary(f) -> f
+        _ -> nil
+      end
+
+    value = Map.get(f, "value") || Map.get(f, :value)
+
+    field in ["dam_name", "basin", "param_name"] and geo_filter_value_blank?(value)
+  end
+
+  defp blank_geo_filter?(_), do: false
+
+  defp geo_filter_value_blank?(v) when v in [nil, ""], do: true
+  defp geo_filter_value_blank?(v) when is_list(v), do: v == []
+  defp geo_filter_value_blank?(_), do: false
+
+  defp reindex_filters(filters) when is_map(filters) and map_size(filters) == 0, do: filters
+
+  defp reindex_filters(filters) when is_map(filters) do
+    filters
+    |> Enum.sort_by(fn {k, _} -> filter_slot_index(k) end)
+    |> Enum.map(fn {_k, v} -> v end)
+    |> Enum.with_index()
+    |> Map.new(fn {v, i} -> {Integer.to_string(i), v} end)
+  end
+
+  defp filter_slot_index(k) when is_integer(k), do: k
+
+  defp filter_slot_index(k) do
+    k |> to_string() |> String.to_integer()
+  end
+
+  defp data_points_count_cache_key(%Flop{filters: filters}) do
+    normalized =
+      (filters || [])
+      |> Enum.map(&filter_triple_for_cache/1)
+      |> Enum.sort()
+
+    digest = :crypto.hash(:sha256, :erlang.term_to_binary(normalized))
+    {:data_points_with_dam_flop_count, digest}
+  end
+
+  defp filter_triple_for_cache(%Filter{field: field, op: op, value: value}),
+    do: {field, op, value}
+
+  defp filter_triple_for_cache(%{} = map) do
+    field = Map.get(map, :field) || Map.get(map, "field")
+    op = Map.get(map, :op) || Map.get(map, "op")
+    value = Map.get(map, :value) || Map.get(map, "value")
+    {field, op, value}
   end
 
   defp query_limit(period) do

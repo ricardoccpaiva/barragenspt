@@ -1,7 +1,7 @@
 defmodule Barragenspt.Hydrometrics.DamChartSeries do
   @moduledoc """
   Builds chart series for dam storage and discharge charts.
-  Used by HomepageV2Live (handle_params) and DamCardComponent (dam_change_window).
+  Used by HomepageLive (handle_params) and DamCardComponent (dam_change_window).
   """
 
   alias Barragenspt.Hydrometrics.Dams

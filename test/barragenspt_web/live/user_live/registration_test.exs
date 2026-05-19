@@ -1,0 +1,82 @@
+defmodule BarragensptWeb.UserLive.RegistrationTest do
+  use BarragensptWeb.ConnCase, async: true
+
+  import Phoenix.LiveViewTest
+  import Barragenspt.AccountsFixtures
+
+  describe "Registration page" do
+    test "renders registration page", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/users/register")
+
+      assert html =~ "Criar conta"
+      assert html =~ "Inicia sessão"
+    end
+
+    test "redirects if already logged in", %{conn: conn} do
+      result =
+        conn
+        |> log_in_user(user_fixture())
+        |> live(~p"/users/register")
+        |> follow_redirect(conn, ~p"/")
+
+      assert {:ok, _conn} = result
+    end
+
+    test "does not render validation errors before submit", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
+
+      result =
+        lv
+        |> element("#registration_form")
+        |> render_change(user: %{"email" => "with spaces"})
+
+      assert result =~ "Criar conta"
+      refute result =~ "must have the @ sign and no spaces"
+    end
+  end
+
+  describe "register user" do
+    test "creates account but does not log in", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
+
+      email = unique_user_email()
+      form = form(lv, "#registration_form", user: valid_user_attributes(email: email))
+
+      {:ok, _lv, html} =
+        render_submit(form)
+        |> follow_redirect(conn, ~p"/users/log-in")
+
+      assert html =~ "Foi enviado um e-mail para #{email}"
+      assert html =~ "confirmar a tua conta"
+    end
+
+    test "renders errors for duplicated email", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
+
+      user = user_fixture(%{email: "test@email.com"})
+
+      result =
+        lv
+        |> form("#registration_form",
+          user: %{"email" => user.email}
+        )
+        |> render_submit()
+
+      assert result =~ "has already been taken"
+    end
+  end
+
+  describe "registration navigation" do
+    test "redirects to login page when the Log in button is clicked", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
+
+      {:ok, _login_live, login_html} =
+        lv
+        |> element("main a", "Inicia sessão")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/users/log-in")
+
+      assert login_html =~ "Iniciar sessão"
+    end
+  end
+end

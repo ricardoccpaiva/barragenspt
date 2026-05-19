@@ -1,0 +1,93 @@
+<div id="storage-report-methodology-drawer" class={methodology_drawer_overlay_class(@open?)}
+  aria-labelledby="storage-report-methodology-title" aria-modal="true" role="dialog">
+  <div phx-click="close_methodology" class="absolute inset-0 bg-slate-950/45 backdrop-blur-[2px]" aria-hidden="true">
+  </div>
+
+  <div class="absolute inset-y-0 right-0 z-[71] flex w-full justify-end overflow-hidden">
+    <div id="storage-report-methodology-panel" phx-click-away="close_methodology"
+      class={methodology_drawer_panel_class(@open?)}>
+      <div
+        class="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-700 sm:px-6">
+        <div class="min-w-0">
+          <h2 id="storage-report-methodology-title" class="text-lg font-semibold text-slate-950 dark:text-slate-50">
+            Como é gerado este relatório
+          </h2>
+        </div>
+        <button type="button" phx-click="close_methodology"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:focus:ring-slate-600"
+          aria-label="Fechar metodologia">
+          <.icon name="hero-x-mark" class="h-5 w-5" />
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+        <div class="space-y-4 text-sm leading-6 text-slate-700 dark:text-slate-300">
+          <section>
+            <h3 class="font-semibold text-slate-950 dark:text-slate-50">Fonte e período</h3>
+            <ul class="mt-2 list-disc space-y-1 pl-5">
+              <li>Estas informações são calculadas com base nos dados préviamente obtidos do portal do SNIRH. </li>
+              <%= if @report_type=="monthly" do %>
+                <li>
+                  O relatório mensal usa o parâmetro <code>volume_last_day_month</code>
+                  e considera o último valor disponível dentro do mês selecionado.
+                </li>
+                <li>Por defeito, o mês selecionável mais recente é o último mês fechado.</li>
+                <% else %>
+                  <li>O relatório semanal usa o parâmetro <code>volume_last_hour</code>.</li>
+                  <li>
+                    Para reduzir falsos <code>n/d</code>, usa o último valor disponível até à referência, com uma
+                    tolerância máxima de 5 dias.
+                  </li>
+                  <% end %>
+            </ul>
+          </section>
+
+          <section>
+            <h3 class="font-semibold text-slate-950 dark:text-slate-50">Cálculo dos valores</h3>
+            <ul class="mt-2 list-disc space-y-1 pl-5">
+              <li>
+                A percentagem de cada barragem é <code>volume atual / capacidade total * 100</code>.
+              </li>
+              <li>
+                Os totais de bacia e nacional somam volumes e capacidades, por isso são ponderados pela capacidade
+                real das barragens.
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h3 class="font-semibold text-slate-950 dark:text-slate-50">Comparações</h3>
+            <ul class="mt-2 list-disc space-y-1 pl-5">
+              <%= if @report_type=="monthly" do %>
+                <li>A variação mensal compara com o último valor disponível no mês anterior.</li>
+                <li>
+                  A referência histórica compara com a média do mesmo mês em anos anteriores.
+                </li>
+                <% else %>
+                  <li>
+                    A variação semanal compara com o último valor disponível até à referência da semana anterior,
+                    também com tolerância de 5 dias.
+                  </li>
+                  <li>
+                    A referência histórica compara com a média da mesma semana do ano em anos anteriores.
+                  </li>
+                  <% end %>
+            </ul>
+          </section>
+
+          <section>
+            <h3 class="font-semibold text-slate-950 dark:text-slate-50">Quando aparece n/d, pode ser por vários motivos
+            </h3>
+            <ul class="mt-2 list-disc space-y-1 pl-5">
+              <li>Quando falta capacidade total válida para calcular percentagem.</li>
+              <li>Quando não há leitura dentro da janela usada pelo relatório.</li>
+              <li>
+                Quando não existe histórico suficiente para comparação ou média de referência.
+              </li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
