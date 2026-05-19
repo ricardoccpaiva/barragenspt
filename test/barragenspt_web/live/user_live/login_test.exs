@@ -9,36 +9,22 @@ defmodule BarragensptWeb.UserLive.LoginTest do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
       assert html =~ "Iniciar sessão"
-      assert html =~ "Registo"
+      assert html =~ "Regista-te"
+      assert html =~ "Esqueceste-te da palavra-passe?"
     end
   end
 
-  describe "user login - magic link" do
-    test "sends magic link email when user exists", %{conn: conn} do
-      user = user_fixture()
-
+  describe "forgot password navigation" do
+    test "redirects to reset-password page when clicked", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
-      {:ok, _lv, html} =
-        form(lv, "#login_form_magic", user: %{email: user.email})
-        |> render_submit()
-        |> follow_redirect(conn, ~p"/users/log-in")
+      {:ok, _forgot_password_live, html} =
+        lv
+        |> element("main a", "Esqueceste-te da palavra-passe?")
+        |> render_click()
+        |> follow_redirect(conn, ~p"/users/reset-password")
 
-      assert html =~ "If your email is in our system"
-
-      assert Barragenspt.Repo.get_by!(Barragenspt.Accounts.UserToken, user_id: user.id).context ==
-               "login"
-    end
-
-    test "does not disclose if user is registered", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/log-in")
-
-      {:ok, _lv, html} =
-        form(lv, "#login_form_magic", user: %{email: "idonotexist@example.com"})
-        |> render_submit()
-        |> follow_redirect(conn, ~p"/users/log-in")
-
-      assert html =~ "If your email is in our system"
+      assert html =~ "Recuperar palavra-passe"
     end
   end
 

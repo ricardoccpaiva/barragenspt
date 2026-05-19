@@ -66,6 +66,15 @@ defmodule BarragensptWeb.UserLive.Login do
             Iniciar sessão só desta vez
           </.button>
         </.form>
+
+        <div class="text-center">
+          <.link
+            navigate={~p"/users/reset-password"}
+            class="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+          >
+            Esqueceste-te da palavra-passe?
+          </.link>
+        </div>
       </div>
     </Layouts.app>
     """

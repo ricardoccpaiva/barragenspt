@@ -80,6 +80,12 @@ defmodule Barragenspt.AccountsFixtures do
     {encoded_token, user_token.token}
   end
 
+  def generate_user_reset_password_token(user) do
+    {encoded_token, user_token} = Accounts.UserToken.build_email_token(user, "reset_password")
+    Barragenspt.Repo.insert!(user_token)
+    {encoded_token, user_token.token}
+  end
+
   def offset_user_token(token, amount_to_add, unit) do
     dt = NaiveDateTime.add(NaiveDateTime.utc_now(:second), amount_to_add, unit)
 

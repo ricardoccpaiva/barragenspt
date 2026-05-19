@@ -92,15 +92,12 @@ defmodule Barragenspt.Accounts.UserNotifier do
         preheader: "Confirma a tua conta para começares a usar o Barragens.pt.",
         eyebrow: "Confirmação de conta",
         title: "Confirma o teu e-mail",
-        intro:
-          "Estás a um clique de ativar a tua conta Barragens.pt e aceder ao dashboard.",
+        intro: "Estás a um clique de ativar a tua conta Barragens.pt e aceder ao dashboard.",
         button_label: "Confirmar conta",
         button_url: url,
-        note:
-          "Se o botão não funcionar, copia e cola este link no teu browser:",
+        note: "Se o botão não funcionar, copia e cola este link no teu browser:",
         raw_url: url,
-        footer:
-          "Se não criaste esta conta, podes ignorar este e-mail em segurança."
+        footer: "Se não criaste esta conta, podes ignorar este e-mail em segurança."
       ),
       """
       Confirma a tua conta Barragens.pt
@@ -112,6 +109,43 @@ defmodule Barragenspt.Accounts.UserNotifier do
       #{url}
 
       Se não criaste esta conta, podes ignorar este e-mail em segurança.
+      """
+    )
+  end
+
+  @doc """
+  Deliver instructions to reset a user password.
+  """
+  def deliver_reset_password_instructions(user, url) do
+    recipient = user.email
+
+    deliver_html(
+      recipient,
+      "Redefine a tua palavra-passe Barragens.pt",
+      auth_email_html(
+        preheader: "Recebemos um pedido para redefinir a tua palavra-passe.",
+        eyebrow: "Recuperação de palavra-passe",
+        title: "Redefine a tua palavra-passe",
+        intro:
+          "Se foste tu que pediste uma nova palavra-passe, usa o botão abaixo para escolher outra.",
+        button_label: "Redefinir palavra-passe",
+        button_url: url,
+        note: "Se o botão não funcionar, copia e cola este link no teu browser:",
+        raw_url: url,
+        footer: "Se não pediste esta alteração, podes ignorar este e-mail em segurança."
+      ),
+      """
+      Redefine a tua palavra-passe Barragens.pt
+
+      Olá #{recipient},
+
+      Recebemos um pedido para redefinir a tua palavra-passe.
+
+      Usa este link para escolher uma nova:
+
+      #{url}
+
+      Se não pediste esta alteração, podes ignorar este e-mail em segurança.
       """
     )
   end

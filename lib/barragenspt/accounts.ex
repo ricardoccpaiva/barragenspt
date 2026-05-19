@@ -207,10 +207,18 @@ defmodule Barragenspt.Accounts do
   defp normalize_display_name_attrs(user, attrs) when is_map(attrs) do
     cond do
       Map.has_key?(attrs, "display_name") ->
-        Map.put(attrs, "display_name", normalize_display_name_value(user, Map.get(attrs, "display_name")))
+        Map.put(
+          attrs,
+          "display_name",
+          normalize_display_name_value(user, Map.get(attrs, "display_name"))
+        )
 
       Map.has_key?(attrs, :display_name) ->
-        Map.put(attrs, :display_name, normalize_display_name_value(user, Map.get(attrs, :display_name)))
+        Map.put(
+          attrs,
+          :display_name,
+          normalize_display_name_value(user, Map.get(attrs, :display_name))
+        )
 
       true ->
         attrs
@@ -471,6 +479,18 @@ defmodule Barragenspt.Accounts do
   end
 
   @doc """
+  Gets the user with the given reset password token.
+  """
+  def get_user_by_reset_password_token(token) do
+    with {:ok, query} <- UserToken.verify_reset_password_token_query(token),
+         {user, _token} <- Repo.one(query) do
+      user
+    else
+      _ -> nil
+    end
+  end
+
+  @doc """
   Logs the user in by magic link.
 
   There are three cases to consider:
@@ -570,6 +590,17 @@ defmodule Barragenspt.Accounts do
   end
 
   @doc """
+  Delivers the reset password instructions to the given user.
+  """
+  def deliver_user_reset_password_instructions(%User{} = user, reset_password_url_fun)
+      when is_function(reset_password_url_fun, 1) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "reset_password")
+
+    Repo.insert!(user_token)
+    UserNotifier.deliver_reset_password_instructions(user, reset_password_url_fun.(encoded_token))
+  end
+
+  @doc """
   Delivers the magic link login instructions to the given user.
   """
   def deliver_login_instructions(%User{} = user, magic_link_url_fun)
@@ -587,6 +618,24 @@ defmodule Barragenspt.Accounts do
     :ok
   end
 
+  @doc """
+  Resets the user password using the given reset token.
+  """
+  def reset_user_password(token, attrs) do
+    with {:ok, query} <- UserToken.verify_reset_password_token_query(token),
+         {user, reset_token} <- Repo.one(query) do
+      user
+      |> User.password_changeset(attrs)
+      |> Ecto.Changeset.put_change(
+        :confirmed_at,
+        user.confirmed_at || NaiveDateTime.utc_now(:second)
+      )
+      |> reset_password_and_delete_all_tokens(reset_token)
+    else
+      _ -> {:error, :not_found}
+    end
+  end
+
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do
@@ -597,6 +646,19 @@ defmodule Barragenspt.Accounts do
         Repo.delete_all(from(t in UserToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id)))
 
         {:ok, {user, tokens_to_expire}}
+      end
+    end)
+  end
+
+  defp reset_password_and_delete_all_tokens(changeset, %UserToken{} = reset_token) do
+    Repo.transact(fn ->
+      with {:ok, user} <- Repo.update(changeset) do
+        tokens_to_expire = Repo.all_by(UserToken, user_id: user.id)
+        token_ids = Enum.map(tokens_to_expire, & &1.id)
+
+        Repo.delete_all(from(t in UserToken, where: t.id in ^token_ids))
+
+        {:ok, {user, (tokens_to_expire ++ [reset_token]) |> Enum.uniq_by(& &1.id)}}
       end
     end)
   end
