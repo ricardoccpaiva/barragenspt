@@ -22,7 +22,7 @@ defmodule BarragensptWeb.UserLive.RegistrationTest do
       assert {:ok, _conn} = result
     end
 
-    test "renders errors for invalid data", %{conn: conn} do
+    test "does not render validation errors before submit", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/register")
 
       result =
@@ -31,7 +31,7 @@ defmodule BarragensptWeb.UserLive.RegistrationTest do
         |> render_change(user: %{"email" => "with spaces"})
 
       assert result =~ "Criar conta"
-      assert result =~ "must have the @ sign and no spaces"
+      refute result =~ "must have the @ sign and no spaces"
     end
   end
 

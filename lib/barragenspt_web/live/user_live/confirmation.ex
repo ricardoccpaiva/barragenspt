@@ -9,72 +9,48 @@ defmodule BarragensptWeb.UserLive.Confirmation do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="mx-auto max-w-sm">
         <div class="text-center">
-          <.header>Bem-vindo {@user.email}</.header>
+          <.header>
+            Confirmar conta
+            <:subtitle>
+              {@user.email}
+            </:subtitle>
+          </.header>
         </div>
 
         <.form
           :if={!@user.confirmed_at}
-          for={@form}
+          for={%{}}
           id="confirmation_form"
           phx-mounted={JS.focus_first()}
           phx-submit="submit"
-          action={~p"/users/log-in?_action=confirmed"}
-          phx-trigger-action={@trigger_submit}
         >
-          <input type="hidden" name={@form[:token].name} value={@form[:token].value} />
           <.button
-            name={@form[:remember_me].name}
-            value="true"
             phx-disable-with="A confirmar..."
             class="w-full"
           >
-            Confirmar e manter sessão
-          </.button>
-          <.button
-            phx-disable-with="A confirmar..."
-            class="mt-2 w-full bg-slate-200 text-slate-800 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
-          >
-            Confirmar e iniciar sessão só desta vez
+            Confirmar e-mail
           </.button>
         </.form>
 
-        <.form
+        <div
           :if={@user.confirmed_at}
-          for={@form}
-          id="login_form"
-          phx-submit="submit"
-          phx-mounted={JS.focus_first()}
-          action={~p"/users/log-in"}
-          phx-trigger-action={@trigger_submit}
+          class="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-emerald-200"
         >
-          <input type="hidden" name={@form[:token].name} value={@form[:token].value} />
-          <%= if @current_scope.user do %>
-            <.button phx-disable-with="A iniciar sessão..." class="w-full">
-              Iniciar sessão
-            </.button>
-          <% else %>
-            <.button
-              name={@form[:remember_me].name}
-              value="true"
-              phx-disable-with="A iniciar sessão..."
-              class="w-full"
-            >
-              Manter sessão neste dispositivo
-            </.button>
-            <.button
-              phx-disable-with="A iniciar sessão..."
-              class="mt-2 w-full bg-slate-200 text-slate-800 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
-            >
-              Iniciar sessão só desta vez
-            </.button>
-          <% end %>
-        </.form>
+          Esta conta já está confirmada. Podes iniciar sessão com o teu e-mail e palavra-passe.
+        </div>
+
+        <.link
+          navigate={~p"/users/log-in"}
+          class="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600"
+        >
+          Ir para iniciar sessão
+        </.link>
 
         <p
           :if={!@user.confirmed_at}
           class="mt-8 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400"
         >
-          Dica: se preferires palavra-passe, podes configurá-la nas definições da conta.
+          Depois de confirmares o e-mail, inicia sessão normalmente com o teu e-mail e palavra-passe.
         </p>
       </div>
     </Layouts.app>
@@ -83,21 +59,42 @@ defmodule BarragensptWeb.UserLive.Confirmation do
 
   @impl true
   def mount(%{"token" => token}, _session, socket) do
-    if user = Accounts.get_user_by_magic_link_token(token) do
-      form = to_form(%{"token" => token, "remember_me" => "true"}, as: "user")
-
-      {:ok, assign(socket, user: user, form: form, trigger_submit: false),
-       temporary_assigns: [form: nil]}
+    if user = Accounts.get_user_by_confirmation_token(token) do
+      {:ok, assign(socket, user: user, token: token)}
     else
       {:ok,
        socket
-       |> put_flash(:error, "O link mágico é inválido ou expirou.")
+       |> put_flash(:error, "O link de confirmação é inválido ou expirou.")
        |> push_navigate(to: ~p"/users/log-in")}
     end
   end
 
   @impl true
-  def handle_event("submit", %{"user" => params}, socket) do
-    {:noreply, assign(socket, form: to_form(params, as: "user"), trigger_submit: true)}
+  def handle_event("submit", _params, socket) do
+    case Accounts.confirm_user(socket.assigns.token) do
+      {:ok, {:ok, _user}} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Conta confirmada com sucesso. Já podes iniciar sessão.")
+         |> push_navigate(to: ~p"/users/log-in")}
+
+      {:ok, _user} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Conta confirmada com sucesso. Já podes iniciar sessão.")
+         |> push_navigate(to: ~p"/users/log-in")}
+
+      {:error, :not_found} ->
+        {:noreply,
+        socket
+         |> put_flash(:error, "O link de confirmação é inválido ou expirou.")
+         |> push_navigate(to: ~p"/users/log-in")}
+
+      _ ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Não foi possível confirmar a conta.")
+         |> push_navigate(to: ~p"/users/log-in")}
+    end
   end
 end

@@ -13,8 +13,7 @@ defmodule BarragensptWeb.UserLive.Login do
               <%= if @current_scope.user do %>
                 Precisas de voltar a autenticar-te para efectuar acções sensíveis na tua conta.
               <% else %>
-                Ainda não tens conta?
-                <.link
+                Ainda não tens conta? <.link
                   navigate={~p"/users/register"}
                   class="font-semibold text-brand-600 hover:underline dark:text-brand-400"
                   phx-no-format
@@ -87,5 +86,4 @@ defmodule BarragensptWeb.UserLive.Login do
   def handle_event("submit_password", _params, socket) do
     {:noreply, assign(socket, :trigger_submit, true)}
   end
-
 end

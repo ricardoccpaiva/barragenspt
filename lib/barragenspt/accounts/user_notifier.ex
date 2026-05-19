@@ -21,21 +21,35 @@ defmodule Barragenspt.Accounts.UserNotifier do
     end
   end
 
+  defp deliver_html(recipient, subject, html_body, text_body) do
+    email =
+      new()
+      |> to(recipient)
+      |> from({"Barragenspt", "contact@barragens.pt"})
+      |> subject(subject)
+      |> html_body(html_body)
+      |> text_body(text_body)
+
+    with {:ok, _metadata} <- Mailer.deliver(email) do
+      {:ok, email}
+    end
+  end
+
   @doc """
   Deliver instructions to update a user email.
   """
   def deliver_update_email_instructions(user, url) do
-    deliver(user.email, "Update email instructions", """
+    deliver(user.email, "Instruções para atualizar o e-mail", """
 
     ==============================
 
-    Hi #{user.email},
+    Olá #{user.email},
 
-    You can change your email by visiting the URL below:
+    Podes alterar o teu e-mail através do link abaixo:
 
     #{url}
 
-    If you didn't request this change, please ignore this.
+    Se não pediste esta alteração, ignora este e-mail.
 
     ==============================
     """)
@@ -52,37 +66,54 @@ defmodule Barragenspt.Accounts.UserNotifier do
   end
 
   defp deliver_magic_link_instructions(user, url) do
-    deliver(user.email, "Log in instructions", """
+    deliver(user.email, "Instruções para iniciar sessão", """
 
     ==============================
 
-    Hi #{user.email},
+    Olá #{user.email},
 
-    You can log into your account by visiting the URL below:
+    Podes iniciar sessão na tua conta através do link abaixo:
 
     #{url}
 
-    If you didn't request this email, please ignore this.
+    Se não pediste este e-mail, ignora-o.
 
     ==============================
     """)
   end
 
-  defp deliver_confirmation_instructions(user, url) do
-    deliver(user.email, "Confirmation instructions", """
+  def deliver_confirmation_instructions(user, url) do
+    recipient = user.email
 
-    ==============================
+    deliver_html(
+      recipient,
+      "Confirma a tua conta Barragens.pt",
+      auth_email_html(
+        preheader: "Confirma a tua conta para começares a usar o Barragens.pt.",
+        eyebrow: "Confirmação de conta",
+        title: "Confirma o teu e-mail",
+        intro:
+          "Estás a um clique de ativar a tua conta Barragens.pt e aceder ao dashboard.",
+        button_label: "Confirmar conta",
+        button_url: url,
+        note:
+          "Se o botão não funcionar, copia e cola este link no teu browser:",
+        raw_url: url,
+        footer:
+          "Se não criaste esta conta, podes ignorar este e-mail em segurança."
+      ),
+      """
+      Confirma a tua conta Barragens.pt
 
-    Hi #{user.email},
+      Olá #{recipient},
 
-    You can confirm your account by visiting the URL below:
+      Confirma a tua conta abrindo o link abaixo:
 
-    #{url}
+      #{url}
 
-    If you didn't create an account with us, please ignore this.
-
-    ==============================
-    """)
+      Se não criaste esta conta, podes ignorar este e-mail em segurança.
+      """
+    )
   end
 
   @doc """
@@ -246,6 +277,81 @@ defmodule Barragenspt.Accounts.UserNotifier do
 
   defp telegram_client_module do
     Application.get_env(:barragenspt, :telegram_client_module, TelegramClient)
+  end
+
+  defp auth_email_html(assigns) do
+    """
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>#{escape_html(assigns[:title] || "Barragenspt")}</title>
+      </head>
+      <body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#0f172a;">
+        <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+          #{escape_html(assigns[:preheader] || "")}
+        </div>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;padding:24px 12px;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;">
+                <tr>
+                  <td style="padding-bottom:16px;text-align:left;">
+                    <div style="font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#0284c7;">
+                      barragens.pt
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%);border-radius:24px 24px 0 0;padding:32px 32px 24px;">
+                    <div style="display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,0.14);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#e0f2fe;">
+                      #{escape_html(assigns[:eyebrow] || "")}
+                    </div>
+                    <h1 style="margin:18px 0 0;font-size:34px;line-height:1.1;font-weight:800;color:#ffffff;">
+                      #{escape_html(assigns[:title] || "")}
+                    </h1>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background:#ffffff;border-radius:0 0 24px 24px;padding:32px;border:1px solid #e2e8f0;border-top:none;">
+                    <p style="margin:0 0 18px;font-size:16px;line-height:1.6;color:#334155;">
+                      #{escape_html(assigns[:intro] || "")}
+                    </p>
+                    <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">
+                      <tr>
+                        <td>
+                          <a href="#{escape_html(assigns[:button_url] || "#")}" style="display:inline-block;padding:14px 22px;border-radius:12px;background:#0284c7;color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;">
+                            #{escape_html(assigns[:button_label] || "Open")}
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                    <div style="margin:0 0 24px;padding:18px 20px;border-radius:16px;background:#f8fafc;border:1px solid #e2e8f0;">
+                      <p style="margin:0 0 10px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#64748b;">
+                        Link alternativo
+                      </p>
+                      <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#475569;">
+                        #{escape_html(assigns[:note] || "")}
+                      </p>
+                      <p style="margin:0;word-break:break-all;">
+                        <a href="#{escape_html(assigns[:raw_url] || "#")}" style="font-size:14px;line-height:1.6;color:#0284c7;text-decoration:none;">
+                          #{escape_html(assigns[:raw_url] || "")}
+                        </a>
+                      </p>
+                    </div>
+                    <p style="margin:0;font-size:14px;line-height:1.6;color:#64748b;">
+                      #{escape_html(assigns[:footer] || "")}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+    """
   end
 
   defp validate_telegram_chat_id(chat_id) do

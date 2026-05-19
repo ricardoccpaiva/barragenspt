@@ -77,11 +77,11 @@ defmodule Barragenspt.AccountsTest do
       assert "has already been taken" in errors_on(changeset).email
     end
 
-    test "registers users without password" do
+    test "registers users with password" do
       email = unique_user_email()
       {:ok, user} = Accounts.register_user(valid_user_attributes(email: email))
       assert user.email == email
-      assert is_nil(user.hashed_password)
+      assert is_binary(user.hashed_password)
       assert is_nil(user.confirmed_at)
       assert is_nil(user.password)
     end
@@ -191,13 +191,13 @@ defmodule Barragenspt.AccountsTest do
         Accounts.change_user_password(
           %User{},
           %{
-            "password" => "new valid password"
+            "password" => "Newvalid!1"
           },
           hash_password: false
         )
 
       assert changeset.valid?
-      assert get_change(changeset, :password) == "new valid password"
+      assert get_change(changeset, :password) == "Newvalid!1"
       assert is_nil(get_change(changeset, :hashed_password))
     end
   end
@@ -215,7 +215,11 @@ defmodule Barragenspt.AccountsTest do
         })
 
       assert %{
-               password: ["should be at least 12 character(s)"],
+               password: [
+                 "should be at least 8 character(s)",
+                 "must include at least one uppercase letter",
+                 "must include at least one symbol"
+               ],
                password_confirmation: ["does not match password"]
              } = errors_on(changeset)
     end
@@ -232,12 +236,12 @@ defmodule Barragenspt.AccountsTest do
     test "updates the password", %{user: user} do
       {:ok, {user, expired_tokens}} =
         Accounts.update_user_password(user, %{
-          password: "new valid password"
+          password: "Newvalid!1"
         })
 
       assert expired_tokens == []
       assert is_nil(user.password)
-      assert Accounts.get_user_by_email_and_password(user.email, "new valid password")
+      assert Accounts.get_user_by_email_and_password(user.email, "Newvalid!1")
     end
 
     test "deletes all tokens for the given user", %{user: user} do
@@ -245,7 +249,7 @@ defmodule Barragenspt.AccountsTest do
 
       {:ok, {_, _}} =
         Accounts.update_user_password(user, %{
-          password: "new valid password"
+          password: "Newvalid!1"
         })
 
       refute Repo.get_by(UserToken, user_id: user.id)

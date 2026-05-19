@@ -80,6 +80,7 @@ defmodule Barragenspt.Accounts do
   def register_user(attrs) do
     %User{}
     |> User.email_changeset(attrs)
+    |> User.password_changeset(attrs)
     |> Repo.insert()
   end
 
@@ -460,6 +461,16 @@ defmodule Barragenspt.Accounts do
   end
 
   @doc """
+  Gets the user with the given confirmation token.
+  """
+  def get_user_by_confirmation_token(token) do
+    case fetch_confirmation_token_record(token) do
+      {:ok, {user, _token, _context}} -> user
+      _ -> nil
+    end
+  end
+
+  @doc """
   Logs the user in by magic link.
 
   There are three cases to consider:
@@ -505,6 +516,31 @@ defmodule Barragenspt.Accounts do
     end
   end
 
+  @doc """
+  Confirms the user by email token.
+  """
+  def confirm_user(token) do
+    with {:ok, {user, user_token, _context}} <- fetch_confirmation_token_record(token) do
+      Repo.transact(fn ->
+        confirmed_user =
+          if is_nil(user.confirmed_at) do
+            case user |> User.confirm_changeset() |> Repo.update() do
+              {:ok, confirmed_user} -> confirmed_user
+              {:error, _changeset} -> Repo.rollback(:confirm_failed)
+            end
+          else
+            user
+          end
+
+        Repo.delete!(user_token)
+
+        {:ok, confirmed_user}
+      end)
+    else
+      _ -> {:error, :not_found}
+    end
+  end
+
   @doc ~S"""
   Delivers the update email instructions to the given user.
 
@@ -520,6 +556,17 @@ defmodule Barragenspt.Accounts do
 
     Repo.insert!(user_token)
     UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
+  end
+
+  @doc """
+  Delivers the account confirmation instructions to the given user.
+  """
+  def deliver_user_confirmation_instructions(%User{} = user, confirmation_url_fun)
+      when is_function(confirmation_url_fun, 1) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
+
+    Repo.insert!(user_token)
+    UserNotifier.deliver_confirmation_instructions(user, confirmation_url_fun.(encoded_token))
   end
 
   @doc """
@@ -567,6 +614,21 @@ defmodule Barragenspt.Accounts do
   end
 
   defp ensure_user_confirmed(%User{} = user), do: {:ok, user}
+
+  defp fetch_confirmation_token_record(token) do
+    with {:ok, query} <- UserToken.verify_confirm_token_query(token),
+         {user, user_token} <- Repo.one(query) do
+      {:ok, {user, user_token, :confirm}}
+    else
+      _ ->
+        with {:ok, query} <- UserToken.verify_magic_link_token_query(token),
+             {%User{confirmed_at: nil} = user, user_token} <- Repo.one(query) do
+          {:ok, {user, user_token, :legacy_login}}
+        else
+          _ -> {:error, :not_found}
+        end
+    end
+  end
 
   ## User API tokens
 

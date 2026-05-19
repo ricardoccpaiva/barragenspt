@@ -21,7 +21,7 @@ defmodule BarragensptWeb.UserLive.Registration do
           </.header>
         </div>
 
-        <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
+        <.form for={@form} id="registration_form" phx-submit="save">
           <.input
             field={@form[:email]}
             type="email"
@@ -29,6 +29,22 @@ defmodule BarragensptWeb.UserLive.Registration do
             autocomplete="username"
             required
             phx-mounted={JS.focus()}
+          />
+
+          <.input
+            field={@form[:password]}
+            type="password"
+            label="Palavra-passe"
+            autocomplete="new-password"
+            required
+          />
+
+          <.input
+            field={@form[:password_confirmation]}
+            type="password"
+            label="Confirmar palavra-passe"
+            autocomplete="new-password"
+            required
           />
 
           <.button phx-disable-with="A criar conta..." class="w-full">
@@ -60,7 +76,10 @@ defmodule BarragensptWeb.UserLive.Registration do
   end
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.change_user_email(%User{}, %{}, validate_unique: false)
+    changeset =
+      %User{}
+      |> Accounts.change_user_email(%{}, validate_unique: false)
+      |> Accounts.change_user_password(%{}, hash_password: false)
 
     {:ok, assign_form(socket, changeset), temporary_assigns: [form: nil]}
   end
@@ -70,9 +89,9 @@ defmodule BarragensptWeb.UserLive.Registration do
     case Accounts.register_user(user_params) do
       {:ok, user} ->
         {:ok, _} =
-          Accounts.deliver_login_instructions(
+          Accounts.deliver_user_confirmation_instructions(
             user,
-            &url(~p"/users/log-in/#{&1}")
+            &url(~p"/users/confirm/#{&1}")
           )
 
         {:noreply,
@@ -86,11 +105,6 @@ defmodule BarragensptWeb.UserLive.Registration do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
     end
-  end
-
-  def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.change_user_email(%User{}, user_params, validate_unique: false)
-    {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do

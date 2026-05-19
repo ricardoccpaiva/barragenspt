@@ -10,11 +10,13 @@ defmodule Barragenspt.AccountsFixtures do
   alias Barragenspt.Accounts.Scope
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
-  def valid_user_password, do: "hello world!"
+  def valid_user_password, do: "Hello!23"
 
   def valid_user_attributes(attrs \\ %{}) do
     Enum.into(attrs, %{
-      email: unique_user_email()
+      email: unique_user_email(),
+      password: valid_user_password(),
+      password_confirmation: valid_user_password()
     })
   end
 
@@ -32,11 +34,11 @@ defmodule Barragenspt.AccountsFixtures do
 
     token =
       extract_user_token(fn url ->
-        Accounts.deliver_login_instructions(user, url)
+        Accounts.deliver_user_confirmation_instructions(user, url)
       end)
 
-    {:ok, {user, _expired_tokens}} =
-      Accounts.login_user_by_magic_link(token)
+    {:ok, {:ok, user}} =
+      Accounts.confirm_user(token)
 
     user
   end

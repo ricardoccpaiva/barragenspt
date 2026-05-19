@@ -85,7 +85,9 @@ defmodule BarragensptWeb.UserLive.SettingsTest do
         })
 
       assert result =~ "Save Password"
-      assert result =~ "should be at least 12 character(s)"
+      assert result =~ "should be at least 8 character(s)"
+      assert result =~ "must include at least one uppercase letter"
+      assert result =~ "must include at least one symbol"
       assert result =~ "does not match password"
     end
 
@@ -103,7 +105,9 @@ defmodule BarragensptWeb.UserLive.SettingsTest do
         |> render_submit()
 
       assert result =~ "Save Password"
-      assert result =~ "should be at least 12 character(s)"
+      assert result =~ "should be at least 8 character(s)"
+      assert result =~ "must include at least one uppercase letter"
+      assert result =~ "must include at least one symbol"
       assert result =~ "does not match password"
     end
   end
