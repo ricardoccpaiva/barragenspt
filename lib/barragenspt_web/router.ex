@@ -96,7 +96,6 @@ defmodule BarragensptWeb.Router do
     live_session :default,
       on_mount: [{BarragensptWeb.UserAuth, :mount_current_scope}] do
       live("/", HomepageLive, :index)
-      live("/dashboard/overview", OverviewLive, :index)
       live("/status/workers", WorkerStatusLive, :index)
       live("/basins/:basin_id", HomepageLive, :index)
       live("/basins/:basin_id/dams/:dam_id", HomepageLive, :index)
@@ -152,6 +151,7 @@ defmodule BarragensptWeb.Router do
       on_mount: [{BarragensptWeb.UserAuth, :mount_current_scope}] do
       live "/dashboard", DashboardLive, :index
       live "/dashboard/data-points", Dashboard.DataPointsLive, :index
+      live "/dashboard/overview", OverviewLive, :index
       live "/dashboard/storage-report", Dashboard.StorageReportLive, :index
       live "/dashboard/api-tokens", Dashboard.ApiTokensLive, :index
       live "/dashboard/api-docs", Dashboard.ApiDocsLive, :index
@@ -159,6 +159,7 @@ defmodule BarragensptWeb.Router do
       live "/dashboard/notifications/new", Dashboard.NotificationFormLive, :new
       live "/dashboard/notifications/:id/history", Dashboard.NotificationHistoryLive, :show
       live "/dashboard/notifications/:id/edit", Dashboard.NotificationFormLive, :edit
+      live "/dashboard/admin", Dashboard.AdminLive, :index
 
       if Mix.env() in [:dev, :test] do
         live "/dashboard/test/force-dam-value", Dashboard.TestDataPointsLive, :index
@@ -166,11 +167,6 @@ defmodule BarragensptWeb.Router do
 
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
-    end
-
-    live_session :admin_authenticated,
-      on_mount: [{BarragensptWeb.UserAuth, :require_admin}] do
-      live "/dashboard/admin", Dashboard.AdminLive, :index
     end
   end
 
