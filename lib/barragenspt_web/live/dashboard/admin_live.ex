@@ -1,7 +1,7 @@
 defmodule BarragensptWeb.Dashboard.AdminLive do
   use BarragensptWeb, :live_view
 
-  alias Barragenspt.Admin
+  alias Barragenspt.{Accounts, Admin}
 
   @refresh_ms 30_000
   @windows ["24h", "7d", "30d"]
@@ -44,6 +44,20 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
   @impl true
   def handle_info(:refresh, socket) do
     Process.send_after(self(), :refresh, @refresh_ms)
+    {:noreply, load_data(socket)}
+  end
+
+  @impl true
+  def handle_event("resend_confirmation_email", %{"id" => id}, socket) do
+    socket =
+      case Integer.parse(id) do
+        {user_id, ""} ->
+          resend_confirmation_email(socket, user_id)
+
+        _ ->
+          put_flash(socket, :error, "Utilizador inválido.")
+      end
+
     {:noreply, load_data(socket)}
   end
 
@@ -92,6 +106,38 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
 
   defp normalize_users_page(page) when is_integer(page) and page > 0, do: page
   defp normalize_users_page(_), do: 1
+
+  defp resend_confirmation_email(socket, user_id) do
+    user = Accounts.get_user!(user_id)
+
+    cond do
+      user.confirmed_at ->
+        put_flash(socket, :info, "Esse utilizador já tem a conta confirmada.")
+
+      true ->
+        case Accounts.deliver_user_confirmation_instructions(
+               user,
+               &url(~p"/users/confirm/#{&1}")
+             ) do
+          {:ok, _email} ->
+            put_flash(socket, :info, "E-mail de confirmação reenviado para #{user.email}.")
+
+          {:error, reason} ->
+            put_flash(
+              socket,
+              :error,
+              "Não foi possível reenviar o e-mail de confirmação: #{format_delivery_error(reason)}"
+            )
+        end
+    end
+  rescue
+    Ecto.NoResultsError ->
+      put_flash(socket, :error, "Utilizador não encontrado.")
+  end
+
+  defp format_delivery_error(%{message: message}) when is_binary(message), do: message
+  defp format_delivery_error(reason) when is_binary(reason), do: reason
+  defp format_delivery_error(reason), do: inspect(reason)
 
   defp maybe_push_main_chart(socket) do
     chart = if socket.assigns.tab == "notifications", do: socket.assigns.notifications_chart, else: socket.assigns.usage_chart
