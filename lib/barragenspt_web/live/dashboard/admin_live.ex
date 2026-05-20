@@ -117,10 +117,13 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
       true ->
         case Accounts.deliver_user_confirmation_instructions(
                user,
-               &url(~p"/users/confirm/#{&1}")
+               &(BarragensptWeb.Endpoint.url() <> ~p"/users/confirm/#{&1}")
              ) do
           {:ok, _email} ->
-            put_flash(socket, :info, "E-mail de confirmação reenviado para #{user.email}.")
+            push_event(socket, "show_toast", %{
+              message: "E-mail de confirmação reenviado para #{user.email}.",
+              type: "success"
+            })
 
           {:error, reason} ->
             put_flash(
