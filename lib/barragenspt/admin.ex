@@ -323,6 +323,38 @@ defmodule Barragenspt.Admin do
     |> Repo.all()
   end
 
+  def list_registered_users(page \\ 1, per_page \\ 10)
+      when is_integer(page) and page > 0 and is_integer(per_page) and per_page > 0 do
+    total_entries = Repo.aggregate(User, :count)
+    total_pages = max(div(total_entries + per_page - 1, per_page), 1)
+    page = min(page, total_pages)
+    offset = (page - 1) * per_page
+
+    entries =
+      from(u in User,
+        order_by: [desc: u.inserted_at],
+        limit: ^per_page,
+        offset: ^offset,
+        select: %{
+          id: u.id,
+          email: u.email,
+          display_name: u.display_name,
+          is_admin: u.is_admin,
+          confirmed_at: u.confirmed_at,
+          inserted_at: u.inserted_at
+        }
+      )
+      |> Repo.all()
+
+    %{
+      entries: entries,
+      page: page,
+      per_page: per_page,
+      total_entries: total_entries,
+      total_pages: total_pages
+    }
+  end
+
   def api_spike_count(window) do
     since = since_for_window(window)
 

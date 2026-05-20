@@ -6,6 +6,7 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
   @refresh_ms 30_000
   @windows ["24h", "7d", "30d"]
   @tabs ["api", "notifications"]
+  @users_per_page 10
 
   on_mount {BarragensptWeb.UserAuth, :require_admin}
 
@@ -27,6 +28,8 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
      |> assign(:notifications_chart, %{labels: [], datasets: []})
      |> assign(:top_notification_users, [])
      |> assign(:top_notifications, [])
+     |> assign(:users_page, 1)
+     |> assign(:registered_users, %{entries: [], page: 1, per_page: @users_per_page, total_entries: 0, total_pages: 1})
      |> load_data()}
   end
 
@@ -34,7 +37,8 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
   def handle_params(params, _uri, socket) do
     window = normalize_window(params["window"])
     tab = normalize_tab(params["tab"])
-    {:noreply, socket |> assign(:window, window) |> assign(:tab, tab) |> load_data()}
+    users_page = normalize_users_page(params["users_page"])
+    {:noreply, socket |> assign(:window, window) |> assign(:tab, tab) |> assign(:users_page, users_page) |> load_data()}
   end
 
   @impl true
@@ -48,7 +52,7 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
     {:noreply,
      push_patch(
        socket,
-       to: ~p"/dashboard/admin?#{%{window: normalize_window(window), tab: socket.assigns.tab}}"
+       to: ~p"/dashboard/admin?#{%{window: normalize_window(window), tab: socket.assigns.tab, users_page: socket.assigns.users_page}}"
      )}
   end
 
@@ -56,7 +60,16 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
     {:noreply,
      push_patch(
        socket,
-       to: ~p"/dashboard/admin?#{%{window: socket.assigns.window, tab: normalize_tab(tab)}}"
+       to: ~p"/dashboard/admin?#{%{window: socket.assigns.window, tab: normalize_tab(tab), users_page: socket.assigns.users_page}}"
+     )}
+  end
+
+  def handle_event("set_users_page", %{"page" => page}, socket) do
+    {:noreply,
+     push_patch(
+       socket,
+       to:
+         ~p"/dashboard/admin?#{%{window: socket.assigns.window, tab: socket.assigns.tab, users_page: normalize_users_page(page)}}"
      )}
   end
 
@@ -74,6 +87,7 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
     |> assign(:notifications_chart, notifications_chart)
     |> assign(:top_notification_users, Admin.notifications_by_user(window, 8))
     |> assign(:top_notifications, Admin.notifications_by_notification(window, 8))
+    |> assign(:registered_users, Admin.list_registered_users(socket.assigns.users_page, @users_per_page))
     |> maybe_push_main_chart()
   end
 
@@ -94,6 +108,16 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
 
   defp normalize_tab(tab) when tab in @tabs, do: tab
   defp normalize_tab(_), do: "api"
+
+  defp normalize_users_page(page) when is_binary(page) do
+    case Integer.parse(page) do
+      {value, ""} when value > 0 -> value
+      _ -> 1
+    end
+  end
+
+  defp normalize_users_page(page) when is_integer(page) and page > 0, do: page
+  defp normalize_users_page(_), do: 1
 
   defp maybe_push_main_chart(socket) do
     chart = if socket.assigns.tab == "notifications", do: socket.assigns.notifications_chart, else: socket.assigns.usage_chart

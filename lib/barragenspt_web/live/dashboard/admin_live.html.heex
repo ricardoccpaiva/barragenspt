@@ -190,5 +190,109 @@
         </section>
       </div>
     <% end %>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-600 dark:bg-slate-800/50">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Registered users
+          </h2>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            {fmt_int(@registered_users.total_entries)} utilizadores registados no total.
+          </p>
+        </div>
+        <div class="text-right text-xs font-medium text-slate-500 dark:text-slate-400">
+          Página {@registered_users.page} de {@registered_users.total_pages}
+        </div>
+      </div>
+
+      <div class="mt-4 overflow-x-auto">
+        <%= if @registered_users.entries == [] do %>
+          <p class="text-sm text-slate-500 dark:text-slate-400">Sem utilizadores registados.</p>
+        <% else %>
+          <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-700">
+            <thead>
+              <tr class="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                <th class="pb-3 pr-4">User</th>
+                <th class="pb-3 pr-4">Estado</th>
+                <th class="pb-3 pr-4">Perfil</th>
+                <th class="pb-3">Registo</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+              <%= for user <- @registered_users.entries do %>
+                <tr>
+                  <td class="py-3 pr-4">
+                    <div class="font-medium text-slate-900 dark:text-slate-100">
+                      {user.display_name || "Sem nome"}
+                    </div>
+                    <div class="text-slate-500 dark:text-slate-400">{user.email}</div>
+                  </td>
+                  <td class="py-3 pr-4">
+                    <span class={[
+                      "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold",
+                      user.confirmed_at &&
+                        "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+                      !user.confirmed_at &&
+                        "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+                    ]}>
+                      {if user.confirmed_at, do: "Confirmado", else: "Pendente"}
+                    </span>
+                  </td>
+                  <td class="py-3 pr-4">
+                    <span class={[
+                      "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold",
+                      user.is_admin &&
+                        "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300",
+                      !user.is_admin &&
+                        "bg-slate-100 text-slate-700 dark:bg-slate-700/60 dark:text-slate-300"
+                    ]}>
+                      {if user.is_admin, do: "Admin", else: "User"}
+                    </span>
+                  </td>
+                  <td class="py-3 text-slate-600 dark:text-slate-300">
+                    {Calendar.strftime(user.inserted_at, "%d/%m/%Y %H:%M")}
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+      </div>
+
+      <%= if @registered_users.total_entries > 0 do %>
+        <div class="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-4 text-sm dark:border-slate-700">
+          <p class="text-slate-500 dark:text-slate-400">
+            A mostrar
+            {((@registered_users.page - 1) * @registered_users.per_page) + 1}
+            -
+            {min(@registered_users.page * @registered_users.per_page, @registered_users.total_entries)}
+            de
+            {@registered_users.total_entries}
+          </p>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              phx-click="set_users_page"
+              phx-value-page={@registered_users.page - 1}
+              disabled={@registered_users.page <= 1}
+              class="inline-flex items-center rounded-lg border border-slate-200 px-3 py-1.5 font-medium text-slate-700 enabled:hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:enabled:hover:bg-slate-700"
+            >
+              Anterior
+            </button>
+            <button
+              type="button"
+              phx-click="set_users_page"
+              phx-value-page={@registered_users.page + 1}
+              disabled={@registered_users.page >= @registered_users.total_pages}
+              class="inline-flex items-center rounded-lg border border-slate-200 px-3 py-1.5 font-medium text-slate-700 enabled:hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:enabled:hover:bg-slate-700"
+            >
+              Seguinte
+            </button>
+          </div>
+        </div>
+      <% end %>
+    </section>
   </div>
 </Layouts.app>
