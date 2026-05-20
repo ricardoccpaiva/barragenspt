@@ -92,7 +92,7 @@ defmodule BarragensptWeb.Layouts do
                         data-nav-paths={
                           Enum.join([item.path | Enum.map(item.children, & &1.path)], ",")
                         }
-                        class="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-sm font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
+                        class="inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg px-2.5 text-sm font-semibold leading-none text-slate-500 hover:bg-slate-100/90 dark:text-slate-400 dark:hover:bg-slate-700/60"
                       >
                         <.icon name={item.icon} class="h-3.5 w-3.5 shrink-0 opacity-80" />
                         <span>{item.label}</span>
