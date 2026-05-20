@@ -14,36 +14,32 @@
         />
         <div class="inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-800">
           <%= for tab <- @tabs do %>
-            <button
-              type="button"
-              phx-click="set_tab"
-              phx-value-tab={tab}
+            <.link
+              patch={~p"/dashboard/admin?#{%{window: @window, tab: tab, users_page: @users_page}}"}
               class={[
-                "px-3 py-1.5 text-sm font-medium capitalize",
+                "inline-flex px-3 py-1.5 text-sm font-medium capitalize",
                 tab == @tab && "bg-brand-600 text-white",
                 tab != @tab &&
                   "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
               ]}
             >
               {tab}
-            </button>
+            </.link>
           <% end %>
         </div>
         <div class="inline-flex overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-800">
           <%= for w <- @windows do %>
-            <button
-              type="button"
-              phx-click="set_window"
-              phx-value-window={w}
+            <.link
+              patch={~p"/dashboard/admin?#{%{window: w, tab: @tab, users_page: @users_page}}"}
               class={[
-                "px-3 py-1.5 text-sm font-medium",
+                "inline-flex px-3 py-1.5 text-sm font-medium",
                 w == @window && "bg-brand-600 text-white",
                 w != @window &&
                   "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
               ]}
             >
               {w}
-            </button>
+            </.link>
           <% end %>
         </div>
       </div>
@@ -60,8 +56,8 @@
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <.kpi title={"Notification events #{@window}"} value={fmt_int(@notifications_totals.triggered_events)} />
         <.kpi title={"Notified events #{@window}"} value={fmt_int(@notifications_totals.notified_events)} />
-        <.kpi title="Active notifications" value={fmt_int(@notifications_totals.active_alerts)} />
-        <.kpi title="Users with notification events" value={fmt_int(@notifications_totals.users_with_alert_events)} />
+        <.kpi title="Active notifications" value={fmt_int(@notifications_totals.active_notifications)} />
+        <.kpi title="Users with notification events" value={fmt_int(@notifications_totals.users_with_notification_events)} />
       </div>
     <% end %>
 
@@ -272,24 +268,32 @@
           </p>
 
           <div class="flex items-center gap-2">
-            <button
-              type="button"
-              phx-click="set_users_page"
-              phx-value-page={@registered_users.page - 1}
-              disabled={@registered_users.page <= 1}
-              class="inline-flex items-center rounded-lg border border-slate-200 px-3 py-1.5 font-medium text-slate-700 enabled:hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:enabled:hover:bg-slate-700"
+            <.link
+              patch={~p"/dashboard/admin?#{%{window: @window, tab: @tab, users_page: @registered_users.page - 1}}"}
+              aria-disabled={@registered_users.page <= 1}
+              class={[
+                "inline-flex items-center rounded-lg border border-slate-200 px-3 py-1.5 font-medium dark:border-slate-600",
+                @registered_users.page <= 1 &&
+                  "pointer-events-none cursor-not-allowed opacity-50 text-slate-400 dark:text-slate-500",
+                @registered_users.page > 1 &&
+                  "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+              ]}
             >
               Anterior
-            </button>
-            <button
-              type="button"
-              phx-click="set_users_page"
-              phx-value-page={@registered_users.page + 1}
-              disabled={@registered_users.page >= @registered_users.total_pages}
-              class="inline-flex items-center rounded-lg border border-slate-200 px-3 py-1.5 font-medium text-slate-700 enabled:hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:enabled:hover:bg-slate-700"
+            </.link>
+            <.link
+              patch={~p"/dashboard/admin?#{%{window: @window, tab: @tab, users_page: @registered_users.page + 1}}"}
+              aria-disabled={@registered_users.page >= @registered_users.total_pages}
+              class={[
+                "inline-flex items-center rounded-lg border border-slate-200 px-3 py-1.5 font-medium dark:border-slate-600",
+                @registered_users.page >= @registered_users.total_pages &&
+                  "pointer-events-none cursor-not-allowed opacity-50 text-slate-400 dark:text-slate-500",
+                @registered_users.page < @registered_users.total_pages &&
+                  "text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+              ]}
             >
               Seguinte
-            </button>
+            </.link>
           </div>
         </div>
       <% end %>

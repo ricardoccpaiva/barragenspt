@@ -47,32 +47,6 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
     {:noreply, load_data(socket)}
   end
 
-  @impl true
-  def handle_event("set_window", %{"window" => window}, socket) do
-    {:noreply,
-     push_patch(
-       socket,
-       to: ~p"/dashboard/admin?#{%{window: normalize_window(window), tab: socket.assigns.tab, users_page: socket.assigns.users_page}}"
-     )}
-  end
-
-  def handle_event("set_tab", %{"tab" => tab}, socket) do
-    {:noreply,
-     push_patch(
-       socket,
-       to: ~p"/dashboard/admin?#{%{window: socket.assigns.window, tab: normalize_tab(tab), users_page: socket.assigns.users_page}}"
-     )}
-  end
-
-  def handle_event("set_users_page", %{"page" => page}, socket) do
-    {:noreply,
-     push_patch(
-       socket,
-       to:
-         ~p"/dashboard/admin?#{%{window: socket.assigns.window, tab: socket.assigns.tab, users_page: normalize_users_page(page)}}"
-     )}
-  end
-
   defp load_data(socket) do
     window = socket.assigns.window
     usage_chart = Admin.api_usage_stacked_chart(window, 8)
