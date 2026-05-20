@@ -619,6 +619,33 @@ defmodule Barragenspt.Accounts do
   end
 
   @doc """
+  Deletes a user and all dependent records.
+
+  Existing sessions for the user are disconnected after deletion.
+  """
+  def delete_user(%User{} = user) do
+    Repo.transact(fn ->
+      session_tokens = Repo.all_by(UserToken, user_id: user.id, context: "session")
+
+      case Repo.delete(user) do
+        {:ok, deleted_user} -> {:ok, {deleted_user, session_tokens}}
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
+    |> case do
+      {:ok, {:ok, {deleted_user, session_tokens}}} ->
+        BarragensptWeb.UserAuth.disconnect_sessions(session_tokens)
+        {:ok, deleted_user}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:error, changeset}
+
+      other ->
+        other
+    end
+  end
+
+  @doc """
   Resets the user password using the given reset token.
   """
   def reset_user_password(token, attrs) do

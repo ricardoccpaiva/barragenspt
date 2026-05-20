@@ -61,6 +61,20 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
     {:noreply, load_data(socket)}
   end
 
+  @impl true
+  def handle_event("delete_user", %{"id" => id}, socket) do
+    socket =
+      case Integer.parse(id) do
+        {user_id, ""} ->
+          delete_user(socket, user_id)
+
+        _ ->
+          push_toast(socket, "Utilizador inválido.", "error")
+      end
+
+    {:noreply, load_data(socket)}
+  end
+
   defp load_data(socket) do
     window = socket.assigns.window
     usage_chart = Admin.api_usage_stacked_chart(window, 8)
@@ -138,9 +152,40 @@ defmodule BarragensptWeb.Dashboard.AdminLive do
       put_flash(socket, :error, "Utilizador não encontrado.")
   end
 
+  defp delete_user(socket, user_id) do
+    current_user_id = get_in(socket.assigns, [:current_scope, Access.key(:user), Access.key(:id)])
+
+    cond do
+      current_user_id == user_id ->
+        push_toast(socket, "Não podes apagar a tua própria conta a partir deste painel.", "error")
+
+      true ->
+        user = Accounts.get_user!(user_id)
+
+        case Accounts.delete_user(user) do
+          {:ok, deleted_user} ->
+            push_toast(socket, "Utilizador #{deleted_user.email} eliminado.", "success")
+
+          {:error, reason} ->
+            push_toast(
+              socket,
+              "Não foi possível eliminar o utilizador: #{format_delivery_error(reason)}",
+              "error"
+            )
+        end
+    end
+  rescue
+    Ecto.NoResultsError ->
+      push_toast(socket, "Utilizador não encontrado.", "error")
+  end
+
   defp format_delivery_error(%{message: message}) when is_binary(message), do: message
   defp format_delivery_error(reason) when is_binary(reason), do: reason
   defp format_delivery_error(reason), do: inspect(reason)
+
+  defp push_toast(socket, message, type) do
+    push_event(socket, "show_toast", %{message: message, type: type})
+  end
 
   defp maybe_push_main_chart(socket) do
     chart = if socket.assigns.tab == "notifications", do: socket.assigns.notifications_chart, else: socket.assigns.usage_chart
