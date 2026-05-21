@@ -104,7 +104,7 @@ config :barragenspt, :chromic_pdf,
   on_demand: true,
   no_sandbox: true,
   discard_stderr: false,
-  chrome_args: ["--disable-dev-shm-usage"],
+  chrome_args: ["--disable-dev-shm-usage", "--user-data-dir=/tmp/chromium-pdf"],
   session_pool: [size: 2, timeout: 20_000, checkout_timeout: 20_000]
 
 config :barragenspt, :pdf_renderer, BarragensptWeb.PdfRenderer.ChromicPDF
