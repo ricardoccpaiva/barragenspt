@@ -6,12 +6,10 @@ defmodule BarragensptWeb.Dashboard.ApiDocsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    redoc_src = url(~p"/api/redoc")
-
     {:ok,
      socket
      |> assign(:page_title, "Documentação API")
-     |> assign(:redoc_src, redoc_src)}
+     |> assign(:redoc_src, ~p"/api/redoc")}
   end
 
   @impl true
