@@ -49,6 +49,7 @@ defmodule BarragensptWeb.Api.DamsView do
     cur = Map.get(dam, :current_storage_volume)
     quota = Map.get(dam, :current_storage_quota)
     at = Map.get(dam, :colected_at)
+    total_capacity = Map.get(dam, :total_capacity)
     usage_types = Map.get(dam, :usage_types)
 
     usage_types_value =
@@ -63,6 +64,7 @@ defmodule BarragensptWeb.Api.DamsView do
       current_storage_volume: json_number(cur),
       current_storage_quota: json_storage_quota(quota),
       collected_at: collected_at_iso8601(at),
+      total_capacity: json_number(total_capacity),
       usage_types: usage_types_value
     }
 
