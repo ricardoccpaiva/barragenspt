@@ -192,6 +192,7 @@ defmodule BarragensptWeb.HomepageLive do
     usage_types = Map.get(socket.assigns, :selected_usage_types, [])
 
     summary = Basins.summary_stats(id, usage_types)
+    basin_totals = Enum.find(Basins.summary_stats(usage_types), &(&1.id == id))
     daily_stats = Basins.daily_stats_for_basin(id, usage_types, 12)
     monthly_stats = Basins.monthly_stats_for_basin(id, usage_types, 2)
     bounding_box = Dams.bounding_box(id)
@@ -203,7 +204,10 @@ defmodule BarragensptWeb.HomepageLive do
       |> assign(basin_id: id)
       |> assign(spain: false)
       |> assign(basin_summary: summary)
-      |> assign(basin_card: build_basin_card(basin_name, summary, daily_stats, monthly_stats))
+      |> assign(
+        basin_card:
+          build_basin_card(basin_name, summary, basin_totals, daily_stats, monthly_stats)
+      )
       |> assign(dam: nil)
       |> assign(dam_names: [], search_rivers: [], search_term: "")
       |> push_event("zoom_map", %{basin_id: id, bounding_box: bounding_box})
@@ -243,7 +247,7 @@ defmodule BarragensptWeb.HomepageLive do
     end)
   end
 
-  defp build_basin_card(name, summary, daily_stats, monthly_stats) do
+  defp build_basin_card(name, summary, basin_totals, daily_stats, monthly_stats) do
     dams =
       Enum.map(summary, fn item ->
         %{
@@ -281,25 +285,15 @@ defmodule BarragensptWeb.HomepageLive do
       year_trend_class: trend_class(year_display_change),
       year_trend_badge_class: trend_badge_class(year_display_change),
       basin_chart_series: monthly_stats,
-      total_storage_label: build_total_storage_label(summary),
+      total_storage_label: build_total_storage_label(basin_totals),
       dams: dams
     }
   end
 
-  defp build_total_storage_label(summary) do
-    current_storage =
-      summary
-      |> Enum.reduce(Decimal.new(0), fn item, acc ->
-        case Map.get(item, :current_storage_volume) do
-          nil -> acc
-          %Decimal{} = value -> Decimal.add(acc, value)
-          value when is_integer(value) -> Decimal.add(acc, Decimal.new(value))
-          value when is_float(value) -> Decimal.add(acc, Decimal.from_float(value))
-        end
-      end)
-      |> div_volume_by_1000()
+  defp build_total_storage_label(nil), do: "—"
 
-    case current_storage do
+  defp build_total_storage_label(%{current_storage_volume: current_storage_volume}) do
+    case div_volume_by_1000(current_storage_volume) do
       nil -> "—"
       value -> "#{value} hm³"
     end
