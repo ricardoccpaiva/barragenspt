@@ -349,6 +349,103 @@ defmodule BarragensptWeb.Api.Schemas do
     })
   end
 
+  defmodule DamRealtimePoint do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Ponto realtime da barragem",
+      description:
+        "Leituras em tempo real agrupadas por instante de recolha. Os campos podem ser `null` quando um parâmetro não existe nesse instante.",
+      type: :object,
+      properties: %{
+        collected_at: %Schema{
+          type: :string,
+          format: :"date-time",
+          description: "Instante da recolha em UTC."
+        },
+        label: %Schema{
+          type: :string,
+          description: "Etiqueta curta do instante, útil para gráficos (ex. `29/05 14:00`)."
+        },
+        level: %Schema{
+          type: :number,
+          nullable: true,
+          description: "Reservoir level (m)."
+        },
+        inflow: %Schema{
+          type: :number,
+          nullable: true,
+          description: "Inflow (m³/s)."
+        },
+        outflow: %Schema{
+          type: :number,
+          nullable: true,
+          description: "Outflow (m³/s)."
+        },
+        storage_percent: %Schema{
+          type: :number,
+          nullable: true,
+          description: "Stored volume (%) in the realtime feed."
+        }
+      },
+      example: %{
+        "collected_at" => "2026-05-29T14:00:00Z",
+        "label" => "29/05 14:00",
+        "level" => 117.23,
+        "inflow" => 84.1,
+        "outflow" => 42.8,
+        "storage_percent" => 95.3
+      }
+    })
+  end
+
+  defmodule DamRealtimeResponse do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Resposta de série realtime da barragem",
+      description:
+        "Série cronológica de dados em tempo real para uma barragem, com hiperligações para o recurso e para a bacia.",
+      type: :object,
+      properties: %{
+        data: %Schema{type: :array, items: DamRealtimePoint},
+        links: %Schema{
+          type: :object,
+          properties: %{
+            self: %Schema{type: :string, description: "URL para esta série realtime."},
+            dam: %Schema{type: :string, description: "URL do snapshot da barragem."},
+            basin: %Schema{type: :string, description: "URL da bacia hidrográfica."}
+          }
+        }
+      },
+      example: %{
+        "data" => [
+          %{
+            "collected_at" => "2026-05-29T13:00:00Z",
+            "label" => "29/05 13:00",
+            "level" => 117.12,
+            "inflow" => 79.4,
+            "outflow" => 41.0,
+            "storage_percent" => 95.1
+          },
+          %{
+            "collected_at" => "2026-05-29T14:00:00Z",
+            "label" => "29/05 14:00",
+            "level" => 117.23,
+            "inflow" => 84.1,
+            "outflow" => 42.8,
+            "storage_percent" => 95.3
+          }
+        ],
+        "links" => %{
+          "self" => "https://example.com/api/dams/1627743384/realtime?limit=24",
+          "dam" => "https://example.com/api/dams/1627743384",
+          "basin" => "https://example.com/api/basins/1"
+        }
+      }
+    })
+  end
+
   defmodule BasinSummary do
     require OpenApiSpex
 

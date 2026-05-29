@@ -43,6 +43,20 @@ defmodule BarragensptWeb.Api.DamsView do
     }
   end
 
+  def render("realtime.json", %{dam: dam, rows: rows, limit: limit}) do
+    site_id = dam.site_id
+    basin_id = dam.basin_id
+
+    %{
+      data: Enum.map(rows, &realtime_row/1),
+      links: %{
+        self: realtime_self_link(site_id, limit),
+        dam: "/api/dams/#{site_id}",
+        basin: "/api/basins/#{basin_id}"
+      }
+    }
+  end
+
   def dam_data(dam) do
     id = Map.get(dam, :site_id) || Map.get(dam, :id)
     name = Map.get(dam, :site_name) || Map.get(dam, :name)
@@ -109,4 +123,18 @@ defmodule BarragensptWeb.Api.DamsView do
   end
 
   defp collected_at_iso8601(nil), do: nil
+
+  defp realtime_row(row) do
+    %{
+      collected_at: collected_at_iso8601(Map.get(row, :colected_at)),
+      label: Map.get(row, :data),
+      level: json_storage_quota(Map.get(row, :cota)),
+      inflow: json_storage_quota(Map.get(row, :caudal_afluente)),
+      outflow: json_storage_quota(Map.get(row, :caudal_efluente)),
+      storage_percent: json_storage_quota(Map.get(row, :volume_armazenado))
+    }
+  end
+
+  defp realtime_self_link(site_id, nil), do: "/api/dams/#{site_id}/realtime"
+  defp realtime_self_link(site_id, limit), do: "/api/dams/#{site_id}/realtime?limit=#{limit}"
 end
