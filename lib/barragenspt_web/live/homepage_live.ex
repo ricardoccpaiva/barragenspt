@@ -281,17 +281,28 @@ defmodule BarragensptWeb.HomepageLive do
       year_trend_class: trend_class(year_display_change),
       year_trend_badge_class: trend_badge_class(year_display_change),
       basin_chart_series: monthly_stats,
-      total_storage_label: build_total_storage_label(summary, avg_observed),
+      total_storage_label: build_total_storage_label(summary),
       dams: dams
     }
   end
 
-  defp build_total_storage_label(summary, avg_observed) do
-    sum = Enum.reduce(summary, 0, fn item, acc -> item.total_capacity + acc end)
+  defp build_total_storage_label(summary) do
+    current_storage =
+      summary
+      |> Enum.reduce(Decimal.new(0), fn item, acc ->
+        case Map.get(item, :current_storage_volume) do
+          nil -> acc
+          %Decimal{} = value -> Decimal.add(acc, value)
+          value when is_integer(value) -> Decimal.add(acc, Decimal.new(value))
+          value when is_float(value) -> Decimal.add(acc, Decimal.from_float(value))
+        end
+      end)
+      |> div_volume_by_1000()
 
-    current_storage = (sum * avg_observed / 100 / 1000) |> Float.round(2)
-
-    "#{current_storage} hm³"
+    case current_storage do
+      nil -> "—"
+      value -> "#{value} hm³"
+    end
   end
 
   defp parse_spain_pct(n) when is_number(n), do: n
