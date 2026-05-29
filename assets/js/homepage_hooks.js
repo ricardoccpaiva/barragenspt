@@ -22,14 +22,40 @@ const CapacityColor = {
 
 const MobileSidebar = {
   mounted() {
-    if (typeof window.applyHomepageSidebarState === "function") {
-      window.applyHomepageSidebarState()
+    this.applyState = () => {
+      const sidebar = document.getElementById("app-shell-sidebar")
+      const backdrop = document.getElementById("app-shell-backdrop")
+      if (!sidebar || !backdrop) return
+
+      const mobile = window.matchMedia("(max-width: 767px)").matches
+      const searchInput = document.getElementById("damSearchInput")
+      const hasActiveSearch = !!(searchInput && searchInput.value && searchInput.value.trim() !== "")
+
+      if (window.__homepageSidebarOpen === undefined) {
+        window.__homepageSidebarOpen = !mobile
+      }
+
+      const shouldOpen = mobile ? (hasActiveSearch || !!window.__homepageSidebarOpen) : true
+
+      sidebar.classList.toggle("-translate-x-[calc(100%+1rem)]", !shouldOpen)
+      backdrop.classList.toggle("hidden", !mobile || !shouldOpen)
     }
+
+    window.toggleAppShellSidebar = (open) => {
+      window.__homepageSidebarOpen = !!open
+      this.applyState()
+    }
+
+    window.applyHomepageSidebarState = this.applyState
+    this.onResize = () => this.applyState()
+    window.addEventListener("resize", this.onResize)
+    this.applyState()
   },
   updated() {
-    if (typeof window.applyHomepageSidebarState === "function") {
-      window.applyHomepageSidebarState()
-    }
+    this.applyState()
+  },
+  destroyed() {
+    window.removeEventListener("resize", this.onResize)
   }
 }
 
@@ -119,7 +145,22 @@ function gtagEvent(name, params) {
 
 const SearchDam = {
   mounted() {
-    this.el.addEventListener("input", () => this.pushEvent("search_dam", { search_term: this.el.value }))
+    this.keepSidebarOpen = () => {
+      if (window.matchMedia("(max-width: 767px)").matches) {
+        if (typeof window.toggleAppShellSidebar === "function") {
+          window.toggleAppShellSidebar(true)
+        } else {
+          window.__homepageSidebarOpen = true
+        }
+      }
+    }
+
+    this.onInput = () => {
+      this.keepSidebarOpen()
+      this.pushEvent("search_dam", { search_term: this.el.value })
+    }
+
+    this.el.addEventListener("input", this.onInput)
 
     const resultsContainer = document.getElementById("damSearchResults")
     if (resultsContainer) {
@@ -136,6 +177,15 @@ const SearchDam = {
         }
       })
     }
+  },
+  updated() {
+    this.keepSidebarOpen()
+    if (window.matchMedia("(max-width: 767px)").matches && document.activeElement !== this.el) {
+      this.el.focus({ preventScroll: true })
+    }
+  },
+  destroyed() {
+    this.el.removeEventListener("input", this.onInput)
   }
 }
 

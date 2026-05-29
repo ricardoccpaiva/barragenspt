@@ -14,6 +14,7 @@ defmodule BarragensptWeb.Layouts do
   attr :flash, :map, required: true
   attr :current_scope, :map, default: nil
   attr :mode, :atom, default: :default
+  attr :sidebar_open, :boolean, default: false
   slot :sidebar
   slot :inner_block, required: true
 
@@ -29,7 +30,10 @@ defmodule BarragensptWeb.Layouts do
       <%= if @mode == :map do %>
         <div
           id="app-shell-backdrop"
-          class="fixed inset-0 z-30 hidden bg-slate-900/50 md:hidden"
+          class={[
+            "fixed inset-0 z-30 bg-slate-900/50 md:hidden",
+            !@sidebar_open && "hidden"
+          ]}
           onclick="window.toggleAppShellSidebar && window.toggleAppShellSidebar(false)"
         >
         </div>
@@ -52,7 +56,11 @@ defmodule BarragensptWeb.Layouts do
           </svg>
         </button>
 
-        <aside id="app-shell-sidebar" class={map_sidebar_classes()}>
+        <aside
+          id="app-shell-sidebar"
+          phx-hook="MobileSidebar"
+          class={map_sidebar_classes(@sidebar_open)}
+        >
           <div class="flex items-center gap-2 min-w-0 pb-1.5 border-b border-slate-200/80 dark:border-slate-600/80">
             <div
               class="sidebar-logo w-8 h-8 shrink-0 bg-brand-600 dark:bg-brand-400"
@@ -356,8 +364,11 @@ defmodule BarragensptWeb.Layouts do
     """
   end
 
-  defp map_sidebar_classes do
-    "fixed z-40 w-[80%] max-w-[279px] -translate-x-[calc(100%+1rem)] md:translate-x-0 md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-1.5 pb-2.5 md:px-3 md:pt-1.5 md:pb-2.5 rounded-2xl backdrop-blur-md transition-transform duration-200 ease-out"
+  defp map_sidebar_classes(sidebar_open) do
+    [
+      "fixed z-40 w-[80%] max-w-[279px] md:translate-x-0 md:max-w-none md:w-[317px] inset-2 h-[calc(100%-1rem)] flex flex-col bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/60 shadow-float px-3 pt-1.5 pb-2.5 md:px-3 md:pt-1.5 md:pb-2.5 rounded-2xl backdrop-blur-md transition-transform duration-200 ease-out",
+      if(sidebar_open, do: "translate-x-0", else: "-translate-x-[calc(100%+1rem)]")
+    ]
   end
 
   defp top_chrome_outer_classes(:map) do

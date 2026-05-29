@@ -8,7 +8,7 @@
   </div>
 </div>
 
-<Layouts.app flash={@flash} current_scope={@current_scope} mode={:map}>
+<Layouts.app flash={@flash} current_scope={@current_scope} mode={:map} sidebar_open={@search_term != ""}>
   <:sidebar>
     <div class="flex h-full min-h-0 flex-1 flex-col gap-3">
     <div class="map-wait search-wrapper relative shrink-0">
@@ -55,8 +55,8 @@
     </div>
     </div>
 
-    <div class={"map-wait flex min-h-0 flex-1 flex-col gap-3 transition-all duration-200 #{if @search_term !="" ,
-    do: "blur-[2px] opacity-90 pointer-events-none" , else: "" }"}>
+    <div class={"map-wait flex min-h-0 flex-1 flex-col gap-3 #{if @search_term !="" ,
+    do: "pointer-events-none" , else: "" }"}>
       <div class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1">
       <div
         class="rounded-xl border border-slate-100 dark:border-slate-600 p-2 space-y-1.5 shadow-card bg-white dark:bg-slate-700/90 sidebar-section"
