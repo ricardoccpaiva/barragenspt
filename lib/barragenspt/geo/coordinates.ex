@@ -35,6 +35,12 @@ defmodule Barragenspt.Geo.Coordinates do
     }
   end
 
+  def safe_from_dam(dam) do
+    from_dam(dam)
+  rescue
+    _ -> nil
+  end
+
   def from_dam_site_id(id) do
     id |> Dams.get() |> from_dam()
   end

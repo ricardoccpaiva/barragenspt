@@ -72,6 +72,7 @@ defmodule BarragensptWeb.Router do
   scope "/api", BarragensptWeb do
     pipe_through([:api_dams])
 
+    get("/dams", Api.DamsController, :index)
     get("/dams/:id/info", Api.DamsController, :info)
     get("/dams/:id/realtime", Api.DamsController, :realtime)
     get("/dams/:id", Api.DamsController, :show)

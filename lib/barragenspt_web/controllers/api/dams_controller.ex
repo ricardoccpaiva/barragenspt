@@ -5,12 +5,31 @@ defmodule BarragensptWeb.Api.DamsController do
 
   alias BarragensptWeb.Api.Schemas.{
     ApiErrorResponse,
+    DamCollectionResponse,
     DamInfoResponse,
     DamRealtimeResponse,
     DamSnapshotResponse
   }
 
   tags(["Barragens"])
+
+  operation(:index,
+    summary: "Listar barragens",
+    description:
+      "Lista leve de barragens com metadados de identificação e coordenadas para consumo cartográfico. Autenticação: `Authorization: Bearer <YOUR_API_TOKEN>`.",
+    responses: [
+      ok: {"Lista de barragens", "application/json", DamCollectionResponse},
+      unauthorized: {"Token em falta/inválido", "application/json", ApiErrorResponse}
+    ]
+  )
+
+  def index(conn, _params) do
+    dams = Dams.all()
+
+    conn
+    |> put_view(BarragensptWeb.Api.DamsView)
+    |> render("index.json", dams: dams)
+  end
 
   operation(:info,
     summary: "Obter informação descritiva da barragem",

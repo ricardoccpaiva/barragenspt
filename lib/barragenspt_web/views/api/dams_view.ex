@@ -1,5 +1,18 @@
 defmodule BarragensptWeb.Api.DamsView do
   use BarragensptWeb, :view
+  alias Barragenspt.Geo.Coordinates
+
+  def render("index.json", %{dams: dams}) do
+    %{
+      data: Enum.map(dams, &dam_list_item/1),
+      links: %{
+        self: "/api/dams",
+        dam: "/api/dams/{site_id}",
+        realtime: "/api/dams/{site_id}/realtime",
+        info: "/api/dams/{site_id}/info"
+      }
+    }
+  end
 
   def render("info.json", %{dam: dam}) do
     site_id = dam.site_id
@@ -137,4 +150,17 @@ defmodule BarragensptWeb.Api.DamsView do
 
   defp realtime_self_link(site_id, nil), do: "/api/dams/#{site_id}/realtime"
   defp realtime_self_link(site_id, limit), do: "/api/dams/#{site_id}/realtime?limit=#{limit}"
+
+  defp dam_list_item(dam) do
+    coordinates = Map.get(dam, :coordinates) || Coordinates.safe_from_dam(dam)
+
+    %{
+      id: dam.site_id,
+      name: dam.name,
+      basin_id: dam.basin_id,
+      basin_name: dam.basin,
+      river: dam.river,
+      coordinates: coordinates
+    }
+  end
 end

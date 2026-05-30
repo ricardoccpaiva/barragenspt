@@ -105,6 +105,96 @@ defmodule BarragensptWeb.Api.Schemas do
     })
   end
 
+  defmodule DamCoordinates do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Coordenadas da barragem",
+      type: :object,
+      properties: %{
+        lat: %Schema{type: :number, description: "Latitude decimal (WGS84)."},
+        lon: %Schema{type: :number, description: "Longitude decimal (WGS84)."}
+      },
+      example: %{
+        "lat" => 40.3691,
+        "lon" => -8.1234
+      }
+    })
+  end
+
+  defmodule DamListItem do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Barragem (coleção)",
+      description: "Metadados leves da barragem para pesquisa e cartografia.",
+      type: :object,
+      properties: %{
+        id: %Schema{type: :string, description: "Identificador de site da barragem (SNIRH)."},
+        name: %Schema{type: :string, description: "Nome da barragem."},
+        basin_id: %Schema{type: :string, description: "Identificador da bacia hidrográfica."},
+        basin_name: %Schema{type: :string, description: "Nome da bacia hidrográfica."},
+        river: %Schema{type: :string, nullable: true, description: "Nome do rio."},
+        coordinates: %Schema{
+          allOf: [DamCoordinates],
+          nullable: true,
+          description: "Coordenadas da barragem em latitude/longitude decimal."
+        }
+      },
+      example: %{
+        "id" => "1627743384",
+        "name" => "Aguieira",
+        "basin_id" => "1",
+        "basin_name" => "Mondego",
+        "river" => "Mondego",
+        "coordinates" => %{
+          "lat" => 40.3691,
+          "lon" => -8.1234
+        }
+      }
+    })
+  end
+
+  defmodule DamCollectionResponse do
+    require OpenApiSpex
+
+    OpenApiSpex.schema(%{
+      title: "Lista de barragens",
+      description: "Coleção de barragens com coordenadas e metadados básicos.",
+      type: :object,
+      properties: %{
+        data: %Schema{type: :array, items: DamListItem},
+        links: %Schema{
+          type: :object,
+          properties: %{
+            self: %Schema{type: :string, description: "URL para esta listagem."},
+            dam: %Schema{
+              type: :string,
+              description: "URL de detalhe do snapshot da barragem. Substituir `{site_id}`."
+            },
+            realtime: %Schema{
+              type: :string,
+              description: "URL da série realtime da barragem. Substituir `{site_id}`."
+            },
+            info: %Schema{
+              type: :string,
+              description: "URL da informação descritiva da barragem. Substituir `{site_id}`."
+            }
+          }
+        }
+      },
+      example: %{
+        "data" => [DamListItem.schema().example],
+        "links" => %{
+          "self" => "https://example.com/api/dams",
+          "dam" => "https://example.com/api/dams/{site_id}",
+          "realtime" => "https://example.com/api/dams/{site_id}/realtime",
+          "info" => "https://example.com/api/dams/{site_id}/info"
+        }
+      }
+    })
+  end
+
   defmodule DamInfoResponse do
     require OpenApiSpex
 
