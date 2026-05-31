@@ -2,7 +2,7 @@ defmodule BarragensptWeb.Api.BasinsController do
   use BarragensptWeb, :controller
   use OpenApiSpex.ControllerSpecs
 
-  alias Barragenspt.Hydrometrics.{Basins, Dams}
+  alias Barragenspt.Hydrometrics.{Basins, Dams, EmbalsesNet}
 
   alias BarragensptWeb.Api.Schemas.{
     ApiErrorResponse,
@@ -18,6 +18,16 @@ defmodule BarragensptWeb.Api.BasinsController do
     summary: "Listar bacias",
     description:
       "Devolve uma lista de bacias com resumo por bacia. Autenticação: `Authorization: Bearer <YOUR_API_TOKEN>`.",
+    parameters: [
+      includeSpain: [
+        in: :query,
+        description:
+          "Quando `true`, inclui também as bacias espanholas disponíveis no feed Embalses.net. Por omissão é `false`.",
+        type: :boolean,
+        required: false,
+        example: false
+      ]
+    ],
     responses: [
       ok: {"Lista de bacias", "application/json", BasinListResponse},
       unauthorized: {"Token em falta/inválido", "application/json", ApiErrorResponse}
@@ -87,12 +97,16 @@ defmodule BarragensptWeb.Api.BasinsController do
     ]
   )
 
-  def index(conn, _params) do
-    basins = Basins.summary_stats([])
+  def index(conn, params) do
+    include_spain = truthy_param?(params["includeSpain"])
+
+    basins =
+      Basins.summary_stats([])
+      |> maybe_include_spain(include_spain)
 
     conn
     |> put_view(BarragensptWeb.Api.BasinsView)
-    |> render("index.json", basins: basins)
+    |> render("index.json", basins: basins, include_spain: include_spain)
   end
 
   def show(conn, %{"id" => id}) do
@@ -159,4 +173,35 @@ defmodule BarragensptWeb.Api.BasinsController do
         |> render("dam.json", basin_id: basin_id, dam: dam)
     end
   end
+
+  defp maybe_include_spain(basins, false), do: basins
+
+  defp maybe_include_spain(basins, true) do
+    basins ++
+      Enum.map(EmbalsesNet.basins_info(), fn basin ->
+        %{
+          id: basin.id,
+          name: basin.basin_name,
+          country: "es",
+          current_storage_percent: parse_percent(basin.current_pct),
+          current_storage_volume: nil,
+          historical_average_volume: nil,
+          total_capacity: nil
+        }
+      end)
+  end
+
+  defp truthy_param?(value) when value in [true, "true", "1", 1, "yes", "on"], do: true
+  defp truthy_param?(_), do: false
+
+  defp parse_percent(value) when is_number(value), do: value * 1.0
+
+  defp parse_percent(value) when is_binary(value) do
+    case Float.parse(String.replace(value, ",", ".")) do
+      {num, _} -> num
+      :error -> nil
+    end
+  end
+
+  defp parse_percent(_), do: nil
 end

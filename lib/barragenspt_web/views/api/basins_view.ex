@@ -3,11 +3,11 @@ defmodule BarragensptWeb.Api.BasinsView do
 
   alias BarragensptWeb.Api.DamsView
 
-  def render("index.json", %{basins: basins}) do
+  def render("index.json", %{basins: basins, include_spain: include_spain}) do
     %{
       data: Enum.map(basins, &basin/1),
       links: %{
-        self: "/api/basins",
+        self: self_link(include_spain),
         basin: "/api/basins/{id}"
       }
     }
@@ -31,19 +31,27 @@ defmodule BarragensptWeb.Api.BasinsView do
     }
   end
 
-  defp basin(%{
-         id: id,
-         name: name,
-         current_storage_volume: current,
-         historical_average_volume: historical,
-         total_capacity: total_capacity
-       }) do
+  defp basin(
+         %{
+           id: id,
+           name: name,
+           current_storage_volume: current,
+           historical_average_volume: historical,
+           total_capacity: total_capacity
+         } = basin
+       ) do
     %{
       id: to_string(id),
       name: name,
+      country: Map.get(basin, :country, "pt"),
+      current_storage_percent:
+        Map.get(basin, :current_storage_percent) || Map.get(basin, :observed_value),
       current_storage_volume: current,
       historical_average_volume: historical,
       total_capacity: total_capacity
     }
   end
+
+  defp self_link(true), do: "/api/basins?includeSpain=true"
+  defp self_link(_), do: "/api/basins"
 end

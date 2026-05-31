@@ -547,6 +547,15 @@ defmodule BarragensptWeb.Api.Schemas do
       properties: %{
         id: %Schema{type: :string, description: "Identificador da bacia."},
         name: %Schema{type: :string, description: "Nome da bacia."},
+        country: %Schema{
+          type: :string,
+          description: "Código ISO 3166-1 alpha-2 do país da bacia (`pt` ou `es`)."
+        },
+        current_storage_percent: %Schema{
+          type: :number,
+          nullable: true,
+          description: "Percentagem atual de armazenamento da bacia."
+        },
         current_storage_volume: %Schema{
           type: :number,
           nullable: true,
@@ -568,6 +577,8 @@ defmodule BarragensptWeb.Api.Schemas do
       example: %{
         "id" => "1",
         "name" => "Rio Mondego",
+        "country" => "pt",
+        "current_storage_percent" => 59.5,
         "current_storage_volume" => 1_250_000,
         "historical_average_volume" => 1_180_000,
         "total_capacity" => 2_100_000
