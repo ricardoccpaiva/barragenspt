@@ -80,7 +80,7 @@ defmodule Barragenspt.Services.Agroclima do
   O token vem no atributo `csrft` do div#mapchartcont.
   """
   def fetch_session_and_csrf do
-    opts = [recv_timeout: @timeout, follow_redirect: true]
+    opts = request_opts(follow_redirect: true)
 
     case HTTPoison.get(@clievo_url, [], opts) do
       {:ok, %{headers: headers, body: body}} ->
@@ -141,7 +141,7 @@ defmodule Barragenspt.Services.Agroclima do
       {"cookie", cookie_header}
     ]
 
-    opts = [recv_timeout: @timeout]
+    opts = request_opts()
 
     case HTTPoison.post(@evomaptimeval_url, body, headers, opts) do
       {:ok, %{status_code: 200, body: response_body}} ->
@@ -158,5 +158,17 @@ defmodule Barragenspt.Services.Agroclima do
         Logger.warning("Agroclima evomaptimeval error: #{inspect(reason)}")
         {:error, :upstream}
     end
+  end
+
+  defp request_opts(extra_opts \\ []) do
+    [recv_timeout: @timeout, timeout: @timeout, hackney: hackney_opts()] ++ extra_opts
+  end
+
+  defp hackney_opts do
+    proxy = Application.get_env(:barragenspt, :snirh, [])[:proxy]
+
+    if is_binary(proxy) and proxy != "",
+      do: [proxy: proxy, insecure: true],
+      else: [insecure: true]
   end
 end
