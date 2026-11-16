@@ -971,10 +971,12 @@ const AdminProductChart = {
         },
         scales: {
           x: {
+            stacked: true,
             ticks: { color: tickColor, maxRotation: 45, autoSkip: true, maxTicksLimit: 16 },
             grid: { color: gridColor }
           },
           y: {
+            stacked: true,
             beginAtZero: true,
             ticks: { color: tickColor, precision: 0 },
             grid: { color: gridColor }
