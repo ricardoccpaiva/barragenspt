@@ -9,7 +9,7 @@ defmodule Barragenspt.Services.Agroclima do
   require Logger
 
   @base_url "https://agroclima.ipma.pt"
-  @clievo_url "#{@base_url}/clievo"
+  @clievo_url "#{@base_url}/clievo/dd"
   @evomaptimeval_url "#{@base_url}/evomaptimeval"
   @timeout 15_000
 
